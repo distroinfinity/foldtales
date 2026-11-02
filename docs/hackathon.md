@@ -1,5 +1,9 @@
 # Hackathon — Meta VR Start Developer Competition 2026
 
+## Our setup
+- **Meta Quest 3** (with Touch controllers): our build target and test device. Every build gets installed and play-tested on it. Judges will use hands only, so controllers are just a convenience.
+- **Mac:** the build machine. Agents build here and deploy to the Quest.
+
 ## Tracks & prizes ($1M, 20 prizes)
 - **Gaming:** hands-first, seated games. $100k / $50k.
 - **Entertainment:** lean-back media and storytelling. $100k / $50k.
