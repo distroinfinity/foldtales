@@ -16,6 +16,7 @@ Ticket 0 comes first. The Art library and the voice audition don't need it, so t
 - **Look comes first.** Art and motion always meet the look bar. A temporary voice or a thin feature is fine, but test visuals never are.
 - **Art doesn't wait for code.** The Art library runs from `art/` from the start, under the rules in `art/README.md`.
 - **You spend your time in the headset.** Every merge to main deploys, and every branch gets a preview URL. Open it on the Quest with no USB needed.
+- **Every workspace sets itself up.** `.superset/setup.sh` links the shared `.env.local`, gives the workspace its own ports in `.env.ports`, and installs dependencies. Change a key once, in the main checkout's `.env.local`.
 - **Each workstream's agent reports:** what it verified, what you need to check, and a link to try.
 
 ## Milestones
@@ -53,7 +54,7 @@ The one real bottleneck, so it's kept small. Ends at **M0**.
 
 | Workstream | What it does |
 |---|---|
-| **Repo and contracts** | Monorepo with `client`, `backend` and `contracts`. Contracts for stage actions, the acting list, beats, objects, tags, rigs, events and telemetry, with mocks for every backend call. Per-workspace dev ports via `.superset/config.json`, since the IWSDK dev server fails if its port is taken |
+| **Repo and contracts** | Monorepo with `client`, `backend` and `contracts`. Contracts for stage actions, the acting list, beats, objects, tags, rigs, events and telemetry, with mocks for every backend call. Dev servers read their ports from each workspace's `.env.ports`, since the IWSDK dev server fails if its port is taken |
 | **Deploy and backend** | CI, CDN previews for every branch, and the Railway service with server-only keys, device tokens, quotas, caps and persistence mirror. Telemetry beacon and report script |
 | **Pip on the table** | The thinnest path from `art/cast/pip/` to one puppet on your real surface, with hit-test placement and its breathing motion |
 

@@ -12,3 +12,4 @@ Read `docs/prd.md`, `docs/technical-design.md`, `docs/design-language.md` and yo
 - v1 is frozen. New ideas go in `docs/v2-ideas.md`, not into tickets.
 - Generated art is a product asset. Read `art/README.md` before painting anything: every run needs a plan first.
 - IWSDK skills are in `.claude/skills/` and `.agents/skills/`. Use them for IWSDK work.
+- Each workspace has its own ports in `.env.ports`. Dev servers read `CLIENT_PORT` and `BACKEND_PORT` from it, and never hard-code a port.
