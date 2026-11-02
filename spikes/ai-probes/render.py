@@ -1,5 +1,4 @@
 import json,random,sys,os
-sys.path.append('/Users/manu/Library/Python/3.9/lib/python/site-packages')
 from PIL import Image,ImageDraw
 data,out=sys.argv[1],sys.argv[2]
 random.seed(7); idx=[]

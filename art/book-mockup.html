@@ -1,0 +1,39 @@
+<!doctype html>
+<!-- The approved page, lettering and controls. Reference only, not product code.
+     Open from the repo through any static server, so the painting loads. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Book Mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;500&family=Fraunces:opsz,wght@144,500&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; padding: 32px 16px 48px; background: #2b2420; display: grid; justify-items: center; }
+  .cover { width: 100%; max-width: 380px; box-sizing: border-box; background: #1f2a44; border-radius: 6px 12px 12px 6px; padding: 12px 14px 12px 10px; position: relative; box-shadow: 0 12px 26px rgba(10,12,30,.42); }
+  .leaf { position: relative; background: #f6efe2; border-radius: 2px 7px 7px 2px; padding: 22px 20px 24px; min-height: 470px; box-shadow: inset 12px 0 16px -12px rgba(70,50,30,.45); color: #2b2420; display: flex; flex-direction: column; }
+  h1 { margin: 0; padding-right: 44px; color: #1f2a44; line-height: 1.08; font-family: 'Fraunces', serif; font-size: 37px; font-weight: 500; font-variation-settings: 'opsz' 144; }
+  img { display: block; width: 78%; margin: 8px auto 4px; mix-blend-mode: multiply; -webkit-mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 72%, transparent 100%); mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 72%, transparent 100%); }
+  .caption { font-family: 'Atkinson Hyperlegible Next', sans-serif; font-size: 24px; line-height: 1.28; margin: auto 0 0; }
+  .ribbon { position: absolute; top: -4px; right: 34px; width: 20px; height: 66px; background: #b5502e; clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 84%, 0 100%); }
+  .tab { position: absolute; right: -9px; width: 20px; height: 56px; border-radius: 0 6px 6px 0; }
+  .satchel { top: 96px; background: #d4a23e; }
+  .chapters { top: 164px; background: #76917d; }
+  .pull { position: absolute; left: 50%; bottom: -12px; width: 74px; height: 22px; margin-left: -37px; background: #8a5a2c; border-radius: 0 0 11px 11px; box-shadow: 0 3px 6px rgba(10,12,30,.4); }
+  .pull::after { content: ''; position: absolute; left: 28px; top: 7px; width: 18px; height: 7px; border-radius: 4px; background: #d4a23e; }
+</style>
+</head>
+<body>
+  <div class="cover">
+    <div class="leaf">
+      <div class="ribbon"></div>
+      <h1>The Lamp Goes Out</h1>
+      <img src="runs/002-pip-puppet-and-live-painter/pip-master-v2.png" alt="Pip holding a lantern">
+      <p class="caption">"Who left this here?" Pip whispers, turning the little kite over.</p>
+      <div class="tab satchel"></div>
+      <div class="tab chapters"></div>
+    </div>
+    <div class="pull"></div>
+  </div>
+</body>
+</html>

@@ -2,6 +2,10 @@
 
 **Frozen v1.** Comes out of `technical-design.md` and `design-language.md`. Later ideas go in `v2-ideas.md`, not in these tickets. Submission deadline: **Nov 18, 2026**. Work is split so many Claude Code and Codex sessions, each in its own Superset workspace, can own a ticket with little coordination. Spike code in `spikes/` is reference only, and nothing gets copied in without being rewritten for the product.
 
+## Where to start
+
+Ticket 0 comes first. The Art library and the voice audition don't need it, so they can start in their own workspaces at the same time. When ticket 0 scaffolds IWSDK, keep the skills already in `.claude/skills/` and `.agents/skills/`, and don't let the scaffold duplicate them inside `client`.
+
 ## How to run it
 
 - **One ticket, one milestone.** Ticket 3 ends when you can play M3. You track tickets, and agents own the workstreams inside them.
@@ -149,12 +153,12 @@ Don't push on. Pull in the fallback from the risk table in `technical-design.md`
 
 ## What you need to set up
 
-**Already done on this Mac:** `adb`, Meta VR CLI with skills and MCP, IWSDK via npm, Runway key in `.env.local`, Runway MCP added (run `/mcp` to sign in, though the art tools don't need it).
+**Already done:** `adb`, Meta VR CLI with skills and MCP, Runway key in `.env.local`, Runway MCP added (run `/mcp` to sign in, though the art tools don't need it), and the [private GitHub repo](https://github.com/distroinfinity/tabletop-theatre). `.env.local` is never committed, so copy it into any new workspace that paints art.
 
 **Before ticket 0 starts**
 - [ ] Confirm the reset Quest is signed in with your developer account, and Developer Mode is on in the Horizon phone app.
 - [ ] Next time the USB prompt appears, tick **Always allow from this computer**.
-- [ ] Create or connect: GitHub repo, Railway project (backend), Cloudflare account (static client, free tier).
+- [ ] Create or connect: Railway project (backend), Cloudflare account (static client, free tier).
 - [ ] Anthropic API key for the backend only, with a spending limit set in the console.
 
 **When tickets ask, with an estimate first**

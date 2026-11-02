@@ -1,5 +1,4 @@
 import sys
-sys.path.append('/Users/manu/Library/Python/3.9/lib/python/site-packages')
 import json
 from PIL import Image,ImageDraw
 res=json.load(open(sys.argv[1])); idx=json.load(open('img/index.json')); out=sys.argv[2]; pick=sys.argv[3].split(',')

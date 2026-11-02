@@ -15,7 +15,11 @@ Generated art is a product asset, not a temp file. Credits are only spent on pla
 
 - `refs/`: approved design references that generations work from.
 - `runs/<id>/`: each planned run, with its plan, images, manifest and results.
-- `tools/generate.mjs`: runs a plan. Use `node --env-file=.env.local art/tools/generate.mjs art/runs/<id>` from the repo root.
+- `cast/<who>/`: finished puppet pieces and each character's `rig.json`. These are product assets.
+- `cast/prototype.html`: the approved acting for all three characters. Reference only.
+- `book-mockup.html`: the approved page, lettering and controls. Reference only.
+- `tools/generate.mjs`: runs a plan. Use `node --env-file=.env.local art/tools/generate.mjs art/runs/<id>` from the repo root. Needs `RUNWAYML_API_SECRET` in `.env.local`.
+- `tools/cutout.py`: cuts painted pieces off plain paper, for no credits. Needs Python with `numpy` and `Pillow`.
 
 ## What we've learned
 

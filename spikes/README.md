@@ -1,6 +1,8 @@
 # Spikes
 
-Throwaway experiments that settle technical questions. Nothing here is product code, so don't build on it.
+Throwaway experiments that settled early technical questions. Nothing here is product code, so don't build on it. The results are in `docs/technical-design.md`, marked *measured*.
 
-- `quest-stack/`: can IWSDK on Quest 3 hold frame rate over passthrough, and do air-drawn strokes become a moving puppet in about 2 s? Run `quest-stack/run-on-quest.sh` with a Quest plugged in and Quest Browser open (`node open-on-quest.mjs` just reopens the page), then `node report.mjs` in that folder for results. `emulator-test.mjs` runs the same path with simulated hands, against a running dev session.
-- `ai-probes/`: latency and quality of doodle reading, beat planning and character replies. Needs `npm install` and `ANTHROPIC_API_KEY`, and each run spends API credit. `doodle.mjs` and `stream.mjs` read images from `img/`, which `render.py` makes from Quick Draw samples in `qd-data/` (not committed). The `*.json` files and `haiku_rigs.png` are saved results.
+Air drawing has since left the product, so the drawing and doodle-reading parts are history. The rest still applies.
+
+- `quest-stack/`: IWSDK on Quest 3 over passthrough. Still useful for frame rate, the mic after a pause, placement, and how to reach the headset. Run `npm install`, then `run-on-quest.sh` with a Quest plugged in and Quest Browser open (`node open-on-quest.mjs` just reopens the page). `node report.mjs` in that folder prints results. `emulator-test.mjs` runs the same path with simulated hands, against a running dev session.
+- `ai-probes/`: latency and quality of beat planning and character replies, plus doodle reading. Needs `npm install` and `ANTHROPIC_API_KEY`, and each run spends API credit. The `*.json` files are saved results.

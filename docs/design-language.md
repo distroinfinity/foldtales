@@ -1,6 +1,6 @@
 # Tabletop Theater: design language
 
-**Frozen as v1.** You chose each of these in the browser, except where marked as my default. Everything still gets its final test in the headset, and changes go through you. The art is in `art/cast/`, and `art/cast/prototype.html` shows the approved acting.
+**Frozen as v1.** You chose each of these in the browser, except where marked as my default. Everything still gets its final test in the headset, and changes go through you. The art is in `art/cast/`, and `art/cast/prototype.html` shows the approved acting. `art/book-mockup.html` shows the approved page, lettering and controls.
 
 ## The idea
 
