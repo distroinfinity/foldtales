@@ -1,0 +1,191 @@
+{
+  "id": "001-cast-model-test",
+  "question": "Which image model best paints the approved cast in the frozen storybook style?",
+  "why": "Every later art run depends on this. Testing once now means we don't pay to find out later.",
+  "sameAcrossModels": "Same design reference, same character descriptions and same style text. Only the model changes.",
+  "decideBy": [
+    "You pick by eye: does it look truly painted and charming?",
+    "It honors the approved designs: the oversized coat, spectacles and logbook, fluffy Moth.",
+    "Faces and silhouettes still read at book size.",
+    "Clean edges on plain paper, so the piece can be cut out."
+  ],
+  "learnEvenIfRejected": "Real credit cost and speed per model, which prompt wording works, and how each model handles a design reference.",
+  "reusableOutput": "The chosen paintings become the master reference images for later poses and scenes. Rejected images stay as a record and aren't regenerated.",
+  "capCredits": 1000,
+  "jobs": [
+    {
+      "id": "gen4_image-pip",
+      "model": "gen4_image",
+      "ratio": "1024:1024",
+      "character": "pip",
+      "params": {
+        "seed": 4242
+      },
+      "refs": [
+        {
+          "file": "art/refs/pip.png",
+          "tag": "design"
+        }
+      ],
+      "prompt": "Use @design for the character design only, repainted fully as: A young red fox, small and a little nervous, standing upright, wearing an old navy keeper's coat far too big, with brass buttons and rolled-up cuffs, holding up a small brass lantern with a warm flame. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. Natural animal anatomy, gentle and dignified, not a cartoon. One character only, full body, centered, on plain warm white paper. No scenery, no ground, no text."
+    },
+    {
+      "id": "gen4_image-wick",
+      "model": "gen4_image",
+      "ratio": "1024:1024",
+      "character": "wick",
+      "params": {
+        "seed": 4242
+      },
+      "refs": [
+        {
+          "file": "art/refs/wick.png",
+          "tag": "design"
+        }
+      ],
+      "prompt": "Use @design for the character design only, repainted fully as: An old badger, stout and grumpy but kind, standing upright, wearing a dark blue-gray coat, cream waistcoat, flat navy cap and thick round wire spectacles, squinting at an open leather logbook held close to his face. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. Natural animal anatomy, gentle and dignified, not a cartoon. One character only, full body, centered, on plain warm white paper. No scenery, no ground, no text."
+    },
+    {
+      "id": "gen4_image-moth",
+      "model": "gen4_image",
+      "ratio": "1024:1024",
+      "character": "moth",
+      "params": {
+        "seed": 4242
+      },
+      "refs": [
+        {
+          "file": "art/refs/moth-square.png",
+          "tag": "design"
+        }
+      ],
+      "prompt": "Use @design for the character design only, repainted fully as: A fluffy pale cream moth facing the viewer, wings open, with a thick fur collar, big round dark eyes, feathered comb antennae, dusty patterned forewings and warm amber hindwings. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. Natural animal anatomy, gentle and dignified, not a cartoon. One character only, full body, centered, on plain warm white paper. No scenery, no ground, no text."
+    },
+    {
+      "id": "gemini_image3_pro-pip",
+      "model": "gemini_image3_pro",
+      "ratio": "1024:1024",
+      "character": "pip",
+      "params": {},
+      "refs": [
+        {
+          "file": "art/refs/pip.png"
+        }
+      ],
+      "prompt": "Use the reference sketch for the character design only, repainted fully as: A young red fox, small and a little nervous, standing upright, wearing an old navy keeper's coat far too big, with brass buttons and rolled-up cuffs, holding up a small brass lantern with a warm flame. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. Natural animal anatomy, gentle and dignified, not a cartoon. One character only, full body, centered, on plain warm white paper. No scenery, no ground, no text."
+    },
+    {
+      "id": "gemini_image3_pro-wick",
+      "model": "gemini_image3_pro",
+      "ratio": "1024:1024",
+      "character": "wick",
+      "params": {},
+      "refs": [
+        {
+          "file": "art/refs/wick.png"
+        }
+      ],
+      "prompt": "Use the reference sketch for the character design only, repainted fully as: An old badger, stout and grumpy but kind, standing upright, wearing a dark blue-gray coat, cream waistcoat, flat navy cap and thick round wire spectacles, squinting at an open leather logbook held close to his face. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. Natural animal anatomy, gentle and dignified, not a cartoon. One character only, full body, centered, on plain warm white paper. No scenery, no ground, no text."
+    },
+    {
+      "id": "gemini_image3_pro-moth",
+      "model": "gemini_image3_pro",
+      "ratio": "1024:1024",
+      "character": "moth",
+      "params": {},
+      "refs": [
+        {
+          "file": "art/refs/moth.png"
+        }
+      ],
+      "prompt": "Use the reference sketch for the character design only, repainted fully as: A fluffy pale cream moth facing the viewer, wings open, with a thick fur collar, big round dark eyes, feathered comb antennae, dusty patterned forewings and warm amber hindwings. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. Natural animal anatomy, gentle and dignified, not a cartoon. One character only, full body, centered, on plain warm white paper. No scenery, no ground, no text."
+    },
+    {
+      "id": "seedream5_pro-pip",
+      "model": "seedream5_pro",
+      "ratio": "1024:1024",
+      "character": "pip",
+      "params": {},
+      "refs": [
+        {
+          "file": "art/refs/pip.png"
+        }
+      ],
+      "prompt": "Use Figure 1 for the character design only, repainted fully as: A young red fox, small and a little nervous, standing upright, wearing an old navy keeper's coat far too big, with brass buttons and rolled-up cuffs, holding up a small brass lantern with a warm flame. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. Natural animal anatomy, gentle and dignified, not a cartoon. One character only, full body, centered, on plain warm white paper. No scenery, no ground, no text."
+    },
+    {
+      "id": "seedream5_pro-wick",
+      "model": "seedream5_pro",
+      "ratio": "1024:1024",
+      "character": "wick",
+      "params": {},
+      "refs": [
+        {
+          "file": "art/refs/wick.png"
+        }
+      ],
+      "prompt": "Use Figure 1 for the character design only, repainted fully as: An old badger, stout and grumpy but kind, standing upright, wearing a dark blue-gray coat, cream waistcoat, flat navy cap and thick round wire spectacles, squinting at an open leather logbook held close to his face. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. Natural animal anatomy, gentle and dignified, not a cartoon. One character only, full body, centered, on plain warm white paper. No scenery, no ground, no text."
+    },
+    {
+      "id": "seedream5_pro-moth",
+      "model": "seedream5_pro",
+      "ratio": "1024:1024",
+      "character": "moth",
+      "params": {},
+      "refs": [
+        {
+          "file": "art/refs/moth.png"
+        }
+      ],
+      "prompt": "Use Figure 1 for the character design only, repainted fully as: A fluffy pale cream moth facing the viewer, wings open, with a thick fur collar, big round dark eyes, feathered comb antennae, dusty patterned forewings and warm amber hindwings. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. Natural animal anatomy, gentle and dignified, not a cartoon. One character only, full body, centered, on plain warm white paper. No scenery, no ground, no text."
+    },
+    {
+      "id": "gpt_image_2_5_flare-pip",
+      "model": "gpt_image_2_5_flare",
+      "ratio": "1920:1920",
+      "character": "pip",
+      "params": {
+        "quality": "high"
+      },
+      "refs": [
+        {
+          "file": "art/refs/pip.png",
+          "tag": "design"
+        }
+      ],
+      "prompt": "Use the reference sketch for the character design only, repainted fully as: A young red fox, small and a little nervous, standing upright, wearing an old navy keeper's coat far too big, with brass buttons and rolled-up cuffs, holding up a small brass lantern with a warm flame. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. Natural animal anatomy, gentle and dignified, not a cartoon. One character only, full body, centered, on plain warm white paper. No scenery, no ground, no text."
+    },
+    {
+      "id": "gpt_image_2_5_flare-wick",
+      "model": "gpt_image_2_5_flare",
+      "ratio": "1920:1920",
+      "character": "wick",
+      "params": {
+        "quality": "high"
+      },
+      "refs": [
+        {
+          "file": "art/refs/wick.png",
+          "tag": "design"
+        }
+      ],
+      "prompt": "Use the reference sketch for the character design only, repainted fully as: An old badger, stout and grumpy but kind, standing upright, wearing a dark blue-gray coat, cream waistcoat, flat navy cap and thick round wire spectacles, squinting at an open leather logbook held close to his face. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. Natural animal anatomy, gentle and dignified, not a cartoon. One character only, full body, centered, on plain warm white paper. No scenery, no ground, no text."
+    },
+    {
+      "id": "gpt_image_2_5_flare-moth",
+      "model": "gpt_image_2_5_flare",
+      "ratio": "1920:1920",
+      "character": "moth",
+      "params": {
+        "quality": "high"
+      },
+      "refs": [
+        {
+          "file": "art/refs/moth.png",
+          "tag": "design"
+        }
+      ],
+      "prompt": "Use the reference sketch for the character design only, repainted fully as: A fluffy pale cream moth facing the viewer, wings open, with a thick fur collar, big round dark eyes, feathered comb antennae, dusty patterned forewings and warm amber hindwings. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. Natural animal anatomy, gentle and dignified, not a cartoon. One character only, full body, centered, on plain warm white paper. No scenery, no ground, no text."
+    }
+  ]
+}

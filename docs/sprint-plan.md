@@ -1,0 +1,174 @@
+# Tabletop Theater: sprint plan
+
+**Frozen v1.** Comes out of `technical-design.md` and `design-language.md`. Later ideas go in `v2-ideas.md`, not in these tickets. Submission deadline: **Nov 18, 2026**. Work is split so many Claude Code and Codex sessions, each in its own Superset workspace, can own a ticket with little coordination. Spike code in `spikes/` is reference only, and nothing gets copied in without being rewritten for the product.
+
+## How to run it
+
+- **One ticket, one milestone.** Ticket 3 ends when you can play M3. You track tickets, and agents own the workstreams inside them.
+- **Thinnest playable first.** Each ticket's first merge is the smallest version you can play, even if it's rough in places. Workstreams then deepen it.
+- **Real use sets the priority.** After each headset session, tell an agent what you noticed in plain words, and it goes in `docs/playtest-notes.md`. Those notes come before new features, and telemetry backs them up.
+- **Someone else plays from M2.** Hand the headset to a person who's never seen it at each milestone from then on. Watch without helping.
+- **Contracts are the one shared gate.** Ticket 0 freezes them, then everyone builds against mocks. A contract change is its own small PR, so nobody edits it inside a feature branch.
+- **Look comes first.** Art and motion always meet the look bar. A temporary voice or a thin feature is fine, but test visuals never are.
+- **Art doesn't wait for code.** The Art library runs from `art/` from the start, under the rules in `art/README.md`.
+- **You spend your time in the headset.** Every merge to main deploys, and every branch gets a preview URL. Open it on the Quest with no USB needed.
+- **Each workstream's agent reports:** what it verified, what you need to check, and a link to try.
+
+## Milestones
+
+| # | You can play | The test only you can pass |
+|---|---|---|
+| **M0** | **Pip on your table.** A link opens on your Quest, and Pip stands on your real table, breathing, with the lantern glowing | Does Pip feel alive in your real room? |
+| **M1** | **The first 30 seconds.** Tap "Open the book", your room dims, the book unfolds, Pip's lantern blows out, and Pip looks up at you | Would you put this in the video? |
+| **M2** | **First five minutes.** Hand back the lantern, the drawer slides open at the gap, hand over anything, and play a complete authored episode that ends with the beam sweeping your room | Does handing things over feel good, with no instructions? |
+| **M3** | **A story that bends and remembers.** Whatever you hand over, the story bends around it, and next episode the kite is tangled on the lighthouse. Turn off Wi-Fi and it still finishes. Pick a lost object to start a new story | Does your object matter, does it never stall, and does the next episode really change? |
+| **M4** | **Voices and Talk.** Cozy cast and music. Ask Wick something and the scene changes | Does it sound cozy, and is talking worth doing? |
+| **M5** | **Story Circle.** Two headsets in one room, then remote | Do you both feel you changed the story? |
+| **M6** | **Ready to submit.** Cold start, final polish, video | Would you hand this to a judge? |
+
+## Dependencies
+
+```
+Art library: runs throughout, on its own
+
+0 Foundations
+ └─ 1 First 30 seconds
+     ├─ 2 First five minutes
+     │   ├─ 3 A story that bends and remembers ─┐
+     │   └─ 4 Voices and Talk ──────────────────┤
+     └─ 5 Story Circle (two-headset proof) ─────┴─ 5 full show ── 6 Ship
+```
+
+Tickets 3 and 4 run side by side. Workstreams can start before their ticket is playable: the show simulator and the voice audition need only contracts or nothing, and the backend is live from ticket 0.
+
+## Tickets
+
+### 0. Foundations
+
+The one real bottleneck, so it's kept small. Ends at **M0**.
+
+| Workstream | What it does |
+|---|---|
+| **Repo and contracts** | Monorepo with `client`, `backend` and `contracts`. Contracts for stage actions, the acting list, beats, objects, tags, rigs, events and telemetry, with mocks for every backend call. Per-workspace dev ports via `.superset/config.json`, since the IWSDK dev server fails if its port is taken |
+| **Deploy and backend** | CI, CDN previews for every branch, and the Railway service with server-only keys, device tokens, quotas, caps and persistence mirror. Telemetry beacon and report script |
+| **Pip on the table** | The thinnest path from `art/cast/pip/` to one puppet on your real surface, with hit-test placement and its breathing motion |
+
+- **Blocked by:** nothing. **Blocks:** all other code.
+- **Agent verifies:** two workspaces run side by side, Pip boots in the emulator, keys are absent from the client bundle, and a hit cap falls back to authored.
+- **You verify:** create the accounts and keys, and approve each paid estimate. **M0 sign-off** gives the first answer to P0: does a painted puppet hold up on your table?
+
+### 1. First 30 seconds
+
+Ends at **M1**.
+
+| Workstream | What it does |
+|---|---|
+| **Painted Stage Kit** | The `design-language.md` system as code: card material with `alphaToCoverage` and depth compatibility, the full puppet system reading `rig.json`, head swaps, all acting from `art/cast/prototype.html`, card yaw, pop-up layers, contact shadows, mood tint, lantern glow, room dim and beam sector, sound hookups. KTX2 and atlas build |
+| **Stage and room** | Landing page, mic request before XR, tray to desk sizing, spine move, no-passthrough room, pause and resume through the book, ribbon, crash recovery, scene preloading |
+
+- **Blocked by:** 0. **Blocks:** 2, and 5's proof.
+- **Agent verifies:** review scene screenshots against the look bar, frame budget with all three characters on device builds, resume from a saved log, frame guard survives an injected error.
+- **You verify:** P0 and P5. Do puppets hold up from the side, and does the beam look like your room is being lit? Placement on your desk, a tray and another table. Resume after taking the headset off. Tune the joints here.
+
+### 2. First five minutes
+
+Ends at **M2**, the first complete product, and the first time someone else plays it.
+
+| Workstream | What it does |
+|---|---|
+| **Hands and objects** | **P1 first:** grab a small object and hand it to Pip, with snap distances tuned. Then pick up, move, shelter, place, the drawer and pull, the satchel, keeping, and every feedback state with sound. Characters look at your real head and reach for objects |
+| **Show and flagship** | Scheduler, event log, beat format, authored beats and branches, scene problems with tag rules, narrator bridges, reactions. The complete first episode with no AI, plus the doing-nothing path, ending on the beam. A headless simulator, which can start from contracts alone |
+
+- **Blocked by:** 1. **Blocks:** 3, 4, and 5's full show.
+- **Agent verifies:** emulator hand-pose flows, `iwsdk-glasses-test` for gaze and FOV, no controller paths. Offline simulator: both paths and every tag branch finish in 5–7 minutes, with no stalls.
+- **You verify:** P1, with you and at least one other person. Is the zero-input episode satisfying? Payoff by minute 1? Does the beam land?
+
+### 3. A story that bends and remembers
+
+The AI layer. Director and memory are clubbed because you can only judge them together, by playing one episode and then the next. Ends at **M3**.
+
+| Workstream | What it does |
+|---|---|
+| **Director** | Beat planner, object reactions, validator with pacing guardrails, library-only staging, lookahead queue, repetition ledger, spine use, resolution logic. Story rubric |
+| **Memory and satchel** | Canon from the event log, satchel persistence, object history, "Previously on…", undo, returning objects, deletion, the page composed from episode art |
+| **Tonight's lost thing** | Pick a lost object to start a new story, a generated spine with fallback beats, moderation of spoken premises |
+
+- **Blocked by:** 2. **Blocks:** 5's full show, 6.
+- **Agent verifies:** P4: hundreds of simulated shows with injected slowness and failure, no stall, no repeat, time-box met, and every gift acknowledged. P2's rubric across the library. Next episode differs with and without each consequence, undo reverses it, and data survives reload.
+- **You verify:** hand over odd things. Does what you gave change the ending? Turn off Wi-Fi mid-episode. Play the returning evening, including closing the book mid-scene. Start three stories of your own.
+
+### 4. Voices and Talk
+
+Ends at **M4**. Runs alongside ticket 3.
+
+| Workstream | What it does |
+|---|---|
+| **Voice and music** | Voice audition through Runway's `eleven_v4`, voice chain, casting, line pre-render, foley mix. Latency test of Runway's text to speech for live replies. One planned `seed_audio` test for music, otherwise a licensed library, with stems and crossfades. The audition can start right now |
+| **Talk** | Select, paper ear, fresh mic per listen, a blind test of speech to text, in-character replies, speaker choice, mouth swaps from loudness, scene changes from speech, in-story redirects, mute, disclosure. Measures the first second of capture |
+
+- **Blocked by:** 2 for Talk's selection. Nothing for the audition. **Blocks:** Talk in 5, 6.
+- **Agent verifies:** all lines present and cached, loudness targets, no missing audio offline, recorded clips through speech to text, conversation rubric, red-team set, completing silently still works.
+- **You verify:** the audition is yours to judge, by ear, on the headset's speakers. Approve the cast, then the music. Talk to Wick for real.
+
+### 5. Story Circle
+
+Stays its own ticket, because it needs two headsets and can fail independently. Ends at **M5**.
+
+| Workstream | What it does |
+|---|---|
+| **Two-headset proof** | **P3:** thin relay, shared stage on a bare scene, and book alignment, on two real headsets. Starts as soon as ticket 1 places a stage |
+| **Shared show** | Ownership, speaker lock, shared satchels, fairness, invites, avatars, remote voice, host handoff, bot Reader, the page in both books |
+
+- **Blocked by:** 1 for the proof, then 3 and 4 for the full show. **Blocks:** 6.
+- **Agent verifies:** multi-client simulation with bots, dropped host, reconnect from log, fairness across simulated episodes.
+- **You verify:** P3 with two headsets, then a real remote session with a friend.
+
+### 6. Ship
+
+Ends at **M6**. Cold start budget, PWA and offline cache, final device pass, accessibility (captions, one-handed), VR Glasses view pass, the open items in playtest notes, licenses and credits including Runway's terms, privacy text, demo video, submission form.
+
+- **Blocked by:** everything else. **Blocks:** submission.
+- **Agent verifies:** cold start on a throttled network, the Must-pass list against automated checks, form copy lengths, license list complete.
+- **You verify:** film the video from real Quest recordings, and retest audio capture first. Play it as a judge, from the submitted link, with the controllers in a drawer.
+
+### Art library
+
+Runs throughout, and feeds every ticket. Sets for the flagship in painted layers, the book, drawer and satchel, the object library with descriptions and tags, a few prepared visitors, remaining cast actions. Planned runs only, each closed with results. Starts with what M1 needs: the book and the first set.
+
+- **Blocked by:** nothing. Object data format comes from ticket 0.
+- **Agent verifies:** every piece cuts out cleanly, naming and rig checks, credit use against each plan's cap.
+- **You verify:** approve sets and key objects in the headset, not on the Mac.
+
+### If there's time: live art
+
+Moth's live-painted finds, live-painted pages and visitor cards, with the backend cutout and its rejection check. Moved out of the main path, because composed pages and the prepared library already keep the promise. Pick it up only if play shows it would add something.
+
+## If a proof fails
+
+Don't push on. Pull in the fallback from the risk table in `technical-design.md`, then replan what it touches. If the deadline forces cuts, thin these first, because each keeps its promise at a smaller size: remote avatar detail, number of library objects, number of flagship episodes past the first two. Never cut the first 30 seconds, the feel of handing things over, the beam, the no-stall behavior, or the take-it-away path.
+
+## What you need to set up
+
+**Already done on this Mac:** `adb`, Meta VR CLI with skills and MCP, IWSDK via npm, Runway key in `.env.local`, Runway MCP added (run `/mcp` to sign in, though the art tools don't need it).
+
+**Before ticket 0 starts**
+- [ ] Confirm the reset Quest is signed in with your developer account, and Developer Mode is on in the Horizon phone app.
+- [ ] Next time the USB prompt appears, tick **Always allow from this computer**.
+- [ ] Create or connect: GitHub repo, Railway project (backend), Cloudflare account (static client, free tier).
+- [ ] Anthropic API key for the backend only, with a spending limit set in the console.
+
+**When tickets ask, with an estimate first**
+- [ ] Speech to text and possibly fast live voice: ElevenLabs or your OpenAI key (ticket 4).
+- [ ] Music library, if the Runway test fails (ticket 4).
+- [ ] Second Quest, ideally on your own account (ticket 5's proof).
+
+**Worth knowing, since this is your first VR project**
+- **Try two things first:** Moss for how a tiny character bonds with you, and any polished mixed reality title for how grounding looks. Notice shadows, sound and hand feedback.
+- **Comfort:** read Meta's [hands design principles](https://developers.meta.com/horizon/design/hands-plain-language-principles/). Feel for strain after 10 minutes, and raise anything that tires you.
+- **Headset habits:** avoid long-pressing unless truly stuck, since that's what started the USB problem. Good lighting makes hand tracking far more reliable. Keep the OS current, and re-test after updates.
+- **Getting stuck on USB:** replug, then **Settings → System → Developer options → Revoke USB debugging authorizations**, then the wireless debugging pairing code, and a factory reset only as a last resort.
+- **Making recordings:** Meta button, camera icon, Record video. Agents can pull files from `/sdcard/Oculus/VideoShots` over USB. Your room appears in these clips, and frames an agent views get sent to the model provider.
+
+## Headset testing rhythm
+
+Open the latest preview, test what the ticket asked, then tell the agent in plain words. Telemetry reaches the agent automatically, so you don't need to read numbers. Note where you were and what the lighting was like, because rooms are part of the test. Test at least once at a real table, once on a tray or lap, and once in a dim room.

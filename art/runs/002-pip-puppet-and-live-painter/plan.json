@@ -1,0 +1,106 @@
+{
+  "id": "002-pip-puppet-and-live-painter",
+  "question": "Can the chosen painter make a puppet we can animate, and which fast painter can match it for art made during a session?",
+  "why": "Storytelling needs characters that move, and the AI needs to add new ones. Both have to work before we paint the rest of the library.",
+  "decideBy": [
+    "Puppet: the parts sheet cuts out cleanly, joins back into Pip, and looks alive when animated on your desk.",
+    "Coat: it now looks far too big, with Pip's face unchanged.",
+    "Live painter: under about 30 seconds and hard to tell apart from the master style, including on a brand-new character."
+  ],
+  "learnEvenIfRejected": "Whether image models can make usable puppet parts, or whether we split a single painting ourselves instead. Real speed and cost of the fast models.",
+  "reusableOutput": "pip-master-v2 and the parts become product assets. The hedgehog tests AI-invented cast, and it's a usable library character if it passes.",
+  "capCredits": 100,
+  "jobs": [
+    {
+      "id": "pip-master-v2",
+      "purpose": "master",
+      "model": "seedream5_pro",
+      "ratio": "1024:1024",
+      "params": {},
+      "refs": [
+        {
+          "file": "art/runs/001-cast-model-test/seedream5_pro-pip.png"
+        }
+      ],
+      "prompt": "Repaint the fox in Figure 1, keeping the same face, expression, fur and painting style. Change only the coat. An old navy keeper's coat far too big for the fox: sleeves hanging past the paws with bulky rolled cuffs, shoulders drooping, hem dragging on the ground, brass buttons. Holding up a small brass lantern. One character only, full body, centered. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. Natural animal anatomy, gentle and dignified, not a cartoon. On plain white paper. No scenery, no ground, no text."
+    },
+    {
+      "id": "pip-parts-sheet",
+      "purpose": "puppet",
+      "model": "seedream5_pro",
+      "ratio": "1024:1024",
+      "params": {},
+      "refs": [
+        {
+          "file": "art/runs/002-pip-puppet-and-live-painter/pip-master-v2.png"
+        }
+      ],
+      "prompt": "A paper-doll parts sheet of the fox character in Figure 1, in exactly the same painting style. Show these separate pieces laid out with wide empty space between them, none touching or overlapping: the head with ears; the body in the coat with no head and no arms; one coat sleeve arm with paw; the tail; two hind legs with feet; the brass lantern. Each piece is complete and cleanly painted, as if cut out for a jointed puppet. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. Natural animal anatomy, gentle and dignified, not a cartoon. On plain white paper. No scenery, no ground, no text."
+    },
+    {
+      "id": "live-seedream5_flash-pip",
+      "purpose": "live",
+      "model": "seedream5_flash",
+      "ratio": "1024:1024",
+      "params": {},
+      "refs": [
+        {
+          "file": "art/runs/001-cast-model-test/seedream5_pro-pip.png"
+        }
+      ],
+      "prompt": "Use Figure 1 for the character and painting style. A young red fox, small and a little nervous, standing upright, holding up a small brass lantern with a warm flame. An old navy keeper's coat far too big for the fox: sleeves hanging past the paws with bulky rolled cuffs, shoulders drooping, hem dragging on the ground, brass buttons. One character only, full body, centered. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. Natural animal anatomy, gentle and dignified, not a cartoon. On plain white paper. No scenery, no ground, no text."
+    },
+    {
+      "id": "live-seedream5_lite-pip",
+      "purpose": "live",
+      "model": "seedream5_lite",
+      "ratio": "2048:2048",
+      "params": {},
+      "refs": [
+        {
+          "file": "art/runs/001-cast-model-test/seedream5_pro-pip.png"
+        }
+      ],
+      "prompt": "Use Figure 1 for the character and painting style. A young red fox, small and a little nervous, standing upright, holding up a small brass lantern with a warm flame. An old navy keeper's coat far too big for the fox: sleeves hanging past the paws with bulky rolled cuffs, shoulders drooping, hem dragging on the ground, brass buttons. One character only, full body, centered. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. Natural animal anatomy, gentle and dignified, not a cartoon. On plain white paper. No scenery, no ground, no text."
+    },
+    {
+      "id": "live-gemini_flash-pip",
+      "purpose": "live",
+      "model": "gemini_image3.1_flash",
+      "ratio": "1024:1024",
+      "params": {},
+      "refs": [
+        {
+          "file": "art/runs/001-cast-model-test/seedream5_pro-pip.png"
+        }
+      ],
+      "prompt": "Use the reference image for the character and painting style. A young red fox, small and a little nervous, standing upright, holding up a small brass lantern with a warm flame. An old navy keeper's coat far too big for the fox: sleeves hanging past the paws with bulky rolled cuffs, shoulders drooping, hem dragging on the ground, brass buttons. One character only, full body, centered. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. Natural animal anatomy, gentle and dignified, not a cartoon. On plain white paper. No scenery, no ground, no text."
+    },
+    {
+      "id": "new-seedream5_flash-hedgehog",
+      "purpose": "new character",
+      "model": "seedream5_flash",
+      "ratio": "1024:1024",
+      "params": {},
+      "refs": [
+        {
+          "file": "art/runs/001-cast-model-test/seedream5_pro-wick.png"
+        }
+      ],
+      "prompt": "Paint a new character in exactly the same painting style as Figure 1. A small hedgehog ferryman, shy and kindly, standing upright, wearing a patched mustard waistcoat and a little striped scarf, holding a short wooden oar. One character only, full body, centered. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. Natural animal anatomy, gentle and dignified, not a cartoon. On plain white paper. No scenery, no ground, no text."
+    },
+    {
+      "id": "new-gemini_flash-hedgehog",
+      "purpose": "new character",
+      "model": "gemini_image3.1_flash",
+      "ratio": "1024:1024",
+      "params": {},
+      "refs": [
+        {
+          "file": "art/runs/001-cast-model-test/seedream5_pro-wick.png"
+        }
+      ],
+      "prompt": "Paint a new character in exactly the same painting style as the reference image. A small hedgehog ferryman, shy and kindly, standing upright, wearing a patched mustard waistcoat and a little striped scarf, holding a short wooden oar. One character only, full body, centered. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. Natural animal anatomy, gentle and dignified, not a cartoon. On plain white paper. No scenery, no ground, no text."
+    }
+  ]
+}

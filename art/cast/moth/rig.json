@@ -1,0 +1,9 @@
+{
+  "note": "First fit, not yet tuned. Pixels at the parts' own size, relative to Moth's center. Wings and antennae are painted once and mirrored for the other side. Pivot is a percentage of the part. Flap by narrowing the wings from their roots.",
+  "parts": {
+    "lowerWing": { "file": "parts/lower-wing.png", "x": 14, "y": -50, "pivot": [0, 20], "z": 1, "scale": 1, "mirrored": true },
+    "upperWing": { "file": "parts/upper-wing.png", "x": 20, "y": -280, "pivot": [0, 76], "z": 2, "scale": 1, "mirrored": true },
+    "antenna": { "file": "parts/antenna.png", "x": 8, "y": -420, "pivot": [2, 98], "z": 3, "scale": 0.7, "rotation": -24, "mirrored": true },
+    "body": { "file": "parts/body.png", "x": -131, "y": -230, "pivot": [50, 40], "z": 5, "scale": 0.72 }
+  }
+}

@@ -1,0 +1,12 @@
+node_modules/
+.env*
+*.pem
+*.key
+# Downloaded Quick Draw samples and images rendered from them
+ai-probes/qd-data/
+ai-probes/img/
+# Headset results and recordings
+quest-stack/spike-telemetry*.jsonl
+quest-stack/spike-mic*
+quest-stack/doodles/
+quest-stack/shot*.png

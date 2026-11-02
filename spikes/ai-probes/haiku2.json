@@ -1,0 +1,2025 @@
+[
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Pip the Plane",
+  "truth": "airplane",
+  "ttft": 2244,
+  "tLoco": 2412,
+  "ms": 2999,
+  "in": 236,
+  "cr": 0,
+  "out": 245,
+  "label": "airplane",
+  "alternatives": [
+   "propeller",
+   "kite"
+  ],
+  "role": "object",
+  "locomotion": "fly",
+  "confidence": 0.7,
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.5,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "wing",
+    "x": 0.2,
+    "y": 0.45,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "wing",
+    "x": 0.65,
+    "y": 0.55,
+    "parent": 0
+   },
+   {
+    "id": 3,
+    "part": "tail",
+    "x": 0.4,
+    "y": 0.85,
+    "parent": 0
+   },
+   {
+    "id": 4,
+    "part": "tail",
+    "x": 0.4,
+    "y": 0.15,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "span_gap",
+   "carry"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Skyler Wing",
+  "truth": "airplane",
+  "ttft": 1242,
+  "tLoco": 1419,
+  "ms": 1980,
+  "in": 236,
+  "cr": 1201,
+  "out": 243,
+  "label": "airplane",
+  "alternatives": [
+   "bird",
+   "boat"
+  ],
+  "role": "object",
+  "locomotion": "fly",
+  "confidence": 0.6,
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.5,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "wing",
+    "x": 0.35,
+    "y": 0.3,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "wing",
+    "x": 0.4,
+    "y": 0.7,
+    "parent": 0
+   },
+   {
+    "id": 3,
+    "part": "tail",
+    "x": 0.12,
+    "y": 0.45,
+    "parent": 0
+   },
+   {
+    "id": 4,
+    "part": "head",
+    "x": 0.9,
+    "y": 0.4,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "carry",
+   "span_gap"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Skyler",
+  "truth": "airplane",
+  "ttft": 1110,
+  "tLoco": 1353,
+  "ms": 1972,
+  "in": 236,
+  "cr": 1201,
+  "out": 278,
+  "label": "airplane",
+  "alternatives": [
+   "jet",
+   "glider",
+   "bird"
+  ],
+  "role": "object",
+  "locomotion": "fly",
+  "confidence": 0.85,
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.45,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "wing",
+    "x": 0.3,
+    "y": 0.4,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "wing",
+    "x": 0.7,
+    "y": 0.4,
+    "parent": 0
+   },
+   {
+    "id": 3,
+    "part": "tail",
+    "x": 0.1,
+    "y": 0.45,
+    "parent": 0
+   },
+   {
+    "id": 4,
+    "part": "wing",
+    "x": 0.45,
+    "y": 0.2,
+    "parent": 0
+   },
+   {
+    "id": 5,
+    "part": "wing",
+    "x": 0.55,
+    "y": 0.65,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "span_gap",
+   "carry",
+   "float"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Pip the Plane",
+  "truth": "airplane",
+  "ttft": 855,
+  "tLoco": 1021,
+  "ms": 1645,
+  "in": 236,
+  "cr": 1201,
+  "out": 248,
+  "label": "airplane",
+  "alternatives": [
+   "jet",
+   "glider",
+   "seaplane"
+  ],
+  "role": "object",
+  "locomotion": "fly",
+  "confidence": 0.85,
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.55,
+    "y": 0.47,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "wing",
+    "x": 0.22,
+    "y": 0.35,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "wing",
+    "x": 0.5,
+    "y": 0.62,
+    "parent": 0
+   },
+   {
+    "id": 3,
+    "part": "tail",
+    "x": 0.17,
+    "y": 0.42,
+    "parent": 0
+   },
+   {
+    "id": 4,
+    "part": "head",
+    "x": 0.9,
+    "y": 0.4,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "carry",
+   "span_gap"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Bobo Balloon",
+  "truth": "bird",
+  "ttft": 1606,
+  "tLoco": 1746,
+  "ms": 2207,
+  "in": 236,
+  "cr": 1201,
+  "out": 182,
+  "label": "hot air balloon",
+  "alternatives": [
+   "kite",
+   "bell",
+   "sack"
+  ],
+  "role": "object",
+  "locomotion": "fly",
+  "confidence": 0.55,
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.6,
+    "y": 0.32,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "other",
+    "x": 0.92,
+    "y": 0.18,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.08,
+    "y": 0.2,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "carry",
+   "float"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Bendy Banana",
+  "truth": "bird",
+  "ttft": 877,
+  "tLoco": 1088,
+  "ms": 1483,
+  "in": 236,
+  "cr": 1201,
+  "out": 184,
+  "label": "banana",
+  "alternatives": [
+   "boomerang",
+   "curved stick",
+   "shoe"
+  ],
+  "role": "object",
+  "locomotion": "static",
+  "confidence": 0.6,
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.5,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "other",
+    "x": 0.2,
+    "y": 0.2,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.85,
+    "y": 0.5,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "carry",
+   "span_gap"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Arch Ann",
+  "truth": "bird",
+  "ttft": 1206,
+  "tLoco": 1386,
+  "ms": 1908,
+  "in": 236,
+  "cr": 1201,
+  "out": 182,
+  "label": "bridge",
+  "alternatives": [
+   "hammock",
+   "swing",
+   "arch"
+  ],
+  "role": "scenery",
+  "locomotion": "static",
+  "confidence": 0.6,
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.45,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "other",
+    "x": 0.2,
+    "y": 0.2,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.9,
+    "y": 0.27,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "span_gap",
+   "climb"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Pip the Little Bird",
+  "truth": "bird",
+  "ttft": 1045,
+  "tLoco": 1191,
+  "ms": 2091,
+  "in": 236,
+  "cr": 1201,
+  "out": 309,
+  "label": "bird",
+  "alternatives": [
+   "chicken",
+   "duck"
+  ],
+  "role": "character",
+  "locomotion": "hop",
+  "confidence": 0.85,
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.5,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "head",
+    "x": 0.3,
+    "y": 0.25,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "jaw",
+    "x": 0.15,
+    "y": 0.36,
+    "parent": 1
+   },
+   {
+    "id": 3,
+    "part": "wing",
+    "x": 0.7,
+    "y": 0.4,
+    "parent": 0
+   },
+   {
+    "id": 4,
+    "part": "tail",
+    "x": 0.9,
+    "y": 0.4,
+    "parent": 0
+   },
+   {
+    "id": 5,
+    "part": "leg",
+    "x": 0.52,
+    "y": 0.78,
+    "parent": 0
+   },
+   {
+    "id": 6,
+    "part": "leg",
+    "x": 0.63,
+    "y": 0.8,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "span_gap",
+   "float"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Plank Span",
+  "truth": "bridge",
+  "ttft": 923,
+  "tLoco": 1116,
+  "ms": 1574,
+  "in": 236,
+  "cr": 1201,
+  "out": 181,
+  "label": "bridge",
+  "alternatives": [
+   "fence",
+   "railing",
+   "scaffold"
+  ],
+  "role": "scenery",
+  "locomotion": "static",
+  "confidence": 0.7,
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.3,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "other",
+    "x": 0.15,
+    "y": 0.3,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.85,
+    "y": 0.3,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "span_gap",
+   "block"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Arching Bridge",
+  "truth": "bridge",
+  "ttft": 954,
+  "tLoco": 1118,
+  "ms": 1577,
+  "in": 236,
+  "cr": 1201,
+  "out": 185,
+  "label": "bridge",
+  "alternatives": [
+   "arch",
+   "rainbow",
+   "wave"
+  ],
+  "role": "scenery",
+  "locomotion": "static",
+  "confidence": 0.85,
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.42,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "other",
+    "x": 0.17,
+    "y": 0.42,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.9,
+    "y": 0.42,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "span_gap",
+   "shelter"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Arched Bridge Bella",
+  "truth": "bridge",
+  "ttft": 1042,
+  "tLoco": 1231,
+  "ms": 1645,
+  "in": 236,
+  "cr": 1201,
+  "out": 191,
+  "label": "bridge",
+  "alternatives": [
+   "arch",
+   "rainbow",
+   "aqueduct"
+  ],
+  "role": "scenery",
+  "locomotion": "static",
+  "confidence": 0.85,
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.4,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "other",
+    "x": 0.1,
+    "y": 0.45,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.9,
+    "y": 0.4,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "span_gap",
+   "shelter"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Rollo the Little Car",
+  "truth": "bridge",
+  "ttft": 974,
+  "tLoco": 1146,
+  "ms": 1553,
+  "in": 236,
+  "cr": 1201,
+  "out": 176,
+  "label": "car",
+  "alternatives": [
+   "van",
+   "table",
+   "bed"
+  ],
+  "role": "object",
+  "locomotion": "roll",
+  "confidence": 0.6,
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.42,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "other",
+    "x": 0.2,
+    "y": 0.45,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.8,
+    "y": 0.45,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "carry",
+   "block"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Whiskers",
+  "truth": "cat",
+  "ttft": 2056,
+  "tLoco": 2219,
+  "ms": 2624,
+  "in": 236,
+  "cr": 1201,
+  "out": 173,
+  "label": "cat head",
+  "alternatives": [
+   "fox head",
+   "bear head"
+  ],
+  "role": "character",
+  "locomotion": "static",
+  "confidence": 0.6,
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.5,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "head",
+    "x": 0.3,
+    "y": 0.2,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "jaw",
+    "x": 0.45,
+    "y": 0.7,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "none"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Whiskers",
+  "truth": "cat",
+  "ttft": 1076,
+  "tLoco": 1298,
+  "ms": 1900,
+  "in": 236,
+  "cr": 1201,
+  "out": 266,
+  "label": "cat face",
+  "alternatives": [
+   "hamster",
+   "bear",
+   "pig"
+  ],
+  "role": "character",
+  "locomotion": "static",
+  "confidence": 0.6,
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.5,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "head",
+    "x": 0.5,
+    "y": 0.45,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.3,
+    "y": 0.35,
+    "parent": 0
+   },
+   {
+    "id": 3,
+    "part": "other",
+    "x": 0.7,
+    "y": 0.35,
+    "parent": 0
+   },
+   {
+    "id": 4,
+    "part": "other",
+    "x": 0.1,
+    "y": 0.5,
+    "parent": 0
+   },
+   {
+    "id": 5,
+    "part": "other",
+    "x": 0.9,
+    "y": 0.5,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "none"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Whiskers",
+  "truth": "cat",
+  "ttft": 960,
+  "tLoco": 1182,
+  "ms": 1519,
+  "in": 236,
+  "cr": 1201,
+  "out": 204,
+  "label": "cat head",
+  "alternatives": [
+   "fox head",
+   "dog head"
+  ],
+  "role": "character",
+  "locomotion": "static",
+  "confidence": 0.7,
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.5,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "head",
+    "x": 0.3,
+    "y": 0.2,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "head",
+    "x": 0.7,
+    "y": 0.2,
+    "parent": 0
+   },
+   {
+    "id": 3,
+    "part": "jaw",
+    "x": 0.5,
+    "y": 0.8,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "none"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Whiskers",
+  "truth": "cat",
+  "ttft": 930,
+  "tLoco": 1125,
+  "ms": 1621,
+  "in": 236,
+  "cr": 1201,
+  "out": 234,
+  "label": "cat head",
+  "alternatives": [
+   "fox head",
+   "dog head"
+  ],
+  "role": "character",
+  "locomotion": "walk",
+  "confidence": 0.6,
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.5,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "head",
+    "x": 0.5,
+    "y": 0.45,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.3,
+    "y": 0.3,
+    "parent": 1
+   },
+   {
+    "id": 3,
+    "part": "other",
+    "x": 0.7,
+    "y": 0.3,
+    "parent": 1
+   },
+   {
+    "id": 4,
+    "part": "other",
+    "x": 0.2,
+    "y": 0.55,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "none"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Sparky Wingtail",
+  "truth": "dragon",
+  "ttft": 1185,
+  "tLoco": 1267,
+  "ms": 2234,
+  "in": 236,
+  "cr": 1201,
+  "out": 350,
+  "label": "dragon",
+  "alternatives": [
+   "bird",
+   "pterodactyl",
+   "wyvern"
+  ],
+  "role": "character",
+  "locomotion": "fly",
+  "confidence": 0.85,
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.45,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "neck",
+    "x": 0.3,
+    "y": 0.3,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "head",
+    "x": 0.15,
+    "y": 0.2,
+    "parent": 1
+   },
+   {
+    "id": 3,
+    "part": "wing",
+    "x": 0.5,
+    "y": 0.2,
+    "parent": 0
+   },
+   {
+    "id": 4,
+    "part": "wing",
+    "x": 0.58,
+    "y": 0.1,
+    "parent": 3
+   },
+   {
+    "id": 5,
+    "part": "tail",
+    "x": 0.85,
+    "y": 0.4,
+    "parent": 0
+   },
+   {
+    "id": 6,
+    "part": "tail",
+    "x": 0.9,
+    "y": 0.35,
+    "parent": 5
+   },
+   {
+    "id": 7,
+    "part": "leg",
+    "x": 0.6,
+    "y": 0.55,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "carry",
+   "span_gap"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Pip the Wingling",
+  "truth": "dragon",
+  "ttft": 887,
+  "tLoco": 1080,
+  "ms": 1761,
+  "in": 236,
+  "cr": 1201,
+  "out": 275,
+  "label": "bird",
+  "alternatives": [
+   "dragon",
+   "bat"
+  ],
+  "role": "character",
+  "locomotion": "fly",
+  "confidence": 0.55,
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.5,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "head",
+    "x": 0.6,
+    "y": 0.25,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "wing",
+    "x": 0.3,
+    "y": 0.3,
+    "parent": 0
+   },
+   {
+    "id": 3,
+    "part": "wing",
+    "x": 0.15,
+    "y": 0.25,
+    "parent": 2
+   },
+   {
+    "id": 4,
+    "part": "tail",
+    "x": 0.7,
+    "y": 0.7,
+    "parent": 0
+   },
+   {
+    "id": 5,
+    "part": "leg",
+    "x": 0.45,
+    "y": 0.85,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "float",
+   "span_gap"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Ember the Dragon",
+  "truth": "dragon",
+  "ttft": 870,
+  "tLoco": 1078,
+  "ms": 1907,
+  "in": 236,
+  "cr": 1201,
+  "out": 315,
+  "label": "dragon",
+  "alternatives": [
+   "dinosaur",
+   "lizard",
+   "kangaroo"
+  ],
+  "role": "character",
+  "locomotion": "walk",
+  "confidence": 0.7,
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.55,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "neck",
+    "x": 0.68,
+    "y": 0.35,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "head",
+    "x": 0.8,
+    "y": 0.18,
+    "parent": 1
+   },
+   {
+    "id": 3,
+    "part": "tail",
+    "x": 0.3,
+    "y": 0.5,
+    "parent": 0
+   },
+   {
+    "id": 4,
+    "part": "tail",
+    "x": 0.14,
+    "y": 0.25,
+    "parent": 3
+   },
+   {
+    "id": 5,
+    "part": "leg",
+    "x": 0.62,
+    "y": 0.75,
+    "parent": 0
+   },
+   {
+    "id": 6,
+    "part": "leg",
+    "x": 0.82,
+    "y": 0.8,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "span_gap"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Skyler",
+  "truth": "dragon",
+  "ttft": 1048,
+  "tLoco": 1151,
+  "ms": 1751,
+  "in": 236,
+  "cr": 1201,
+  "out": 244,
+  "label": "airplane",
+  "alternatives": [
+   "jet",
+   "bird",
+   "rocket"
+  ],
+  "role": "object",
+  "locomotion": "fly",
+  "confidence": 0.8,
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.3,
+    "y": 0.38,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "wing",
+    "x": 0.45,
+    "y": 0.25,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "wing",
+    "x": 0.52,
+    "y": 0.55,
+    "parent": 0
+   },
+   {
+    "id": 3,
+    "part": "tail",
+    "x": 0.22,
+    "y": 0.4,
+    "parent": 0
+   },
+   {
+    "id": 4,
+    "part": "other",
+    "x": 0.92,
+    "y": 0.25,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "carry",
+   "span_gap"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Bramble Bloom",
+  "truth": "hot air balloon",
+  "ttft": 921,
+  "tLoco": 1162,
+  "ms": 1748,
+  "in": 236,
+  "cr": 1201,
+  "out": 220,
+  "label": "hot air balloon",
+  "alternatives": [
+   "balloon",
+   "lantern",
+   "bag"
+  ],
+  "role": "object",
+  "locomotion": "fly",
+  "confidence": 0.85,
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.4,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "other",
+    "x": 0.35,
+    "y": 0.66,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.62,
+    "y": 0.7,
+    "parent": 0
+   },
+   {
+    "id": 3,
+    "part": "other",
+    "x": 0.52,
+    "y": 0.9,
+    "parent": 1
+   }
+  ],
+  "affordances": [
+   "carry",
+   "float",
+   "span_gap"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Milo the Mushroom",
+  "truth": "hot air balloon",
+  "ttft": 915,
+  "tLoco": 1101,
+  "ms": 1467,
+  "in": 236,
+  "cr": 1201,
+  "out": 155,
+  "label": "mushroom",
+  "alternatives": [
+   "tree",
+   "lamp",
+   "toadstool"
+  ],
+  "role": "scenery",
+  "locomotion": "static",
+  "confidence": 0.8,
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.45,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "other",
+    "x": 0.5,
+    "y": 0.8,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "shelter",
+   "block"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Mossy Mushroom",
+  "truth": "hot air balloon",
+  "ttft": 1737,
+  "tLoco": 1884,
+  "ms": 2280,
+  "in": 236,
+  "cr": 1201,
+  "out": 156,
+  "label": "mushroom",
+  "alternatives": [
+   "umbrella",
+   "toadstool",
+   "tree"
+  ],
+  "role": "scenery",
+  "locomotion": "static",
+  "confidence": 0.85,
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.42,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "other",
+    "x": 0.5,
+    "y": 0.85,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "shelter",
+   "block"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Bobbin the Balloon",
+  "truth": "hot air balloon",
+  "ttft": 972,
+  "tLoco": 1156,
+  "ms": 1720,
+  "in": 236,
+  "cr": 1201,
+  "out": 218,
+  "label": "hot air balloon",
+  "alternatives": [
+   "lantern",
+   "bell",
+   "mushroom"
+  ],
+  "role": "object",
+  "locomotion": "fly",
+  "confidence": 0.85,
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.35,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "other",
+    "x": 0.4,
+    "y": 0.6,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.5,
+    "y": 0.75,
+    "parent": 0
+   },
+   {
+    "id": 3,
+    "part": "other",
+    "x": 0.5,
+    "y": 0.9,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "carry",
+   "float"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Rung Ladder",
+  "truth": "ladder",
+  "ttft": 841,
+  "tLoco": 1024,
+  "ms": 1515,
+  "in": 236,
+  "cr": 1201,
+  "out": 184,
+  "label": "ladder",
+  "alternatives": [
+   "rope bridge",
+   "fence",
+   "staircase"
+  ],
+  "role": "object",
+  "locomotion": "static",
+  "confidence": 0.92,
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.5,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "other",
+    "x": 0.27,
+    "y": 0.08,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.3,
+    "y": 0.92,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "span_gap",
+   "climb"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Rung Bridge",
+  "truth": "ladder",
+  "ttft": 857,
+  "tLoco": 1048,
+  "ms": 1329,
+  "in": 236,
+  "cr": 1201,
+  "out": 155,
+  "label": "ladder",
+  "alternatives": [
+   "stairs",
+   "wooden rungs",
+   "shelf"
+  ],
+  "role": "object",
+  "locomotion": "static",
+  "confidence": 0.9,
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.4,
+    "y": 0.5,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "other",
+    "x": 0.5,
+    "y": 0.1,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "climb",
+   "span_gap"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Rung Rise",
+  "truth": "ladder",
+  "ttft": 834,
+  "tLoco": 1024,
+  "ms": 1470,
+  "in": 236,
+  "cr": 1201,
+  "out": 183,
+  "label": "ladder",
+  "alternatives": [
+   "bridge",
+   "tower",
+   "rope ladder"
+  ],
+  "role": "object",
+  "locomotion": "static",
+  "confidence": 0.55,
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.45,
+    "y": 0.5,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "other",
+    "x": 0.2,
+    "y": 0.15,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.5,
+    "y": 0.92,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "span_gap",
+   "climb"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Rung Rory",
+  "truth": "ladder",
+  "ttft": 903,
+  "tLoco": 1096,
+  "ms": 1522,
+  "in": 236,
+  "cr": 1201,
+  "out": 184,
+  "label": "ladder",
+  "alternatives": [
+   "rope bridge",
+   "fence",
+   "scaffold"
+  ],
+  "role": "object",
+  "locomotion": "static",
+  "confidence": 0.6,
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.5,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "other",
+    "x": 0.2,
+    "y": 0.3,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.6,
+    "y": 0.25,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "span_gap",
+   "climb"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Sly Serpentine",
+  "truth": "snake",
+  "ttft": 1521,
+  "tLoco": 1653,
+  "ms": 2485,
+  "in": 236,
+  "cr": 1201,
+  "out": 308,
+  "label": "snake",
+  "alternatives": [
+   "eel",
+   "rope",
+   "worm"
+  ],
+  "role": "character",
+  "locomotion": "slither",
+  "confidence": 0.6,
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.2,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "spine",
+    "x": 0.3,
+    "y": 0.19,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "spine",
+    "x": 0.15,
+    "y": 0.2,
+    "parent": 1
+   },
+   {
+    "id": 3,
+    "part": "tail",
+    "x": 0.08,
+    "y": 0.17,
+    "parent": 2
+   },
+   {
+    "id": 4,
+    "part": "spine",
+    "x": 0.7,
+    "y": 0.18,
+    "parent": 0
+   },
+   {
+    "id": 5,
+    "part": "head",
+    "x": 0.9,
+    "y": 0.16,
+    "parent": 4
+   },
+   {
+    "id": 6,
+    "part": "jaw",
+    "x": 0.93,
+    "y": 0.1,
+    "parent": 5
+   }
+  ],
+  "affordances": [
+   "span_gap"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Pip the Balloon",
+  "truth": "snake",
+  "ttft": 893,
+  "tLoco": 1062,
+  "ms": 1720,
+  "in": 236,
+  "cr": 1201,
+  "out": 243,
+  "label": "balloon",
+  "alternatives": [
+   "lantern",
+   "bulb",
+   "onion"
+  ],
+  "role": "object",
+  "locomotion": "fly",
+  "confidence": 0.55,
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.27,
+    "y": 0.68,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "other",
+    "x": 0.45,
+    "y": 0.58,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.6,
+    "y": 0.35,
+    "parent": 1
+   },
+   {
+    "id": 3,
+    "part": "other",
+    "x": 0.46,
+    "y": 0.08,
+    "parent": 2
+   },
+   {
+    "id": 4,
+    "part": "other",
+    "x": 0.16,
+    "y": 0.92,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "carry",
+   "float"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Sir Wiggles",
+  "truth": "snake",
+  "ttft": 882,
+  "tLoco": 1083,
+  "ms": 1741,
+  "in": 236,
+  "cr": 1201,
+  "out": 274,
+  "label": "snake",
+  "alternatives": [
+   "worm",
+   "eel"
+  ],
+  "role": "character",
+  "locomotion": "slither",
+  "confidence": 0.8,
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.45,
+    "y": 0.55,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "spine",
+    "x": 0.3,
+    "y": 0.62,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "spine",
+    "x": 0.15,
+    "y": 0.7,
+    "parent": 1
+   },
+   {
+    "id": 3,
+    "part": "head",
+    "x": 0.1,
+    "y": 0.85,
+    "parent": 2
+   },
+   {
+    "id": 4,
+    "part": "spine",
+    "x": 0.6,
+    "y": 0.45,
+    "parent": 0
+   },
+   {
+    "id": 5,
+    "part": "tail",
+    "x": 0.85,
+    "y": 0.12,
+    "parent": 4
+   }
+  ],
+  "affordances": [
+   "span_gap",
+   "block"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Willow Bend",
+  "truth": "snake",
+  "ttft": 1545,
+  "tLoco": 1761,
+  "ms": 2095,
+  "in": 236,
+  "cr": 1201,
+  "out": 180,
+  "label": "river",
+  "alternatives": [
+   "stream",
+   "snake",
+   "ribbon"
+  ],
+  "role": "scenery",
+  "locomotion": "static",
+  "confidence": 0.6,
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.4,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "other",
+    "x": 0.15,
+    "y": 0.12,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.92,
+    "y": 0.48,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "span_gap",
+   "float"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Old Oakley",
+  "truth": "tree",
+  "ttft": 857,
+  "tLoco": 1068,
+  "ms": 1543,
+  "in": 236,
+  "cr": 1201,
+  "out": 214,
+  "label": "tree",
+  "alternatives": [
+   "bush",
+   "mushroom",
+   "shrub"
+  ],
+  "role": "scenery",
+  "locomotion": "sway",
+  "confidence": 0.72,
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.45,
+    "y": 0.5,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "spine",
+    "x": 0.45,
+    "y": 0.8,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.3,
+    "y": 0.35,
+    "parent": 0
+   },
+   {
+    "id": 3,
+    "part": "other",
+    "x": 0.55,
+    "y": 0.3,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "shelter",
+   "block"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Pip the Profile",
+  "truth": "tree",
+  "ttft": 913,
+  "tLoco": 1112,
+  "ms": 1640,
+  "in": 236,
+  "cr": 1201,
+  "out": 216,
+  "label": "human head profile",
+  "alternatives": [
+   "bust sculpture",
+   "person silhouette",
+   "face outline"
+  ],
+  "role": "character",
+  "locomotion": "sway",
+  "confidence": 0.6,
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.35,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "neck",
+    "x": 0.5,
+    "y": 0.6,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "head",
+    "x": 0.5,
+    "y": 0.2,
+    "parent": 0
+   },
+   {
+    "id": 3,
+    "part": "other",
+    "x": 0.2,
+    "y": 0.85,
+    "parent": 1
+   }
+  ],
+  "affordances": [
+   "none"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Old Oakley",
+  "truth": "tree",
+  "ttft": 1210,
+  "tLoco": 1395,
+  "ms": 1881,
+  "in": 236,
+  "cr": 1201,
+  "out": 182,
+  "label": "tree",
+  "alternatives": [
+   "bush",
+   "mushroom",
+   "cloud"
+  ],
+  "role": "scenery",
+  "locomotion": "sway",
+  "confidence": 0.7,
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.4,
+    "y": 0.42,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "other",
+    "x": 0.32,
+    "y": 0.92,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.43,
+    "y": 0.9,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "shelter",
+   "block"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Old Oakley",
+  "truth": "tree",
+  "ttft": 936,
+  "tLoco": 1114,
+  "ms": 1607,
+  "in": 236,
+  "cr": 1201,
+  "out": 213,
+  "label": "tree",
+  "alternatives": [
+   "bush",
+   "mushroom",
+   "cloud"
+  ],
+  "role": "scenery",
+  "locomotion": "sway",
+  "confidence": 0.8,
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.4,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "other",
+    "x": 0.2,
+    "y": 0.8,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.6,
+    "y": 0.8,
+    "parent": 0
+   },
+   {
+    "id": 3,
+    "part": "other",
+    "x": 0.5,
+    "y": 0.2,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "shelter",
+   "block"
+  ],
+  "safe": true
+ }
+]

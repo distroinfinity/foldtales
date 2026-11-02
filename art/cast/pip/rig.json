@@ -1,0 +1,104 @@
+{
+  "note": "How Pip's parts join. Pixels at the parts' own size, relative to the point between Pip's feet. Pivot is a percentage of the part. Higher z sits in front. Approved on the desktop puppet; re-check on the Quest.",
+  "parts": {
+    "tail": {
+      "file": "parts/tail.png",
+      "x": 118,
+      "y": -318,
+      "pivot": [
+        18,
+        88
+      ],
+      "z": 1,
+      "scale": 1
+    },
+    "legs": {
+      "file": "parts/legs.png",
+      "x": -125,
+      "y": -316,
+      "pivot": [
+        50,
+        0
+      ],
+      "z": 2,
+      "scale": 1
+    },
+    "coat": {
+      "file": "parts/coat.png",
+      "x": -238,
+      "y": -730,
+      "pivot": [
+        50,
+        100
+      ],
+      "z": 3,
+      "scale": 1
+    },
+    "lantern": {
+      "file": "parts/lantern.png",
+      "x": 42,
+      "y": -365,
+      "pivot": [
+        50,
+        2
+      ],
+      "z": 6,
+      "scale": 0.78
+    },
+    "arm": {
+      "file": "parts/arm.png",
+      "x": 8,
+      "y": -625,
+      "pivot": [
+        70,
+        8
+      ],
+      "z": 7,
+      "scale": 1
+    }
+  },
+  "chinShadow": {
+    "x": -128,
+    "y": -700,
+    "width": 170,
+    "height": 84,
+    "z": 4
+  },
+  "rules": [
+    "The head turns and tilts from the chin. Keep its slide small, or it comes off the collar.",
+    "A soft shadow under the chin seats the head in the collar."
+  ],
+  "head": {
+    "x": -158,
+    "y": -905,
+    "pivot": [
+      50,
+      72
+    ],
+    "z": 5,
+    "scale": 0.7,
+    "offsets": {
+      "forward": [
+        0,
+        0
+      ],
+      "talk": [
+        -2,
+        2
+      ],
+      "blink": [
+        -5,
+        -2
+      ],
+      "scared": [
+        -2,
+        0
+      ],
+      "profile": [
+        -16,
+        4
+      ]
+    },
+    "files": "heads/<name>.png"
+  }
+}

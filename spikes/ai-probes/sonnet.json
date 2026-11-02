@@ -1,0 +1,2014 @@
+[
+ {
+  "model": "claude-sonnet-5-5",
+  "name": "Crossy Plank",
+  "truth": "airplane",
+  "ms": 2567,
+  "in": 1257,
+  "out": 188,
+  "label": "plank cross",
+  "confidence": 0.35,
+  "alternatives": [
+   "propeller",
+   "cross",
+   "airplane",
+   "windmill blades"
+  ],
+  "role": "object",
+  "locomotion": "static",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.46,
+    "y": 0.5,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "other",
+    "x": 0.2,
+    "y": 0.54,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.62,
+    "y": 0.55,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "span_gap",
+   "block"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-sonnet-5-5",
+  "name": "Puddle Jumper",
+  "truth": "airplane",
+  "ms": 2592,
+  "in": 1257,
+  "out": 215,
+  "label": "airplane",
+  "confidence": 0.55,
+  "alternatives": [
+   "bird",
+   "fish",
+   "boat"
+  ],
+  "role": "object",
+  "locomotion": "fly",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.55,
+    "y": 0.5,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "wing",
+    "x": 0.3,
+    "y": 0.25,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "wing",
+    "x": 0.3,
+    "y": 0.85,
+    "parent": 0
+   },
+   {
+    "id": 3,
+    "part": "head",
+    "x": 0.15,
+    "y": 0.5,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "carry",
+   "span_gap"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-sonnet-5-5",
+  "name": "Whirly Wings",
+  "truth": "airplane",
+  "ms": 2841,
+  "in": 1257,
+  "out": 262,
+  "label": "airplane",
+  "confidence": 0.6,
+  "alternatives": [
+   "four-armed pinwheel",
+   "propeller",
+   "star-shaped creature"
+  ],
+  "role": "object",
+  "locomotion": "fly",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.35,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "wing",
+    "x": 0.43,
+    "y": 0.12,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "wing",
+    "x": 0.9,
+    "y": 0.28,
+    "parent": 0
+   },
+   {
+    "id": 3,
+    "part": "tail",
+    "x": 0.14,
+    "y": 0.45,
+    "parent": 0
+   },
+   {
+    "id": 4,
+    "part": "wing",
+    "x": 0.54,
+    "y": 0.65,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "carry",
+   "span_gap",
+   "float"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-sonnet-5-5",
+  "name": "Zippy the Plane",
+  "truth": "airplane",
+  "ms": 3841,
+  "in": 1257,
+  "out": 252,
+  "label": "airplane",
+  "confidence": 0.93,
+  "alternatives": [
+   "jet",
+   "propeller plane",
+   "aircraft"
+  ],
+  "role": "object",
+  "locomotion": "fly",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.45,
+    "y": 0.45,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "head",
+    "x": 0.88,
+    "y": 0.4,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "tail",
+    "x": 0.12,
+    "y": 0.35,
+    "parent": 0
+   },
+   {
+    "id": 3,
+    "part": "wing",
+    "x": 0.53,
+    "y": 0.2,
+    "parent": 0
+   },
+   {
+    "id": 4,
+    "part": "wing",
+    "x": 0.56,
+    "y": 0.62,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "carry",
+   "span_gap"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-sonnet-5-5",
+  "name": "Long-Tail Finn",
+  "truth": "bird",
+  "ms": 4477,
+  "in": 1257,
+  "out": 252,
+  "label": "fish",
+  "confidence": 0.35,
+  "alternatives": [
+   "bird with long tail",
+   "kite",
+   "tadpole"
+  ],
+  "role": "character",
+  "locomotion": "sail",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.68,
+    "y": 0.22,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "head",
+    "x": 0.93,
+    "y": 0.19,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "spine",
+    "x": 0.57,
+    "y": 0.2,
+    "parent": 0
+   },
+   {
+    "id": 3,
+    "part": "tail",
+    "x": 0.35,
+    "y": 0.2,
+    "parent": 2
+   },
+   {
+    "id": 4,
+    "part": "tail",
+    "x": 0.09,
+    "y": 0.22,
+    "parent": 3
+   }
+  ],
+  "affordances": [
+   "span_gap",
+   "float"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-sonnet-5-5",
+  "name": "Plume",
+  "truth": "bird",
+  "ms": 2989,
+  "in": 1257,
+  "out": 244,
+  "label": "bird (duck or swan)",
+  "confidence": 0.55,
+  "alternatives": [
+   "banana",
+   "snake",
+   "bridge"
+  ],
+  "role": "character",
+  "locomotion": "walk",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.4,
+    "y": 0.55,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "neck",
+    "x": 0.27,
+    "y": 0.35,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "head",
+    "x": 0.2,
+    "y": 0.22,
+    "parent": 1
+   },
+   {
+    "id": 3,
+    "part": "tail",
+    "x": 0.9,
+    "y": 0.55,
+    "parent": 0
+   },
+   {
+    "id": 4,
+    "part": "wing",
+    "x": 0.24,
+    "y": 0.43,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "carry"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-sonnet-5-5",
+  "name": "Scribble Bird",
+  "truth": "bird",
+  "ms": 3666,
+  "in": 1257,
+  "out": 307,
+  "label": "bird",
+  "confidence": 0.55,
+  "alternatives": [
+   "dinosaur",
+   "swan",
+   "fish"
+  ],
+  "role": "character",
+  "locomotion": "walk",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.42,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "neck",
+    "x": 0.27,
+    "y": 0.3,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "head",
+    "x": 0.15,
+    "y": 0.17,
+    "parent": 1
+   },
+   {
+    "id": 3,
+    "part": "tail",
+    "x": 0.82,
+    "y": 0.3,
+    "parent": 0
+   },
+   {
+    "id": 4,
+    "part": "leg",
+    "x": 0.47,
+    "y": 0.52,
+    "parent": 0
+   },
+   {
+    "id": 5,
+    "part": "leg",
+    "x": 0.45,
+    "y": 0.6,
+    "parent": 4
+   },
+   {
+    "id": 6,
+    "part": "leg",
+    "x": 0.65,
+    "y": 0.4,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "carry"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-sonnet-5-5",
+  "name": "Tweetie",
+  "truth": "bird",
+  "ms": 3480,
+  "in": 1257,
+  "out": 306,
+  "label": "bird",
+  "confidence": 0.93,
+  "alternatives": [
+   "chick",
+   "songbird",
+   "sparrow"
+  ],
+  "role": "character",
+  "locomotion": "fly",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.5,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "head",
+    "x": 0.27,
+    "y": 0.2,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "jaw",
+    "x": 0.14,
+    "y": 0.37,
+    "parent": 1
+   },
+   {
+    "id": 3,
+    "part": "wing",
+    "x": 0.6,
+    "y": 0.55,
+    "parent": 0
+   },
+   {
+    "id": 4,
+    "part": "tail",
+    "x": 0.9,
+    "y": 0.4,
+    "parent": 0
+   },
+   {
+    "id": 5,
+    "part": "leg",
+    "x": 0.55,
+    "y": 0.88,
+    "parent": 0
+   },
+   {
+    "id": 6,
+    "part": "leg",
+    "x": 0.64,
+    "y": 0.87,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "carry"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-sonnet-5-5",
+  "name": "Wobbly Bridge",
+  "truth": "bridge",
+  "ms": 3020,
+  "in": 1257,
+  "out": 194,
+  "label": "bridge",
+  "confidence": 0.55,
+  "alternatives": [
+   "fence",
+   "roller coaster track",
+   "wavy water with posts"
+  ],
+  "role": "object",
+  "locomotion": "static",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.25,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "other",
+    "x": 0.15,
+    "y": 0.25,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.88,
+    "y": 0.25,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "span_gap",
+   "climb",
+   "carry"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-sonnet-5-5",
+  "name": "Archy the Bridge",
+  "truth": "bridge",
+  "ms": 3553,
+  "in": 1257,
+  "out": 188,
+  "label": "arched bridge",
+  "confidence": 0.72,
+  "alternatives": [
+   "rainbow",
+   "curved ramp"
+  ],
+  "role": "object",
+  "locomotion": "static",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.24,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "other",
+    "x": 0.14,
+    "y": 0.4,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.9,
+    "y": 0.4,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "span_gap",
+   "carry",
+   "climb"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-sonnet-5-5",
+  "name": "Arch Bridge",
+  "truth": "bridge",
+  "ms": 2697,
+  "in": 1257,
+  "out": 184,
+  "label": "bridge",
+  "confidence": 0.88,
+  "alternatives": [
+   "arched walkway",
+   "railway track"
+  ],
+  "role": "object",
+  "locomotion": "static",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.22,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "other",
+    "x": 0.12,
+    "y": 0.33,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.85,
+    "y": 0.33,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "span_gap",
+   "carry",
+   "climb"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-sonnet-5-5",
+  "name": "Shelly the Turtle Bridge",
+  "truth": "bridge",
+  "ms": 3240,
+  "in": 1257,
+  "out": 293,
+  "label": "turtle",
+  "confidence": 0.55,
+  "alternatives": [
+   "table",
+   "bridge",
+   "tortoise shell"
+  ],
+  "role": "character",
+  "locomotion": "walk",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.3,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "spine",
+    "x": 0.5,
+    "y": 0.29,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "leg",
+    "x": 0.2,
+    "y": 0.3,
+    "parent": 0
+   },
+   {
+    "id": 3,
+    "part": "leg",
+    "x": 0.2,
+    "y": 0.48,
+    "parent": 2
+   },
+   {
+    "id": 4,
+    "part": "leg",
+    "x": 0.84,
+    "y": 0.3,
+    "parent": 0
+   },
+   {
+    "id": 5,
+    "part": "leg",
+    "x": 0.82,
+    "y": 0.48,
+    "parent": 4
+   }
+  ],
+  "affordances": [
+   "span_gap",
+   "carry",
+   "bounce"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-sonnet-5-5",
+  "name": "Pip",
+  "truth": "cat",
+  "ms": 3825,
+  "in": 1257,
+  "out": 240,
+  "label": "fox head",
+  "confidence": 0.55,
+  "alternatives": [
+   "cat head",
+   "wolf head",
+   "bunny head"
+  ],
+  "role": "character",
+  "locomotion": "walk",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.4,
+    "y": 0.6,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "head",
+    "x": 0.38,
+    "y": 0.4,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.31,
+    "y": 0.12,
+    "parent": 1
+   },
+   {
+    "id": 3,
+    "part": "other",
+    "x": 0.52,
+    "y": 0.14,
+    "parent": 1
+   },
+   {
+    "id": 4,
+    "part": "jaw",
+    "x": 0.38,
+    "y": 0.74,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "none"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-sonnet-5-5",
+  "name": "Whiskers",
+  "truth": "cat",
+  "ms": 3595,
+  "in": 1257,
+  "out": 304,
+  "label": "cat face",
+  "confidence": 0.88,
+  "alternatives": [
+   "fox face",
+   "kitten head",
+   "tiger face"
+  ],
+  "role": "character",
+  "locomotion": "walk",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.5,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "head",
+    "x": 0.5,
+    "y": 0.35,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.33,
+    "y": 0.2,
+    "parent": 1
+   },
+   {
+    "id": 3,
+    "part": "other",
+    "x": 0.56,
+    "y": 0.2,
+    "parent": 1
+   },
+   {
+    "id": 4,
+    "part": "jaw",
+    "x": 0.48,
+    "y": 0.52,
+    "parent": 0
+   },
+   {
+    "id": 5,
+    "part": "other",
+    "x": 0.2,
+    "y": 0.4,
+    "parent": 0
+   },
+   {
+    "id": 6,
+    "part": "other",
+    "x": 0.8,
+    "y": 0.4,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "none"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-sonnet-5-5",
+  "name": "Pip the Sleepy Cat",
+  "truth": "cat",
+  "ms": 2588,
+  "in": 1257,
+  "out": 248,
+  "label": "cat face",
+  "confidence": 0.7,
+  "alternatives": [
+   "fox head",
+   "dog head",
+   "bunny head"
+  ],
+  "role": "character",
+  "locomotion": "walk",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.4,
+    "y": 0.65,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "head",
+    "x": 0.4,
+    "y": 0.45,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.2,
+    "y": 0.25,
+    "parent": 1
+   },
+   {
+    "id": 3,
+    "part": "other",
+    "x": 0.62,
+    "y": 0.25,
+    "parent": 1
+   },
+   {
+    "id": 4,
+    "part": "jaw",
+    "x": 0.5,
+    "y": 0.85,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "none"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-sonnet-5-5",
+  "name": "Whiskers",
+  "truth": "cat",
+  "ms": 2615,
+  "in": 1257,
+  "out": 234,
+  "label": "cat head",
+  "confidence": 0.8,
+  "alternatives": [
+   "fox head",
+   "dog head"
+  ],
+  "role": "character",
+  "locomotion": "walk",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.58,
+    "y": 0.55,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "head",
+    "x": 0.58,
+    "y": 0.38,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.33,
+    "y": 0.2,
+    "parent": 1
+   },
+   {
+    "id": 3,
+    "part": "other",
+    "x": 0.8,
+    "y": 0.25,
+    "parent": 1
+   },
+   {
+    "id": 4,
+    "part": "other",
+    "x": 0.2,
+    "y": 0.54,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "none"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-sonnet-5-5",
+  "name": "Ember the Dragon",
+  "truth": "dragon",
+  "ms": 5251,
+  "in": 1257,
+  "out": 349,
+  "label": "flying dragon",
+  "confidence": 0.72,
+  "alternatives": [
+   "bird",
+   "pterodactyl",
+   "swan"
+  ],
+  "role": "character",
+  "locomotion": "fly",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.45,
+    "y": 0.46,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "neck",
+    "x": 0.2,
+    "y": 0.35,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "head",
+    "x": 0.14,
+    "y": 0.2,
+    "parent": 1
+   },
+   {
+    "id": 3,
+    "part": "wing",
+    "x": 0.52,
+    "y": 0.28,
+    "parent": 0
+   },
+   {
+    "id": 4,
+    "part": "wing",
+    "x": 0.58,
+    "y": 0.1,
+    "parent": 3
+   },
+   {
+    "id": 5,
+    "part": "tail",
+    "x": 0.75,
+    "y": 0.33,
+    "parent": 0
+   },
+   {
+    "id": 6,
+    "part": "tail",
+    "x": 0.9,
+    "y": 0.4,
+    "parent": 5
+   },
+   {
+    "id": 7,
+    "part": "leg",
+    "x": 0.62,
+    "y": 0.55,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "carry",
+   "span_gap"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-sonnet-5-5",
+  "name": "Dilly the Duck",
+  "truth": "dragon",
+  "ms": 3491,
+  "in": 1257,
+  "out": 337,
+  "label": "duck",
+  "confidence": 0.72,
+  "alternatives": [
+   "goose",
+   "swan"
+  ],
+  "role": "character",
+  "locomotion": "walk",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.4,
+    "y": 0.65,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "spine",
+    "x": 0.5,
+    "y": 0.45,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "neck",
+    "x": 0.5,
+    "y": 0.35,
+    "parent": 1
+   },
+   {
+    "id": 3,
+    "part": "head",
+    "x": 0.55,
+    "y": 0.3,
+    "parent": 2
+   },
+   {
+    "id": 4,
+    "part": "jaw",
+    "x": 0.75,
+    "y": 0.25,
+    "parent": 3
+   },
+   {
+    "id": 5,
+    "part": "wing",
+    "x": 0.2,
+    "y": 0.45,
+    "parent": 0
+   },
+   {
+    "id": 6,
+    "part": "leg",
+    "x": 0.5,
+    "y": 0.7,
+    "parent": 0
+   },
+   {
+    "id": 7,
+    "part": "leg",
+    "x": 0.72,
+    "y": 0.62,
+    "parent": 6
+   }
+  ],
+  "affordances": [
+   "carry",
+   "float"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-sonnet-5-5",
+  "name": "Spike the Dino",
+  "truth": "dragon",
+  "ms": 3630,
+  "in": 1257,
+  "out": 320,
+  "label": "dinosaur",
+  "confidence": 0.6,
+  "alternatives": [
+   "dragon",
+   "godzilla-like monster",
+   "lizard"
+  ],
+  "role": "character",
+  "locomotion": "walk",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.55,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "spine",
+    "x": 0.55,
+    "y": 0.38,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "head",
+    "x": 0.65,
+    "y": 0.2,
+    "parent": 1
+   },
+   {
+    "id": 3,
+    "part": "tail",
+    "x": 0.3,
+    "y": 0.7,
+    "parent": 0
+   },
+   {
+    "id": 4,
+    "part": "tail",
+    "x": 0.12,
+    "y": 0.32,
+    "parent": 3
+   },
+   {
+    "id": 5,
+    "part": "leg",
+    "x": 0.62,
+    "y": 0.7,
+    "parent": 0
+   },
+   {
+    "id": 6,
+    "part": "leg",
+    "x": 0.53,
+    "y": 0.78,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "carry",
+   "climb",
+   "block"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-sonnet-5-5",
+  "name": "Zoomy",
+  "truth": "dragon",
+  "ms": 3699,
+  "in": 1257,
+  "out": 247,
+  "label": "rocket ship",
+  "confidence": 0.55,
+  "alternatives": [
+   "fish",
+   "airplane",
+   "jet"
+  ],
+  "role": "object",
+  "locomotion": "fly",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.3,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "head",
+    "x": 0.9,
+    "y": 0.2,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "tail",
+    "x": 0.12,
+    "y": 0.4,
+    "parent": 0
+   },
+   {
+    "id": 3,
+    "part": "wing",
+    "x": 0.35,
+    "y": 0.12,
+    "parent": 0
+   },
+   {
+    "id": 4,
+    "part": "wing",
+    "x": 0.5,
+    "y": 0.55,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "carry",
+   "span_gap"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-sonnet-5-5",
+  "name": "Puffy the Balloon",
+  "truth": "hot air balloon",
+  "ms": 2350,
+  "in": 1257,
+  "out": 195,
+  "label": "hot air balloon",
+  "confidence": 0.6,
+  "alternatives": [
+   "tree",
+   "balloon with basket",
+   "lightbulb"
+  ],
+  "role": "object",
+  "locomotion": "fly",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.48,
+    "y": 0.38,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "other",
+    "x": 0.42,
+    "y": 0.72,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.55,
+    "y": 0.88,
+    "parent": 1
+   }
+  ],
+  "affordances": [
+   "carry",
+   "float",
+   "span_gap"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-sonnet-5-5",
+  "name": "Bouncy Cap",
+  "truth": "hot air balloon",
+  "ms": 3258,
+  "in": 1257,
+  "out": 184,
+  "label": "mushroom",
+  "confidence": 0.82,
+  "alternatives": [
+   "tree",
+   "lamp"
+  ],
+  "role": "object",
+  "locomotion": "static",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.45,
+    "y": 0.32,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "spine",
+    "x": 0.43,
+    "y": 0.6,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.38,
+    "y": 0.85,
+    "parent": 1
+   }
+  ],
+  "affordances": [
+   "bounce",
+   "shelter",
+   "climb"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-sonnet-5-5",
+  "name": "Mushroom Bridge",
+  "truth": "hot air balloon",
+  "ms": 2659,
+  "in": 1257,
+  "out": 194,
+  "label": "mushroom",
+  "confidence": 0.55,
+  "alternatives": [
+   "tree",
+   "button mushroom",
+   "umbrella"
+  ],
+  "role": "object",
+  "locomotion": "static",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.52,
+    "y": 0.4,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "spine",
+    "x": 0.52,
+    "y": 0.72,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.52,
+    "y": 0.9,
+    "parent": 1
+   }
+  ],
+  "affordances": [
+   "span_gap",
+   "bounce",
+   "shelter"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-sonnet-5-5",
+  "name": "Billow the Balloon",
+  "truth": "hot air balloon",
+  "ms": 2697,
+  "in": 1257,
+  "out": 195,
+  "label": "hot air balloon",
+  "confidence": 0.8,
+  "alternatives": [
+   "tree",
+   "lightbulb",
+   "balloon with basket"
+  ],
+  "role": "object",
+  "locomotion": "fly",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.4,
+    "y": 0.4,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "spine",
+    "x": 0.4,
+    "y": 0.62,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.37,
+    "y": 0.85,
+    "parent": 1
+   }
+  ],
+  "affordances": [
+   "carry",
+   "float",
+   "span_gap"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-sonnet-5-5",
+  "name": "Lanky Ladder",
+  "truth": "ladder",
+  "ms": 2588,
+  "in": 1257,
+  "out": 184,
+  "label": "ladder",
+  "confidence": 0.95,
+  "alternatives": [
+   "rope ladder",
+   "fence"
+  ],
+  "role": "object",
+  "locomotion": "static",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.5,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "other",
+    "x": 0.3,
+    "y": 0.1,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.28,
+    "y": 0.9,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "span_gap",
+   "climb",
+   "carry"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-sonnet-5-5",
+  "name": "Wobbly Ladder",
+  "truth": "ladder",
+  "ms": 5887,
+  "in": 1257,
+  "out": 180,
+  "label": "ladder",
+  "confidence": 0.88,
+  "alternatives": [
+   "fence",
+   "bridge"
+  ],
+  "role": "object",
+  "locomotion": "static",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.32,
+    "y": 0.5,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "other",
+    "x": 0.3,
+    "y": 0.15,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.3,
+    "y": 0.85,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "climb",
+   "span_gap"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-sonnet-5-5",
+  "name": "Wobbly Ladder",
+  "truth": "ladder",
+  "ms": 2966,
+  "in": 1257,
+  "out": 180,
+  "label": "ladder",
+  "confidence": 0.7,
+  "alternatives": [
+   "bridge",
+   "fence"
+  ],
+  "role": "object",
+  "locomotion": "static",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.4,
+    "y": 0.5,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "other",
+    "x": 0.3,
+    "y": 0.28,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.4,
+    "y": 0.8,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "climb",
+   "span_gap"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-sonnet-5-5",
+  "name": "Lanky Ladder",
+  "truth": "ladder",
+  "ms": 3272,
+  "in": 1257,
+  "out": 188,
+  "label": "ladder",
+  "confidence": 0.9,
+  "alternatives": [
+   "rope ladder",
+   "bridge",
+   "fence"
+  ],
+  "role": "object",
+  "locomotion": "static",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.38,
+    "y": 0.5,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "other",
+    "x": 0.27,
+    "y": 0.22,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.5,
+    "y": 0.85,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "span_gap",
+   "climb",
+   "carry"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-sonnet-5-5",
+  "name": "Sidney the Long Snake",
+  "truth": "snake",
+  "ms": 6801,
+  "in": 1257,
+  "out": 256,
+  "label": "snake",
+  "confidence": 0.6,
+  "alternatives": [
+   "worm",
+   "eel",
+   "long wavy bridge"
+  ],
+  "role": "character",
+  "locomotion": "slither",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.19,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "head",
+    "x": 0.9,
+    "y": 0.15,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "spine",
+    "x": 0.7,
+    "y": 0.15,
+    "parent": 0
+   },
+   {
+    "id": 3,
+    "part": "spine",
+    "x": 0.3,
+    "y": 0.17,
+    "parent": 0
+   },
+   {
+    "id": 4,
+    "part": "tail",
+    "x": 0.09,
+    "y": 0.19,
+    "parent": 3
+   }
+  ],
+  "affordances": [
+   "span_gap",
+   "carry",
+   "climb"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-sonnet-5-5",
+  "name": "Wiggly",
+  "truth": "snake",
+  "ms": 10489,
+  "in": 1257,
+  "out": 339,
+  "label": "tadpole-like creature with a long wavy tail",
+  "confidence": 0.35,
+  "alternatives": [
+   "sperm-like squiggle",
+   "balloon on a string",
+   "sea creature with a long tail"
+  ],
+  "role": "character",
+  "locomotion": "slither",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.27,
+    "y": 0.7,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "head",
+    "x": 0.25,
+    "y": 0.66,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "tail",
+    "x": 0.3,
+    "y": 0.54,
+    "parent": 0
+   },
+   {
+    "id": 3,
+    "part": "tail",
+    "x": 0.4,
+    "y": 0.45,
+    "parent": 2
+   },
+   {
+    "id": 4,
+    "part": "tail",
+    "x": 0.47,
+    "y": 0.3,
+    "parent": 3
+   },
+   {
+    "id": 5,
+    "part": "tail",
+    "x": 0.45,
+    "y": 0.1,
+    "parent": 4
+   },
+   {
+    "id": 6,
+    "part": "leg",
+    "x": 0.15,
+    "y": 0.9,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "span_gap",
+   "carry"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-sonnet-5-5",
+  "name": "Sly the Snake",
+  "truth": "snake",
+  "ms": 4840,
+  "in": 1257,
+  "out": 249,
+  "label": "snake",
+  "confidence": 0.6,
+  "alternatives": [
+   "worm",
+   "eel",
+   "sea serpent"
+  ],
+  "role": "character",
+  "locomotion": "slither",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.55,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "head",
+    "x": 0.14,
+    "y": 0.82,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "spine",
+    "x": 0.3,
+    "y": 0.68,
+    "parent": 0
+   },
+   {
+    "id": 3,
+    "part": "spine",
+    "x": 0.72,
+    "y": 0.4,
+    "parent": 0
+   },
+   {
+    "id": 4,
+    "part": "tail",
+    "x": 0.9,
+    "y": 0.1,
+    "parent": 3
+   }
+  ],
+  "affordances": [
+   "span_gap",
+   "climb"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-sonnet-5-5",
+  "name": "Sly the Snake",
+  "truth": "snake",
+  "ms": 6289,
+  "in": 1257,
+  "out": 213,
+  "label": "snake",
+  "confidence": 0.82,
+  "alternatives": [
+   "worm",
+   "eel",
+   "river"
+  ],
+  "role": "character",
+  "locomotion": "slither",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.45,
+    "y": 0.3,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "head",
+    "x": 0.2,
+    "y": 0.13,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "spine",
+    "x": 0.6,
+    "y": 0.38,
+    "parent": 0
+   },
+   {
+    "id": 3,
+    "part": "tail",
+    "x": 0.9,
+    "y": 0.5,
+    "parent": 2
+   }
+  ],
+  "affordances": [
+   "span_gap",
+   "carry"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-sonnet-5-5",
+  "name": "Big Leafy Tree",
+  "truth": "tree",
+  "ms": 6103,
+  "in": 1257,
+  "out": 197,
+  "label": "tree",
+  "confidence": 0.82,
+  "alternatives": [
+   "bush",
+   "cloud on a stalk",
+   "broccoli"
+  ],
+  "role": "scenery",
+  "locomotion": "sway",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.4,
+    "y": 0.7,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "spine",
+    "x": 0.4,
+    "y": 0.4,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.4,
+    "y": 0.2,
+    "parent": 1
+   }
+  ],
+  "affordances": [
+   "span_gap",
+   "shelter",
+   "climb"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-sonnet-5-5",
+  "name": "Profile Pal",
+  "truth": "tree",
+  "ms": 5309,
+  "in": 1257,
+  "out": 220,
+  "label": "head and neck silhouette in profile",
+  "confidence": 0.6,
+  "alternatives": [
+   "person profile with curly hair",
+   "bust silhouette"
+  ],
+  "role": "character",
+  "locomotion": "static",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.4,
+    "y": 0.55,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "neck",
+    "x": 0.3,
+    "y": 0.8,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "head",
+    "x": 0.4,
+    "y": 0.3,
+    "parent": 0
+   },
+   {
+    "id": 3,
+    "part": "other",
+    "x": 0.2,
+    "y": 0.35,
+    "parent": 2
+   }
+  ],
+  "affordances": [
+   "none"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-sonnet-5-5",
+  "name": "Old Oak",
+  "truth": "tree",
+  "ms": 3572,
+  "in": 1257,
+  "out": 189,
+  "label": "tree",
+  "confidence": 0.85,
+  "alternatives": [
+   "mushroom",
+   "bush on a trunk"
+  ],
+  "role": "scenery",
+  "locomotion": "sway",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.45,
+    "y": 0.65,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "spine",
+    "x": 0.4,
+    "y": 0.4,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "head",
+    "x": 0.4,
+    "y": 0.2,
+    "parent": 1
+   }
+  ],
+  "affordances": [
+   "shelter",
+   "climb",
+   "span_gap"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-sonnet-5-5",
+  "name": "Big Leafy Tree",
+  "truth": "tree",
+  "ms": 3606,
+  "in": 1257,
+  "out": 201,
+  "label": "tree",
+  "confidence": 0.9,
+  "alternatives": [
+   "mushroom",
+   "cloud on a stalk",
+   "bush"
+  ],
+  "role": "scenery",
+  "locomotion": "sway",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.8,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "spine",
+    "x": 0.45,
+    "y": 0.55,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "head",
+    "x": 0.5,
+    "y": 0.25,
+    "parent": 1
+   }
+  ],
+  "affordances": [
+   "span_gap",
+   "climb",
+   "shelter",
+   "bounce"
+  ],
+  "safe": true
+ }
+]

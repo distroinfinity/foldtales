@@ -1,0 +1,1854 @@
+[
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Crossing Plank",
+  "truth": "airplane",
+  "ms": 2845,
+  "in": 1257,
+  "out": 183,
+  "label": "plank",
+  "confidence": 0.55,
+  "alternatives": [
+   "airplane",
+   "cross",
+   "sword",
+   "fish"
+  ],
+  "role": "object",
+  "locomotion": "static",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.5,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "other",
+    "x": 0.36,
+    "y": 0.12,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.66,
+    "y": 0.6,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "span_gap",
+   "carry"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Pip's Paper Plane",
+  "truth": "airplane",
+  "ms": 1812,
+  "in": 1257,
+  "out": 218,
+  "label": "airplane",
+  "confidence": 0.55,
+  "alternatives": [
+   "bird",
+   "bridge",
+   "fish"
+  ],
+  "role": "object",
+  "locomotion": "fly",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.45,
+    "y": 0.5,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "wing",
+    "x": 0.3,
+    "y": 0.3,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "wing",
+    "x": 0.3,
+    "y": 0.72,
+    "parent": 0
+   },
+   {
+    "id": 3,
+    "part": "tail",
+    "x": 0.12,
+    "y": 0.42,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "span_gap",
+   "float"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Paper Airplane",
+  "truth": "airplane",
+  "ms": 1702,
+  "in": 1257,
+  "out": 182,
+  "label": "airplane",
+  "confidence": 0.85,
+  "alternatives": [
+   "cross",
+   "bird",
+   "jet"
+  ],
+  "role": "object",
+  "locomotion": "fly",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.5,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "wing",
+    "x": 0.2,
+    "y": 0.37,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "wing",
+    "x": 0.7,
+    "y": 0.37,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "span_gap",
+   "float"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Skyliner",
+  "truth": "airplane",
+  "ms": 2792,
+  "in": 1257,
+  "out": 244,
+  "label": "airplane",
+  "confidence": 0.92,
+  "alternatives": [
+   "bird",
+   "rocket"
+  ],
+  "role": "object",
+  "locomotion": "fly",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.47,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "wing",
+    "x": 0.2,
+    "y": 0.42,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "wing",
+    "x": 0.5,
+    "y": 0.7,
+    "parent": 0
+   },
+   {
+    "id": 3,
+    "part": "tail",
+    "x": 0.13,
+    "y": 0.36,
+    "parent": 0
+   },
+   {
+    "id": 4,
+    "part": "head",
+    "x": 0.88,
+    "y": 0.36,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "span_gap",
+   "float",
+   "carry"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Pip's Drifting Kite",
+  "truth": "bird",
+  "ms": 2320,
+  "in": 1257,
+  "out": 220,
+  "label": "stick-and-ribbon doodle with a rounded blob and a long trailing line",
+  "confidence": 0.35,
+  "alternatives": [
+   "bird head with long beak",
+   "kite on a string",
+   "fish with a long tail"
+  ],
+  "role": "object",
+  "locomotion": "static",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.58,
+    "y": 0.42,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "head",
+    "x": 0.7,
+    "y": 0.18,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "tail",
+    "x": 0.3,
+    "y": 0.21,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "span_gap",
+   "float"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Curved Bridge Banana",
+  "truth": "bird",
+  "ms": 1638,
+  "in": 1257,
+  "out": 186,
+  "label": "banana",
+  "confidence": 0.55,
+  "alternatives": [
+   "boomerang",
+   "curved log",
+   "sausage"
+  ],
+  "role": "object",
+  "locomotion": "static",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.5,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "other",
+    "x": 0.22,
+    "y": 0.22,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.85,
+    "y": 0.5,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "span_gap",
+   "carry"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Gap Bridge",
+  "truth": "bird",
+  "ms": 1644,
+  "in": 1257,
+  "out": 196,
+  "label": "hanging vine or curved rope bridge with a small figure",
+  "confidence": 0.4,
+  "alternatives": [
+   "curved path",
+   "fox",
+   "bridge"
+  ],
+  "role": "scenery",
+  "locomotion": "static",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.45,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "other",
+    "x": 0.2,
+    "y": 0.2,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.8,
+    "y": 0.25,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "span_gap"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Pip's Little Bird",
+  "truth": "bird",
+  "ms": 3751,
+  "in": 1257,
+  "out": 271,
+  "label": "bird",
+  "confidence": 0.9,
+  "alternatives": [
+   "chick",
+   "duck"
+  ],
+  "role": "character",
+  "locomotion": "hop",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.5,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "head",
+    "x": 0.27,
+    "y": 0.3,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "jaw",
+    "x": 0.14,
+    "y": 0.4,
+    "parent": 1
+   },
+   {
+    "id": 3,
+    "part": "tail",
+    "x": 0.85,
+    "y": 0.4,
+    "parent": 0
+   },
+   {
+    "id": 4,
+    "part": "leg",
+    "x": 0.53,
+    "y": 0.72,
+    "parent": 0
+   },
+   {
+    "id": 5,
+    "part": "leg",
+    "x": 0.63,
+    "y": 0.75,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "none"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Plank Bridge",
+  "truth": "bridge",
+  "ms": 2412,
+  "in": 1257,
+  "out": 178,
+  "label": "bridge",
+  "confidence": 0.55,
+  "alternatives": [
+   "fence",
+   "building",
+   "wall"
+  ],
+  "role": "scenery",
+  "locomotion": "static",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.5,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "other",
+    "x": 0.2,
+    "y": 0.45,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.8,
+    "y": 0.45,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "span_gap"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Curvy Span",
+  "truth": "bridge",
+  "ms": 1586,
+  "in": 1257,
+  "out": 184,
+  "label": "arch bridge",
+  "confidence": 0.6,
+  "alternatives": [
+   "rainbow",
+   "boat hull",
+   "curved beam"
+  ],
+  "role": "object",
+  "locomotion": "static",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.3,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "other",
+    "x": 0.17,
+    "y": 0.42,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.9,
+    "y": 0.42,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "span_gap"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Arch Bridge",
+  "truth": "bridge",
+  "ms": 1700,
+  "in": 1257,
+  "out": 190,
+  "label": "arched bridge",
+  "confidence": 0.82,
+  "alternatives": [
+   "rainbow",
+   "wall arc",
+   "tunnel arch"
+  ],
+  "role": "object",
+  "locomotion": "static",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.45,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "other",
+    "x": 0.12,
+    "y": 0.42,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.88,
+    "y": 0.42,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "span_gap",
+   "climb"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Pip's Little Car",
+  "truth": "bridge",
+  "ms": 1417,
+  "in": 1257,
+  "out": 180,
+  "label": "car",
+  "confidence": 0.82,
+  "alternatives": [
+   "bed",
+   "sofa",
+   "table"
+  ],
+  "role": "object",
+  "locomotion": "roll",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.42,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "other",
+    "x": 0.2,
+    "y": 0.55,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.8,
+    "y": 0.55,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "carry",
+   "span_gap"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Pip",
+  "truth": "cat",
+  "ms": 2695,
+  "in": 1257,
+  "out": 240,
+  "label": "fox",
+  "confidence": 0.82,
+  "alternatives": [
+   "cat",
+   "bear",
+   "blob creature"
+  ],
+  "role": "character",
+  "locomotion": "walk",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.45,
+    "y": 0.55,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "head",
+    "x": 0.45,
+    "y": 0.35,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "leg",
+    "x": 0.25,
+    "y": 0.75,
+    "parent": 0
+   },
+   {
+    "id": 3,
+    "part": "leg",
+    "x": 0.5,
+    "y": 0.85,
+    "parent": 0
+   },
+   {
+    "id": 4,
+    "part": "tail",
+    "x": 0.75,
+    "y": 0.7,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "span_gap"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Pip",
+  "truth": "cat",
+  "ms": 2190,
+  "in": 1257,
+  "out": 242,
+  "label": "cat face with whiskers",
+  "confidence": 0.85,
+  "alternatives": [
+   "cat head",
+   "fox face",
+   "hamster"
+  ],
+  "role": "character",
+  "locomotion": "static",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.5,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "head",
+    "x": 0.3,
+    "y": 0.35,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "jaw",
+    "x": 0.55,
+    "y": 0.6,
+    "parent": 0
+   },
+   {
+    "id": 3,
+    "part": "other",
+    "x": 0.1,
+    "y": 0.4,
+    "parent": 1
+   },
+   {
+    "id": 4,
+    "part": "other",
+    "x": 0.9,
+    "y": 0.35,
+    "parent": 1
+   }
+  ],
+  "affordances": [
+   "none"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Pip",
+  "truth": "cat",
+  "ms": 2173,
+  "in": 1257,
+  "out": 237,
+  "label": "cat head",
+  "confidence": 0.8,
+  "alternatives": [
+   "fox head",
+   "dog head",
+   "bear head"
+  ],
+  "role": "character",
+  "locomotion": "static",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.55,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "head",
+    "x": 0.5,
+    "y": 0.55,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.2,
+    "y": 0.1,
+    "parent": 1
+   },
+   {
+    "id": 3,
+    "part": "other",
+    "x": 0.75,
+    "y": 0.1,
+    "parent": 1
+   },
+   {
+    "id": 4,
+    "part": "jaw",
+    "x": 0.5,
+    "y": 0.8,
+    "parent": 1
+   }
+  ],
+  "affordances": [
+   "none"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Pip",
+  "truth": "cat",
+  "ms": 1843,
+  "in": 1257,
+  "out": 244,
+  "label": "cat head with pointed ears and whiskers",
+  "confidence": 0.85,
+  "alternatives": [
+   "fox head",
+   "bear head"
+  ],
+  "role": "character",
+  "locomotion": "static",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.5,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "head",
+    "x": 0.3,
+    "y": 0.2,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "head",
+    "x": 0.72,
+    "y": 0.2,
+    "parent": 0
+   },
+   {
+    "id": 3,
+    "part": "other",
+    "x": 0.2,
+    "y": 0.55,
+    "parent": 0
+   },
+   {
+    "id": 4,
+    "part": "jaw",
+    "x": 0.55,
+    "y": 0.6,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "none"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Ember the Dragon",
+  "truth": "dragon",
+  "ms": 2188,
+  "in": 1257,
+  "out": 313,
+  "label": "dragon",
+  "confidence": 0.8,
+  "alternatives": [
+   "bird",
+   "wyvern",
+   "serpent"
+  ],
+  "role": "character",
+  "locomotion": "fly",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.45,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "neck",
+    "x": 0.25,
+    "y": 0.3,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "head",
+    "x": 0.14,
+    "y": 0.2,
+    "parent": 1
+   },
+   {
+    "id": 3,
+    "part": "wing",
+    "x": 0.52,
+    "y": 0.2,
+    "parent": 0
+   },
+   {
+    "id": 4,
+    "part": "wing",
+    "x": 0.35,
+    "y": 0.2,
+    "parent": 3
+   },
+   {
+    "id": 5,
+    "part": "tail",
+    "x": 0.72,
+    "y": 0.6,
+    "parent": 0
+   },
+   {
+    "id": 6,
+    "part": "tail",
+    "x": 0.85,
+    "y": 0.4,
+    "parent": 5
+   }
+  ],
+  "affordances": [
+   "span_gap",
+   "float"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Pip",
+  "truth": "dragon",
+  "ms": 2189,
+  "in": 1257,
+  "out": 268,
+  "label": "bird",
+  "confidence": 0.45,
+  "alternatives": [
+   "dragon",
+   "fox",
+   "swan"
+  ],
+  "role": "character",
+  "locomotion": "fly",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.5,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "neck",
+    "x": 0.55,
+    "y": 0.3,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "head",
+    "x": 0.65,
+    "y": 0.24,
+    "parent": 1
+   },
+   {
+    "id": 3,
+    "part": "wing",
+    "x": 0.3,
+    "y": 0.3,
+    "parent": 0
+   },
+   {
+    "id": 4,
+    "part": "wing",
+    "x": 0.2,
+    "y": 0.6,
+    "parent": 3
+   },
+   {
+    "id": 5,
+    "part": "tail",
+    "x": 0.7,
+    "y": 0.6,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "float"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Pip the Dragon",
+  "truth": "dragon",
+  "ms": 2150,
+  "in": 1257,
+  "out": 343,
+  "label": "dragon",
+  "confidence": 0.55,
+  "alternatives": [
+   "cat",
+   "dinosaur",
+   "fox"
+  ],
+  "role": "character",
+  "locomotion": "walk",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.55,
+    "y": 0.5,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "neck",
+    "x": 0.66,
+    "y": 0.3,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "head",
+    "x": 0.8,
+    "y": 0.14,
+    "parent": 1
+   },
+   {
+    "id": 3,
+    "part": "tail",
+    "x": 0.25,
+    "y": 0.45,
+    "parent": 0
+   },
+   {
+    "id": 4,
+    "part": "tail",
+    "x": 0.14,
+    "y": 0.25,
+    "parent": 3
+   },
+   {
+    "id": 5,
+    "part": "leg",
+    "x": 0.6,
+    "y": 0.75,
+    "parent": 0
+   },
+   {
+    "id": 6,
+    "part": "leg",
+    "x": 0.4,
+    "y": 0.85,
+    "parent": 5
+   },
+   {
+    "id": 7,
+    "part": "leg",
+    "x": 0.8,
+    "y": 0.8,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "span_gap"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Gliding Jet",
+  "truth": "dragon",
+  "ms": 1999,
+  "in": 1257,
+  "out": 183,
+  "label": "airplane",
+  "confidence": 0.8,
+  "alternatives": [
+   "jet",
+   "rocket",
+   "bird"
+  ],
+  "role": "object",
+  "locomotion": "fly",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.3,
+    "y": 0.38,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "wing",
+    "x": 0.45,
+    "y": 0.2,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "wing",
+    "x": 0.52,
+    "y": 0.56,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "span_gap",
+   "float"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Puffy Pal",
+  "truth": "hot air balloon",
+  "ms": 1947,
+  "in": 1257,
+  "out": 228,
+  "label": "cloud or blob with legs",
+  "confidence": 0.4,
+  "alternatives": [
+   "bag",
+   "mushroom",
+   "boulder with pillar"
+  ],
+  "role": "object",
+  "locomotion": "static",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.4,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "leg",
+    "x": 0.36,
+    "y": 0.65,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "leg",
+    "x": 0.48,
+    "y": 0.7,
+    "parent": 0
+   },
+   {
+    "id": 3,
+    "part": "leg",
+    "x": 0.6,
+    "y": 0.68,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "span_gap",
+   "shelter"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Mossy Mushroom",
+  "truth": "hot air balloon",
+  "ms": 2619,
+  "in": 1257,
+  "out": 152,
+  "label": "mushroom",
+  "confidence": 0.82,
+  "alternatives": [
+   "tree",
+   "lamp",
+   "hammer"
+  ],
+  "role": "object",
+  "locomotion": "static",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.42,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "other",
+    "x": 0.5,
+    "y": 0.25,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "shelter",
+   "block"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Mushroom Bridge",
+  "truth": "hot air balloon",
+  "ms": 1852,
+  "in": 1257,
+  "out": 158,
+  "label": "mushroom",
+  "confidence": 0.82,
+  "alternatives": [
+   "toadstool",
+   "cloud",
+   "bush"
+  ],
+  "role": "scenery",
+  "locomotion": "static",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.4,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "other",
+    "x": 0.5,
+    "y": 0.75,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "shelter",
+   "span_gap"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Round Tree",
+  "truth": "hot air balloon",
+  "ms": 2338,
+  "in": 1257,
+  "out": 155,
+  "label": "tree",
+  "confidence": 0.55,
+  "alternatives": [
+   "mushroom",
+   "lollipop",
+   "cloud on a stump"
+  ],
+  "role": "scenery",
+  "locomotion": "static",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.45,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "other",
+    "x": 0.5,
+    "y": 0.7,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "shelter",
+   "block"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Pip's Ladder",
+  "truth": "ladder",
+  "ms": 1733,
+  "in": 1257,
+  "out": 185,
+  "label": "ladder",
+  "confidence": 0.92,
+  "alternatives": [
+   "rope ladder",
+   "bridge rungs"
+  ],
+  "role": "object",
+  "locomotion": "static",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.4,
+    "y": 0.5,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "other",
+    "x": 0.3,
+    "y": 0.9,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.85,
+    "y": 0.9,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "span_gap",
+   "climb"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Pip's Ladder",
+  "truth": "ladder",
+  "ms": 5818,
+  "in": 1257,
+  "out": 185,
+  "label": "ladder",
+  "confidence": 0.9,
+  "alternatives": [
+   "rope bridge",
+   "staircase",
+   "fence"
+  ],
+  "role": "object",
+  "locomotion": "static",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.45,
+    "y": 0.45,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "other",
+    "x": 0.19,
+    "y": 0.1,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.42,
+    "y": 0.88,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "span_gap",
+   "climb"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Ladder Plank",
+  "truth": "ladder",
+  "ms": 1881,
+  "in": 1257,
+  "out": 206,
+  "label": "tall rectangular frame with horizontal crossbars",
+  "confidence": 0.45,
+  "alternatives": [
+   "ladder",
+   "bridge segment",
+   "stacked planks",
+   "fence panel"
+  ],
+  "role": "object",
+  "locomotion": "static",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.38,
+    "y": 0.5,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "other",
+    "x": 0.2,
+    "y": 0.27,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.48,
+    "y": 0.22,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "span_gap",
+   "climb"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Rickety Rope Ladder",
+  "truth": "ladder",
+  "ms": 1686,
+  "in": 1257,
+  "out": 189,
+  "label": "ladder",
+  "confidence": 0.8,
+  "alternatives": [
+   "bookshelf",
+   "crate stack",
+   "fence"
+  ],
+  "role": "object",
+  "locomotion": "static",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.5,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "other",
+    "x": 0.37,
+    "y": 0.1,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.6,
+    "y": 0.85,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "span_gap",
+   "climb"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Long Sly Serpent",
+  "truth": "snake",
+  "ms": 1684,
+  "in": 1257,
+  "out": 248,
+  "label": "serpent",
+  "confidence": 0.55,
+  "alternatives": [
+   "snake",
+   "eel",
+   "rope",
+   "worm"
+  ],
+  "role": "character",
+  "locomotion": "slither",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.17,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "tail",
+    "x": 0.12,
+    "y": 0.18,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "spine",
+    "x": 0.3,
+    "y": 0.16,
+    "parent": 0
+   },
+   {
+    "id": 3,
+    "part": "neck",
+    "x": 0.62,
+    "y": 0.14,
+    "parent": 0
+   },
+   {
+    "id": 4,
+    "part": "head",
+    "x": 0.87,
+    "y": 0.17,
+    "parent": 3
+   }
+  ],
+  "affordances": [
+   "span_gap"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Pip's Rod",
+  "truth": "snake",
+  "ms": 2126,
+  "in": 1257,
+  "out": 226,
+  "label": "fishing rod with bobber",
+  "confidence": 0.55,
+  "alternatives": [
+   "cane",
+   "cat tail",
+   "stick figure with long arm",
+   "spoon"
+  ],
+  "role": "object",
+  "locomotion": "static",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.27,
+    "y": 0.6,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "other",
+    "x": 0.45,
+    "y": 0.45,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.6,
+    "y": 0.25,
+    "parent": 1
+   },
+   {
+    "id": 3,
+    "part": "other",
+    "x": 0.46,
+    "y": 0.08,
+    "parent": 2
+   }
+  ],
+  "affordances": [
+   "span_gap"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Pip's Bridge Ribbon",
+  "truth": "snake",
+  "ms": 1984,
+  "in": 1257,
+  "out": 194,
+  "label": "snake-like curved shape",
+  "confidence": 0.35,
+  "alternatives": [
+   "worm",
+   "eel",
+   "river",
+   "ribbon"
+  ],
+  "role": "scenery",
+  "locomotion": "static",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.5,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "other",
+    "x": 0.2,
+    "y": 0.7,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.8,
+    "y": 0.25,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "span_gap"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Sir Wiggles",
+  "truth": "snake",
+  "ms": 1784,
+  "in": 1257,
+  "out": 243,
+  "label": "snake",
+  "confidence": 0.82,
+  "alternatives": [
+   "worm",
+   "river",
+   "rope"
+  ],
+  "role": "character",
+  "locomotion": "slither",
+  "joints": [
+   {
+    "id": 0,
+    "part": "head",
+    "x": 0.16,
+    "y": 0.11,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "spine",
+    "x": 0.36,
+    "y": 0.14,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "spine",
+    "x": 0.5,
+    "y": 0.3,
+    "parent": 1
+   },
+   {
+    "id": 3,
+    "part": "spine",
+    "x": 0.7,
+    "y": 0.36,
+    "parent": 2
+   },
+   {
+    "id": 4,
+    "part": "tail",
+    "x": 0.9,
+    "y": 0.46,
+    "parent": 3
+   }
+  ],
+  "affordances": [
+   "span_gap"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Leafy Tree",
+  "truth": "tree",
+  "ms": 2566,
+  "in": 1257,
+  "out": 185,
+  "label": "tree",
+  "confidence": 0.85,
+  "alternatives": [
+   "bush",
+   "mushroom",
+   "cloud"
+  ],
+  "role": "scenery",
+  "locomotion": "static",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.4,
+    "y": 0.4,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "other",
+    "x": 0.3,
+    "y": 0.15,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.55,
+    "y": 0.12,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "shelter",
+   "span_gap"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Pip",
+  "truth": "tree",
+  "ms": 2333,
+  "in": 1257,
+  "out": 285,
+  "label": "human head profile with curly hair and neck",
+  "confidence": 0.72,
+  "alternatives": [
+   "person silhouette",
+   "bust portrait",
+   "fox head"
+  ],
+  "role": "character",
+  "locomotion": "sway",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.45,
+    "y": 0.35,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "neck",
+    "x": 0.45,
+    "y": 0.6,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "head",
+    "x": 0.5,
+    "y": 0.2,
+    "parent": 0
+   },
+   {
+    "id": 3,
+    "part": "jaw",
+    "x": 0.55,
+    "y": 0.45,
+    "parent": 0
+   },
+   {
+    "id": 4,
+    "part": "tail",
+    "x": 0.2,
+    "y": 0.45,
+    "parent": 0
+   },
+   {
+    "id": 5,
+    "part": "neck",
+    "x": 0.1,
+    "y": 0.92,
+    "parent": 1
+   }
+  ],
+  "affordances": [
+   "none"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Leafy Tree",
+  "truth": "tree",
+  "ms": 1574,
+  "in": 1257,
+  "out": 213,
+  "label": "tree",
+  "confidence": 0.8,
+  "alternatives": [
+   "cloud",
+   "bush",
+   "mushroom"
+  ],
+  "role": "scenery",
+  "locomotion": "static",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.45,
+    "y": 0.45,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "other",
+    "x": 0.31,
+    "y": 0.3,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.6,
+    "y": 0.4,
+    "parent": 0
+   },
+   {
+    "id": 3,
+    "part": "other",
+    "x": 0.32,
+    "y": 0.92,
+    "parent": 0
+   }
+  ],
+  "affordances": [
+   "shelter",
+   "block"
+  ],
+  "safe": true
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "name": "Broad Tree",
+  "truth": "tree",
+  "ms": 1652,
+  "in": 1257,
+  "out": 244,
+  "label": "tree",
+  "confidence": 0.85,
+  "alternatives": [
+   "mushroom",
+   "umbrella",
+   "bush"
+  ],
+  "role": "scenery",
+  "locomotion": "static",
+  "joints": [
+   {
+    "id": 0,
+    "part": "root",
+    "x": 0.5,
+    "y": 0.42,
+    "parent": -1
+   },
+   {
+    "id": 1,
+    "part": "other",
+    "x": 0.38,
+    "y": 0.5,
+    "parent": 0
+   },
+   {
+    "id": 2,
+    "part": "other",
+    "x": 0.25,
+    "y": 0.8,
+    "parent": 1
+   },
+   {
+    "id": 3,
+    "part": "other",
+    "x": 0.52,
+    "y": 0.5,
+    "parent": 0
+   },
+   {
+    "id": 4,
+    "part": "other",
+    "x": 0.58,
+    "y": 0.8,
+    "parent": 3
+   }
+  ],
+  "affordances": [
+   "shelter",
+   "block"
+  ],
+  "safe": true
+ }
+]

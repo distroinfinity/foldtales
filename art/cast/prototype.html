@@ -1,0 +1,233 @@
+<!doctype html>
+<!-- The approved acting for Pip, Wick and Moth. Reference only, not product code, and DOM rather than IWSDK.
+     From art/cast/, run: python3 -m http.server, then open /prototype.html. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cast Prototype</title>
+<style>body { margin: 0; padding: 16px; background: #1f2a44; font-family: system-ui, sans-serif; } .stagewrap { margin: 0 auto; } .btns { justify-content: center; }</style>
+</head>
+<body>
+
+<style>
+  .stagewrap { position: relative; width: 100%; max-width: 1040px; aspect-ratio: 1100 / 800; overflow: hidden; border-radius: 8px; background: #111; margin-top: 14px; }
+  .stagewrap > img.bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .stagewrap .dim { position: absolute; inset: 0; background: radial-gradient(ellipse 62% 62% at 50% 72%, rgba(8,10,26,.2) 0%, rgba(8,10,26,.5) 58%, rgba(8,10,26,.72) 100%); }
+  .page { position: absolute; left: 6%; right: 6%; bottom: 3%; height: 17%; background: #f6efe2; clip-path: polygon(5% 0, 95% 0, 100% 100%, 0 100%); }
+  .rig { position: absolute; width: 0; height: 0; }
+  .rig img { position: absolute; display: block; max-width: none; }
+  .soft { position: absolute; border-radius: 50%; pointer-events: none; }
+  .btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .btns button { font: inherit; font-size: 15px; padding: 9px 15px; border-radius: 7px; border: 1px solid #8886; background: #fff; color: #1a1a1a; cursor: pointer; }
+  .btns button[aria-pressed="true"] { background: #1F2A5A; color: #fff; border-color: #1F2A5A; }
+</style>
+
+<div class="stagewrap" id="stage">
+  <div class="dim"></div>
+  <div class="page"></div>
+</div>
+<div class="btns" id="btns" role="group" aria-label="What the cast is doing">
+  <button data-a="idle" aria-pressed="true">Everyone waiting</button>
+  <button data-a="pipTalk" aria-pressed="false">Pip talks</button>
+  <button data-a="wickTalk" aria-pressed="false">Wick talks</button>
+  <button data-a="turn" aria-pressed="false">They turn to each other</button>
+  <button data-a="grump" aria-pressed="false">Wick grumbles, Pip is frightened</button>
+  <button data-a="moth" aria-pressed="false">Moth goes for the lantern</button>
+</div>
+
+<script>
+(function () {
+  var stage = document.getElementById('stage');
+  var mode = 'idle', since = performance.now(), POSE_MS = 1000 / 12;
+
+  // 'pip-tail' is pip/parts/tail.png, and 'wick-heads-talk' is wick/heads/talk.png.
+  function assetPath(src) {
+    var p = src.split('-'), who = p.shift();
+    var folder = p[0] === 'heads' || p[0] === 'parts' ? p.shift() : 'parts';
+    return who + '/' + folder + '/' + p.join('-') + '.png';
+  }
+  function add(parent, src, d) {
+    var im = document.createElement('img');
+    im.src = assetPath(src);
+    im.alt = '';
+    im.style.left = d.x + 'px';
+    im.style.top = d.y + 'px';
+    im.style.width = (d.w * (d.s || 1)) + 'px';
+    im.style.height = (d.h * (d.s || 1)) + 'px';
+    im.style.zIndex = d.z;
+    im.style.transformOrigin = d.px + '% ' + d.py + '%';
+    parent.appendChild(im);
+    return im;
+  }
+  function soft(parent, css) {
+    var el = document.createElement('div');
+    el.className = 'soft';
+    el.style.cssText = css;
+    parent.appendChild(el);
+    return el;
+  }
+  function rig(cx, cy, flip) {
+    var root = document.createElement('div');
+    root.className = 'rig';
+    root.style.left = cx + '%';
+    root.style.top = cy + '%';
+    var inner = document.createElement('div');
+    inner.className = 'rig';
+    root.appendChild(inner);
+    stage.appendChild(root);
+    return { root: root, inner: inner, flip: flip };
+  }
+  function place(r, scale, x, y, rot, sx, sy) {
+    var s = (stage.clientWidth / 1040) * scale;
+    r.inner.style.transform = 'scale(' + (r.flip ? -s : s) + ',' + s + ') translate(' + (x || 0) + 'px,' + (y || 0) + 'px) rotate(' + (rot || 0) + 'deg) scale(' + (sx || 1) + ',' + (sy || 1) + ')';
+  }
+  function tf(el, x, y, r, extra) { el.style.transform = 'translate(' + x + 'px,' + y + 'px) rotate(' + r + 'deg)' + (extra || ''); }
+  function heads(r, who, names, base, offs) {
+    var out = {};
+    names.forEach(function (n) {
+      var o = offs[n];
+      out[n] = add(r.inner, who + '-heads-' + n, { w: o[2], h: o[3], s: base.s, x: base.x + o[0] * base.s, y: base.y + o[1] * base.s, z: base.z, px: 50, py: 72 });
+      out[n].style.display = 'none';
+    });
+    return out;
+  }
+  function show(set, name, x, y, rot) {
+    Object.keys(set).forEach(function (n) {
+      set[n].style.display = n === name ? 'block' : 'none';
+      if (n === name) tf(set[n], x, y, rot);
+    });
+  }
+
+  // Pip stands on the right and faces left when turned.
+  var pip = rig(70, 90, false);
+  var pp = {
+    shadow: soft(pip.inner, 'left:-260px;top:-34px;width:520px;height:76px;background:radial-gradient(ellipse,rgba(6,6,16,.6),rgba(6,6,16,0) 70%)'),
+    tail: add(pip.inner, 'pip-tail', { w: 234, h: 275, x: 118, y: -318, z: 1, px: 18, py: 88 }),
+    legs: add(pip.inner, 'pip-legs', { w: 238, h: 316, x: -125, y: -316, z: 2, px: 50, py: 0 }),
+    coat: add(pip.inner, 'pip-coat', { w: 466, h: 682, x: -238, y: -730, z: 3, px: 50, py: 100 }),
+    lantern: add(pip.inner, 'pip-lantern', { w: 138, h: 286, s: .78, x: 42, y: -365, z: 6, px: 50, py: 2 }),
+    arm: add(pip.inner, 'pip-arm', { w: 172, h: 303, x: 8, y: -625, z: 7, px: 70, py: 8 }),
+    chin: soft(pip.inner, 'left:-128px;top:-700px;width:170px;height:84px;z-index:4;background:radial-gradient(ellipse,rgba(38,26,34,.5),rgba(38,26,34,.28) 45%,rgba(38,26,34,0) 72%)'),
+    glow: soft(pip.inner, 'z-index:8;mix-blend-mode:screen;background:radial-gradient(circle,rgba(255,214,130,.62),rgba(255,200,110,.2) 45%,rgba(255,190,90,0) 70%)')
+  };
+  // Offsets line each head up with the forward head.
+  pp.heads = heads(pip, 'pip', ['forward', 'talk', 'blink', 'scared', 'profile'], { s: .7, x: -158, y: -905, z: 5 }, {
+    forward: [0, 0, 308, 394], talk: [-2, 2, 310, 388], blink: [-5, -2, 309, 382], scared: [-2, 0, 309, 374], profile: [-16, 4, 323, 382]
+  });
+
+  // Wick stands on the left, flipped so he turns toward Pip.
+  var wick = rig(27, 91, true);
+  var ww = {
+    shadow: soft(wick.inner, 'left:-300px;top:-30px;width:600px;height:80px;background:radial-gradient(ellipse,rgba(6,6,16,.6),rgba(6,6,16,0) 70%)'),
+    tail: add(wick.inner, 'wick-parts-tail', { w: 205, h: 120, x: -318, y: -210, z: 1, px: 92, py: 40 }),
+    footL: add(wick.inner, 'wick-parts-foot-left', { w: 175, h: 238, x: -176, y: -232, z: 2, px: 50, py: 0 }),
+    footR: add(wick.inner, 'wick-parts-foot-right', { w: 151, h: 230, x: 16, y: -226, z: 2, px: 50, py: 0 }),
+    body: add(wick.inner, 'wick-parts-body', { w: 517, h: 619, x: -258, y: -745, z: 3, px: 50, py: 100 }),
+    book: add(wick.inner, 'wick-parts-logbook', { w: 412, h: 282, s: .78, x: -160, y: -440, z: 6, px: 50, py: 100 }),
+    armL: add(wick.inner, 'wick-parts-arm-alt', { w: 275, h: 285, s: .86, x: -262, y: -590, z: 7, px: 22, py: 8 }),
+    armR: add(wick.inner, 'wick-parts-arm', { w: 303, h: 255, s: .82, x: 12, y: -585, z: 7, px: 88, py: 10 })
+  };
+  ww.armR.style.transformOrigin = '88% 10%';
+  ww.heads = heads(wick, 'wick', ['forward', 'talk', 'blink', 'grumpy', 'profile'], { s: .94, x: -140, y: -960, z: 5 }, {
+    forward: [0, 0, 297, 321], talk: [0, 1, 295, 326], blink: [0, 5, 294, 321], grumpy: [-3, -18, 299, 328], profile: [-8, 6, 313, 314]
+  });
+
+  // Moth is built from one side of wings, mirrored for the other.
+  var moth = rig(50, 34, false);
+  function wingSet(side) {
+    var m = side === 'R' ? 1 : -1, wrap = document.createElement('div');
+    wrap.className = 'rig';
+    wrap.style.transform = 'scaleX(' + m + ')';
+    moth.inner.appendChild(wrap);
+    return {
+      up: add(wrap, 'moth-parts-upper-wing', { w: 455, h: 315, x: 20, y: -280, z: 2, px: 0, py: 76 }),
+      low: add(wrap, 'moth-parts-lower-wing', { w: 378, h: 251, x: 14, y: -50, z: 1, px: 0, py: 20 }),
+      ant: add(wrap, 'moth-parts-antenna', { w: 371, h: 198, s: .7, x: 8, y: -420, z: 3, px: 2, py: 98 })
+    };
+  }
+  var wR = wingSet('R'), wL = wingSet('L');
+  var mothBody = add(moth.inner, 'moth-parts-body', { w: 363, h: 677, s: .72, x: -131, y: -230, z: 5, px: 50, py: 40 });
+  var mothGlow = soft(moth.inner, 'left:-300px;top:-320px;width:600px;height:600px;z-index:0;mix-blend-mode:screen;background:radial-gradient(circle,rgba(255,226,170,.14),rgba(255,226,170,0) 68%)');
+
+  function talkFace(t, base) {
+    var c = Math.floor(t * 12);
+    return (Math.sin(c * 1.7) + Math.sin(c * .63)) > -.1 ? 'talk' : base;
+  }
+  function blinking(t, phase) { return ((t + phase) % 4.1) < .17; }
+
+  function frame(now) {
+    if (now - last >= POSE_MS) {
+      last = now - ((now - last) % POSE_MS);
+      var t = now / 1000, e = (now - since) / 1000, u = Math.min(1, e / .35);
+      draw(t, e, u);
+    }
+    requestAnimationFrame(frame);
+  }
+  var last = 0;
+
+  function draw(t, e, u) {
+    var sway = Math.sin(t * 1.1), breathe = Math.sin(t * 1.9), flick = Math.sin(t * 2.7);
+    // Pip
+    var pipFace = blinking(t, 0) ? 'blink' : 'forward', pipHead = [0, 0, 1.5 * sway], py = 0, shake = 0, lantern = [0, 0, 2.2 * Math.sin(t * 2.2)];
+    if (mode === 'pipTalk') { pipFace = talkFace(t, 'forward'); pipHead = [0, -2 + 2 * Math.sin(t * 9), 2 * Math.sin(t * 3.1)]; }
+    if (mode === 'turn') pipFace = 'profile';
+    if (mode === 'grump') { pipFace = 'scared'; shake = Math.sin(t * 34) * 2.6; py = 18 * u; pipHead = [-4 * u, 26 * u, 5 * u]; lantern = [-22 * u, 18 * u, 8 * Math.sin(t * 16)]; }
+    place(pip, .5, shake, py, 0, 1, mode === 'grump' ? .96 : 1);
+    show(pp.heads, pipFace, pipHead[0], pipHead[1], pipHead[2]);
+    tf(pp.coat, 0, 0, 0, ' scaleY(' + (1 + .008 * breathe) + ')');
+    tf(pp.arm, 0, 0, 2 * sway);
+    tf(pp.tail, 0, 0, 5 * flick + (mode === 'grump' ? 26 * u : 0));
+    tf(pp.lantern, lantern[0], lantern[1], lantern[2]);
+    var gl = (mode === 'grump' ? .8 + .2 * Math.sin(t * 19) : 1 + .05 * Math.sin(t * 7)) * 620, lx = 96 + lantern[0], ly = -215 + lantern[1];
+    pp.glow.style.width = pp.glow.style.height = gl + 'px';
+    pp.glow.style.left = (lx - gl / 2) + 'px';
+    pp.glow.style.top = (ly - gl / 2) + 'px';
+
+    // Wick
+    var wickFace = blinking(t, 1.7) ? 'blink' : 'forward', wh = [0, 0, 1.2 * Math.sin(t * .9)], lowerBook = 0;
+    if (mode === 'wickTalk') { wickFace = talkFace(t * .92, 'forward'); wh = [0, -2 + 2 * Math.sin(t * 7), 2 * Math.sin(t * 2.4)]; lowerBook = 50 * u; }
+    if (mode === 'turn') { wickFace = 'profile'; lowerBook = 50 * u; }
+    if (mode === 'grump') { wickFace = Math.floor(t * 12) % 7 < 4 ? 'grumpy' : 'talk'; wh = [0, 3, 3 * Math.sin(t * 5)]; lowerBook = 50 * u; }
+    place(wick, .48, 0, 0);
+    show(ww.heads, wickFace, wh[0], wh[1], wh[2]);
+    tf(ww.body, 0, 0, 0, ' scaleY(' + (1 + .006 * Math.sin(t * 1.5)) + ')');
+    tf(ww.book, 0, lowerBook, .8 * sway);
+    tf(ww.armL, 0, lowerBook * .55, 1.2 * sway);
+    tf(ww.armR, 0, lowerBook * .55, -1.2 * sway, '');
+    tf(ww.tail, 0, 0, 4 * flick);
+
+    // Moth wanders over the page, or goes straight for Pip's lantern.
+    var flap = mode === 'moth' ? 16 : 7;
+    var open = .68 + .3 * Math.sin(t * flap);
+    var homeX = 10 + 90 * Math.sin(t * .47), homeY = 40 * Math.sin(t * .8);
+    var mx = homeX, my = homeY;
+    if (mode === 'moth') {
+      var go = Math.min(1, e / 1.1), tx = 310 + 34 * Math.sin(t * 5.1), ty = 300 + 28 * Math.sin(t * 6.7);
+      mx = homeX + (tx - homeX) * go;
+      my = homeY + (ty - homeY) * go;
+    }
+    place(moth, .24, mx * 4, my * 4);
+    [wR, wL].forEach(function (w) {
+      w.up.style.transform = 'scaleX(' + open + ') rotate(' + (-5 * (1 - open)) + 'deg)';
+      w.low.style.transform = 'scaleX(' + (open * .96) + ') rotate(' + (5 * (1 - open)) + 'deg)';
+      w.ant.style.transform = 'rotate(' + (-24 + 3 * Math.sin(t * 4)) + 'deg)';
+    });
+    mothBody.style.transform = 'translateY(' + (6 * Math.sin(t * flap)) + 'px)';
+  }
+  requestAnimationFrame(frame);
+
+  function setMode(m) { mode = m; since = performance.now(); }
+  document.getElementById('btns').addEventListener('click', function (e) {
+    var b = e.target.closest('button');
+    if (!b) return;
+    setMode(b.getAttribute('data-a'));
+    Array.prototype.forEach.call(this.children, function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+  });
+  window.__setCast = setMode;
+})();
+</script>
+
+
+</body>
+</html>

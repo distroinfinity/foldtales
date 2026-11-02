@@ -1,0 +1,61 @@
+{
+  "id": "003-cast-puppets",
+  "question": "Do the parts-sheet method and swappable heads work across the whole cast, so all three characters can act and talk?",
+  "why": "Pip's puppet is approved. The show needs Wick and Moth as puppets too, and every speaking character needs a side-facing head plus a mouth and blink that swap without the face visibly changing.",
+  "decideBy": [
+    "Parts: every Wick and Moth piece cuts out cleanly and joins back into the character from run 001.",
+    "Heads: swapping between heads at 12 poses a second doesn't make the face visibly jump. The test is the same size and placement of eyes, nose and ears across forward-facing heads.",
+    "Side head: it reads as the same character, turned.",
+    "Moth on blue paper: pale wings and fine antenna feathers survive cutting out, and the colors still match run 001."
+  ],
+  "learnEvenIfRejected": "Whether one sheet can hold a matched set of heads. If they don't match, we move to separate mouth and eyelid pieces on a single head, and that decides how every future character is made.",
+  "reusableOutput": "All pieces become product assets in art/cast/. The sheet prompts become the standard recipe for any new character, including ones the AI invents.",
+  "capCredits": 40,
+  "jobs": [
+    {
+      "id": "pip-heads-sheet",
+      "purpose": "heads",
+      "model": "seedream5_pro",
+      "ratio": "1024:1024",
+      "params": {},
+      "refs": [
+        { "file": "art/runs/002-pip-puppet-and-live-painter/pip-parts-sheet.png" },
+        { "file": "art/runs/002-pip-puppet-and-live-painter/pip-master-v2.png" }
+      ],
+      "prompt": "A head sheet for the fox character in Figures 1 and 2, in exactly the same painting style. Six separate heads with ears, in two rows of three, with wide empty space between them, none touching. Top row, all facing straight forward and exactly identical in size, shape and placement of eyes, nose and ears: mouth closed; mouth open as if speaking; eyes closed. Bottom row: facing straight forward with wide frightened eyes; turned in full side profile facing left; turned three-quarters facing left. Each head ends cleanly at the chin ruff, as if cut out for a jointed puppet. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. Natural animal anatomy, gentle and dignified, not a cartoon. On plain white paper. No scenery, no ground, no text."
+    },
+    {
+      "id": "wick-parts-sheet",
+      "purpose": "puppet",
+      "model": "seedream5_pro",
+      "ratio": "1024:1024",
+      "params": {},
+      "refs": [
+        { "file": "art/runs/001-cast-model-test/seedream5_pro-wick.png" }
+      ],
+      "prompt": "A paper-doll parts sheet of the badger character in Figure 1, in exactly the same painting style. Show these separate pieces laid out with wide empty space between them, none touching or overlapping: the body in the blue-grey coat and cream waistcoat, facing forward, with no head and no arms; one coat sleeve arm with paw; a second coat sleeve arm with paw; the short bushy tail; two hind legs with clawed feet; the open logbook with an orange-brown cover. Each piece is complete and cleanly painted, as if cut out for a jointed puppet. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. Natural animal anatomy, gentle and dignified, not a cartoon. On plain white paper. No scenery, no ground, no text."
+    },
+    {
+      "id": "wick-heads-sheet",
+      "purpose": "heads",
+      "model": "seedream5_pro",
+      "ratio": "1024:1024",
+      "params": {},
+      "refs": [
+        { "file": "art/runs/001-cast-model-test/seedream5_pro-wick.png" }
+      ],
+      "prompt": "A head sheet for the badger character in Figure 1, in exactly the same painting style, always wearing the same flat blue cap and round wire spectacles. Six separate heads with wide empty space between them, in two rows of three, none touching. Top row, all facing straight forward and exactly identical in size, shape and placement of eyes, nose, cap and spectacles: mouth closed; mouth open as if speaking; eyes closed. Bottom row: facing straight forward with a grumpy frown; turned in full side profile facing left; turned three-quarters facing left, peering down over the spectacles. Each head ends cleanly at the neck, as if cut out for a jointed puppet. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. Natural animal anatomy, gentle and dignified, not a cartoon. On plain white paper. No scenery, no ground, no text."
+    },
+    {
+      "id": "moth-parts-sheet",
+      "purpose": "puppet",
+      "model": "seedream5_pro",
+      "ratio": "1024:1024",
+      "params": {},
+      "refs": [
+        { "file": "art/runs/001-cast-model-test/seedream5_pro-moth.png" }
+      ],
+      "prompt": "A paper-doll parts sheet of the moth character in Figure 1, in exactly the same painting style and colors. Show these separate pieces laid out with wide empty space between them, none touching or overlapping: the fluffy body with its head, fur collar and big dark eyes, with no wings and no antennae; one marbled upper wing; one pale orange lower wing; one feathered antenna. Each piece is complete and cleanly painted, as if cut out for a jointed puppet. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. Natural animal anatomy, gentle and dignified, not a cartoon. On plain flat slate-blue paper, one even solid color, so the pale wings stand out clearly. No scenery, no ground, no text."
+    }
+  ]
+}
