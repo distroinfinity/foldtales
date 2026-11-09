@@ -1,0 +1,13 @@
+{
+  "name": "@tabletop/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts",
+    "./mocks": "./src/mocks/index.ts",
+    "./version": "./src/version.ts"
+  },
+  "scripts": { "typecheck": "tsc -p ." }
+}
