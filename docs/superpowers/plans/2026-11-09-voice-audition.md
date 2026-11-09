@@ -13,7 +13,8 @@
 ## Global Constraints
 
 - Never edit `art/tools/generate.mjs`, `client`, `backend` or `contracts`. Do not import from `spikes/`.
-- No paid API call before the matching question card is approved. Paid steps are Task 6 and Task 7 only.
+- No paid API call before a question card is approved for it. Each approved window covers one round, and retakes made during it. A later paid retake needs a new card and a new window.
+- Every paid process must finish, with all tasks resolved, before anything downstream runs or the user is told the round is over.
 - `RUNWAYML_API_SECRET` is read from the environment only. It is never printed, logged or written. No `.env` file is opened or served.
 - Run folder: `art/runs/005-voice-audition/`. Model: `eleven_v4`. Settings on every job: `stability` 0.4, `similarityBoost` 0.75, `languageCode` `en`. `capCredits` 100.
 - Web Audio uses native nodes only. No `AudioWorklet`.
@@ -41,7 +42,7 @@
 **Interfaces:**
 - Produces, all exported from `generate-voice.mjs`:
   - `estimateCredits(promptText: string): number`, `max(1, ceil(chars × 5 / 1000))`.
-  - `validatePlan(plan): void`, throws on a job whose `promptText` is empty, over 2,500 characters, contains only `[tags]` or has `<break>`, or whose `presetId` is not one of the 49 names; and on duplicate job ids.
+  - `validatePlan(plan): void`, throws on a job whose `promptText` is empty, over 200 characters (the spec's 1-credit invariant), contains only `[tags]` or has `<break>`, or whose `presetId` is not one of the 49 names; and on duplicate job ids.
   - `readLedger(manifestPath: string): Ledger`, throws `LedgerCorrupt` on a line that isn't JSON.
   - `committedCredits(ledger): number`.
   - `runPhase({ plan, runDir, phase, spend, acceptLost, apiKey, fetchImpl, log, sleep }): Promise<{ stopped: string|null, committed: number }>`.
@@ -50,24 +51,25 @@
 
 | Event | Extra fields | Counts toward committed |
 |---|---|---|
-| `intent` | | 1 until a later event for this attempt |
+| `intent` | `request`, the exact POST body | 1 until a later event for this attempt |
 | `started` | `taskId`, `estimatedCredits` | 1 until resolved |
 | `succeeded` | `taskId`, `credits`, `seconds` | `credits`, or 1 and stop if null |
 | `done` | `file`, `format`, `presetId`, `model`, `settings`, `seed`, `promptText`, `taskId`, `credits`, `seconds` | Already counted on `succeeded` |
 | `failed` | `taskId?`, `credits`, `reason` | `credits`, or 1 and stop if null |
 | `ambiguous` | `reason` | 1 |
 | `accepted-lost` | | 1, and the attempt is resolved |
+| `balance` | `credits`, `when`: `start` or `end` | No, it's for reconciling each round |
 
-A rerun that finds `succeeded` with no `done` re-reads the task and retries only the download. A job is finished when a `done` event exists and its file is on disk.
+A rerun that finds `succeeded` with no `done`, or `done` whose file is missing or has unrecognized bytes, re-reads that task id and retries only the download, with zero POSTs. If the URL has expired, it stops and says so. A job is finished when a `done` event exists and its file is on disk and valid.
 
 - [ ] **Step 1: Write failing tests** with a fake `fetchImpl` that scripts `/organization`, `/text_to_speech`, `/tasks/:id` and the output URL, and a no-op `sleep`. Names and assertions:
 
 ```js
 test('dry run makes no network calls and reports estimated credits')
 test('estimateCredits: 200 chars is 1, 201 chars is 2')
-test('validatePlan rejects tag-only, <break>, unknown preset, over 2500 chars, duplicate ids')
+test('validatePlan rejects tag-only, <break>, unknown preset, over 200 chars, duplicate ids')
 test('spend run sends only eleven_v4 fields: model, promptText, voice preset, stability, similarityBoost, languageCode, seed')
-test('intent is on disk before the POST, and started before the first poll')
+test('intent, with the exact request body, is on disk before the POST, and started before the first poll')
 test('cap: stops before a job that would pass the cap, with no POST')
 test('cap counts failed attempts, retakes and unresolved attempts')
 test('rerun after a partial run submits only unfinished jobs and never repays')
@@ -77,6 +79,8 @@ test('intent with no started on rerun stops as ambiguous')
 test('--accept-lost resolves an ambiguous job at 1 credit, then the job can be resubmitted')
 test('poll survives network errors until the task finishes')
 test('succeeded task with failed download retries only the download on rerun')
+test('done job whose file was deleted recovers by task id with zero POSTs')
+test('balance events are written at the start and end of a round')
 test('missing cost on a finished task stops the run and counts 1')
 test('4xx other than 429 stops; 429 waits and retries with no charge')
 test('balance dropping by more than recorded costs stops the run')
@@ -110,8 +114,7 @@ test('the api key never appears in log output or the manifest, including on erro
 - [ ] **Step 1: Write the failing test.** `chain.test.mjs` runs `chain-selftest.html` in Chrome and asserts on the posted JSON, for each of the three settings:
 
 ```js
-test('low-level multi-tone is within 2 dB of summed getFrequencyResponse at 60, 280, 1800, 6000, 10000 Hz')
-test('hot input keeps output peak at or below -1 dBFS')       // input: 1 kHz at -1 dBFS, with outputDb 0
+test('low-level multi-tone, relative to 1 kHz, is within 2 dB of summed getFrequencyResponse at 60, 280, 1800, 6000, 10000 Hz')   // saturation and compressor add flat gain, so compare relative to 1 kHz
 test('same signal agrees within 1.5 dB per band across OfflineAudioContext, AudioContext+AudioBufferSource, MediaElementSource, and scheduled chunks')
 test('room tone: same seed gives identical buffer, RMS -46 dBFS within 2 dB, loop-seam step under 0.002')
 test('saturationCurve maps 1 to 1 and -1 to -1 and is monotonic')
@@ -206,10 +209,11 @@ The page: one section per role (Pip, Wick, Moth, Narrator) and an "All voices" v
 - [ ] **Step 1: Write the failing test,** using a temp run folder with synthesized short WAVs, a `clips.json` that references one missing file, and the real handler:
 
 ```js
-test('renders each role with its beats and A, B, C options')
-test('tapping a cell plays; tapping another stops the first; rapid taps leave exactly one active source')
-test('a missing clip marks its cell unavailable and other cells still play')
-test('tapping after ctx.suspend() resumes the context and plays')
+test('renders each role with its beats and A, B, C options, and a sweep-only index shows just All voices')
+test('tapping a cell plays; tapping another stops the first')
+test('rapid taps with reversed decode order (first clip delayed by the test server) leave only the last tap audible')
+test('a missing clip and a corrupt clip each mark their cell unavailable, and other cells still play')
+test('a tap calls resume when the context is suspended')   // does not prove first-tap activation or headset removal: those are user checks in Task 8
 test('switching chain setting while playing reroutes without restarting the source')
 test('no preset names or plan fields appear in the DOM')
 ```
@@ -231,17 +235,17 @@ test('no preset names or plan fields appear in the DOM')
 - Modified by the run: `manifest.jsonl`, `sweep-*.mp3`, `measurements.json`, `clips.json`
 
 **Interfaces:**
-- Produces: `build-voice-plan.mjs <runDir> [shortlist.json]`. Writes `plan.json` with `sweepJobs` for all 49 presets using the spec's sweep line, and, given `shortlist.json` (`{ pip: ['Preset','Preset','Preset'], wick: [...], moth: [...], narrator: [...] }`), audition jobs from the spec's line table with ids like `pip-a-fear`. Seed: FNV-1a 32-bit of the job id. The script copies the spec's text exactly and calls `validatePlan`.
+- Produces: `build-voice-plan.mjs <runDir> [shortlist.json]`. Writes `plan.json` with one `jobs` array: `phase: 'sweep'` jobs for all 49 presets using the spec's sweep line (ids like `sweep-Maya`), and, given `shortlist.json` (`{ pip: ['Preset','Preset','Preset'], wick: [...], moth: [...], narrator: [...] }`), `phase: 'audition'` jobs from the spec's line table with ids like `pip-a-fear`. Seed: FNV-1a 32-bit of the job id. The script copies the spec's text exactly and calls `validatePlan`.
 
-- [ ] **Step 1: Write the builder and generate the plan.** Fill in `question`, `why`, `decideBy`, `learnEvenIfRejected`, `reusableOutput` from the spec.
+- [ ] **Step 1: Write the builder and generate the plan.** Fill in `question`, `why`, `decideBy`, `learnEvenIfRejected`, `reusableOutput` from the spec. Test in `art/tools/build-voice-plan.test.mjs`: `test('builder output passes validatePlan; sweep has 49 jobs; a 12-voice shortlist adds 33 audition jobs')`.
 
 - [ ] **Step 2: Dry run.** `node art/tools/generate-voice.mjs art/runs/005-voice-audition --phase sweep`. Expected: 49 jobs, estimated 49 credits, cap 100, no network. Commit plan.
 
 - [ ] **Step 3: Question card (AskUserQuestion).** Show: 49 credits ($0.49) for the sweep, total plan 82, cap 100, and ask the user to confirm the other workspace isn't generating and won't start until this round reports back. **Stop here until approved.**
 
-- [ ] **Step 4: Run with spend,** with the key read from the environment file: `node --env-file=.env.local art/tools/generate-voice.mjs art/runs/005-voice-audition --phase sweep --spend`, in the background. If it stops, read the reason, and go to the user if money or `ambiguous` is involved.
+- [ ] **Step 4: Run with spend,** with the key read from the environment file: `node --env-file=.env.local art/tools/generate-voice.mjs art/runs/005-voice-audition --phase sweep --spend`, in the background. **Wait for its completion notice.** If it stops at the polling limit, rerun until every task is resolved. If it stops for money or `ambiguous`, go to the user. If it can't continue, close the run per the terminal outcomes in Task 8.
 
-- [ ] **Step 5: Measure.** `node art/tools/analyze-voice.mjs art/runs/005-voice-audition`. Expected: 49 entries, a list of any broken clips.
+- [ ] **Step 5: Measure.** `node art/tools/analyze-voice.mjs art/runs/005-voice-audition`. Expected: 49 entries, a list of any broken clips. Start the server in the background so the sweep can be heard if the user asks at the next card, and confirm the page loads a sweep-only `clips.json`.
 
 - [ ] **Step 6: Commit.** `git add art/runs/005-voice-audition art/tools/build-voice-plan.mjs && git commit -m "Run voice sweep for run 005"`
 
@@ -253,17 +257,17 @@ test('no preset names or plan fields appear in the DOM')
 
 **Interfaces:**
 - Consumes: `measurements.json`, the plan, `runInChrome`, `createVoiceChain`.
-- Produces: `calibrate-chain.mjs <runDir>` renders round 2 clips through each setting in Chrome and writes each setting's `outputDb` so its RMS is within 1 dB of Dry.
+- Produces: `calibrate-chain.mjs <runDir>`, exporting `calibrate({ clips, chainJson, runInChrome }) → { settings: { [name]: { outputDb, rmsDeltaDb, peakDb, peakLimited } } }`. It renders every round 2 clip with its trim through each setting in Chrome and writes each setting's `outputDb` so RMS is within 1 dB of Dry. Peak wins: if matching would pass −1 dBFS, it lowers `outputDb` to the ceiling and sets `peakLimited`, for reporting in `results.md`. Test in `art/tools/calibrate-chain.test.mjs` with synthesized clips, including a transient burst: `test('calibrated settings match Dry within 1 dB')`, `test('a peak conflict lowers outputDb, sets peakLimited and keeps peaks at or below -1 dBFS')`.
 
 - [ ] **Step 1: Choose the shortlist** per the spec: three per role, far apart in the measurements, no preset in two roles unless a pitch band forces it. Record the reasoning in `shortlist.json` under a `why` key.
 
 - [ ] **Step 2: Regenerate the plan and dry run.** `node art/tools/build-voice-plan.mjs art/runs/005-voice-audition art/runs/005-voice-audition/shortlist.json`, then dry-run `--phase audition`. Expected: 33 jobs, 33 credits, committed 49 from the sweep, within the cap.
 
-- [ ] **Step 3: Question card.** Show the shortlist and 33 credits, with the exclusive-window confirmation and the option to hear the sweep first. **Stop here until approved.**
+- [ ] **Step 3: Question card.** Describe the shortlist by role and measured character, **with no preset names**, and 33 credits, with the exclusive-window confirmation and the option to hear the sweep first. **Stop here until approved.**
 
-- [ ] **Step 4: Run with spend,** as in Task 6 Step 4, with `--phase audition`.
+- [ ] **Step 4: Run with spend,** as in Task 6 Step 4, with `--phase audition`. Wait for its completion notice.
 
-- [ ] **Step 5: Measure, retake any objectively broken clip** as a new job with `retakeOf`, within the cap, then calibrate: `node art/tools/calibrate-chain.mjs art/runs/005-voice-audition`.
+- [ ] **Step 5: Measure, retake any objectively broken clip** as a new job with `retakeOf`, within the cap and within this approved window, then run the rebuild sequence: generate, `analyze-voice.mjs`, `calibrate-chain.mjs`. Always run all three, in that order, after any new clip, so `clips.json`, trims and calibration can't go stale.
 
 - [ ] **Step 6: Commit.** `git add art/runs/005-voice-audition art/voice/chain.json art/tools/calibrate-chain.mjs && git commit -m "Run voice audition round for run 005"`
 
@@ -275,14 +279,39 @@ test('no preset names or plan fields appear in the DOM')
 
 - [ ] **Step 1: Start the server in the background** and confirm the page responds. Command: `node art/tools/serve-audition.mjs art/runs/005-voice-audition`.
 
-- [ ] **Step 2: Hand it over.** Give the user the LAN URL and exactly what to do in Quest Browser. Ask for the cast with question cards, one role at a time, with options A, B, C and "try something else".
+- [ ] **Step 2: Hand it over.** Give the user the LAN URL and exactly what to do in Quest Browser, including the first-tap and headset-off-and-on checks the browser tests can't prove. Ask for the cast with question cards, one role at a time, with options A, B, C and "try something else". Then one card for the chain setting, with room tone on or off, shared across the cast (the user can answer per role through Other).
 
-- [ ] **Step 3: If anything is rejected,** propose the next step and use spare cap only for a retake the user asked for. Anything beyond the cap needs a new approved plan. Go back to Step 2.
+- [ ] **Step 3: If anything is rejected,** propose the next step. A paid retake needs a new question card and a new exclusive window, even within the cap. Then run the rebuild sequence from Task 7 Step 5 and go back to Step 2. Anything past the cap needs a new approved plan.
 
-- [ ] **Step 4: Record the cast.** Write `art/cast/<who>/voice.json` for each cast role: `{ role, presetId, model, settings, chain: { name, ...fullSettings }, trimDb, run, referenceTakes: [files] }`. Write `approved-cast.json` with the same data for all roles, the name mapping, and the git revision from `git log -1 --format=%H -- art/voice/chain.mjs`.
+**Terminal outcomes,** each of which goes to Step 4 and Step 5 with whatever exists: full cast; partial cast; total rejection; user cancels; cap reached or `ambiguous` unresolved. Closure never depends on reaching a full cast.
 
-- [ ] **Step 5: Close the run.** Write `results.md` for whichever outcome happened, covering everything the spec's closure paragraph lists, including the 1-credit-minimum consequence for the pre-render estimate. Add durable learnings to `art/README.md`. Check that the manifest's committed credits are within the cap and match the balance movement, and report any difference.
+- [ ] **Step 4: Record the cast.** Write `art/cast/<who>/voice.json` for each cast role: `{ role, presetId, model, settings, chain: { name, ...fullSettings }, roomTone: { enabled, ...fullSettings }, trimDb, run, referenceTakes: [files] }`. Write `approved-cast.json` with the same data for all roles, the name mapping, and the SHA-256 of `art/voice/chain.mjs`.
+
+- [ ] **Step 5: Close the run.** Write `results.md` for whichever outcome happened, covering everything the spec's closure paragraph lists, including the 1-credit-minimum consequence for the pre-render estimate. Add durable learnings to `art/README.md`. Check that the manifest's committed credits are within the cap and that each round's cost matches its `balance` events, and report any difference.
 
 - [ ] **Step 6: Run all tests.** `node --test art/tools/*.test.mjs`. Expected: all PASS. Stop the server.
 
 - [ ] **Step 7: Commit.** `git add art/cast art/runs/005-voice-audition art/README.md && git commit -m "Close voice audition run 005"`
+
+## Codex review of this plan, and what I did about it
+
+| Finding | Decision |
+|---|---|
+| Commits violate `AGENTS.md` | **Rejected.** The user explicitly asked for commits on this branch as we go, which is what that rule is waiting for. Took the useful part: a SHA-256 identifies the chain instead of a git revision |
+| Paid processes have no completion gate | **Fixed** |
+| Later retakes bypass the exclusive window | **Fixed** |
+| Builder and generator schema disagree | **Fixed,** and the builder's output is tested |
+| Frequency test contradicts the chain's flat gain | **Fixed,** by measuring relative to 1 kHz. The peak ceiling moved to the calibrated configuration, in the spec too |
+| Final approval doesn't capture chain and room tone | **Fixed,** with a card and a fuller snapshot |
+| Retakes don't reach the page | **Fixed** with one rebuild sequence |
+| No path for cancellation or rejection | **Fixed** with terminal outcomes |
+| "Hear the sweep first" before the server exists | **Fixed** |
+| 1-credit reservation vs 2,500-character jobs | **Fixed** by enforcing the approved 200-character limit |
+| Deleted files lose recovery | **Fixed** by re-reading the task id, with no POST |
+| Calibration doesn't check peaks | **Fixed,** with a test and a rule for conflicts |
+| Browser tests overclaim | **Fixed.** Corrupt and reversed-order fixtures added, and first-tap and headset-off moved to the user's checks |
+| Approval card reveals the blind mapping | **Fixed** |
+| Failed attempts lack an immutable record | **Fixed** with the request in `intent` and per-round balance events |
+| Too much tooling before a first listen | **Rejected.** Nothing can be heard until a paid round is approved, and the page needs the chain to be worth hearing, so reordering wouldn't save the user any time. The money safeguards can't be cut, and the Chrome harness is shared across three tasks |
+
+The fixes tighten the run's safety and its tests. The design's shape is unchanged, so no third review was run.

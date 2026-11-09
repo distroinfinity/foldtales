@@ -91,7 +91,7 @@ source → trim → highpass → low-mid warmth (peaking) → paper presence (pe
 
 Saturation is a `tanh` curve at the given drive, normalized so a full-scale input still reaches full scale. The Quest's speakers reportedly roll off low end early (a vendor write-up, unconfirmed by Meta), so warmth sits in the low-mids and the highpass stays above the speakers' weak range, rather than boosting bass they can't play. These numbers are starting points. Only the user's ears on the headset settle them.
 
-**Level matching, so louder doesn't win.** Each setting has a fixed `outputDb` in `chain.json`, calibrated over the round 2 clips so its level matches Dry to within 1 dB RMS. Web Audio's compressor adds its own makeup gain, and fixed calibration keeps that the same on live lines. Output peaks stay at or below −1 dBFS.
+**Level matching, so louder doesn't win.** Each setting has a fixed `outputDb` in `chain.json`, calibrated over the round 2 clips so its level matches Dry to within 1 dB RMS. Web Audio's compressor adds its own makeup gain, and fixed calibration keeps that the same on live lines. Peaks stay at or below −1 dBFS on the calibrated settings. The ceiling wins if it conflicts with level matching.
 
 **Per-voice trim.** `trimDb` brings each voice to a mean of −20 LUFS, measured with `ffmpeg`'s `ebur128` across all of that voice's clips, so whispers stay quieter than shouts within a voice. Trims are recorded for the chosen cast. They work the same way on live lines, where per-line normalization isn't possible. The compressor handles the rest.
 
@@ -115,20 +115,20 @@ The script:
 
 1. **Dry run by default.** It prints jobs, character counts and estimated credits and makes no API call. It takes `--spend` to generate, and `--phase sweep|audition` to choose a round.
 2. **Exclusive window, set by the user.** The approval card asks the user to confirm the other workspace isn't generating and won't start until this round reports back. That window is the real gate, since `art/tools/generate.mjs` can't be edited to coordinate. As a warning signal only, the script checks the balance before starting and after each job, and stops if it fell by more than this run's own recorded costs.
-3. **Enforces the cap with reservations.** Before each submission, committed spend is every attempt's real `cost.credits`, plus 1 credit reserved per attempt still unresolved or ambiguous. It stops before any job that would pass the cap. Every attempt counts, including failures, retakes and downloads that failed. A finished task with no reported cost stops the run.
+3. **Enforces the cap with reservations.** Every job must be 200 characters or fewer, so it costs exactly 1 credit. That's what makes a 1-credit reservation correct. Before each submission, committed spend is every attempt's real `cost.credits`, plus 1 credit reserved per attempt still unresolved or ambiguous. It stops before any job that would pass the cap. Every attempt counts, including failures, retakes and downloads that failed. A finished task with no reported cost stops the run.
 4. **Cannot silently pay twice.** It writes an `intent` line before the POST, then a `started` line with the task id as soon as the response arrives, then polls through network dropouts. A rerun polls a `started` task rather than resubmitting. If a POST's outcome is unknown (a network error, or an `intent` with no `started` after a crash), the job is marked `ambiguous` and the run stops. Runway has no task-list endpoint to reconcile against, so the operator checks the balance and reruns with `--accept-lost <job>`, which counts 1 credit against the cap for that attempt. A succeeded task whose download failed retries only the download.
 5. **Skips finished jobs,** and treats any 4xx rejection other than 429 as a stop, since it means the plan is wrong. A 429 waits and retries, uncharged.
 6. **Logs each clip** to the manifest: prompt, preset, model, settings, seed, task id, real credits, seconds and format. Seconds also give free first data for the later latency question.
 7. **Reads the key only from the environment,** and never prints it.
 
-**Approval.** Before the sweep, a question card shows the plan and estimated credits, and asks for the exclusive window described above. Before round 2, the same card with the shortlist, plus the option to hear the sweep first. No paid call happens without both.
+**Approval.** Before the sweep, a question card shows the plan and estimated credits, and asks for the exclusive window described above, covering the round and any retakes of broken clips made during it. Before round 2, the same card, describing the shortlist without preset names so the audition stays blind, plus the option to hear the sweep first. Any later paid retake needs its own card and a new window: spare cap isn't confirmation that the account is idle. No paid call happens without a card.
 
 ## Recording the cast
 
 After the pick:
 
 - `art/cast/<who>/voice.json` for each role that was cast, matching the `rig.json` precedent: preset, model, settings, the **complete chain settings copied in** (not a name), `trimDb`, and the run and accepted clip files, which are the reference takes. The narrator gets `art/cast/narrator/voice.json`.
-- `art/runs/005-voice-audition/approved-cast.json` snapshots all of this together with the git revision of `art/voice/chain.mjs`, so later edits to `chain.json` can't change what was approved.
+- `art/runs/005-voice-audition/approved-cast.json` snapshots all of this, plus the room-tone settings and whether room tone was on, with a SHA-256 of `art/voice/chain.mjs`, so later edits can't change what was approved. The user confirms the chain setting and room tone by question card, because those choices live in the browser.
 - `art/voice/chain.json` holds the chain settings for later work, read by `art/voice/chain.mjs`.
 
 **The run closes whatever happens.** `results.md` is written if the user picks a full cast, picks only some roles, rejects everything, or if the run is cancelled or hits the cap. It holds the outcome, the picks and name mapping if any, reconciled costs including lost or failed attempts, which clips are reusable, what was rejected, what we learned, what the pre-render ticket needs to know, and the next proposed experiment if the cast isn't complete. Durable learnings go in the `art/README.md` list. Cast files are written only for roles actually cast.
@@ -153,8 +153,8 @@ After the pick:
 | Check | How |
 |---|---|
 | Script safety | `node --test` with a fake `fetch`: dry run makes no calls, cap counts reservations and all attempts, a resumed run doesn't pay twice, an accepted POST whose response is lost stops as `ambiguous` and never resubmits, a missing cost stops, a 4xx stops, an unexplained balance drop stops, and no key reaches output |
-| Chain's response | In headless Chrome: a low-level multi-tone signal through each setting, within 2 dB at 60, 280, 1,800, 6,000 and 10,000 Hz of the sum of each filter's `getFrequencyResponse`. Hot input keeps output peaks at or below −1 dBFS |
-| Level match | Each setting's RMS over the round 2 clips is within 1 dB of Dry |
+| Chain's response | In headless Chrome: a low-level multi-tone signal through each setting. Relative to 1 kHz, it's within 2 dB at 60, 280, 1,800, 6,000 and 10,000 Hz of the sum of each filter's `getFrequencyResponse`. Measuring relative to 1 kHz is needed because saturation and the compressor add flat small-signal gain |
+| Level match and peak | On the calibrated settings, over all round 2 clips with their trims: each setting's RMS is within 1 dB of Dry, and peaks are at or below −1 dBFS. If they conflict, the peak ceiling wins, and the level shortfall is reported in `results.md` |
 | Chain is the same on all sources | In headless Chrome: the same clip through `OfflineAudioContext`, a live `AudioContext` with `AudioBufferSource`, `MediaElementSource`, and scheduled chunks. Band levels must agree within 1.5 dB |
 | Room tone | Same seed gives the same buffer. RMS is −46 dBFS within 2 dB. The sample step across the loop seam is under 0.002 |
 | Server | Only allowlisted paths respond. `.env.local` and traversal attempts return 404 |
