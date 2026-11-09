@@ -50,7 +50,7 @@ scripts/check-bundle.ts   the key scan
 
 `tools/ports.ts` reads the workspace's `.env.ports` directly and throws with "run .superset/setup.sh" if the file or the key is missing. It never falls back to a number. It parses the file rather than using `process.loadEnvFile` or `--env-file`, because both let an inherited shell variable win, and one workspace's stray `BACKEND_PORT` would then collide with another's.
 
-The backend's production entry reads `PORT` first (Railway sets it), then the file. The client's dev server proxies `/api` to `BACKEND_PORT`, so client code always calls a relative path and never holds a port.
+The backend's `dev` script passes `--dev`, which reads only the file and ignores any inherited `PORT`. Without `--dev` (production) it requires `PORT`, which Railway sets. The client's dev server proxies `/api` to `BACKEND_PORT`, so client code always calls a relative path and never holds a port.
 
 ### Keys
 
@@ -58,7 +58,7 @@ Three layers, the last being the proof:
 
 1. `envPrefix: 'TT_PUBLIC_'` in Vite. Vite also exposes matching variables from the process environment, so moving `envDir` alone would not help on a CI runner. A prefix does. The repo root's `.env.local` is outside the client's `envDir` as well.
 2. `contracts/src` and `client/src` may not mention `process.env`, enforced by a repo guard.
-3. `scripts/check-bundle.ts` builds the client with planted canaries in the environment (`ANTHROPIC_API_KEY`, `VITE_ANTHROPIC_API_KEY`, `TT_SECRET_CANARY`), then scans `dist/` for those values, for every value in the real `.env.local`, and for key shapes (`sk-ant-`, `key_` plus long hex). It prints variable names and file names, never values. It writes no env file, so it can't disturb a workspace's `.env.local` link.
+3. `scripts/check-bundle.ts` runs a real client build through Vite's API with planted canaries in the environment (`ANTHROPIC_API_KEY`, `VITE_ANTHROPIC_API_KEY`, `RUNWAYML_API_SECRET`, `TT_SECRET_CANARY`). A build-only plugin appends a read of each one through `import.meta.env`, because an empty app that never reads a variable would pass with any prefix. It then scans the output for those values, for every value in the real `.env.local`, and for key shapes (`sk-ant-`, `key_` plus long hex). It prints variable names and file names, never values. It builds to a temporary directory and writes no env file. Running it with `--weaken-prefix` widens the prefix to include `VITE_` and must fail, which proves the check can catch a leak.
 
 ### IWSDK scaffold
 
@@ -114,7 +114,9 @@ A union on `do`. Every member has `withPrev: boolean`, because a linear list can
 
 `speak` and `narrate` carry text only. **Line identity is a pure function:** `lineIdOf(speaker, text)` hashes the speaker and the normalised text. The pre-render pipeline, the audio lookup and the repetition ledger all compute the same id, and "same words from the same speaker" is exactly what the ledger is meant to block. AI output then needs no id field and is byte-for-byte a stage action.
 
-A **ready beat** is `{ beat, voice: Record<LineId, VoiceAsset> }`. `VoiceAsset` is `{ url: string | null, durationMs }`, where a null url means captions only with an estimated duration. That makes "voice failed, show captions" the same type as success.
+`linesOf(beat)` is the one list of a beat's utterances: `speak` and `ask_reader` under their `who`, and `narrate` under the reserved speaker `narrator`, which no cast member may use as an id.
+
+A **ready beat** is `{ beat, voice: Record<LineId, VoiceAsset> }`. `VoiceAsset` is `{ url: string | null, durationMs }`, where a null url means captions only with an estimated duration. That makes "voice failed, show captions" the same type as success. `checkReady(ready)` reports a line with no asset or a non-positive duration, and a beat with unbound placeholders, so "validated and voiced" is one check.
 
 #### Acting
 
@@ -165,16 +167,39 @@ A closed table of `idle, look, scared, raise, hop, turn, grumble, examine, reach
 
 Every event: `v, id` (client-generated, so reconnect resends are idempotent), `seq` (see below), `seriesId, episodeId, actor` (player, app or director), `showMs` (the scheduler clock, which stops while paused), `at` (wall clock), `type, data`.
 
-| Group | Types |
+`Player` is `{ id, name }`. `entity` is a target limited to `cast:<id>` or `object:<id>`.
+
+| Type | `data` |
 |---|---|
-| Session | `session.paused {reason}`, `session.resumed` |
-| Episode | `episode.started`, `episode.ended` |
-| Beat | `beat.queued {ready}`, `beat.started {beatId, fallback}`, `beat.completed`, `beat.preempted` |
-| Reach | `entity.grabbed`, `entity.placed {at}`, `drawer.opened`, `drawer.closed` |
-| Objects | `object.added {object}`, `object.handed {objectId, toCast}`, `object.used`, `object.kept {history}` |
-| Story | `problem.attempted {problemId, objectId, ruleId}`, `problem.resolved`, `talk.heard {castId, text}` |
-| Canon | `canon.recorded {entry}`, `canon.reverted {entryId}`, `page.composed {page}` |
-| Circle | `player.joined`, `player.left`, `host.changed`, `ownership.granted`, `ownership.released`, `speaker.locked`, `speaker.unlocked`, `fairness.credited` |
+| `session.paused` | `reason` (`book_closed`, `ribbon`, `headset_off`, `hands_lost`) |
+| `session.resumed` | none |
+| `episode.started` | `spine, libraryVersion, objects, players` |
+| `episode.ended` | `outcome` (`resolved`, `abandoned`), `durationMs` |
+| `beat.queued` | `ready` |
+| `beat.started` | `beatId`, `fallback` (`slow`, `failed`, `cap`, `offline`, or null when the planned beat played) |
+| `beat.completed` | `beatId` |
+| `beat.preempted` | `beatId`, `byEventId` |
+| `entity.grabbed` | `entity, playerId` |
+| `entity.placed` | `entity, playerId, at` (`Vec3` in stage space) |
+| `drawer.opened` | `by` (`beat`, `player`) |
+| `drawer.closed` | none |
+| `object.added` | `object` |
+| `object.handed` | `objectId, toCast, playerId` |
+| `object.used` | `objectId, beatId, problemId` (nullable) |
+| `object.kept` | `objectId, playerId, history` (the one sentence the app wrote) |
+| `problem.attempted` | `problemId, objectId, playerId, ruleId` (null means the fallback) |
+| `problem.resolved` | `problemId, outcome, objectId` (null when nothing was given) |
+| `talk.heard` | `castId, playerId, text` |
+| `canon.recorded` | `entry` |
+| `canon.reverted` | `entryId` |
+| `page.composed` | `page` |
+| `player.joined` | `player` |
+| `player.left` | `playerId` |
+| `host.changed` | `playerId, resumeBeatId` (nullable) |
+| `ownership.granted`, `ownership.released` | `entity, playerId` |
+| `speaker.locked` | `playerId, castId` |
+| `speaker.unlocked` | `playerId` |
+| `fairness.credited` | `playerId, eventId` |
 
 **`seq` is one series-wide counter.** A series has one log and one sequence, from its first solo event onward. Solo, the local log assigns the next number. A Story Circle room plays the host's series and is opened with `startSeq`, the host's last `seq` plus one, and from then on the relay assigns numbers. Guests store the room's events under the host's `seriesId`, so a guest's own series is untouched and its cursor is separate. When the room ends the host's log carries on from where the relay stopped. Memory keeps the numbers it's given, and a duplicate `id` is ignored and returns the existing `seq`.
 
@@ -184,7 +209,18 @@ Every event: `v, id` (client-generated, so reconnect resends are idempotent), `s
 
 #### Telemetry
 
-A batch `{ v, buildId, sessionId, events[] }` of `frame_summary`, `hitch`, `ai_call`, `beat_gap`, `fallback`, `error`, `session`, `stage_fit`. Strict, so a transcript has nowhere to go.
+A batch `{ v, buildId, sessionId, events[] }`. Each event has `at` (ISO time) and a `kind`. Strict, so a transcript has nowhere to go.
+
+| `kind` | Fields |
+|---|---|
+| `session` | `xrMode` (`ar`, `vr`, `none`), `device`, `passthrough` |
+| `frame_summary` | `windowSeconds, medianFps, lowFps, drawCalls, triangles` |
+| `hitch` | `ms, phase` |
+| `ai_call` | `route` (a route name), `ms`, `outcome` (`ok` or an error code) |
+| `beat_gap` | `ms` |
+| `fallback` | `reason` (as `beat.started.fallback`), `beatId` |
+| `error` | `where, message` |
+| `stage_fit` | `surface` (`hit_test`, `plane`, `fallback`), `widthM, scale` |
 
 #### API and mocks
 
@@ -220,7 +256,22 @@ The request carries the library, rather than the backend holding its own copy, s
 
 #### Story Circle
 
-Beyond the event fields above, `relay.ts` has the wire messages: client sends `join {room, player, afterSeq, startSeq}` (`startSeq` is used only by the first joiner, who opens the room), `append`, `pose`, `request_grab`, `release_grab`, `request_speak`, `release_speak`. Server sends `joined`, `event`, `pose`, `error`. `createMockRelay()` assigns `seq`, replays from `afterSeq`, grants locks by appending events, and promotes a host on leave. It's in-process only. The WebSocket belongs to ticket 5, but these semantics let bot-Reader tests start early.
+Beyond the event fields above, `relay.ts` has the wire messages, a union on `kind`.
+
+| Direction | `kind` | Fields |
+|---|---|---|
+| Client | `join` | `room, player, afterSeq` (nullable), `startSeq` (nullable, used only by the first joiner, who opens the room) |
+| Client | `append` | `event` |
+| Client | `pose` | `part` (an `entity`, or `head`, `hand_left`, `hand_right`), `position, rotation` (quaternion) |
+| Client | `request_grab`, `release_grab` | `entity` |
+| Client | `request_speak` | `castId` |
+| Client | `release_speak` | none |
+| Server | `joined` | `room, hostId, players, lastSeq` |
+| Server | `event` | `event` |
+| Server | `pose` | `playerId, part, position, rotation` |
+| Server | `error` | `code` (`grab_denied`, `speak_denied`, `room_full`, `bad_message`), `message` |
+
+Rooms hold at most four. `createMockRelay()` assigns `seq`, replays from `afterSeq`, grants locks by appending events, and promotes a host on leave. It's in-process only. The WebSocket belongs to ticket 5, but these semantics let bot-Reader tests start early.
 
 ### What each later ticket gets
 
@@ -246,7 +297,7 @@ Beyond the event fields above, `relay.ts` has the wire messages: client sends `j
 
 | What | How |
 |---|---|
-| Schemas accept and reject | Vitest in `contracts`, with one valid and one invalid case per action and event |
+| Schemas accept and reject | Vitest in `contracts`, with one valid and one invalid case per action, event, telemetry kind and relay message |
 | Real rigs | Loads `art/cast/*/rig.json` and checks referenced files |
 | Characters are data | Fixture library with an invented cast passes every check and mock |
 | `pickProblemRule` is total | Any tags always yield a branch |
@@ -259,8 +310,8 @@ Beyond the event fields above, `relay.ts` has the wire messages: client sends `j
 | Relay mock | Ordering, resume from `afterSeq`, lock grant, host promotion |
 | Repo guards | No `spikes/` imports, no `process.env` in client or contracts, no skills in `client` |
 | Keys | `pnpm check:bundle` |
-| Boot | Emulator run with `iwsdk browser logs` and a screenshot, plus a check that the page set its contract marker |
-| Side by side | A temporary second worktree set up by `setup.sh`, both workspaces' backends and clients running at once, and each client's `/api` proxy reaching its own backend, then removed |
+| Boot | Emulator run: enter XR, assert `xr status` shows an active session, then console logs, a screenshot and the page's contract marker |
+| Side by side | A temporary second worktree set up by `setup.sh`, both workspaces' backends and clients running at once, and each client's `/api` proxy reaching its own backend (stopping one backend fails only that client's proxy), and the allocator skipping a block whose backend port is taken, then removed |
 
 None of this needs the headset. M0 sign-off belongs to Pip on the table.
 
@@ -292,3 +343,5 @@ A second pass on the revised spec found four more, all accepted. The fixes were 
 | Current-episode state ages out of `recent` | `BeatRequest.show`, and character replies now get canon. Its suggested test of an intervention surviving 40 events needs the ticket 3 reducer, so it belongs there |
 | A grip part isn't an attachment point | `grip { part, at }` |
 | `seq` scope undefined | One series-wide counter, with `startSeq` opening a room |
+
+Codex then reviewed the plan with this spec. Nine of ten findings were accepted, and they are folded into both files: payload fields for every event, telemetry kind and relay message, `linesOf` and `checkReady`, the production and dev port split, a bundle probe that actually reads the planted variables, a real XR session in the boot check, and sharper side-by-side and allocator checks. One was rejected: it said per-task commits break the `AGENTS.md` rule "commit or push only when asked", but this task's brief explicitly asks for commits to the branch as work goes.

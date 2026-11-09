@@ -179,14 +179,20 @@ test('art accepts asset and url forms', …);
 
 **Interfaces:**
 - Consumes: Tasks 2 and 3.
-- Produces: `Beat`, `SceneProblem`, `Scene`, `Spine`, `VoiceAsset`, `ReadyBeat`, `LineId`. `lineIdOf(speaker: string, text: string): LineId`. `estimateSpeechMs(text: string): number` (60 ms a character, minimum 800). `pickProblemRule(problem, tags): { kind:'rule', rule } | { kind:'fallback', beat }`. `bindBeat(beat, { offered, receiver, giver }): Beat`. `checkBeat(beat, library, objects, scene): Issue[]`. `checkSpine(spine, library): Issue[]`. Also add `fixtureSpine(): Spine` to `mocks/fixtures.ts`, one scene with an `ask_reader` entry, a tag rule, a fallback and an ignored beat, each ending in `resolve`.
+- Produces: `Beat`, `SceneProblem`, `Scene`, `Spine`, `VoiceAsset`, `ReadyBeat`, `LineId`. `lineIdOf(speaker: string, text: string): LineId`. `NARRATOR = 'narrator'`. `linesOf(beat): { speaker: string; text: string; lineId: LineId }[]`. `checkReady(ready: ReadyBeat): Issue[]`. `estimateSpeechMs(text: string): number` (60 ms a character, minimum 800). `pickProblemRule(problem, tags): { kind:'rule', rule } | { kind:'fallback', beat }`. `bindBeat(beat, { offered, receiver, giver }): Beat`. `checkBeat(beat, library, objects, scene): Issue[]`. `checkSpine(spine, library): Issue[]`. Also add `fixtureSpine(): Spine` to `mocks/fixtures.ts`, one scene with an `ask_reader` entry, a tag rule, a fallback and an ignored beat, each ending in `resolve`.
 
 - [ ] **Step 1: Write the failing tests.**
 
 ```ts
 test('lineIdOf ignores case, punctuation and spacing', () => expect(lineIdOf('a','Hello, there!')).toBe(lineIdOf('a',' hello   there')));
 test('lineIdOf differs by speaker and by words', …);
+test('lineIdOf treats leading and trailing space as nothing', …);
 test('lineIdOf is stable across unicode forms', () => /* café in NFC and NFD */);
+
+test('linesOf covers speak, ask_reader and narrate under narrator', …);
+test('checkReady passes a captions-only asset with a duration', …);
+test.each([['a missing asset', 'missing_voice'], ['a zero duration', 'bad_duration'], ['an unbound placeholder', 'unbound_placeholder']])('checkReady: %s', …);
+test('a cast member named narrator is a checkLibrary issue', …);  // add to Task 3's checkLibrary
 
 test('first matching rule wins', …);
 test('no match returns the fallback', …);
@@ -225,7 +231,7 @@ test.each([
 
 - [ ] **Step 2: Run and see it fail.**
 
-- [ ] **Step 3: Implement.** `lineIdOf`: NFKC, lowercase, remove `[^\p{L}\p{N}\s]`, collapse whitespace, then `line_` plus cyrb53 of `speaker + '\0' + text` in base 36. `checkSpine`'s successors of a beat are `next` when non-null, plus every rule, fallback and ignored beat when the beat has an `ask_reader` for the scene's problem. A depth-first walk with colours finds cycles. `resolves(beat)` is true if the beat has a `resolve` action, or it has successors and all of them resolve, memoised.
+- [ ] **Step 3: Implement.** `lineIdOf`: NFKC, lowercase, remove `[^\p{L}\p{N}\s]`, collapse whitespace, trim, then `line_` plus cyrb53 of `speaker + '\0' + text` in base 36. `checkSpine`'s successors of a beat are `next` when non-null, plus every rule, fallback and ignored beat when the beat has an `ask_reader` for the scene's problem. A depth-first walk with colours finds cycles. `resolves(beat)` is true if the beat has a `resolve` action, or it has successors and all of them resolve, memoised.
 
 - [ ] **Step 4: Run.** Expected: all pass. Commit: "Add beats, spines and their checks".
 
@@ -239,10 +245,12 @@ test.each([
 - Consumes: Tasks 2 to 4.
 - Produces: `CanonEntry`, `Page`, `ShowEvent` (`z.discriminatedUnion('type', …)` over the spec's envelope and event table, `v: 1`), `TelemetryBatch`, `RelayClientMessage`, `RelayServerMessage`.
 
-- [ ] **Step 1: Write the failing tests.** One accepted example per event `type`, and per telemetry kind, driven from a table so a new type without an example fails.
+- [ ] **Step 1: Write the failing tests.** One accepted example and one malformed payload per event `type`, per telemetry `kind` and per relay `kind`, driven from tables so a new variant without both fails.
 
 ```ts
-test('every event type has an example', () => expect(new Set(examples.map(e=>e.type))).toEqual(new Set(eventTypes)));
+test('every event type has a valid and an invalid example', () => { expect(new Set(valid.map(e=>e.type))).toEqual(new Set(eventTypes)); expect(new Set(invalid.map(e=>e.type))).toEqual(new Set(eventTypes)); });
+test.each(valid)('$type accepts', …); test.each(invalid)('$type rejects a malformed payload', …);
+test.each(relayValid)('relay $kind accepts', …); test.each(relayInvalid)('relay $kind rejects', …);
 test('a null seq is accepted, a negative one is not', …);
 test('episode.started needs the spine and the objects', …);
 test('beat.queued needs a whole ready beat', …);
@@ -346,7 +354,7 @@ test('pose messages reach others and are not logged', …);
 
 **Interfaces:**
 - Consumes: `routes`, `BackendApi`, `createHttpBackend`, `createMockBackend`, `MOCK_PROFILES`, `readPorts`.
-- Produces: `createApp(api: BackendApi): Hono`. Scripts `dev` (`node --watch src/server.ts`), `start` (`node src/server.ts`), `typecheck`.
+- Produces: `createApp(api: BackendApi): Hono`. `resolveListen(argv: string[], env: Record<string, string | undefined>, readPorts): { port: number; host: string }`. Scripts `dev` (`node --watch src/server.ts --dev`), `start` (`node src/server.ts`), `typecheck`.
 
 - [ ] **Step 1: Write the failing tests.** All through `app.request`, by passing it to `createHttpBackend` as `fetch`.
 
@@ -361,11 +369,14 @@ test('a body that is not JSON returns bad_request, 400', …);
 test('a body that fails the schema returns bad_request, 400', …);
 test('an unexpected exception returns upstream_failed, 502, with no stack', …);
 test('GET /healthz needs no header and reports the version', …);
+test('--dev reads the port file and ignores an inherited PORT, on 127.0.0.1', …);
+test('production uses PORT on 0.0.0.0', …);
+test('production with no PORT throws', …);
 ```
 
 - [ ] **Step 2: Run and see it fail.**
 
-- [ ] **Step 3: Implement.** Status map: `bad_request` 400, `unauthorized` 401, `contract_mismatch` 409, `moderated` 422, `quota_exceeded` 429, `upstream_failed` and `invalid_output` 502. `server.ts`: the port is `Number(process.env.PORT)` when `PORT` is set, otherwise `readPorts().BACKEND_PORT`. The host is `0.0.0.0` when `PORT` is set, otherwise `127.0.0.1`. The profile is `process.env.MOCK_PROFILE ?? 'normal'`, and an unknown profile throws.
+- [ ] **Step 3: Implement.** Status map: `bad_request` 400, `unauthorized` 401, `contract_mismatch` 409, `moderated` 422, `quota_exceeded` 429, `upstream_failed` and `invalid_output` 502. `resolveListen` lives in `app.ts` so it can be tested without binding. The profile is `process.env.MOCK_PROFILE ?? 'normal'`, and an unknown profile throws.
 
 - [ ] **Step 4: Run.** Expected: all pass. Then start it for real: `pnpm --filter @tabletop/backend dev`, and in another shell `curl -s 127.0.0.1:$BACKEND_PORT/healthz`. Expected: `{"ok":true,"contract":1}`. Stop it.
 
@@ -389,7 +400,7 @@ Invoke the `iwsdk-dev` skill first.
 
 - [ ] **Step 3: Verify.** `pnpm --filter @tabletop/client typecheck` exits 0. `mv .env.ports .env.ports.moved && pnpm --filter @tabletop/client build; mv .env.ports.moved .env.ports`. Expected: the build succeeds with no port file, and the second `mv` runs regardless.
 
-- [ ] **Step 4: Boot in the emulator.** `pnpm --filter @tabletop/client dev:agent`, wait for `pnpm --filter @tabletop/client exec iwsdk runtime status` to report a connected browser, then `iwsdk browser logs` and `iwsdk browser screenshot`, and use `iwsdk browser run` or the snapshot to read `document.documentElement.dataset.contract`. Expected: no console errors, marker `1`, and a screenshot of an empty room with no robot or panel. Then `pnpm --filter @tabletop/client dev:down`.
+- [ ] **Step 4: Boot in the emulator.** From `client/`: `pnpm dev:agent`, wait until `npx iwsdk runtime status` reports a connected browser, then `npx iwsdk xr enter`, then `npx iwsdk xr status`. Expected: an active immersive AR session on the Quest 3 profile. Then `npx iwsdk browser logs` shows no errors, `npx iwsdk browser screenshot` shows an empty room with no robot or panel, and the page's `document.documentElement.dataset.contract` is `1`. Finish with `pnpm dev:down`.
 
 - [ ] **Step 5: Commit.** "Add the client scaffold with an empty scene".
 
@@ -401,7 +412,7 @@ Invoke the `iwsdk-dev` skill first.
 
 **Interfaces:**
 - Consumes: the client build from Task 9.
-- Produces: `scanDir(dir, needles: {name: string; value: string}[], patterns: {name: string; re: RegExp}[]): {file: string; name: string}[]`. `parseEnvValues(path): {name, value}[]`.
+- Produces: `scanDir(dir, needles: {name: string; value: string}[], patterns: {name: string; re: RegExp}[]): {file: string; name: string}[]`. `parseEnvValues(path): {name, value}[]`. CLI flag `--weaken-prefix`. Add `vite` as a root devDependency at the client's version.
 
 - [ ] **Step 1: Write the failing tests.**
 
@@ -424,11 +435,11 @@ test('no literal port in dev config', () => /* /port:\s*\d/ over client/vite.con
 
 - [ ] **Step 2: Run and see it fail.**
 
-- [ ] **Step 3: Implement.** `check-bundle.ts` generates random canaries for `ANTHROPIC_API_KEY`, `VITE_ANTHROPIC_API_KEY`, `RUNWAYML_API_SECRET` and `TT_SECRET_CANARY`, runs the client build with those in its environment, scans `client/dist` for them, for `.env.local` values, and for `/sk-ant-[\w-]{20,}/` and `/key_[0-9a-f]{32,}/`. It prints hits as `name in file`, exits 1 on any, and prints `bundle clean` otherwise. `check-bundle.ts` writes no env file.
+- [ ] **Step 3: Implement.** `check-bundle.ts` generates random canaries for the spec's four names, sets them in `process.env`, then calls Vite's `build()` with `root: 'client'`, the client's own config file, `build.outDir` in a fresh temporary directory, and an inline plugin (`enforce: 'pre'`) that appends a `console.log` of `import.meta.env.<NAME>` for each canary to `src/index.ts`. `--weaken-prefix` sets `envPrefix: ['TT_PUBLIC_', 'VITE_']` on that inline config. It scans the output for the canaries, the `.env.local` values, `/sk-ant-[\w-]{20,}/` and `/key_[0-9a-f]{32,}/`, prints hits as `name in file`, exits 1 on any, prints `bundle clean` otherwise, and always removes the temporary directory. It writes no env file.
 
 - [ ] **Step 4: Run.** `pnpm vitest run tests/` passes. `pnpm check:bundle` prints `bundle clean`.
 
-- [ ] **Step 5: Prove the check can fail.** Temporarily set `envPrefix: ['TT_PUBLIC_', 'VITE_']` and add `console.log(import.meta.env.VITE_ANTHROPIC_API_KEY)` to `client/src/index.ts`. Run `pnpm check:bundle`. Expected: exit 1 naming `VITE_ANTHROPIC_API_KEY`. Then `git checkout client/vite.config.ts client/src/index.ts`, rerun, expected `bundle clean`.
+- [ ] **Step 5: Prove the check can fail.** `node scripts/check-bundle.ts --weaken-prefix`. Expected: exit 1 naming `VITE_ANTHROPIC_API_KEY`, and no other changes to the tree (`git status --short` unchanged).
 
 - [ ] **Step 6: Commit.** "Guard keys and the repo layout".
 
@@ -438,7 +449,13 @@ test('no literal port in dev config', () => /* /port:\s*\d/ over client/vite.con
 
 **Files:** Create `contracts/README.md`. Modify `README.md`, `AGENTS.md`, and the spec's error-code line.
 
-- [ ] **Step 1: Prove two workspaces run together.** `git worktree add <scratchpad>/wt2 -b t0-sidebyside HEAD`, run `.superset/setup.sh` there (it installs from the committed lockfile with `--frozen-lockfile`). Confirm `wt2/.env.ports` differs from ours. Start both backends and both clients with `dev:agent`. For each workspace, `curl -sk https://127.0.0.1:$CLIENT_PORT/api/healthz` returns `{"ok":true,"contract":1}`, and `lsof` shows that listener's cwd is under that workspace. Stop all four. `git worktree remove` and `git branch -D t0-sidebyside`. Expected: nothing left listening, `git worktree list` is back to what it was.
+- [ ] **Step 1: Prove two workspaces run together.** All earlier tasks are committed, so a worktree of `HEAD` has the code. In bash:
+  1. `git worktree add <scratchpad>/wt2 -b t0-sidebyside HEAD`.
+  2. Allocator regression: compute the candidate base the way `setup.sh` does (first multiple-of-10 block from 5100 not in any worktree's `.env.ports` and not listening), hold `candidate + 1` open with `python3 -m http.server`, run `.superset/setup.sh` in `wt2`, and require `wt2`'s `PORT_BASE` to differ from `candidate`. Stop the holder. Setup also installs from the committed lockfile with `--frozen-lockfile`, which proves later workspaces can.
+  3. Read each workspace's ports with `set -a; . ./.env.ports; set +a` in a subshell.
+  4. Start both backends and both clients with `dev:agent`. `curl -sk https://127.0.0.1:$CLIENT_PORT/api/healthz` from each workspace returns `{"ok":true,"contract":1}`.
+  5. Stop only our backend. Our client's `/api/healthz` now fails with a 5xx and `wt2`'s still returns ok, which proves each proxy targets its own backend.
+  6. Stop everything, `git worktree remove`, `git branch -D t0-sidebyside`. Expected: nothing left listening on either block, `git worktree list` is back to what it was.
 
 - [ ] **Step 2: Write the docs.** `contracts/README.md`: what's in the package, the rules (data not code, closed vs open lists, a wire change bumps the version and is its own small PR), and how art validates its files. Root `README.md`: replace the "no product code yet" status, add `pnpm dev`, `pnpm check`. `AGENTS.md`: one line saying IWSDK commands run from `client/`.
 
