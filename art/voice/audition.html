@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Voice audition</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;600&family=Fraunces:opsz,wght@9..144,500&display=swap" />
+<style>
+  :root {
+    --page: #f6efe2; --ink: #2b2420; --navy: #1f2a44; --gold: #d4a23e; --rust: #b5502e;
+    --line: rgba(43, 36, 32, 0.18); --card: #fbf7ee;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--page); color: var(--ink); font: 400 20px/1.4 "Atkinson Hyperlegible Next", system-ui, sans-serif; }
+  main { max-width: 1000px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { font: 500 40px/1.1 Fraunces, Georgia, serif; color: var(--navy); margin: 0 0 4px; }
+  p.sub { margin: 0 0 24px; }
+  h2 { font: 600 16px/1.2 "Atkinson Hyperlegible Next", system-ui, sans-serif; margin: 0 0 8px; color: var(--navy); }
+  .panel { margin-bottom: 20px; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; }
+  button { font: inherit; color: var(--ink); background: var(--card); border: 2px solid var(--line); border-radius: 12px; cursor: pointer; min-height: 72px; padding: 8px 18px; }
+  button[aria-pressed="true"] { background: var(--navy); border-color: var(--navy); color: var(--page); }
+  .beat { border-top: 2px solid var(--line); padding: 16px 0; }
+  .beat h3 { font: 500 26px/1.2 Fraunces, Georgia, serif; color: var(--navy); margin: 0 0 2px; }
+  .beat p { margin: 0 0 12px; }
+  .cells { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .cell { min-height: 112px; font-weight: 600; font-size: 28px; }
+  .cell small { display: block; font-weight: 400; font-size: 16px; }
+  .cell.playing { background: var(--gold); border-color: var(--ink); color: var(--ink); }
+  .cell.unavailable { color: rgba(43, 36, 32, 0.55); background: transparent; cursor: not-allowed; border-style: dashed; }
+  .voices { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+  .voices .cell { font-size: 20px; }
+  @media (max-width: 480px) { h1 { font-size: 32px; } .cell { font-size: 22px; } .voices { grid-template-columns: repeat(2, 1fr); } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Voice audition</h1>
+  <p class="sub">Tap a letter to hear that voice. Same line, different voice. Tap another to switch.</p>
+
+  <div class="panel">
+    <h2>Treatment</h2>
+    <div class="row" id="chains"></div>
+  </div>
+  <div class="panel">
+    <h2>Room tone</h2>
+    <div class="row"><button id="room" aria-pressed="true">On</button></div>
+  </div>
+  <div class="panel">
+    <h2>Character</h2>
+    <div class="row" id="tabs"></div>
+  </div>
+  <section id="stage"></section>
+</main>
+
+<script type="module">
+  import { createVoiceChain, createRoomTone } from "./chain.mjs";
+
+  const CHAIN_LABELS = { "soft-paper": "Soft paper", "warm-radio": "Warm radio", "old-wireless": "Old wireless" };
+  const tabsEl = document.getElementById("tabs");
+  const chainsEl = document.getElementById("chains");
+  const roomEl = document.getElementById("room");
+  const stage = document.getElementById("stage");
+
+  const s = { ctx: null, room: null, roomGain: null, roomOn: true, config: null, chainName: null, index: null, tab: null, decoded: new Map(), bad: new Set(), token: 0, current: null };
+
+  const stripTags = (text) => text.replace(/\[[^\]]*\]/g, "").replace(/\s+/g, " ").trim();
+
+  function ensureContext() {
+    if (s.ctx) return;
+    s.ctx = new (window.AudioContext ?? window.webkitAudioContext)();
+    s.room = createRoomTone(s.ctx, s.config.roomTone);
+    s.roomGain = s.ctx.createGain();
+    s.roomGain.gain.value = s.roomOn ? 1 : 0;
+    s.room.output.connect(s.roomGain).connect(s.ctx.destination);
+    s.room.start();
+  }
+
+  function decode(file) {
+    if (!s.decoded.has(file)) {
+      s.decoded.set(file, (async () => {
+        const response = await fetch(`/run/${file}`);
+        if (!response.ok) throw new Error(`missing ${file}`);
+        return s.ctx.decodeAudioData(await response.arrayBuffer());
+      })());
+    }
+    return s.decoded.get(file);
+  }
+
+  function disconnectRoute(route) {
+    route.output.disconnect();
+  }
+
+  function buildRoute(trimDb) {
+    if (s.chainName === "dry") {
+      const trim = s.ctx.createGain();
+      trim.gain.value = 10 ** (trimDb / 20);
+      return { input: trim, output: trim };
+    }
+    return createVoiceChain(s.ctx, s.config.settings[s.chainName], { trimDb });
+  }
+
+  function connectRoute(current) {
+    if (current.route) {
+      current.source.disconnect();
+      disconnectRoute(current.route);
+    }
+    current.route = buildRoute(current.trimDb);
+    current.source.connect(current.route.input);
+    current.route.output.connect(s.ctx.destination);
+  }
+
+  function setPlaying(key) {
+    stage.querySelectorAll(".cell.playing").forEach((c) => {
+      c.classList.remove("playing");
+      c.querySelector("small").textContent = c.dataset.idle;
+    });
+    if (!key) return;
+    const cell = stage.querySelector(`[data-key="${key}"]`);
+    if (cell) {
+      cell.classList.add("playing");
+      cell.querySelector("small").textContent = "Playing";
+    }
+  }
+
+  function stopCurrent() {
+    if (!s.current) return;
+    s.current.source.onended = null;
+    s.current.source.stop();
+    s.current.source.disconnect();
+    disconnectRoute(s.current.route);
+    s.current = null;
+    setPlaying(null);
+  }
+
+  function markUnavailable(file) {
+    s.bad.add(file);
+    stage.querySelectorAll(`[data-file="${file}"]`).forEach(applyUnavailable);
+  }
+
+  function applyUnavailable(cell) {
+    cell.classList.add("unavailable");
+    cell.disabled = true;
+    cell.querySelector("small").textContent = "Unavailable";
+  }
+
+  // Only the newest tap may start audio, whatever order clips finish loading in.
+  async function play(key, file, trimDb) {
+    const token = ++s.token;
+    stopCurrent();
+    ensureContext();
+    await s.ctx.resume();
+    let buffer;
+    try {
+      buffer = await decode(file);
+    } catch {
+      markUnavailable(file);
+      return;
+    }
+    if (token !== s.token) return;
+    const source = s.ctx.createBufferSource();
+    source.buffer = buffer;
+    const current = { key, file, trimDb, source, route: null };
+    s.current = current;
+    connectRoute(current);
+    source.onended = () => {
+      if (s.current !== current) return;
+      source.disconnect();
+      disconnectRoute(current.route);
+      s.current = null;
+      setPlaying(null);
+    };
+    source.start();
+    setPlaying(key);
+  }
+
+  function makeCell({ key, file, trimDb, title, idle }) {
+    const cell = document.createElement("button");
+    cell.className = "cell";
+    cell.dataset.key = key;
+    cell.dataset.file = file;
+    cell.dataset.idle = idle;
+    cell.innerHTML = `${title}<small>${idle}</small>`;
+    cell.addEventListener("click", () => play(key, file, trimDb));
+    if (s.bad.has(file)) applyUnavailable(cell);
+    return cell;
+  }
+
+  function renderRole(role) {
+    stage.innerHTML = "";
+    for (const beat of role.beats) {
+      const el = document.createElement("div");
+      el.className = "beat";
+      el.innerHTML = `<h3></h3><p></p><div class="cells"></div>`;
+      el.querySelector("h3").textContent = beat.label;
+      el.querySelector("p").textContent = stripTags(beat.promptText);
+      const cells = el.querySelector(".cells");
+      for (const option of role.options) {
+        const clip = beat.clips[option];
+        if (!clip) continue;
+        cells.append(makeCell({ key: `${role.id}/${beat.id}/${option}`, file: clip.file, trimDb: clip.trimDb, title: option, idle: "Tap to hear" }));
+      }
+      stage.append(el);
+    }
+  }
+
+  function renderSweep() {
+    stage.innerHTML = `<div class="beat"><h3>All voices</h3><p>Is somebody there? Oh! It's only you. You gave me such a fright, I nearly dropped the lantern.</p><div class="cells voices"></div></div>`;
+    const cells = stage.querySelector(".cells");
+    for (const voice of s.index.sweep) {
+      const idle = voice.f0Median ? `${Math.round(voice.f0Median)} Hz` : "pitch unknown";
+      cells.append(makeCell({ key: `sweep/${voice.label}`, file: voice.file, trimDb: voice.trimDb, title: voice.label, idle }));
+    }
+  }
+
+  function showTab(tab) {
+    stopCurrent();
+    s.tab = tab;
+    [...tabsEl.children].forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.tab === tab)));
+    if (tab === "all") renderSweep();
+    else renderRole(s.index.roles.find((r) => r.id === tab));
+  }
+
+  function setChain(name) {
+    s.chainName = name;
+    [...chainsEl.children].forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.chain === name)));
+    if (s.current) connectRoute(s.current);
+  }
+
+  function addButton(parent, label, attr, value, onClick) {
+    const b = document.createElement("button");
+    b.textContent = label;
+    b.dataset[attr] = value;
+    b.addEventListener("click", onClick);
+    parent.append(b);
+  }
+
+  async function start() {
+    s.config = await (await fetch("/chain.json")).json();
+    s.index = await (await fetch("/run/clips.json")).json();
+    addButton(chainsEl, "Dry", "chain", "dry", () => setChain("dry"));
+    for (const name of Object.keys(s.config.settings)) addButton(chainsEl, CHAIN_LABELS[name] ?? name, "chain", name, () => setChain(name));
+    setChain(s.config.default);
+    roomEl.addEventListener("click", () => {
+      s.roomOn = !s.roomOn;
+      roomEl.textContent = s.roomOn ? "On" : "Off";
+      roomEl.setAttribute("aria-pressed", String(s.roomOn));
+      if (s.roomGain) s.roomGain.gain.value = s.roomOn ? 1 : 0;
+    });
+    for (const role of s.index.roles) addButton(tabsEl, role.name, "tab", role.id, () => showTab(role.id));
+    if (s.index.sweep.length) addButton(tabsEl, "All voices", "tab", "all", () => showTab("all"));
+    showTab(s.index.roles[0]?.id ?? "all");
+  }
+
+  await start();
+
+  // Scripted checks for the automated test. Runs only with ?selftest=1.
+  if (new URLSearchParams(location.search).has("selftest")) {
+    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    const snap = () => ({ active: s.current ? 1 : 0, file: s.current?.file ?? null, playing: [...stage.querySelectorAll(".cell.playing")].map((c) => c.dataset.key) });
+    const cell = (key) => stage.querySelector(`[data-key="${key}"]`);
+    const tap = (key) => cell(key).click();
+    const r = {};
+    try {
+      r.tabs = [...tabsEl.children].map((b) => b.textContent);
+      r.html = document.documentElement.innerHTML;
+      if (!s.index.roles.length) {
+        r.sweepLabels = [...stage.querySelectorAll(".cell")].map((c) => c.dataset.key.replace("sweep/", ""));
+      } else {
+        r.beats = [...stage.querySelectorAll(".beat h3")].map((e) => e.textContent);
+        r.lines = [...stage.querySelectorAll(".beat p")].map((e) => e.textContent);
+        r.options = [...stage.querySelector(".cells").children].map((c) => c.firstChild.textContent);
+        r.minCellHeight = Math.min(...[...stage.querySelectorAll(".cell")].map((c) => c.getBoundingClientRect().height));
+
+        tap("pip/fear/B"); // the slow clip, delayed by the test server
+        tap("pip/relief/B");
+        await wait(1200);
+        r.afterRapid = snap();
+
+        tap("pip/fear/A");
+        await wait(300);
+        r.afterFirstTap = snap();
+        tap("pip/relief/B");
+        await wait(300);
+        r.afterSecondTap = snap();
+
+        tap("pip/fear/C");
+        await wait(300);
+        r.missingUnavailable = cell("pip/fear/C").classList.contains("unavailable");
+        tap("pip/relief/A");
+        await wait(300);
+        r.corruptUnavailable = cell("pip/relief/A").classList.contains("unavailable");
+        tap("pip/relief/B");
+        await wait(300);
+        r.afterBad = snap();
+
+        await s.ctx.suspend();
+        tap("pip/fear/A");
+        await wait(300);
+        r.afterSuspendTap = s.ctx.state;
+
+        const before = s.current?.source;
+        chainsEl.querySelector('[data-chain="soft-paper"]').click();
+        await wait(150);
+        r.reroute = { sameSource: s.current?.source === before && !!before, chain: s.chainName, active: s.current ? 1 : 0 };
+
+        const gains = [];
+        roomEl.click(); gains.push(s.roomGain.gain.value);
+        roomEl.click(); gains.push(s.roomGain.gain.value);
+        r.roomToggle = gains;
+      }
+    } catch (e) {
+      r.error = String(e && e.stack || e);
+    }
+    await fetch("/__result", { method: "POST", body: JSON.stringify(r) });
+  }
+</script>
+</body>
+</html>
