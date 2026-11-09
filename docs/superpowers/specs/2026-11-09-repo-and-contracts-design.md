@@ -128,6 +128,8 @@ A closed table of `idle, look, scared, raise, hop, turn, grumble, examine, reach
 - `SceneProblem`: `id, summary, rules[] {id, anyTags, beat, outcome}, fallback {beat}, ignored {beat, afterSeconds}`. `fallback` and `ignored` are required, which puts the PRD's "an authored outcome always exists" and the doing-nothing path into the type.
 - `pickProblemRule(problem, tags)` is total, first match wins, and it returns the fallback otherwise. It's here, not in ticket 2, because the show, the simulator and the validator must agree.
 
+**Authored branches bind the gift at runtime.** A rule can't know which copy was handed over, so authored beats may use the placeholders `$offered`, `$receiver` and `$giver` wherever an object, cast or player id goes (`object:$offered`, `who: $receiver`, `player:$giver`). `bindBeat(beat, { offered, receiver, giver })` is a pure function that returns the concrete beat. `checkBeat` rejects placeholders in a director beat, since the director always knows the real ids. This is what lets the offline branch `use` and keep the exact copy a guest brought.
+
 **Progression.** A spine plays its scenes in array order. Each scene starts at `entry` and follows `next` from beat to beat. `next: null` ends the scene, and the end of the last scene ends the episode. A problem's rule, fallback or ignored beat takes over the cursor at that point and continues along its own `next`, so branches can rejoin or end the scene. An `ask_reader` tied to a problem starts the `ignored` timer.
 
 **A director beat stands in for an authored one.** `replaces` names the authored beat it takes the place of, or is null for an extra beat such as a reaction. The cursor moves as if the replaced beat had played. This is what makes the fallback one rule: if no director beat is ready at the deadline, the authored beat at the cursor plays, after at most one bridge. Authored beats have `replaces: null`, director beats have `next: null`.
@@ -149,7 +151,8 @@ A closed table of `idle, look, scared, raise, hop, turn, grumble, examine, reach
 `CastMember` is new, because nothing in `rig.json` says what a character is: `id, name, description, persona, voice (null means silent), rig, acting, heightM, facing (left|right), anatomy, actingHeads`.
 
 - `facing` is what `prototype.html` calls `flip`, which today exists only in Wick's `note`.
-- **`anatomy` connects generic acting to a specific rig:** `{ torso, grip, held, arms[], tail, wings[] }`, each a part name from that character's rig or null. Pip's lantern and arm and Wick's two arms are different part names doing the same job, and this keeps the puppet system from learning either.
+- **`anatomy` connects generic acting to a specific rig:** `{ torso, grip, held, arms[], tail, wings[] }`, each a part name from that character's rig or null, except `grip`. Pip's lantern and arm and Wick's two arms are different part names doing the same job, and this keeps the puppet system from learning either.
+- **`grip` is `{ part, at: [x%, y%] }` or null.** A rig's pivots are joints, such as shoulders, not where a paw holds a thing. `at` is a percentage of the part's own image, the same convention as a rig pivot, and it mirrors with the part. The rigs stay unchanged.
 - **`actingHeads`** maps an acting id to a head name, such as `scared` for Pip and `grumpy` for Wick.
 
 `checkCastRig(cast, rig)` reports any anatomy or head name the rig doesn't have. A test binds all three real characters against their real rigs. The real cast records are content, and arrive with ticket 1.
@@ -160,7 +163,7 @@ A closed table of `idle, look, scared, raise, hop, turn, grumble, examine, reach
 
 #### Events
 
-Every event: `v, id` (client-generated, so reconnect resends are idempotent), `seq` (null until ordered: the server assigns it in Story Circle, the local log does solo), `seriesId, episodeId, actor` (player, app or director), `showMs` (the scheduler clock, which stops while paused), `at` (wall clock), `type, data`.
+Every event: `v, id` (client-generated, so reconnect resends are idempotent), `seq` (see below), `seriesId, episodeId, actor` (player, app or director), `showMs` (the scheduler clock, which stops while paused), `at` (wall clock), `type, data`.
 
 | Group | Types |
 |---|---|
@@ -172,6 +175,8 @@ Every event: `v, id` (client-generated, so reconnect resends are idempotent), `s
 | Story | `problem.attempted {problemId, objectId, ruleId}`, `problem.resolved`, `talk.heard {castId, text}` |
 | Canon | `canon.recorded {entry}`, `canon.reverted {entryId}`, `page.composed {page}` |
 | Circle | `player.joined`, `player.left`, `host.changed`, `ownership.granted`, `ownership.released`, `speaker.locked`, `speaker.unlocked`, `fairness.credited` |
+
+**`seq` is one series-wide counter.** A series has one log and one sequence, from its first solo event onward. Solo, the local log assigns the next number. A Story Circle room plays the host's series and is opened with `startSeq`, the host's last `seq` plus one, and from then on the relay assigns numbers. Guests store the room's events under the host's `seriesId`, so a guest's own series is untouched and its cursor is separate. When the room ends the host's log carries on from where the relay stopped. Memory keeps the numbers it's given, and a duplicate `id` is ignored and returns the existing `seq`.
 
 **What makes a log replayable.** `episode.started` holds `{ spine, libraryVersion, objects: ShowObject[], players }`, so the generated story and every object copy survive a reload or a host promotion. `object.added {object}` covers anything that joins mid-show. `beat.queued` holds the whole ready beat. Per-frame poses never enter the log.
 
@@ -191,7 +196,7 @@ A route table in `contracts/api.ts` gives each call a path, a request schema and
 | Next beat | `/v1/director/beat` | `BeatRequest` | `ReadyBeat` |
 | New story spine | `/v1/director/spine` | `{ seriesId, library, objects, canon, premise }` | `Spine` |
 | Object reaction | `/v1/objects/react` | `{ objectId, castId, problem, library, objects, canon }` | `ReplyChunk` stream |
-| Character reply | `/v1/characters/reply` | `{ castId, playerId, heard, sceneSummary, library, objects, recent }` | `ReplyChunk` stream |
+| Character reply | `/v1/characters/reply` | `{ castId, playerId, heard, sceneSummary, library, objects, canon, recent }` | `ReplyChunk` stream |
 | Live voice | `/v1/voice/line` | `{ speaker, text, mood }` | `VoiceAsset` |
 | Speech token | `/v1/speech/token` | `{}` | `{ provider, token, expiresAt }`. Opaque, since the vendor is undecided |
 | Memory append | `/v1/memory/append` | `{ seriesId, events }` | `{ lastSeq }`. Idempotent on event `id` |
@@ -199,7 +204,8 @@ A route table in `contracts/api.ts` gives each call a path, a request schema and
 | Memory delete | `/v1/memory/delete` | `{ seriesId }` | `{ deleted }` |
 | Telemetry | `/v1/telemetry` | `TelemetryBatch` | `{ accepted }` |
 
-- `BeatRequest` is `{ episodeId, spine, library, objects, position { sceneId, cursor, elapsedSeconds }, canon, recent (at most 40 events), trigger, usedLineIds, owedPlayers }`.
+- `BeatRequest` is `{ episodeId, spine, library, objects, position { sceneId, cursor, elapsedSeconds }, show, canon, recent (at most 40 events), trigger, usedLineIds, owedPlayers }`.
+- `show` is the durable state of this episode, which the client reduces from its log, so an intervention can't age out of `recent`: `{ problems[] { problemId, status (open|solved|failed|ignored), objectId, ruleId }, holding[] { castId, objectId }, used[] }`.
 - `trigger` is `{ kind: 'lookahead' }`, `{ kind: 'gift', objectId, castId, playerId }` or `{ kind: 'talk', castId, playerId, text }`.
 - `premise` is `{ kind: 'object', objectId }` or `{ kind: 'spoken', text }`.
 - `ReplyChunk` is `delta { text }`, `final { line { who, text, mood }, voice, changesScene }`, `redirect { text }` (moderation's in-story narrator line) or `error { code, message }`. A stream ends with exactly one of the last three. A stream that closes without one counts as `upstream_failed`.
@@ -214,7 +220,7 @@ The request carries the library, rather than the backend holding its own copy, s
 
 #### Story Circle
 
-Beyond the event fields above, `relay.ts` has the wire messages: client sends `join {room, player, afterSeq}`, `append`, `pose`, `request_grab`, `release_grab`, `request_speak`, `release_speak`. Server sends `joined`, `event`, `pose`, `error`. `createMockRelay()` assigns `seq`, replays from `afterSeq`, grants locks by appending events, and promotes a host on leave. It's in-process only. The WebSocket belongs to ticket 5, but these semantics let bot-Reader tests start early.
+Beyond the event fields above, `relay.ts` has the wire messages: client sends `join {room, player, afterSeq, startSeq}` (`startSeq` is used only by the first joiner, who opens the room), `append`, `pose`, `request_grab`, `release_grab`, `request_speak`, `release_speak`. Server sends `joined`, `event`, `pose`, `error`. `createMockRelay()` assigns `seq`, replays from `afterSeq`, grants locks by appending events, and promotes a host on leave. It's in-process only. The WebSocket belongs to ticket 5, but these semantics let bot-Reader tests start early.
 
 ### What each later ticket gets
 
@@ -245,7 +251,8 @@ Beyond the event fields above, `relay.ts` has the wire messages: client sends `j
 | Characters are data | Fixture library with an invented cast passes every check and mock |
 | `pickProblemRule` is total | Any tags always yield a branch |
 | Progression | `checkSpine` rejects a cycle, a dangling branch and a final path with no `resolve` |
-| Object copies | Two players with the same definition stay distinct through `checkBeat` and the relay mock |
+| Object copies | Two players with the same definition stay distinct through `checkBeat`, `bindBeat` and the relay mock, with the mock backend off |
+| Sequence | Relay mock: solo log, open at `startSeq`, reconnect from `afterSeq`, a duplicate append returns the same `seq`, then the host continues |
 | Cast against rigs | `checkCastRig` binds all three real characters to their real rigs |
 | JSON Schema | `stageActionsJsonSchema` has no unsupported keywords |
 | Every route, both directions | `createHttpBackend` against the Hono app, with failure profiles |
@@ -276,3 +283,12 @@ Codex reviewed the first draft. Everything below was accepted, with these notes 
 | Port allocator hole | Fixed in `setup.sh`, and the side-by-side check covers the proxy |
 
 Codex confirmed the live-art and standalone moderation cuts as reasonable.
+
+A second pass on the revised spec found four more, all accepted. The fixes were small, so no third pass.
+
+| Finding | Outcome |
+|---|---|
+| Authored branch can't bind the handed-over copy | `$offered`, `$receiver`, `$giver` and `bindBeat` |
+| Current-episode state ages out of `recent` | `BeatRequest.show`, and character replies now get canon. Its suggested test of an intervention surviving 40 events needs the ticket 3 reducer, so it belongs there |
+| A grip part isn't an attachment point | `grip { part, at }` |
+| `seq` scope undefined | One series-wide counter, with `startSeq` opening a room |
