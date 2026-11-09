@@ -9,5 +9,10 @@
     "./mocks": "./src/mocks/index.ts",
     "./version": "./src/version.ts"
   },
-  "scripts": { "typecheck": "tsc -p ." }
+  "scripts": {
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "zod": "^4.6.7"
+  }
 }
