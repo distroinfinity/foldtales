@@ -210,7 +210,7 @@ A route table in `contracts/api.ts` gives each call a path, a request schema and
 - `premise` is `{ kind: 'object', objectId }` or `{ kind: 'spoken', text }`.
 - `ReplyChunk` is `delta { text }`, `final { line { who, text, mood }, voice, changesScene }`, `redirect { text }` (moderation's in-story narrator line) or `error { code, message }`. A stream ends with exactly one of the last three. A stream that closes without one counts as `upstream_failed`.
 
-Errors are `{ error: { code, retryable, message } }` with codes `upstream_failed, quota_exceeded, invalid_output, unauthorized, contract_mismatch, moderated`, and they throw a `BackendError` in the client.
+Errors are `{ error: { code, retryable, message } }` with codes `upstream_failed, quota_exceeded, invalid_output, unauthorized, contract_mismatch, moderated, bad_request`, and they throw a `BackendError` in the client.
 
 The request carries the library, rather than the backend holding its own copy, so the backend validates against exactly what this client can stage.
 
