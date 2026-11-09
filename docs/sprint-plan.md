@@ -154,7 +154,7 @@ Don't push on. Pull in the fallback from the risk table in `technical-design.md`
 
 ## What you need to set up
 
-**Already done:** `adb`, Meta VR CLI with skills and MCP, Runway key in `.env.local`, Runway MCP added (run `/mcp` to sign in, though the art tools don't need it), and the [private GitHub repo](https://github.com/distroinfinity/tabletop-theatre). `.env.local` is never committed, so copy it into any new workspace that paints art.
+**Already done:** `adb`, Meta VR CLI with skills and MCP, Runway key in `.env.local`, Runway MCP added (run `/mcp` to sign in, though the art tools don't need it), and the [private GitHub repo](https://github.com/distroinfinity/tabletop-theatre). `.env.local` is never committed, and every new workspace links to the main checkout's copy.
 
 **Before ticket 0 starts**
 - [ ] Confirm the reset Quest is signed in with your developer account, and Developer Mode is on in the Horizon phone app.
