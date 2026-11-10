@@ -57,3 +57,7 @@ Everything has been seen only on the Mac, in `art/m1-proof.html`. A fresh whole-
 ## Reuse
 
 Everything under `art/book/`, `art/sets/shore-path/`, `art/fx/`, `heads/up.png` and `parts/lantern-out.png` is product art. `key-lost-things.png` is the master reference for the shore. `key-plain.png` and `pip-up-frightened.png` are kept for later. `make_pieces.py` rebuilds every finished piece from this folder.
+
+## Approval
+
+Approved on the Mac by the owner on Nov 11, 2026, in `art/m1-proof.html`. Final approval happens in the headset once Ticket 1 can show the pieces.
