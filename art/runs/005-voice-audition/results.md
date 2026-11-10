@@ -13,7 +13,7 @@
 
 Median pitches land near 115, 170, 230 and 325 Hz, so the four should sound clearly different. Treatment: **Warm radio** with **room tone on**, the design's default.
 
-The shortlist's other options, by label: Pip B Kylie, C Elliot. Wick B Clint, C Ragnar. Moth A Xylar, B Ella. Narrator A Bernard, C Tom. The full map is in `approved-cast.json`. `art/cast/<who>/voice.json` holds each role's voice and complete chain settings, and its accepted clips are the reference takes, since Runway doesn't guarantee seeded reproduction.
+The shortlist's other options, by label: Pip B Kylie, C Elliot. Wick B Clint, C Ragnar. Moth A Xylar, B Ella. Narrator A Bernard, C Tom. The full map is in `approved-cast.json`. `art/cast/<who>/voice.json` holds each character's voice and complete chain settings (the narrator, who has no puppet, is `art/voice/narrator.json`), and its accepted clips are the reference takes, since Runway doesn't guarantee seeded reproduction.
 
 ## What it cost
 

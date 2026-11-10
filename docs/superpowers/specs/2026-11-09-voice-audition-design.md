@@ -127,7 +127,7 @@ The script:
 
 After the pick:
 
-- `art/cast/<who>/voice.json` for each role that was cast, matching the `rig.json` precedent: preset, model, settings, the **complete chain settings copied in** (not a name), `trimDb`, and the run and accepted clip files, which are the reference takes. The narrator gets `art/cast/narrator/voice.json`.
+- `art/cast/<who>/voice.json` for each role that was cast, matching the `rig.json` precedent: preset, model, settings, the **complete chain settings copied in** (not a name), `trimDb`, and the run and accepted clip files, which are the reference takes. The narrator, who has no puppet, gets `art/voice/narrator.json`, because ticket 0's contracts test treats every `art/cast/` folder as a rigged puppet.
 - `art/runs/005-voice-audition/approved-cast.json` snapshots all of this, plus the room-tone settings and whether room tone was on, with a SHA-256 of `art/voice/chain.mjs`, so later edits can't change what was approved. The user confirms the chain setting and room tone by question card, because those choices live in the browser.
 - `art/voice/chain.json` holds the chain settings for later work, read by `art/voice/chain.mjs`.
 
