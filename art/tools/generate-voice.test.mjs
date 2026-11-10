@@ -302,6 +302,34 @@ test("allowConcurrentSpend warns about other spending and continues, and the cap
   assert.equal(committed, 2);
 });
 
+test("a failed job is not resubmitted on rerun without --retry", async () => {
+  const dir = tmp();
+  seed(dir, [
+    { event: "intent", job: "a", attempt: 1, request: {} },
+    { event: "started", job: "a", attempt: 1, taskId: "t", estimatedCredits: 1 },
+    { event: "failed", job: "a", attempt: 1, taskId: "t", credits: 1, reason: "FAILED: SAFETY.INPUT.TEXT" },
+  ]);
+  const s = fakeRunway();
+  const { stopped } = await run(dir, s, { plan: plan([job("a"), job("b")]) });
+  assert.match(stopped, /failed/i);
+  assert.match(stopped, /--retry a/);
+  assert.equal(s.posts.length, 0);
+});
+
+test("--retry resubmits a failed job as a new attempt", async () => {
+  const dir = tmp();
+  seed(dir, [
+    { event: "intent", job: "a", attempt: 1, request: {} },
+    { event: "failed", job: "a", attempt: 1, credits: 0, reason: "rejected 400" },
+  ]);
+  const s = fakeRunway();
+  const r = runPhase({ plan: plan([job("a")]), runDir: dir, phase: "sweep", spend: true, acceptLost: null, retry: "a", apiKey: KEY, fetchImpl: s.fetchImpl, log: () => {}, sleep: async () => {} });
+  const { stopped, committed } = await r;
+  assert.equal(stopped, null);
+  assert.equal(s.posts.length, 1);
+  assert.equal(committed, 1);
+});
+
 test("truncated final manifest line throws LedgerCorrupt and makes no POST", async () => {
   const dir = tmp();
   fs.writeFileSync(path.join(dir, "manifest.jsonl"), '{"event":"intent","job":"a","attempt":1}\n{"event":"sta');

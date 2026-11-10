@@ -24,7 +24,7 @@ function wav(freq, seconds = 2, amp = 0.2) {
 function fixtureRun(index) {
   const runDir = fs.mkdtempSync(path.join(os.tmpdir(), "page-"));
   fs.writeFileSync(path.join(runDir, "clips.json"), JSON.stringify(index));
-  for (const [name, freq] of [["ok-a", 300], ["ok-b", 400], ["slow", 500], ["sw-a", 200], ["sw-b", 250]]) fs.writeFileSync(path.join(runDir, `${name}.wav`), wav(freq));
+  for (const [name, freq] of [["ok-a", 300], ["ok-b", 400], ["slow", 500], ["flaky", 450], ["sw-a", 200], ["sw-b", 250]]) fs.writeFileSync(path.join(runDir, `${name}.wav`), wav(freq));
   fs.writeFileSync(path.join(runDir, "hot.wav"), wav(350, 2, 0.9));
   fs.writeFileSync(path.join(runDir, "corrupt.wav"), Buffer.from("RIFFthis is not audio at all"));
   return runDir;
@@ -35,17 +35,22 @@ const full = {
   roles: [{ id: "pip", name: "Pip", options: ["A", "B", "C"], beats: [
     { id: "fear", label: "Fear", promptText: "[whispers] It went out.", clips: { A: { file: "ok-a.wav", trimDb: 0, presetId: "Katie" }, B: { file: "slow.wav", trimDb: 0 }, C: { file: "missing.wav", trimDb: 0 } } },
     { id: "relief", label: "Relief", promptText: "[exhales] Thank you.", clips: { A: { file: "corrupt.wav", trimDb: 0 }, B: { file: "ok-b.wav", trimDb: 0 }, C: { file: "ok-a.wav", trimDb: 0 } } },
-    { id: "loud", label: "Loud", promptText: "Loud.", clips: { A: { file: "hot.wav", trimDb: 12 } } },
+    { id: "loud", label: "Loud", promptText: "Loud.", clips: { A: { file: "hot.wav", trimDb: 12 }, B: { file: "flaky.wav", trimDb: 0 } } },
   ] }],
   sweep,
 };
 
 function runPage(index) {
   const inner = auditionHandler({ voiceDir, runDir: fixtureRun(index) });
+  let flakyDropped = false;
   const handler = (req, res) => {
     // The slow clip arrives late, so a later tap's clip decodes first.
     if (req.url.startsWith("/run/slow")) setTimeout(() => inner(req, res), 500);
-    else inner(req, res);
+    // The flaky clip's first request fails with a temporary error, like a Wi-Fi hiccup. (A dropped socket gets retried by Chrome itself.)
+    else if (req.url.startsWith("/run/flaky") && !flakyDropped) {
+      flakyDropped = true;
+      res.writeHead(503).end();
+    } else inner(req, res);
   };
   return runInChrome({ handler, path: "/?selftest=1", timeoutMs: 45000 });
 }
@@ -100,6 +105,10 @@ test("room tone toggles between on and off", () => {
 test("Dry never lets a trimmed clip pass -1 dBFS", () => {
   assert.ok(result.dryHot.gain > 0);
   assert.ok(result.dryHot.gain * 0.9 <= 0.8913 + 0.002, `gain ${result.dryHot.gain}`);
+});
+
+test("a dropped request leaves the cell tappable, and the next tap plays", () => {
+  assert.deepEqual(result.flaky, { unavailableAfterDrop: false, playsOnRetry: "flaky.wav" });
 });
 
 test("no preset names or plan fields appear in the DOM", () => {

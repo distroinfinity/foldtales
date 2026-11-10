@@ -25,7 +25,7 @@ The shortlist's other options, by label: Pip B Kylie, C Elliot. Wick B Clint, C 
 | Audition, first 12 clips | 12 | 112,172 to 112,155, of which 5 were not ours |
 | Audition, last 21 clips | 21 | 112,150 to 112,129 |
 
-The balance guard stopped the audition after 12 clips, because another run was spending on the account (10 credits in two 5-credit drops, the size of one art sheet each). Nothing was lost. The user allowed parallel running for the rest, through a new `--allow-concurrent-spend` flag that keeps the cap and only turns the guard into a warning.
+Another run spent 15 credits on the account during this run, in three 5-credit drops (one art sheet's worth each): between the two rounds, inside the audition's first part, and before its second part. The balance guard stopped the audition after 12 clips because of the one inside it. Nothing was lost. The user allowed parallel running for the rest, through a new `--allow-concurrent-spend` flag that keeps the cap and only turns the guard into a warning.
 
 ## What we learned
 
@@ -40,7 +40,7 @@ The balance guard stopped the audition after 12 clips, because another run was s
 
 `art/voice/chain.mjs` applies the paper-radio treatment at playback with native Web Audio only, so prepared and live lines share one code path. Its settings are in `art/voice/chain.json`, and `approved-cast.json` snapshots them with a hash of the code.
 
-Calibration: each setting's level is within 0.05 dB of Dry on the audition clips, and all peaks are below −3 dBFS. No setting was peak-limited.
+Calibration: each setting's level is within 0.05 dB of Dry on the audition clips, and all peaks are below −3 dBFS. No setting was peak-limited. On the listening page, Dry is also capped at −1 dBFS so it can't clip. For a few loud, peaky clips, Dry plays up to about 3 dB quieter than the treated settings, so in an A/B against Dry, judge tone, not loudness.
 
 | Setting | outputDb | Peak |
 |---|---|---|
@@ -56,4 +56,4 @@ Calibration: each setting's level is within 0.05 dB of Dry on the audition clips
 
 ## Reuse
 
-Everything in this folder stays. To listen later, run `node art/tools/serve-audition.mjs art/runs/005-voice-audition`, and either open the LAN address it prints, or, over USB, run `adb reverse tcp:5120 tcp:5120` and open `localhost:5120` in Quest Browser. The sweep's 49 voices are under "All voices" for "try this one instead".
+Everything in this folder stays. To listen later, run `node art/tools/serve-audition.mjs art/runs/005-voice-audition`, and either open the LAN address it prints, or, over USB, map this workspace's `CLIENT_PORT` from `.env.ports` with `adb reverse tcp:<port> tcp:<port>` and open `localhost:<port>` in Quest Browser. In run 005, the user asked the agent to open it on the headset. It used its own port's mapping, left the other workspace's mapping alone, and asked before opening because a WebXR session was running. The sweep's 49 voices are under "All voices" for "try this one instead".

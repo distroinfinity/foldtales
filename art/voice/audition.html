@@ -77,13 +77,24 @@
     s.room.start();
   }
 
+  // A missing or undecodable clip is unavailable for good. A network hiccup is not: it's forgotten, so the next tap tries again.
   function decode(file) {
     if (!s.decoded.has(file)) {
-      s.decoded.set(file, (async () => {
-        const response = await fetch(`/run/${file}`);
-        if (!response.ok) throw new Error(`missing ${file}`);
-        return s.ctx.decodeAudioData(await response.arrayBuffer());
-      })());
+      const loading = (async () => {
+        let bytes;
+        try {
+          const response = await fetch(`/run/${file}`);
+          if (response.status === 404) throw new Error(`missing ${file}`);
+          if (!response.ok) throw Object.assign(new Error(`status ${response.status}`), { retry: true });
+          bytes = await response.arrayBuffer();
+        } catch (e) {
+          if (e.message.startsWith("missing")) throw e;
+          throw Object.assign(e, { retry: true });
+        }
+        return s.ctx.decodeAudioData(bytes);
+      })();
+      s.decoded.set(file, loading);
+      loading.catch((e) => { if (e.retry) s.decoded.delete(file); });
     }
     return s.decoded.get(file);
   }
@@ -163,8 +174,12 @@
     let buffer;
     try {
       buffer = await decode(file);
-    } catch {
-      markUnavailable(file);
+    } catch (e) {
+      if (!e.retry) markUnavailable(file);
+      else {
+        const cell = stage.querySelector(`[data-key="${key}"]`);
+        if (cell) cell.querySelector("small").textContent = "Didn't load, tap again";
+      }
       return;
     }
     if (token !== s.token) return;
@@ -323,6 +338,13 @@
         tap("pip/loud/A");
         await wait(300);
         r.dryHot = { gain: s.current?.route.input.gain.value ?? 0 };
+
+        tap("pip/loud/B");
+        await wait(400);
+        const unavailableAfterDrop = cell("pip/loud/B").classList.contains("unavailable");
+        tap("pip/loud/B");
+        await wait(400);
+        r.flaky = { unavailableAfterDrop, playsOnRetry: s.current?.file ?? null };
       }
     } catch (e) {
       r.error = String(e && e.stack || e);
