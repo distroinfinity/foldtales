@@ -1,0 +1,23 @@
+{
+  "id": "spool",
+  "name": "spool of thread",
+  "description": "A wooden spool wound thick with sage-green thread, a loose end curling free.",
+  "tags": [
+    "rope",
+    "ties",
+    "rolls",
+    "lightweight"
+  ],
+  "art": {
+    "kind": "asset",
+    "path": "objects/spool/spool.png"
+  },
+  "size": {
+    "heightM": 0.07
+  },
+  "pivot": [
+    49.7,
+    49.7
+  ],
+  "provenance": "library"
+}

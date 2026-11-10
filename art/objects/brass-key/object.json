@@ -1,0 +1,22 @@
+{
+  "id": "brass-key",
+  "name": "old brass key",
+  "description": "An old brass key with a round looped bow. Nobody remembers what it opens.",
+  "tags": [
+    "opens",
+    "shiny",
+    "heavy"
+  ],
+  "art": {
+    "kind": "asset",
+    "path": "objects/brass-key/brass-key.png"
+  },
+  "size": {
+    "heightM": 0.075
+  },
+  "pivot": [
+    48.1,
+    3.7
+  ],
+  "provenance": "library"
+}

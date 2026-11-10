@@ -84,10 +84,18 @@ def piece_count_problems(found, expected):
 MIN_PAINT_KEPT = 0.97
 
 
+def shadow_tint(rgba):
+    """The painter's shadow on magenta paper is a deep crimson, such as (98, 9, 36). None of the objects' own
+    colors (rust, brass, wood, sage, cream) has blue above green, so blue over green marks paper or its shadow."""
+    r, g, b = [rgba[..., i].astype(int) for i in range(3)]
+    return (r - g > 40) & (b - g > 5)
+
+
 def raw_paint(rgba, paper_rgb, tolerance=40):
-    """Painted pixels of a raw cut: opaque and not the paper trapped inside it (between rungs, inside a bow)."""
+    """Painted pixels of a raw cut: opaque, and neither paper trapped inside it (between rungs, inside a bow)
+    nor the paper's shadow."""
     near = np.abs(rgba[..., :3].astype(int) - paper_rgb).max(axis=2) <= tolerance
-    return (rgba[..., 3] > 127) & ~near
+    return (rgba[..., 3] > 127) & ~near & ~shadow_tint(rgba)
 
 
 def preservation_problems(raw, finished, paper_rgb):

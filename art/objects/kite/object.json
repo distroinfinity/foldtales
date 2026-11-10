@@ -1,0 +1,23 @@
+{
+  "id": "kite",
+  "name": "patched paper kite",
+  "description": "A patched paper kite in faded rust and cream, with a tail of three cloth bows.",
+  "tags": [
+    "flies",
+    "catches-wind",
+    "lightweight",
+    "fragile"
+  ],
+  "art": {
+    "kind": "asset",
+    "path": "objects/kite/kite.png"
+  },
+  "size": {
+    "heightM": 0.12
+  },
+  "pivot": [
+    50.0,
+    30.2
+  ],
+  "provenance": "library"
+}

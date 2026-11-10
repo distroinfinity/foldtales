@@ -100,6 +100,35 @@ class Preservation(unittest.TestCase):
         self.assertTrue(any(p.startswith("paint kept") for p in oc.preservation_problems(raw, done, self.MAGENTA)))
 
 
+class Shadow(unittest.TestCase):
+    MAGENTA = (192, 60, 127)
+
+    def piece(self):
+        img = np.zeros((120, 200, 4), "uint8")
+        img[10:110, 10:190] = (98, 9, 36, 255)           # crimson shadow around the object
+        img[20:100, 20:180] = (181, 80, 46, 255)         # rust paint
+        img[40:60, 60:80] = (192, 60, 127, 255)          # a hole of paper
+        img[38:62, 58:60] = (98, 9, 36, 255)             # its shadow rim
+        return img
+
+    def test_shadow_goes_and_rust_stays(self):
+        import make_objects
+        out = make_objects.clear_shadow(self.piece(), self.MAGENTA)
+        self.assertEqual(out[15, 100, 3], 0)
+        self.assertEqual(out[50, 70, 3], 0)
+        self.assertEqual(out[50, 59, 3], 0)
+        self.assertEqual(out[80, 100, 3], 255)
+        self.assertEqual(oc.preservation_problems(self.piece(), out, self.MAGENTA), [])
+
+    def test_grip_lands_where_it_was_painted(self):
+        import make_objects
+        piece = np.zeros((100, 60, 4), "uint8")
+        piece[10:90, 10:50] = 255
+        # piece centered at sheet (500, 300); the grip is the painted box's top-left corner
+        pct = make_objects.grip_percent(piece, (500, 300), (480, 260), (10, 10), (80 + 2 * make_objects.PAD, 40 + 2 * make_objects.PAD))
+        self.assertEqual(pct, [round(100 * make_objects.PAD / (40 + 2 * make_objects.PAD), 1), round(100 * make_objects.PAD / (80 + 2 * make_objects.PAD), 1)])
+
+
 class Budget(unittest.TestCase):
     def test_last_repaint_can_start(self):
         self.assertEqual(oc.invocation_cap(spent=27, total=36, largest=9), 1)
