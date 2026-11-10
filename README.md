@@ -2,7 +2,27 @@
 
 An AI-directed painted storybook that opens on your real table. Hand the characters anything, and the story bends around it and remembers. Our entry for the Meta VR Start Developer Competition, due Nov 18, 2026.
 
-**Status:** plan and cast art are frozen as v1, and there's no product code yet. Development starts at ticket 0 in `docs/sprint-plan.md`.
+**Status:** plan and cast art are frozen as v1. The workspace and contracts are in place, and the client boots an empty scene. Tickets are in `docs/sprint-plan.md`.
+
+## Running it
+
+Use Node 24 and pnpm. In a Superset workspace, `.superset/setup.sh` has already installed everything and written this workspace's ports to `.env.ports`.
+
+| Command | Does |
+|---|---|
+| `pnpm dev` | Runs the client in the IWSDK emulator and the backend against the mocks |
+| `pnpm --filter @tabletop/client dev:agent` | Runs the client headless, for agents |
+| `pnpm check` | Typecheck, tests, and the scan that keeps keys out of the client bundle |
+
+`MOCK_PROFILE` picks how the mock backend behaves: `normal`, `slow`, `fail` or `cap`.
+
+## Where things are
+
+| Folder | Is |
+|---|---|
+| `client/` | The IWSDK app |
+| `backend/` | The Hono server, running over the mocks for now |
+| `contracts/` | The shared shapes and mocks. Start with `contracts/README.md` |
 
 | Read this | For |
 |---|---|
