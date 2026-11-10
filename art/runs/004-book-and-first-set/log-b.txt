@@ -1,0 +1,14 @@
+Run 004-book-and-first-set: Can seedream5_pro paint a book and layered paper set that sit in the same book as Pip, and cut out cleanly?
+balance 112129, cap 84
+skip key-plain, already generated
+skip key-lost-things, already generated
+skip paper-test, already generated
+done layer-1-sky: 144s, 9 credits
+done layer-2-headland: 170s, 9 credits
+done layer-3-dunes: 139s, 9 credits
+done layer-4-foreground: 190s, 9 credits
+done ground: 227s, 9 credits
+done cover-front: 128s, 9 credits
+done trims-sheet: 119s, 9 credits
+done pip-sheet: 119s, 5 credits
+finished, total spent 68
