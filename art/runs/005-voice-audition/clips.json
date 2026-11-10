@@ -1,5 +1,116 @@
 {
-  "roles": [],
+  "roles": [
+    {
+      "id": "pip",
+      "name": "Pip",
+      "options": [
+        "A",
+        "B",
+        "C"
+      ],
+      "beats": [
+        {
+          "id": "fear",
+          "label": "Fear",
+          "promptText": "[whispers] Hello? ... It went out. It just... went out. [gulps] I don't like it when it's this dark.",
+          "clips": {
+            "A": {
+              "file": "pip-a-fear.mp3",
+              "trimDb": 5.5
+            },
+            "B": {
+              "file": "pip-b-fear.mp3",
+              "trimDb": 4.5
+            },
+            "C": {
+              "file": "pip-c-fear.mp3",
+              "trimDb": 5.3
+            }
+          }
+        },
+        {
+          "id": "relief",
+          "label": "Relief",
+          "promptText": "[exhales] Oh... oh, thank you. [laughs] It's warm again. I wasn't scared. [curious] Well. Only a bit.",
+          "clips": {
+            "A": {
+              "file": "pip-a-relief.mp3",
+              "trimDb": 5.5
+            },
+            "B": {
+              "file": "pip-b-relief.mp3",
+              "trimDb": 4.5
+            },
+            "C": {
+              "file": "pip-c-relief.mp3",
+              "trimDb": 5.3
+            }
+          }
+        },
+        {
+          "id": "wish",
+          "label": "Joke, and the wish",
+          "promptText": "One day I'll keep the lamp myself. [laughs] I just have to grow into the coat first.",
+          "clips": {
+            "A": {
+              "file": "pip-a-wish.mp3",
+              "trimDb": 5.5
+            },
+            "B": {
+              "file": "pip-b-wish.mp3",
+              "trimDb": 4.5
+            },
+            "C": {
+              "file": "pip-c-wish.mp3",
+              "trimDb": 5.3
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "wick",
+      "name": "Wick",
+      "options": [
+        "A"
+      ],
+      "beats": [
+        {
+          "id": "grumble",
+          "label": "Grumble",
+          "promptText": "[sighs] Forty years I've kept this lamp, and not one soul has wiped their boots. Mind the step. No, the other step.",
+          "clips": {
+            "A": {
+              "file": "wick-a-grumble.mp3",
+              "trimDb": 4.9
+            }
+          }
+        },
+        {
+          "id": "sight",
+          "label": "Sight, kept gentle",
+          "promptText": "[low, gravelly voice] Read it to me, would you? ... The page is fine. It's the ink. They make the ink too faint these days.",
+          "clips": {
+            "A": {
+              "file": "wick-a-sight.mp3",
+              "trimDb": 4.9
+            }
+          }
+        },
+        {
+          "id": "warmth",
+          "label": "Gruff warmth",
+          "promptText": "[sighs] That moth's in the jam again. ... Good lamp, that. You did all right, young one.",
+          "clips": {
+            "A": {
+              "file": "wick-a-warmth.mp3",
+              "trimDb": 4.9
+            }
+          }
+        }
+      ]
+    }
+  ],
   "sweep": [
     {
       "label": "Voice 1",

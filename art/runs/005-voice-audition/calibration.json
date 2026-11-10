@@ -1,0 +1,27 @@
+{
+  "clips": 12,
+  "settings": {
+    "soft-paper": {
+      "outputDb": -3.8,
+      "rmsDeltaDb": -0.044118274810600155,
+      "peakDb": -4.033126056814551,
+      "peakLimited": false
+    },
+    "warm-radio": {
+      "outputDb": -4,
+      "rmsDeltaDb": 0.007859139963617423,
+      "peakDb": -5.382972928662252,
+      "peakLimited": false
+    },
+    "old-wireless": {
+      "outputDb": -4.1,
+      "rmsDeltaDb": 0.013500015872107696,
+      "peakDb": -6.828626385198824,
+      "peakLimited": false
+    }
+  },
+  "dry": {
+    "rmsDb": -20.52666297290274,
+    "peakDb": 3.2751402076262988
+  }
+}

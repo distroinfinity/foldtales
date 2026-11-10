@@ -488,5 +488,125 @@
     "f0P10": 212.32813724848106,
     "f0P90": 458.83687160243073,
     "voicedSeconds": 3.93
+  },
+  "pip-a-fear": {
+    "durationSeconds": 7.52,
+    "lufs": -27.9,
+    "peakDb": -8.6,
+    "centroidHz": 3480.6659382716043,
+    "f0Median": 237.49145208522117,
+    "f0P10": 78.07961677839923,
+    "f0P90": 470.2833647383532,
+    "voicedSeconds": 1.33
+  },
+  "pip-a-relief": {
+    "durationSeconds": 9.2,
+    "lufs": -25.3,
+    "peakDb": -2.4,
+    "centroidHz": 2887.085947103274,
+    "f0Median": 245.8998261869411,
+    "f0P10": 139.55086768078255,
+    "f0P90": 410.21646262993954,
+    "voicedSeconds": 2.92
+  },
+  "pip-a-wish": {
+    "durationSeconds": 5.6,
+    "lufs": -23.3,
+    "peakDb": -3.7,
+    "centroidHz": 3035.3516900826457,
+    "f0Median": 207.48940016626528,
+    "f0P10": 131.9960132737939,
+    "f0P90": 327.4126575381367,
+    "voicedSeconds": 2.3
+  },
+  "pip-b-fear": {
+    "durationSeconds": 7.68,
+    "lufs": -27.7,
+    "peakDb": -8.8,
+    "centroidHz": 3845.7849395770404,
+    "f0Median": 232.32767869126326,
+    "f0P10": 136.74546969477743,
+    "f0P90": 457.05871317891535,
+    "voicedSeconds": 1.48
+  },
+  "pip-b-relief": {
+    "durationSeconds": 8.96,
+    "lufs": -24.4,
+    "peakDb": -2.7,
+    "centroidHz": 3526.3324585492273,
+    "f0Median": 284.76932862736294,
+    "f0P10": 134.46458766841886,
+    "f0P90": 454.0711677475365,
+    "voicedSeconds": 3.58
+  },
+  "pip-b-wish": {
+    "durationSeconds": 5.6,
+    "lufs": -21.5,
+    "peakDb": -1.2,
+    "centroidHz": 3329.6288223140514,
+    "f0Median": 267.4517099620907,
+    "f0P10": 135.66547547069703,
+    "f0P90": 438.0707135028795,
+    "voicedSeconds": 2.95
+  },
+  "pip-c-fear": {
+    "durationSeconds": 7.52,
+    "lufs": -29,
+    "peakDb": -10.6,
+    "centroidHz": 4931.292524691355,
+    "f0Median": 215.95840921496472,
+    "f0P10": 153.53162054688525,
+    "f0P90": 287.28327456427553,
+    "voicedSeconds": 0.79
+  },
+  "pip-c-relief": {
+    "durationSeconds": 8.24,
+    "lufs": -25,
+    "peakDb": -7.2,
+    "centroidHz": 3506.8401323943676,
+    "f0Median": 244.64755639775873,
+    "f0P10": 131.5058832966057,
+    "f0P90": 400.795651428803,
+    "voicedSeconds": 2.1
+  },
+  "pip-c-wish": {
+    "durationSeconds": 6.16,
+    "lufs": -21.9,
+    "peakDb": -5.5,
+    "centroidHz": 3580.791443609021,
+    "f0Median": 260.7909462327198,
+    "f0P10": 178.04190219484167,
+    "f0P90": 409.06036454036115,
+    "voicedSeconds": 2.36
+  },
+  "wick-a-grumble": {
+    "durationSeconds": 9.28,
+    "lufs": -24.5,
+    "peakDb": -2.2,
+    "centroidHz": 3291.590885,
+    "f0Median": 119.222861642547,
+    "f0P10": 87.86128282684874,
+    "f0P90": 190.07365948056153,
+    "voicedSeconds": 3.62
+  },
+  "wick-a-sight": {
+    "durationSeconds": 7.36,
+    "lufs": -25.6,
+    "peakDb": -7.2,
+    "centroidHz": 3477.9034100946365,
+    "f0Median": 110.41602205548676,
+    "f0P10": 81.670116780012,
+    "f0P90": 167.29020542903052,
+    "voicedSeconds": 2.38
+  },
+  "wick-a-warmth": {
+    "durationSeconds": 6.64,
+    "lufs": -24.7,
+    "peakDb": -7.9,
+    "centroidHz": 2981.931318181818,
+    "f0Median": 113.60323970369156,
+    "f0P10": 86.95855060028448,
+    "f0P90": 217.14018193730078,
+    "voicedSeconds": 3.01
   }
 }

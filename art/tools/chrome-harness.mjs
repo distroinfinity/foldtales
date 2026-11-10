@@ -46,7 +46,8 @@ export function runInChrome({ handler, path: pagePath, timeoutMs = 60000 }) {
       chrome?.kill("SIGKILL");
       server.closeAllConnections();
       server.close();
-      fs.rmSync(profile, { recursive: true, force: true });
+      // Chrome's helpers can still be writing here for a moment after it's killed, so this retries and never fails a test.
+      fs.promises.rm(profile, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }).catch(() => {});
       if (error) reject(error);
       else resolve(result);
     }
