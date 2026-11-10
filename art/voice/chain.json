@@ -19,7 +19,7 @@
         "attackMs": 10,
         "releaseMs": 150
       },
-      "outputDb": -3.8
+      "outputDb": -4.2
     },
     "warm-radio": {
       "highpassHz": 130,
@@ -38,7 +38,7 @@
         "attackMs": 5,
         "releaseMs": 180
       },
-      "outputDb": -4
+      "outputDb": -4.5
     },
     "old-wireless": {
       "highpassHz": 180,
@@ -57,7 +57,7 @@
         "attackMs": 3,
         "releaseMs": 150
       },
-      "outputDb": -4.1
+      "outputDb": -4.5
     }
   },
   "roomTone": {

@@ -72,7 +72,9 @@
       "id": "wick",
       "name": "Wick",
       "options": [
-        "A"
+        "A",
+        "B",
+        "C"
       ],
       "beats": [
         {
@@ -83,6 +85,14 @@
             "A": {
               "file": "wick-a-grumble.mp3",
               "trimDb": 4.9
+            },
+            "B": {
+              "file": "wick-b-grumble.mp3",
+              "trimDb": 5.9
+            },
+            "C": {
+              "file": "wick-c-grumble.mp3",
+              "trimDb": -5
             }
           }
         },
@@ -94,6 +104,14 @@
             "A": {
               "file": "wick-a-sight.mp3",
               "trimDb": 4.9
+            },
+            "B": {
+              "file": "wick-b-sight.mp3",
+              "trimDb": 5.9
+            },
+            "C": {
+              "file": "wick-c-sight.mp3",
+              "trimDb": -5
             }
           }
         },
@@ -105,6 +123,131 @@
             "A": {
               "file": "wick-a-warmth.mp3",
               "trimDb": 4.9
+            },
+            "B": {
+              "file": "wick-b-warmth.mp3",
+              "trimDb": 5.9
+            },
+            "C": {
+              "file": "wick-c-warmth.mp3",
+              "trimDb": -5
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "moth",
+      "name": "Moth",
+      "options": [
+        "A",
+        "B",
+        "C"
+      ],
+      "beats": [
+        {
+          "id": "bright",
+          "label": "Bright!",
+          "promptText": "[excited] Oh! Ooh! Is that a light? Is it MY light? I'm coming, I'm coming, I'm... ow.",
+          "clips": {
+            "A": {
+              "file": "moth-a-bright.mp3",
+              "trimDb": 2
+            },
+            "B": {
+              "file": "moth-b-bright.mp3",
+              "trimDb": 5.1
+            },
+            "C": {
+              "file": "moth-c-bright.mp3",
+              "trimDb": 0
+            }
+          }
+        },
+        {
+          "id": "find",
+          "label": "Silly find",
+          "promptText": "[mischievously] I found you something! It's a button. Or a biscuit. [snorts] I licked it, and I'm still not sure.",
+          "clips": {
+            "A": {
+              "file": "moth-a-find.mp3",
+              "trimDb": 2
+            },
+            "B": {
+              "file": "moth-b-find.mp3",
+              "trimDb": 5.1
+            },
+            "C": {
+              "file": "moth-c-find.mp3",
+              "trimDb": 0
+            }
+          }
+        },
+        {
+          "id": "sorry",
+          "label": "Sorry, not sorry",
+          "promptText": "Sorry! Sorry, sorry. I didn't mean to land in your soup. It was just so shiny. [laughs] Can I do it again?",
+          "clips": {
+            "A": {
+              "file": "moth-a-sorry.mp3",
+              "trimDb": 2
+            },
+            "B": {
+              "file": "moth-b-sorry.mp3",
+              "trimDb": 5.1
+            },
+            "C": {
+              "file": "moth-c-sorry.mp3",
+              "trimDb": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "narrator",
+      "name": "Narrator",
+      "options": [
+        "A",
+        "B",
+        "C"
+      ],
+      "beats": [
+        {
+          "id": "opening",
+          "label": "Opening",
+          "promptText": "Everything lost in a house drifts, in the end, to the edge of the table. And at the edge of the table... there is a lighthouse.",
+          "clips": {
+            "A": {
+              "file": "narrator-a-opening.mp3",
+              "trimDb": 1.8
+            },
+            "B": {
+              "file": "narrator-b-opening.mp3",
+              "trimDb": 1.1
+            },
+            "C": {
+              "file": "narrator-c-opening.mp3",
+              "trimDb": 2
+            }
+          }
+        },
+        {
+          "id": "aside",
+          "label": "Dry aside",
+          "promptText": "Now, Pip had been told, more than once, never to go out after dark. [pause] Pip had also been told not to sit in the jam.",
+          "clips": {
+            "A": {
+              "file": "narrator-a-aside.mp3",
+              "trimDb": 1.8
+            },
+            "B": {
+              "file": "narrator-b-aside.mp3",
+              "trimDb": 1.1
+            },
+            "C": {
+              "file": "narrator-c-aside.mp3",
+              "trimDb": 2
             }
           }
         }
