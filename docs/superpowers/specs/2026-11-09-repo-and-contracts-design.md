@@ -66,7 +66,7 @@ Three layers, the last being the proof:
 
 World config: `ar` mode, `handTracking`, `hitTest`, `anchors` on (Pip needs them next), no grabbing or spatial UI yet, Quest 3 emulator profile. The skills stay at the repo root. A repo guard fails if `client/.claude` or `client/.agents` ever appears, and if any package imports from `spikes/`.
 
-`pnpm dev` runs both servers, with a visible browser. Agents use `pnpm --filter client dev:agent`, which is `iwsdk dev up --headless --no-open`.
+`pnpm dev` runs both servers, with a visible browser. Agents use `pnpm --filter client dev:agent`, which is `iwsdk dev up --headless --allow-browser-automation`.
 
 ### Contracts
 

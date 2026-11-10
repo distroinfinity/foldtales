@@ -11,3 +11,7 @@ onlyBuiltDependencies:
   - sharp
 ignoredBuiltDependencies:
   - onnxruntime-node
+# The IWSDK dev plugin's editor imports these from the project root, which pnpm's strict layout hides.
+publicHoistPattern:
+  - "@iwsdk/*"
+  - three-viewport-gizmo
