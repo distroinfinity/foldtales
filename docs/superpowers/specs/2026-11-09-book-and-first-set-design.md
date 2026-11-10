@@ -46,7 +46,7 @@ Before painting, the pieces follow from how it moves.
 
 Everything in this sequence is physically possible, which is the point of the next section.
 
-**The closed book sits on the right half of the open footprint.** Ticket 1 needs to slide it left by a quarter of the open width while it opens, or center it on the spine from the start.
+**Placement convention: the book is placed by its spine.** The spine is the origin, and it is the center of the open spread. The closed book occupies x from 0 to 210 mm, and the open book x from -210 to 210 mm. Nothing slides while it opens. The closed book simply sits to the right of the placed point, and the reach and comfort checks use the open footprint.
 
 **A full-width layer can't live inside a closed book.** It's 420 mm wide and the closed book is 210 mm, and folding it flat doesn't change that. A center crease alone doesn't solve it either, because a straight base line across the spine locks: real pop-ups use angled V-folds, which would make every layer lean.
 
@@ -54,8 +54,9 @@ Everything in this sequence is physically possible, which is the point of the ne
 
 - **Art:** one painting per layer, split at its center. No extra paint or credits. The Stage can use one texture with two sets of coordinates.
 - **The seam:** a hairline at the spine, the same as the fold in the page behind it. Nothing important sits in the center 6% of any layer.
-- **Why rising waits for the cover to land:** the cover and the left halves can't intersect the right halves, with no collision logic.
-- **Closing** is the same in reverse: layers fold flat, then the cover closes over them.
+- **Why rising waits for the cover to land:** the moving cover never sweeps through a standing layer, so no collision logic is needed.
+- **Order and stacking:** a layer folds toward the reader and lies over those in front of it, so the sky is the top of the stack. Opening rises back to front. Closing folds front to back, then the cover closes. Each flat card sits 1 mm above the one beneath it, and the cover's inner face and the page block's top are at the same height when open. The closed book is never seen inside, so this only has to look right while layers are moving.
+- **Pip folds the other way.** At 170 mm tall on a mark 130 mm from the near edge, he'd overhang the page folding toward you. He folds away from you instead, about a hinge at his feet, and 130 + 170 = 300 mm fits on the 315 mm page. He rises last, so he's on top of the stack, and his puppet's parts go flat with him.
 
 **Layers fold toward the reader, so you see their backs while they rise.** A double-sided card would show the painting mirrored, which is wrong. **Decision: backs are plain card in page color `#F6EFE2`.** No art is needed, and a flat layer is camouflaged on the page until it lifts.
 
@@ -137,7 +138,8 @@ The near 45 mm of the page stays bare paper for captions.
 - Every layer is painted with a clear paper margin on all four sides, with a shaped silhouette and a straight flat base.
 - After extraction, the base is trimmed to a straight hinge line (the lowest row where the painted width is at least 90% solid).
 - Each finished layer keeps its full canvas width, with the painting's center on the canvas center, so the two halves split at the spine. The canvas width maps to 420 mm.
-- Pale pieces need contrasting paper (run 001). The sky goes on flat terracotta, because it's pale blue. The other layers and the trims sheet go on the slate-blue paper Moth used. All use `cutout.py --seal=3`.
+- **Paper color is tested first, because this scenery has every color in it.** The tool removes anything close to the paper's hue that is bright enough, including paint lighter than the paper, so slate-blue paper would remove pale blue sea and sky, and terracotta would remove warm sand. Flat vivid magenta is the one color nothing in this set uses. Phase A paints one 1K test of a sand-and-sage dune with a strip of blue sea on magenta and cuts it out. If it fails, each layer gets a paper chosen against its own palette, and if the fringe needs it, edge color gets cleaned locally for free.
+- All cuts use `cutout.py --seal=3`.
 - Paper trapped in enclosed gaps gets a one-off pass in the run folder, as runs 002 and 003 did. No shared tool changes.
 
 ## Files
@@ -145,7 +147,7 @@ The near 45 mm of the page stays bare paper for captions.
 ```
 art/book/        cover-front spine page-edge ribbon tab-gold tab-sage drawer-pull .png, book.json
 art/sets/shore-path/  layer-1-sky layer-2-headland layer-3-dunes layer-4-foreground ground .png, set.json
-art/fx/          smoke-1 smoke-2 leaf-1 leaf-2 leaf-3 .png
+art/fx/          smoke leaf-1 leaf-2 .png
 art/cast/pip/    heads/up.png, parts/lantern-out.png, parts/lantern.png (cleaned), rig.json (adds the up offset)
 art/m1-proof.html  reference only, next to book-mockup.html
 art/runs/004-book-and-first-set/  plan.json, manifest.jsonl, results.md, sheets, one-off scripts
@@ -154,9 +156,11 @@ art/runs/004-book-and-first-set/  plan.json, manifest.jsonl, results.md, sheets,
 `book.json` and `set.json` follow `rig.json`, and a note says they're the art's proposal until tested on the Quest. Ticket 0 has no format for sets yet, and these are small enough to convert when it does. They carry everything a renderer needs so that nobody has to reverse-engineer the proof page:
 
 - The coordinate convention: millimeters at reference size, origin at the near end of the spine, x to the right, y away from the reader, z up.
-- For each layer: file, physical width and height, px-per-mm, hinge line endpoints, and the split column.
-- Painted anchors: the lighthouse lamp's position on `layer-2-headland`, for M2's beam, and Pip's mark.
-- For each book piece: where it attaches, and its physical size.
+- For each layer: file, physical width and height, px-per-mm, hinge line endpoints, split column, flat and standing angles, fold direction, and stack order and offset.
+- For each book piece: which face it goes on (the spread's left half on the cover's inside, right half on the page block), where it attaches, its physical size, and the cover's closed and open angles.
+- Painted anchors: the lighthouse lamp's position on `layer-2-headland`, for M2's beam, and Pip's mark with his fold direction.
+- For each effect: physical size and where it starts.
+- In Pip's `rig.json`: the `up` head offset, and `lantern-out` declared as the unlit variant of the lantern, with the same placement and pivot.
 
 
 ## The run
@@ -166,12 +170,13 @@ Same painter as every prepared asset (`seedream5_pro`), same style text as runs 
 | Phase | Job | Size | Credits |
 |---|---|---|---|
 | A | Two key paintings, referencing Pip | 1K, 16:9 | 10 |
+| A | Paper test | 1K, 16:9 | 5 |
 | B | Four layers, referencing the chosen key | 2K, 16:9 | 36 |
 | B | Ground | 2K, 4:3 | 9 |
 | B | Cover | 2K, 2:3 | 9 |
 | B | Trims and effects sheet | 2K, 1:1 | 9 |
 | B | Pip's sheet | 1K, 1:1 | 5 |
-| | **Planned** | | **78** |
+| | **Planned** | | **83** |
 | | Up to three repaints at 9 | | 27 |
 | | **Cap** | | **120** |
 
@@ -179,7 +184,7 @@ Keys stay at 1K on purpose. References are limited to 5 MB, and a 2K PNG can exc
 
 **Two approval points.** Phase A runs after you approve the plan and estimate. Phase B runs after you pick a key. The tool has no phase filter, so `plan.json` holds only Phase A's jobs until the key is chosen. Finished images are skipped on the second pass.
 
-**The 120 cap is enforced by how I set the tool up, not by the tool alone.** The tool resets its baseline on every invocation and starts a job even with one credit left. So before each invocation I set `capCredits` to 120 minus everything spent so far minus 9, the largest single job. That guarantees the total can't pass 120 with no change to the tool. A running ledger in `results.md` tracks spend across invocations.
+**The 120 cap is enforced by how I set the tool up, not by the tool alone.** The tool resets its baseline on every invocation and starts a job even with one credit left. So before each invocation I set `capCredits` to 120 minus everything spent so far minus 9, the largest single job. I also queue only the jobs I intend to pay for, and each invocation's queue, at list price, must fit what's left of the 120. So the limit holds even if the balance reading is wrong, for example after an automatic top-up. A running ledger in `results.md` tracks spend across invocations.
 
 **A job that fails after being charged still counts.** The tool only logs a task after its image is saved, so a dropped download loses a paid image (run 003 lost one this way). Before resubmitting any failed job, I compare the balance change to what the manifest records, and count the difference against the cap.
 
@@ -193,7 +198,7 @@ Keys stay at 1K on purpose. References are limited to 5 MB, and a 2K PNG can exc
 
 **Checked by me, by eye:** every piece and composite, against the cast and the look bar. A piece that fails is repainted with one change, inside the cap.
 
-**Checked by you, on the Mac:** `art/m1-proof.html` plays the whole moment with the real pieces in CSS 3D. Moving the mouse stands in for moving your head. It's a reference page like `book-mockup.html`, not product code.
+**Checked by you, on the Mac:** `art/m1-proof.html` shows the moment with the real pieces in CSS 3D, and moving the mouse stands in for moving your head. It's a reference page like `book-mockup.html` and `cast/prototype.html`: one file, nothing imports it, and it holds only the unfold, the head swap and the lantern swap. It isn't the renderer, and it's the cheapest way to judge the two things stills can't show, the fold and the parallax.
 
 **Only you can check, in the headset, once Ticket 1 can show it:** does the book hold up as card from the side, is the parallax worth it, is Pip legible against the dunes in your room's light, and does the dim plus the unlit lantern read as "the light went out".
 
@@ -204,7 +209,7 @@ Keys stay at 1K on purpose. References are limited to 5 MB, and a 2K PNG can exc
 | The spine seam shows | Art keeps the center clear, and Ticket 1 can overlap the halves by a millimeter |
 | Separately painted layers don't match | The key is a shared reference. If one drifts, repaint it, within the cap |
 | The model frames the cover or ground with a border or book mockup | Prompt says full bleed. Repaint once, otherwise crop |
-| The sky bleeds terracotta into its edge | Repaint on white, with a pencil outline to stop the cut |
+| Magenta tints the painting's edges | Local edge color cleanup for free, and the paper test catches it for 5 credits |
 | A layer's top edge comes out too soft to cut | Repaint with stronger die-cut wording |
 | Set feels dark or muddy once tinted | Caught by the tint check before the proof page |
 | Cast and set light disagree in the headset | One tint across both is the frozen design. Adjust the tint values in Ticket 1 |
@@ -226,7 +231,11 @@ The ticket frames this as the book and the first set. M1 is decided by two small
 
 Codex's review found the cutout tool would invert full-bleed layers, and that the first version of the fold couldn't close. Both are fixed above, along with the cap handling, the shared-account window, registration of the new pieces, opaque smoke, and the metadata for later tickets.
 
-Two findings were not taken as written:
+The second review found that blue paint can be keyed out on slate paper, my centering note had the direction backwards, Pip had no way to fold, the metadata was incomplete, a top-up could fool the balance check, and the effects list disagreed with the file list. All are fixed above.
+
+Findings not taken as written:
 
 - **"Make the sky and effects contingent on a composition test."** Not taken for the effects, because they cost nothing extra on a sheet being painted anyway, and I cut them to three. The sky stays for the reason given above, and the proof page lets you judge it.
 - **"The tool's cap failures mean it should be changed."** The ticket allows editing it only if it's actually broken for this run. Setting the per-invocation cap as described guarantees the limit without touching a tool that other workspaces are using.
+- **"The proof page is a second renderer and out of scope."** The ticket asks for the result to be shown for approval on the Mac, and approved acting and page design already live in reference pages like this. It stays, bounded to one file and three motions.
+- **"Pip's stowed pose needs a full mechanism."** Pip's fold direction fits the page and is recorded. His timing and hold are Ticket 1's, because they're acting and code.
