@@ -68,6 +68,20 @@ def _lightness(rgb):
     return float(np.mean(np.where(y > 0.008856, 116 * np.cbrt(y) - 16, 903.3 * y)))
 
 
+def _lab(rgb):
+    c = np.asarray(rgb, float).reshape(-1, 3) / 255
+    linear = np.where(c <= 0.04045, c / 12.92, ((c + 0.055) / 1.055) ** 2.4)
+    m = np.array([[0.4124, 0.3576, 0.1805], [0.2126, 0.7152, 0.0722], [0.0193, 0.1192, 0.9505]])
+    xyz = (linear[:, :, None] * m.T[None]).sum(axis=1) / np.array([0.9505, 1.0, 1.089])
+    f = np.where(xyz > 0.008856, np.cbrt(xyz), 7.787 * xyz + 16 / 116)
+    return np.stack([116 * f[:, 1] - 16, 500 * (f[:, 0] - f[:, 1]), 200 * (f[:, 1] - f[:, 2])], -1).mean(axis=0)
+
+
+def color_difference(a_rgb, b_rgb):
+    """CIE76 difference between two colors' mean Lab: how far apart they look, hue included."""
+    return float(np.linalg.norm(_lab(a_rgb) - _lab(b_rgb)))
+
+
 def value_margin(backdrop_rgb, coat_rgb):
     """How much lighter the backdrop is than the coat, in L*."""
     return _lightness(backdrop_rgb) - _lightness(coat_rgb)

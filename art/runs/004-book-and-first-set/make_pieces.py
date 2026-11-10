@@ -21,7 +21,7 @@ LAYERS = [
     ("layer-1-sky", "layer-1-sky", 295, 236),
     ("layer-2-headland", "layer-2-headland-v2", 250, 200),
     ("layer-3-dunes", "layer-3-dunes", 215, 120),
-    ("layer-4-foreground", "layer-4-foreground-v2", 70, 65),
+    ("layer-4-foreground", "layer-4-foreground-v2", 115, 115),
 ]
 # Where each piece sits on the trims sheet, as (x, y) of its center.
 TRIMS = {"ribbon": (604, 1007), "tab-gold": (334, 1367), "tab-sage": (360, 1685), "drawer-pull": (1076, 811), "page-edge": (1346, 1304), "smoke": (1632, 678), "leaf-1": (1404, 1622), "leaf-2": (1590, 1701)}
@@ -67,8 +67,32 @@ def make_layer(name, source):
     paper = paper_of(rgb)
     pieces = cut(rgb)
     assert len(pieces) == 1, f"{source}: {len(pieces)} pieces"
-    a = finish.remove_specks(finish.clear_enclosed(finish.despill(pieces[0][0], paper), paper))
+    a = finish.remove_specks(finish.clear_magenta(finish.clear_enclosed(finish.despill(pieces[0][0], paper), paper)))
+    if name == "layer-2-headland":
+        a = clear_sky(a)
     return finish.center_on_canvas(finish.trim_base(a), 2720)
+
+
+def clear_sky(rgba):
+    """The painter left sky beside the lighthouse. Cut away pale blue that joins the outside, above the sea."""
+    rgb = rgba[..., :3].astype(int)
+    r, g, b = rgb[..., 0], rgb[..., 1], rgb[..., 2]
+    sky = (b - r >= 14) & (rgb.mean(axis=2) >= 165)
+    # The card's pale rim walls the sky in, so let the cut pass through it, but only right of the tower.
+    rim = (rgb.mean(axis=2) >= 200) & (rgb.max(axis=2) - rgb.min(axis=2) <= 30)
+    rim[:, : int(np.nonzero(rgba[..., 3].any(axis=0))[0].min() + rgba.shape[1] * 0.21)] = False
+    sky |= rim
+    sky[int(rgba.shape[0] * 0.92):] = False
+    out = finish.clear_connected(rgba, sky)
+    # Drop stray pencil lines the cut left behind: anything thinner than 7 px that hangs off the piece.
+    solid = ni.binary_opening(out[..., 3] > 127, iterations=3)
+    labels, count = ni.label(solid)
+    biggest = labels == 1 + int(np.argmax(ni.sum(solid, labels, range(1, count + 1))))
+    out[~ni.binary_dilation(biggest, iterations=4)] = 0
+    # The card's dark right edge survives as a 14 px stroke, so end the sea a little short of it.
+    right = np.nonzero(out[..., 3].any(axis=0))[0].max()
+    out[:, right - 16 :] = 0
+    return finish.remove_specks(out)
 
 
 def make_ground():
@@ -150,6 +174,67 @@ def glass_in_frame(unlit, lit):
     return out
 
 
+SPINE_DEPTH_MM = 315 / 2
+LAMP_PX = (630, 148)
+PIP_MARK_MM = (10, 175)
+
+
+def stage(x_mm, depth_mm, up_mm=0.0):
+    """Millimeters on the reference book (depth from the near edge) to contract stage space in meters."""
+    return [round(x_mm / 1000, 4), round(up_mm / 1000, 4), round((SPINE_DEPTH_MM - depth_mm) / 1000, 4)]
+
+
+def write_metadata():
+    import json
+    layers = []
+    for order, (name, _, hinge, _) in enumerate(LAYERS):
+        h, w = load_rgba(ART / "sets/shore-path" / f"{name}.png").shape[:2]
+        layers.append({
+            "id": name, "file": f"{name}.png", "sizePx": [w, h],
+            "sizeM": [round(w / PX_PER_MM / 1000, 4), round(h / PX_PER_MM / 1000, 4)],
+            "hinge": [stage(-210, hinge), stage(210, hinge)],
+            "splitColumnPx": w // 2,
+            "standingDeg": 0, "flatDeg": 90, "folds": "toward the reader, top first",
+        })
+    lamp_x = (LAMP_PX[0] - 1360) / PX_PER_MM
+    lamp_up = (1280 - LAMP_PX[1]) / PX_PER_MM
+    shore = {
+        "note": "The shore path set, as the art proposes it. Stage space as in contracts: meters at reference size, origin at the center of the spine on the table, y up, +z toward the reader. Re-check on the Quest.",
+        "reference": "Open book 0.42 x 0.315 m. Each layer image spans the full 0.42 m width at pxPerM, and splits at splitColumnPx: the left half stands on the cover's inside, the right half on the page block.",
+        "pxPerM": round(PX_PER_MM * 1000, 1),
+        "ground": {"file": "ground.png", "sizeM": [0.42, 0.315], "faces": "left half on the cover's inside, right half on the page block", "captionBandM": 0.045},
+        "layers": layers,
+        "stack": {"topToBottom": ["layer-1-sky", "layer-2-headland", "layer-3-dunes", "pip", "layer-4-foreground"], "riseOrder": "top to bottom", "closeOrder": "bottom to top, then the cover", "flatOffsetM": 0.001, "backColor": "#F6EFE2"},
+        "anchors": {"lighthouseLamp": {"layer": "layer-2-headland", "px": list(LAMP_PX), "position": stage(lamp_x, 250, lamp_up)}},
+        "marks": [{"id": "pip", "label": "Pip's mark", "position": stage(*PIP_MARK_MM), "heightM": 0.17, "folds": "toward the reader, hinge at the feet"}],
+        "effects": {
+            "smoke": {"file": "../../fx/smoke.png", "heightM": 0.045, "starts": "top of Pip's lantern, rising and fading"},
+            "leaf-1": {"file": "../../fx/leaf-1.png", "heightM": 0.012, "starts": "the left page edge, carried by the gust"},
+            "leaf-2": {"file": "../../fx/leaf-2.png", "heightM": 0.012, "starts": "the left page edge, a beat after leaf-1"},
+        },
+        "moods": {k: list(v) for k, v in checks.MOODS.items()},
+    }
+    book = {
+        "note": "The book, as the art proposes it. Same stage space as set.json. The book is placed by its spine: closed, it covers x 0 to 0.21 m, and open, -0.21 to 0.21 m. Re-check on the Quest.",
+        "closedSizeM": [0.21, 0.315], "openSizeM": [0.42, 0.315], "thicknessM": 0.03,
+        "cover": {"hinge": "the spine, x = 0, along z", "closedDeg": 0, "openDeg": 180, "inside": "the left half of the set's ground"},
+        "parts": {
+            "cover": {"file": "cover-front.png", "face": "cover outside", "sizeM": [0.21, 0.315], "title": "blank panel in the top third, for Fraunces set by the Stage"},
+            "spine": {"file": "spine.png", "face": "spine, stretched along its length", "sizeM": [0.03, 0.315]},
+            "page-edge": {"file": "page-edge.png", "face": "page block sides while closed", "sizeM": [0.315, 0.025]},
+            "ribbon": {"file": "ribbon.png", "attach": "top edge of the right page at x 0.15 m, hanging over the far edge", "sizeM": [0.012, 0.11]},
+            "tab-gold": {"file": "tab-gold.png", "attach": "right fore-edge, 0.06 m from the far edge, rounded end outward", "sizeM": [0.02, 0.0113]},
+            "tab-sage": {"file": "tab-sage.png", "attach": "right fore-edge, 0.1 m from the far edge, rounded end outward", "sizeM": [0.02, 0.0113]},
+            "drawer-pull": {"file": "drawer-pull.png", "attach": "center of the near edge, below the pages", "sizeM": [0.044, 0.0144]},
+        },
+        "pageColor": "#F6EFE2",
+    }
+    (ART / "sets/shore-path/set.json").write_text(json.dumps(shore, indent=2) + "\n")
+    (ART / "book/book.json").write_text(json.dumps(book, indent=2) + "\n")
+    problems = checks.check_manifest(book, shore, ART / "book", ART / "sets/shore-path")
+    print("metadata", problems or "agrees with files")
+
+
 def main():
     wanted = set(sys.argv[1:])
     for name, source, hinge, limit in LAYERS:
@@ -169,6 +254,8 @@ def main():
         for name, a in make_trims().items():
             save(a, ART / TRIM_HOMES.get(name, "book") / f"{name}.png")
             print(name, a.shape[:2], checks.check_cut(a, 20, 20))
+    if not wanted or "metadata" in wanted:
+        write_metadata()
     if not wanted or "pip" in wanted:
         up, offset, out, err, frightened = make_pip()
         save(up, ART / "cast/pip/heads/up.png")

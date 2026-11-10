@@ -48,15 +48,21 @@ def clear_magenta(rgba):
     return out
 
 
-def clear_white_fringe(rgba, paper_rgb, tolerance=14):
-    """Eat paper-white flecks inward from the outside, stopping at the first real color."""
+def clear_connected(rgba, candidate):
+    """Clear candidate pixels that connect to the outside of the piece, keeping enclosed ones."""
     out = rgba.copy()
-    near = np.abs(out[..., :3].astype(int) - paper_rgb).max(axis=2) <= tolerance
     outside = out[..., 3] == 0
-    labels, _ = ni.label(near | outside)
+    labels, _ = ni.label(candidate | outside)
     touching = np.unique(labels[outside])
     out[np.isin(labels, touching[touching > 0])] = 0
     return out
+
+
+def clear_white_fringe(rgba, paper_rgb, tolerance=14):
+    """Eat paper-white flecks inward from the outside, stopping at the first real color."""
+    out = rgba
+    near = np.abs(out[..., :3].astype(int) - paper_rgb).max(axis=2) <= tolerance
+    return clear_connected(out, near)
 
 
 def _box(rgba, threshold=127):

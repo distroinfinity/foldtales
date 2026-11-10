@@ -131,6 +131,15 @@ class Cuts(unittest.TestCase):
         self.assertEqual(out[25, 100, 3], 0)
         self.assertEqual(out[50, 75, 3], 255)
 
+    def test_connected_region_is_cleared_and_enclosed_one_kept(self):
+        img = paint(paint(canvas(100, 200), 10, 90, 10, 190, (190, 205, 225)), 60, 90, 10, 190, (90, 100, 80))
+        paint(img, 70, 80, 50, 70, (190, 205, 225))     # sky-colored pool enclosed by land
+        candidate = img[..., 2].astype(int) > img[..., 0].astype(int) + 20
+        out = finish.clear_connected(img, candidate)
+        self.assertEqual(out[30, 100, 3], 0)
+        self.assertEqual(out[75, 60, 3], 255)
+        self.assertEqual(out[85, 100, 3], 255)
+
     def test_despill_pulls_edge_color_away_from_paper(self):
         img = paint(paint(canvas(100, 200), 20, 80, 20, 180, (170, 70, 130)), 26, 74, 26, 174, (120, 120, 120))
         out = finish.despill(img, MAGENTA)
@@ -249,6 +258,10 @@ class Values(unittest.TestCase):
         navy = (31, 42, 68)
         self.assertLess(checks.value_margin((40, 50, 75), navy), 25)
         self.assertGreater(checks.value_margin((200, 195, 175), navy), 25)
+
+    def test_color_difference_sees_hue_at_equal_lightness(self):
+        self.assertGreater(checks.color_difference((200, 120, 70), (120, 150, 200)), 40)
+        self.assertLess(checks.color_difference((200, 120, 70), (200, 120, 70)), 0.01)
 
     def test_moods_are_the_agreed_three(self):
         self.assertEqual(set(checks.MOODS), {"dusk", "night", "gold"})

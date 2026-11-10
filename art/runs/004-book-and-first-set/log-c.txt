@@ -12,3 +12,5 @@ skip cover-front, already generated
 skip trims-sheet, already generated
 skip pip-sheet, already generated
 done layer-2-headland-v2: 161s, 9 credits
+done layer-4-foreground-v2: 156s, 9 credits
+finished, total spent 18
