@@ -2,7 +2,8 @@
 // Dry run by default. Skips finished jobs, cannot silently pay twice, and stops at the plan's credit cap.
 // Usage, from the repo root:
 //   node art/tools/generate-voice.mjs art/runs/<id> --phase <sweep|audition>
-//   node --env-file=.env.local art/tools/generate-voice.mjs art/runs/<id> --phase <sweep|audition> --spend [--accept-lost <job>]
+//   node --env-file=.env.local art/tools/generate-voice.mjs art/runs/<id> --phase <sweep|audition> --spend [--accept-lost <job>] [--allow-concurrent-spend]
+//   --allow-concurrent-spend turns the balance check into a warning. Use it only when the user has said another run may spend at the same time.
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -101,7 +102,7 @@ function requestBody(plan, job) {
   return { model: plan.model, promptText: job.promptText, voice: { type: "runway-preset", presetId: job.presetId }, ...plan.settings, seed: job.seed };
 }
 
-export async function runPhase({ plan, runDir, phase, spend, acceptLost, apiKey, fetchImpl = fetch, log = console.log, sleep = (ms) => new Promise((r) => setTimeout(r, ms)) }) {
+export async function runPhase({ plan, runDir, phase, spend, acceptLost, allowConcurrentSpend = false, apiKey, fetchImpl = fetch, log = console.log, sleep = (ms) => new Promise((r) => setTimeout(r, ms)) }) {
   validatePlan(plan);
   const manifestPath = path.join(runDir, "manifest.jsonl");
   const jobs = plan.jobs.filter((job) => job.phase === phase);
@@ -310,8 +311,12 @@ export async function runPhase({ plan, runDir, phase, spend, acceptLost, apiKey,
       say(`could not read the balance after ${job.id}. Continuing.`);
     }
     if (balance !== null && startBalance - balance > sessionCost) {
-      stopped = `balance fell by ${startBalance - balance} but this run recorded only ${sessionCost}. Another run may be spending on this account.`;
-      break;
+      const note = `balance fell by ${startBalance - balance} but this run recorded only ${sessionCost}. Another run may be spending on this account.`;
+      if (!allowConcurrentSpend) {
+        stopped = note;
+        break;
+      }
+      say(`note: ${note} Continuing, because the user allowed parallel runs.`);
     }
   }
 
@@ -334,7 +339,7 @@ async function main() {
   const valueOf = (flag) => (args.includes(flag) ? args[args.indexOf(flag) + 1] : null);
   const phase = valueOf("--phase");
   if (!runDir || !["sweep", "audition"].includes(phase)) {
-    console.error("usage: generate-voice.mjs <runDir> --phase <sweep|audition> [--spend] [--accept-lost <job>]");
+    console.error("usage: generate-voice.mjs <runDir> --phase <sweep|audition> [--spend] [--accept-lost <job>] [--allow-concurrent-spend]");
     process.exit(2);
   }
   const spend = args.includes("--spend");
@@ -343,7 +348,7 @@ async function main() {
     process.exit(2);
   }
   const plan = JSON.parse(fs.readFileSync(path.join(runDir, "plan.json"), "utf8"));
-  const { stopped } = await runPhase({ plan, runDir, phase, spend, acceptLost: valueOf("--accept-lost"), apiKey: process.env.RUNWAYML_API_SECRET });
+  const { stopped } = await runPhase({ plan, runDir, phase, spend, acceptLost: valueOf("--accept-lost"), allowConcurrentSpend: args.includes("--allow-concurrent-spend"), apiKey: process.env.RUNWAYML_API_SECRET });
   if (stopped) process.exit(1);
 }
 

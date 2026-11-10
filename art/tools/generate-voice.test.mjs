@@ -292,6 +292,16 @@ test("balance dropping by more than recorded costs stops the run", async () => {
   assert.equal(s.posts.length, 1);
 });
 
+test("allowConcurrentSpend warns about other spending and continues, and the cap still holds", async () => {
+  const dir = tmp();
+  const s = fakeRunway({ onPost: (state) => { state.balance -= 7; } });
+  const r = runPhase({ plan: plan([job("a"), job("b"), job("c")], 2), runDir: dir, phase: "sweep", spend: true, acceptLost: null, allowConcurrentSpend: true, apiKey: KEY, fetchImpl: s.fetchImpl, log: () => {}, sleep: async () => {} });
+  const { stopped, committed } = await r;
+  assert.match(stopped, /cap/i);
+  assert.equal(s.posts.length, 2);
+  assert.equal(committed, 2);
+});
+
 test("truncated final manifest line throws LedgerCorrupt and makes no POST", async () => {
   const dir = tmp();
   fs.writeFileSync(path.join(dir, "manifest.jsonl"), '{"event":"intent","job":"a","attempt":1}\n{"event":"sta');
