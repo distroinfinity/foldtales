@@ -48,3 +48,39 @@ export interface Issue {
   path: string;
   message: string;
 }
+
+/** Every backend call. `api.ts` keys its route table by these. */
+export const ROUTE_NAMES = [
+  'issueDevice',
+  'planBeat',
+  'planSpine',
+  'reactToObject',
+  'replyAsCharacter',
+  'speakLine',
+  'speechToken',
+  'memoryAppend',
+  'memoryRead',
+  'memoryDelete',
+  'sendTelemetry',
+] as const;
+export const RouteName = z.enum(ROUTE_NAMES);
+export type RouteName = z.infer<typeof RouteName>;
+
+export const ErrorCode = z.enum([
+  'upstream_failed',
+  'quota_exceeded',
+  'invalid_output',
+  'unauthorized',
+  'contract_mismatch',
+  'moderated',
+  'bad_request',
+]);
+export type ErrorCode = z.infer<typeof ErrorCode>;
+
+export const Player = z.strictObject({ id: Id, name: z.string().min(1).max(40) });
+export type Player = z.infer<typeof Player>;
+
+const ENTITY = '(?:cast|object):[a-z][a-z0-9_-]*(?:#[a-z0-9_-]+)?';
+
+/** A character or object copy that exists on stage. Unlike EntityRef, never a placeholder. */
+export const Entity = z.string().regex(new RegExp(`^${ENTITY}$`));

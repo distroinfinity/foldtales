@@ -6,3 +6,6 @@ export * from './objects.ts';
 export * from './rig.ts';
 export * from './library.ts';
 export * from './beats.ts';
+export * from './events.ts';
+export * from './telemetry.ts';
+export * from './relay.ts';
