@@ -34,3 +34,6 @@ Generated art is a product asset, not a temp file. Credits are only spent on pla
 - **Pale pieces need contrasting paper.** Cream wings on cream paper get eaten when cut out, even with the tint removed. Tested for free on run 001's Moth, before spending credits.
 - **A speaking character costs 10 credits to prepare.** One parts sheet and one sheet of six heads. Talking and blinking heads from one sheet line up within 5 pixels once aligned (run 003).
 - **Pale fur can leak through a pencil line.** Use `cutout.py --seal=3`. Cut very pale pieces out on flat colored paper instead of white (run 003).
+- **Voices come from a closed list.** `eleven_v4` on Runway takes only its 49 presets, with no descriptions, so sweep them once (`art/tools/generate-voice.mjs`, run 005).
+- **Voice lines cost per call.** A line of 200 characters or fewer is exactly 1 credit, so budget by line count, not characters (run 005).
+- **The balance is shared.** Cap spending from each task's reported cost, and treat balance drops only as a sign someone else is spending (run 005).
