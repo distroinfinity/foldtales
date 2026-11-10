@@ -58,4 +58,22 @@ Everything in `art/objects/` is product art. `make_objects.py` rebuilds all five
 
 ## Approval
 
-Waiting for the owner's approval on the Mac, in `art/objects-proof.html`. That approval is provisional. Final approval happens in the headset, once the client can show objects.
+Approved on the Mac by the owner on Nov 11, 2026, in `art/objects-proof.html`. That approval is provisional. Final approval happens in the headset.
+
+## Quest test, when the headset is connected
+
+**Now, in Quest Browser.** Serve `art/` on the Mac (`python3 -m http.server 5100 --bind 0.0.0.0 -d art`, from the repo root, using `CLIENT_PORT` from `.env.ports`). Open `http://<Mac's LAN IP>:5100/objects-proof.html` on the Quest. It's a flat page, so this tests the art, not the interaction.
+
+1. **Legible at arm's length.** Each object reads as what it is within 2 seconds, with no label.
+2. **Style.** The objects look painted by the same hand as Pip, with no edge looking cut out or fringed.
+3. **Night mood.** Tap Night. Each object stays distinct from Pip's navy coat, especially the key and the ladder.
+4. **The failures read as jokes.** The sock and the key look like things Pip would cheerfully try, not like broken props.
+
+**Later, once the client renders objects on the stage.** These need code outside this ticket.
+
+5. **The 64 mm grab.** Pinch each object from the drawer with your real hand, especially the key (75 × 29 mm) and the spool.
+6. **Contact shadow.** It shows under every object at rest, lifts and widens while held, and never floats.
+7. **In Pip's paw.** Each pivot looks like a natural hold, including while he turns the object over.
+8. **Real room light.** Edges read as card on a real table, with no colored fringe in passthrough.
+9. **Ladder against the gap.** At 150 mm, it can believably bridge the gap set.
+
