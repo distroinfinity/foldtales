@@ -47,7 +47,7 @@ OBJECTS = [
         "id": "ladder", "name": "little wooden ladder", "height_m": 0.15,
         "description": "A little wooden ladder with five worn rungs, long enough to lay across a gap.",
         "tags": ["climbs", "spans"],
-        "source": "objects-sheet", "center": (351, 1016), "grip": (351, 1024),
+        "source": "objects-sheet", "center": (351, 1016), "grip": (236, 1080),
     },
     {
         "id": "odd-sock", "name": "odd sock", "height_m": 0.09,
