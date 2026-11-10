@@ -1,0 +1,215 @@
+{
+  "decidedBy": "The user delegated the choice: \"Choose any voices... Anything that you like.\" Picked by the agent from measurements, not heard by anyone.",
+  "chainFileSha256": "5ba99603bc0eddeb318d4f9f098e263ad3bf52bcb0f76d1ce2ae16a552856904",
+  "cast": {
+    "pip": {
+      "option": "A",
+      "role": "pip",
+      "presetId": "Mabel",
+      "model": "eleven_v4",
+      "settings": {
+        "stability": 0.4,
+        "similarityBoost": 0.75,
+        "languageCode": "en"
+      },
+      "chain": {
+        "name": "warm-radio",
+        "highpassHz": 130,
+        "warmthHz": 280,
+        "warmthQ": 0.9,
+        "warmthDb": 2.5,
+        "presenceHz": 1800,
+        "presenceQ": 1,
+        "presenceDb": 2.5,
+        "lowpassHz": 6500,
+        "drive": 1.6,
+        "compressor": {
+          "thresholdDb": -22,
+          "kneeDb": 6,
+          "ratio": 3,
+          "attackMs": 5,
+          "releaseMs": 180
+        },
+        "outputDb": -4.5
+      },
+      "roomTone": {
+        "enabled": true,
+        "seed": 5,
+        "loopSeconds": 12,
+        "lowHz": 180,
+        "highHz": 2500,
+        "rmsDb": -46,
+        "driftDb": 1.5
+      },
+      "trimDb": 5.5,
+      "run": "005-voice-audition",
+      "referenceTakes": [
+        "art/runs/005-voice-audition/pip-a-fear.mp3",
+        "art/runs/005-voice-audition/pip-a-relief.mp3",
+        "art/runs/005-voice-audition/pip-a-wish.mp3"
+      ]
+    },
+    "wick": {
+      "option": "A",
+      "role": "wick",
+      "presetId": "Arjun",
+      "model": "eleven_v4",
+      "settings": {
+        "stability": 0.4,
+        "similarityBoost": 0.75,
+        "languageCode": "en"
+      },
+      "chain": {
+        "name": "warm-radio",
+        "highpassHz": 130,
+        "warmthHz": 280,
+        "warmthQ": 0.9,
+        "warmthDb": 2.5,
+        "presenceHz": 1800,
+        "presenceQ": 1,
+        "presenceDb": 2.5,
+        "lowpassHz": 6500,
+        "drive": 1.6,
+        "compressor": {
+          "thresholdDb": -22,
+          "kneeDb": 6,
+          "ratio": 3,
+          "attackMs": 5,
+          "releaseMs": 180
+        },
+        "outputDb": -4.5
+      },
+      "roomTone": {
+        "enabled": true,
+        "seed": 5,
+        "loopSeconds": 12,
+        "lowHz": 180,
+        "highHz": 2500,
+        "rmsDb": -46,
+        "driftDb": 1.5
+      },
+      "trimDb": 4.9,
+      "run": "005-voice-audition",
+      "referenceTakes": [
+        "art/runs/005-voice-audition/wick-a-grumble.mp3",
+        "art/runs/005-voice-audition/wick-a-sight.mp3",
+        "art/runs/005-voice-audition/wick-a-warmth.mp3"
+      ]
+    },
+    "moth": {
+      "option": "C",
+      "role": "moth",
+      "presetId": "Pip",
+      "model": "eleven_v4",
+      "settings": {
+        "stability": 0.4,
+        "similarityBoost": 0.75,
+        "languageCode": "en"
+      },
+      "chain": {
+        "name": "warm-radio",
+        "highpassHz": 130,
+        "warmthHz": 280,
+        "warmthQ": 0.9,
+        "warmthDb": 2.5,
+        "presenceHz": 1800,
+        "presenceQ": 1,
+        "presenceDb": 2.5,
+        "lowpassHz": 6500,
+        "drive": 1.6,
+        "compressor": {
+          "thresholdDb": -22,
+          "kneeDb": 6,
+          "ratio": 3,
+          "attackMs": 5,
+          "releaseMs": 180
+        },
+        "outputDb": -4.5
+      },
+      "roomTone": {
+        "enabled": true,
+        "seed": 5,
+        "loopSeconds": 12,
+        "lowHz": 180,
+        "highHz": 2500,
+        "rmsDb": -46,
+        "driftDb": 1.5
+      },
+      "trimDb": 0,
+      "run": "005-voice-audition",
+      "referenceTakes": [
+        "art/runs/005-voice-audition/moth-c-bright.mp3",
+        "art/runs/005-voice-audition/moth-c-find.mp3",
+        "art/runs/005-voice-audition/moth-c-sorry.mp3"
+      ]
+    },
+    "narrator": {
+      "option": "B",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "model": "eleven_v4",
+      "settings": {
+        "stability": 0.4,
+        "similarityBoost": 0.75,
+        "languageCode": "en"
+      },
+      "chain": {
+        "name": "warm-radio",
+        "highpassHz": 130,
+        "warmthHz": 280,
+        "warmthQ": 0.9,
+        "warmthDb": 2.5,
+        "presenceHz": 1800,
+        "presenceQ": 1,
+        "presenceDb": 2.5,
+        "lowpassHz": 6500,
+        "drive": 1.6,
+        "compressor": {
+          "thresholdDb": -22,
+          "kneeDb": 6,
+          "ratio": 3,
+          "attackMs": 5,
+          "releaseMs": 180
+        },
+        "outputDb": -4.5
+      },
+      "roomTone": {
+        "enabled": true,
+        "seed": 5,
+        "loopSeconds": 12,
+        "lowHz": 180,
+        "highHz": 2500,
+        "rmsDb": -46,
+        "driftDb": 1.5
+      },
+      "trimDb": 1.1,
+      "run": "005-voice-audition",
+      "referenceTakes": [
+        "art/runs/005-voice-audition/narrator-b-opening.mp3",
+        "art/runs/005-voice-audition/narrator-b-aside.mp3"
+      ]
+    }
+  },
+  "optionMapping": {
+    "pip": {
+      "A": "Mabel",
+      "B": "Kylie",
+      "C": "Elliot"
+    },
+    "wick": {
+      "A": "Arjun",
+      "B": "Clint",
+      "C": "Ragnar"
+    },
+    "moth": {
+      "A": "Xylar",
+      "B": "Ella",
+      "C": "Pip"
+    },
+    "narrator": {
+      "A": "Bernard",
+      "B": "Wanda",
+      "C": "Tom"
+    }
+  }
+}

@@ -1,0 +1,553 @@
+{
+  "roles": [
+    {
+      "id": "pip",
+      "name": "Pip",
+      "options": [
+        "A",
+        "B",
+        "C"
+      ],
+      "beats": [
+        {
+          "id": "fear",
+          "label": "Fear",
+          "promptText": "[whispers] Hello? ... It went out. It just... went out. [gulps] I don't like it when it's this dark.",
+          "clips": {
+            "A": {
+              "file": "pip-a-fear.mp3",
+              "trimDb": 5.5
+            },
+            "B": {
+              "file": "pip-b-fear.mp3",
+              "trimDb": 4.5
+            },
+            "C": {
+              "file": "pip-c-fear.mp3",
+              "trimDb": 5.3
+            }
+          }
+        },
+        {
+          "id": "relief",
+          "label": "Relief",
+          "promptText": "[exhales] Oh... oh, thank you. [laughs] It's warm again. I wasn't scared. [curious] Well. Only a bit.",
+          "clips": {
+            "A": {
+              "file": "pip-a-relief.mp3",
+              "trimDb": 5.5
+            },
+            "B": {
+              "file": "pip-b-relief.mp3",
+              "trimDb": 4.5
+            },
+            "C": {
+              "file": "pip-c-relief.mp3",
+              "trimDb": 5.3
+            }
+          }
+        },
+        {
+          "id": "wish",
+          "label": "Joke, and the wish",
+          "promptText": "One day I'll keep the lamp myself. [laughs] I just have to grow into the coat first.",
+          "clips": {
+            "A": {
+              "file": "pip-a-wish.mp3",
+              "trimDb": 5.5
+            },
+            "B": {
+              "file": "pip-b-wish.mp3",
+              "trimDb": 4.5
+            },
+            "C": {
+              "file": "pip-c-wish.mp3",
+              "trimDb": 5.3
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "wick",
+      "name": "Wick",
+      "options": [
+        "A",
+        "B",
+        "C"
+      ],
+      "beats": [
+        {
+          "id": "grumble",
+          "label": "Grumble",
+          "promptText": "[sighs] Forty years I've kept this lamp, and not one soul has wiped their boots. Mind the step. No, the other step.",
+          "clips": {
+            "A": {
+              "file": "wick-a-grumble.mp3",
+              "trimDb": 4.9
+            },
+            "B": {
+              "file": "wick-b-grumble.mp3",
+              "trimDb": 5.9
+            },
+            "C": {
+              "file": "wick-c-grumble.mp3",
+              "trimDb": -5
+            }
+          }
+        },
+        {
+          "id": "sight",
+          "label": "Sight, kept gentle",
+          "promptText": "[low, gravelly voice] Read it to me, would you? ... The page is fine. It's the ink. They make the ink too faint these days.",
+          "clips": {
+            "A": {
+              "file": "wick-a-sight.mp3",
+              "trimDb": 4.9
+            },
+            "B": {
+              "file": "wick-b-sight.mp3",
+              "trimDb": 5.9
+            },
+            "C": {
+              "file": "wick-c-sight.mp3",
+              "trimDb": -5
+            }
+          }
+        },
+        {
+          "id": "warmth",
+          "label": "Gruff warmth",
+          "promptText": "[sighs] That moth's in the jam again. ... Good lamp, that. You did all right, young one.",
+          "clips": {
+            "A": {
+              "file": "wick-a-warmth.mp3",
+              "trimDb": 4.9
+            },
+            "B": {
+              "file": "wick-b-warmth.mp3",
+              "trimDb": 5.9
+            },
+            "C": {
+              "file": "wick-c-warmth.mp3",
+              "trimDb": -5
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "moth",
+      "name": "Moth",
+      "options": [
+        "A",
+        "B",
+        "C"
+      ],
+      "beats": [
+        {
+          "id": "bright",
+          "label": "Bright!",
+          "promptText": "[excited] Oh! Ooh! Is that a light? Is it MY light? I'm coming, I'm coming, I'm... ow.",
+          "clips": {
+            "A": {
+              "file": "moth-a-bright.mp3",
+              "trimDb": 2
+            },
+            "B": {
+              "file": "moth-b-bright.mp3",
+              "trimDb": 5.1
+            },
+            "C": {
+              "file": "moth-c-bright.mp3",
+              "trimDb": 0
+            }
+          }
+        },
+        {
+          "id": "find",
+          "label": "Silly find",
+          "promptText": "[mischievously] I found you something! It's a button. Or a biscuit. [snorts] I licked it, and I'm still not sure.",
+          "clips": {
+            "A": {
+              "file": "moth-a-find.mp3",
+              "trimDb": 2
+            },
+            "B": {
+              "file": "moth-b-find.mp3",
+              "trimDb": 5.1
+            },
+            "C": {
+              "file": "moth-c-find.mp3",
+              "trimDb": 0
+            }
+          }
+        },
+        {
+          "id": "sorry",
+          "label": "Sorry, not sorry",
+          "promptText": "Sorry! Sorry, sorry. I didn't mean to land in your soup. It was just so shiny. [laughs] Can I do it again?",
+          "clips": {
+            "A": {
+              "file": "moth-a-sorry.mp3",
+              "trimDb": 2
+            },
+            "B": {
+              "file": "moth-b-sorry.mp3",
+              "trimDb": 5.1
+            },
+            "C": {
+              "file": "moth-c-sorry.mp3",
+              "trimDb": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "narrator",
+      "name": "Narrator",
+      "options": [
+        "A",
+        "B",
+        "C"
+      ],
+      "beats": [
+        {
+          "id": "opening",
+          "label": "Opening",
+          "promptText": "Everything lost in a house drifts, in the end, to the edge of the table. And at the edge of the table... there is a lighthouse.",
+          "clips": {
+            "A": {
+              "file": "narrator-a-opening.mp3",
+              "trimDb": 1.8
+            },
+            "B": {
+              "file": "narrator-b-opening.mp3",
+              "trimDb": 1.1
+            },
+            "C": {
+              "file": "narrator-c-opening.mp3",
+              "trimDb": 2
+            }
+          }
+        },
+        {
+          "id": "aside",
+          "label": "Dry aside",
+          "promptText": "Now, Pip had been told, more than once, never to go out after dark. [pause] Pip had also been told not to sit in the jam.",
+          "clips": {
+            "A": {
+              "file": "narrator-a-aside.mp3",
+              "trimDb": 1.8
+            },
+            "B": {
+              "file": "narrator-b-aside.mp3",
+              "trimDb": 1.1
+            },
+            "C": {
+              "file": "narrator-c-aside.mp3",
+              "trimDb": 2
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "sweep": [
+    {
+      "label": "Voice 1",
+      "file": "sweep-34.mp3",
+      "f0Median": 142.27929520369983,
+      "trimDb": 0.4
+    },
+    {
+      "label": "Voice 2",
+      "file": "sweep-02.mp3",
+      "f0Median": 150.4490905964021,
+      "trimDb": 4
+    },
+    {
+      "label": "Voice 3",
+      "file": "sweep-12.mp3",
+      "f0Median": 152.53078561524086,
+      "trimDb": 0.2
+    },
+    {
+      "label": "Voice 4",
+      "file": "sweep-25.mp3",
+      "f0Median": 161.30059199148366,
+      "trimDb": -2.7
+    },
+    {
+      "label": "Voice 5",
+      "file": "sweep-17.mp3",
+      "f0Median": 163.39210166601305,
+      "trimDb": -1.8
+    },
+    {
+      "label": "Voice 6",
+      "file": "sweep-45.mp3",
+      "f0Median": 163.42289355803902,
+      "trimDb": 0.2
+    },
+    {
+      "label": "Voice 7",
+      "file": "sweep-07.mp3",
+      "f0Median": 174.2059385439275,
+      "trimDb": 4.4
+    },
+    {
+      "label": "Voice 8",
+      "file": "sweep-47.mp3",
+      "f0Median": 174.86322271552197,
+      "trimDb": -3.1
+    },
+    {
+      "label": "Voice 9",
+      "file": "sweep-29.mp3",
+      "f0Median": 183.57778755330187,
+      "trimDb": -6.4
+    },
+    {
+      "label": "Voice 10",
+      "file": "sweep-21.mp3",
+      "f0Median": 194.15444234169922,
+      "trimDb": 0.9
+    },
+    {
+      "label": "Voice 11",
+      "file": "sweep-35.mp3",
+      "f0Median": 194.1840995852047,
+      "trimDb": -0.3
+    },
+    {
+      "label": "Voice 12",
+      "file": "sweep-04.mp3",
+      "f0Median": 196.95909155485492,
+      "trimDb": -0.6
+    },
+    {
+      "label": "Voice 13",
+      "file": "sweep-43.mp3",
+      "f0Median": 197.51669131014611,
+      "trimDb": -0.4
+    },
+    {
+      "label": "Voice 14",
+      "file": "sweep-15.mp3",
+      "f0Median": 200.6068600932496,
+      "trimDb": 1.3
+    },
+    {
+      "label": "Voice 15",
+      "file": "sweep-05.mp3",
+      "f0Median": 203.6703230497912,
+      "trimDb": 0.5
+    },
+    {
+      "label": "Voice 16",
+      "file": "sweep-39.mp3",
+      "f0Median": 211.32544035390688,
+      "trimDb": 0.3
+    },
+    {
+      "label": "Voice 17",
+      "file": "sweep-42.mp3",
+      "f0Median": 213.21269799673058,
+      "trimDb": -1.6
+    },
+    {
+      "label": "Voice 18",
+      "file": "sweep-09.mp3",
+      "f0Median": 215.79000762534724,
+      "trimDb": 0.9
+    },
+    {
+      "label": "Voice 19",
+      "file": "sweep-22.mp3",
+      "f0Median": 221.33092281245058,
+      "trimDb": -0.1
+    },
+    {
+      "label": "Voice 20",
+      "file": "sweep-36.mp3",
+      "f0Median": 224.54351237478116,
+      "trimDb": 0.2
+    },
+    {
+      "label": "Voice 21",
+      "file": "sweep-28.mp3",
+      "f0Median": 228.79380122077902,
+      "trimDb": 2.5
+    },
+    {
+      "label": "Voice 22",
+      "file": "sweep-46.mp3",
+      "f0Median": 231.25526953211363,
+      "trimDb": 1.5
+    },
+    {
+      "label": "Voice 23",
+      "file": "sweep-20.mp3",
+      "f0Median": 234.98349891213786,
+      "trimDb": 2.4
+    },
+    {
+      "label": "Voice 24",
+      "file": "sweep-38.mp3",
+      "f0Median": 235.09584273294533,
+      "trimDb": -1.1
+    },
+    {
+      "label": "Voice 25",
+      "file": "sweep-44.mp3",
+      "f0Median": 239.22313288103493,
+      "trimDb": -0.7
+    },
+    {
+      "label": "Voice 26",
+      "file": "sweep-14.mp3",
+      "f0Median": 240.64410991992588,
+      "trimDb": -1
+    },
+    {
+      "label": "Voice 27",
+      "file": "sweep-01.mp3",
+      "f0Median": 244.00529384100835,
+      "trimDb": 3.5
+    },
+    {
+      "label": "Voice 28",
+      "file": "sweep-33.mp3",
+      "f0Median": 249.85082951593944,
+      "trimDb": 0.3
+    },
+    {
+      "label": "Voice 29",
+      "file": "sweep-03.mp3",
+      "f0Median": 252.4773063456677,
+      "trimDb": -0.5
+    },
+    {
+      "label": "Voice 30",
+      "file": "sweep-10.mp3",
+      "f0Median": 257.96984406720236,
+      "trimDb": 1.6
+    },
+    {
+      "label": "Voice 31",
+      "file": "sweep-48.mp3",
+      "f0Median": 258.8116464272521,
+      "trimDb": -0.4
+    },
+    {
+      "label": "Voice 32",
+      "file": "sweep-08.mp3",
+      "f0Median": 259.51312512409004,
+      "trimDb": 2.4
+    },
+    {
+      "label": "Voice 33",
+      "file": "sweep-31.mp3",
+      "f0Median": 260.7931870288238,
+      "trimDb": 4.8
+    },
+    {
+      "label": "Voice 34",
+      "file": "sweep-41.mp3",
+      "f0Median": 261.7430446973809,
+      "trimDb": 1.4
+    },
+    {
+      "label": "Voice 35",
+      "file": "sweep-24.mp3",
+      "f0Median": 263.790890322104,
+      "trimDb": 8.3
+    },
+    {
+      "label": "Voice 36",
+      "file": "sweep-19.mp3",
+      "f0Median": 266.94578413048725,
+      "trimDb": 5.5
+    },
+    {
+      "label": "Voice 37",
+      "file": "sweep-16.mp3",
+      "f0Median": 270.7472482097426,
+      "trimDb": 0.9
+    },
+    {
+      "label": "Voice 38",
+      "file": "sweep-26.mp3",
+      "f0Median": 284.25680202011034,
+      "trimDb": 4.1
+    },
+    {
+      "label": "Voice 39",
+      "file": "sweep-11.mp3",
+      "f0Median": 285.84059593701,
+      "trimDb": 1.7
+    },
+    {
+      "label": "Voice 40",
+      "file": "sweep-32.mp3",
+      "f0Median": 291.49274732477346,
+      "trimDb": 0.5
+    },
+    {
+      "label": "Voice 41",
+      "file": "sweep-18.mp3",
+      "f0Median": 298.29827566021544,
+      "trimDb": -0.4
+    },
+    {
+      "label": "Voice 42",
+      "file": "sweep-40.mp3",
+      "f0Median": 300.62043185934294,
+      "trimDb": -3.6
+    },
+    {
+      "label": "Voice 43",
+      "file": "sweep-23.mp3",
+      "f0Median": 321.7630660132425,
+      "trimDb": -1.4
+    },
+    {
+      "label": "Voice 44",
+      "file": "sweep-06.mp3",
+      "f0Median": 323.76698769432835,
+      "trimDb": 0.8
+    },
+    {
+      "label": "Voice 45",
+      "file": "sweep-13.mp3",
+      "f0Median": 329.7528776768536,
+      "trimDb": 1.4
+    },
+    {
+      "label": "Voice 46",
+      "file": "sweep-49.mp3",
+      "f0Median": 333.0885816283224,
+      "trimDb": 2.1
+    },
+    {
+      "label": "Voice 47",
+      "file": "sweep-37.mp3",
+      "f0Median": 343.4080955476462,
+      "trimDb": 4.8
+    },
+    {
+      "label": "Voice 48",
+      "file": "sweep-27.mp3",
+      "f0Median": 346.5453623255833,
+      "trimDb": -0.1
+    },
+    {
+      "label": "Voice 49",
+      "file": "sweep-30.mp3",
+      "f0Median": 387.8280174141495,
+      "trimDb": 1.7
+    }
+  ]
+}

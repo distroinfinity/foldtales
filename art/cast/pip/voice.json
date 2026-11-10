@@ -1,0 +1,46 @@
+{
+  "role": "pip",
+  "presetId": "Mabel",
+  "model": "eleven_v4",
+  "settings": {
+    "stability": 0.4,
+    "similarityBoost": 0.75,
+    "languageCode": "en"
+  },
+  "chain": {
+    "name": "warm-radio",
+    "highpassHz": 130,
+    "warmthHz": 280,
+    "warmthQ": 0.9,
+    "warmthDb": 2.5,
+    "presenceHz": 1800,
+    "presenceQ": 1,
+    "presenceDb": 2.5,
+    "lowpassHz": 6500,
+    "drive": 1.6,
+    "compressor": {
+      "thresholdDb": -22,
+      "kneeDb": 6,
+      "ratio": 3,
+      "attackMs": 5,
+      "releaseMs": 180
+    },
+    "outputDb": -4.5
+  },
+  "roomTone": {
+    "enabled": true,
+    "seed": 5,
+    "loopSeconds": 12,
+    "lowHz": 180,
+    "highHz": 2500,
+    "rmsDb": -46,
+    "driftDb": 1.5
+  },
+  "trimDb": 5.5,
+  "run": "005-voice-audition",
+  "referenceTakes": [
+    "art/runs/005-voice-audition/pip-a-fear.mp3",
+    "art/runs/005-voice-audition/pip-a-relief.mp3",
+    "art/runs/005-voice-audition/pip-a-wish.mp3"
+  ]
+}

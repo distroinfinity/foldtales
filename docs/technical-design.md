@@ -118,9 +118,10 @@ Speech to text streams to the backend, Haiku replies in character (*measured* fi
 
 Direction is radio-play warmth. Decisions:
 
-- **Prepared lines and effects through Runway,** because your credits already pay for them: `eleven_v4` at 5 credits per 1,000 characters, and sound effects at 1 credit a second (vendor price list). It can't be assumed fast enough for live replies, since Runway's image jobs run as queued tasks.
+- **Prepared lines and effects through Runway,** because your credits already pay for them: `eleven_v4` at 5 credits per 1,000 characters with a 1-credit minimum per line, and sound effects at 1 credit a second (vendor price list). *Measured* in run 005: every line of 200 characters or fewer costs exactly 1 credit, and each took about 5–6 s as a queued task. `eleven_v4` on Runway offers only its 49 presets, with no voice design. That speed can't be assumed fast enough for live replies.
 - **Live speech decided by test.** The voice ticket measures Runway's text to speech first. If it's too slow for replies, live lines use ElevenLabs' fast model directly. Runway lists no speech to text, so that's ElevenLabs Scribe or OpenAI, whichever a blind test favors. Each needs a paid account with an estimate first.
 - **Coziness comes from the chain, not the model:** a paper-radio EQ and gentle saturation on every voice, shared room tone, foley for objects, and pacing control. The chain is applied in Web Audio, so all sources match.
+- **The cast** comes from run 005: each character's voice is in `art/cast/<who>/voice.json`, and the narrator's is in `art/voice/narrator.json`. The chain is `art/voice/chain.mjs`, plain Web Audio with native nodes only, so prepared and live lines share it. Its settings are in `art/voice/chain.json`. The voices were picked by measurement and haven't yet been judged by ear.
 - **Music:** pre-made small-ensemble stems in one key and tempo, crossfaded on the bar by mood. Never generated live. Runway lists no music model, though an unlabeled `seed_audio` is on its price list and is worth one planned test. If that fails, use a licensed library, and check the terms. You judge by ear.
 
 Audio mix is checked in the headset. *Measured:* the Quest recorder captures footage, but its audio track was too faint to judge, so retest with real show audio before the video.
@@ -168,7 +169,7 @@ The series is an append-only event log plus derived canon, in IndexedDB with `na
 | Railway | About $7/month at 0.5 GB RAM and 0.1 vCPU; your plan credit covers some or all of it | [Metered rates](https://docs.railway.com/pricing/plans) |
 | Live AI text per episode | $0.25–0.50 flagship, about $0.80 for a new story | *Measured* token sizes |
 | Prepared art | About 500 credits ($5) for all sets, objects and visitors. 192 credits spent so far | *Measured* rate of 5 credits a sheet |
-| Prepared voice | About 15 credits ($0.15) per episode's script | Vendor list price, about 3,000 characters |
+| Prepared voice | About 1 credit ($0.01) per line, so about 60 credits ($0.60) for an episode of about 60 lines | *Measured* in run 005: 1-credit minimum per line |
 | Live art per episode | About 4 credits ($0.04) | *Measured* |
 | Live speech | Per-minute and per-character rates, once the test picks a vendor | Estimate before buying |
 

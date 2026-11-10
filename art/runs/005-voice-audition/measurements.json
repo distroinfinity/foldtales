@@ -1,0 +1,822 @@
+{
+  "sweep-01": {
+    "durationSeconds": 7.28,
+    "lufs": -23.5,
+    "peakDb": -4.8,
+    "centroidHz": 3068.841353503186,
+    "f0Median": 244.00529384100835,
+    "f0P10": 161.73245057392373,
+    "f0P90": 327.4501627380416,
+    "voicedSeconds": 3.57
+  },
+  "sweep-02": {
+    "durationSeconds": 8,
+    "lufs": -24,
+    "peakDb": -4.2,
+    "centroidHz": 3126.603431884057,
+    "f0Median": 150.4490905964021,
+    "f0P10": 93.25878383579969,
+    "f0P90": 222.42785764619228,
+    "voicedSeconds": 3.75
+  },
+  "sweep-03": {
+    "durationSeconds": 7.28,
+    "lufs": -19.5,
+    "peakDb": -1.7,
+    "centroidHz": 3811.176334394905,
+    "f0Median": 252.4773063456677,
+    "f0P10": 190.36122713227306,
+    "f0P90": 354.5718302449713,
+    "voicedSeconds": 3.76
+  },
+  "sweep-04": {
+    "durationSeconds": 7.6,
+    "lufs": -19.4,
+    "peakDb": -3.2,
+    "centroidHz": 2984.717820121951,
+    "f0Median": 196.95909155485492,
+    "f0P10": 131.60581255279553,
+    "f0P90": 260.096669517266,
+    "voicedSeconds": 3.02
+  },
+  "sweep-05": {
+    "durationSeconds": 7.44,
+    "lufs": -20.5,
+    "peakDb": -1,
+    "centroidHz": 3680.3476760124604,
+    "f0Median": 203.6703230497912,
+    "f0P10": 129.428525465784,
+    "f0P90": 250.84928915534687,
+    "voicedSeconds": 2.94
+  },
+  "sweep-06": {
+    "durationSeconds": 7.04,
+    "lufs": -20.8,
+    "peakDb": -2.1,
+    "centroidHz": 4307.457845394737,
+    "f0Median": 323.76698769432835,
+    "f0P10": 221.61062581928024,
+    "f0P90": 387.4955773103854,
+    "voicedSeconds": 3.03
+  },
+  "sweep-07": {
+    "durationSeconds": 7.28,
+    "lufs": -24.4,
+    "peakDb": -6.7,
+    "centroidHz": 3379.0159872611466,
+    "f0Median": 174.2059385439275,
+    "f0P10": 135.3834337868416,
+    "f0P90": 222.6077361518077,
+    "voicedSeconds": 2.98
+  },
+  "sweep-08": {
+    "durationSeconds": 7.52,
+    "lufs": -22.4,
+    "peakDb": -3,
+    "centroidHz": 3231.7438765432094,
+    "f0Median": 259.51312512409004,
+    "f0P10": 145.39570341934814,
+    "f0P90": 367.6576267129136,
+    "voicedSeconds": 3.85
+  },
+  "sweep-09": {
+    "durationSeconds": 7.92,
+    "lufs": -20.9,
+    "peakDb": -4.3,
+    "centroidHz": 3560.3822573099424,
+    "f0Median": 215.79000762534724,
+    "f0P10": 120.78382648088127,
+    "f0P90": 309.80527806379564,
+    "voicedSeconds": 3.69
+  },
+  "sweep-10": {
+    "durationSeconds": 7.28,
+    "lufs": -21.6,
+    "peakDb": -2.5,
+    "centroidHz": 3781.4416560509567,
+    "f0Median": 257.96984406720236,
+    "f0P10": 169.8057476275606,
+    "f0P90": 383.31904020249596,
+    "voicedSeconds": 3.34
+  },
+  "sweep-11": {
+    "durationSeconds": 7.04,
+    "lufs": -21.7,
+    "peakDb": -1.1,
+    "centroidHz": 3842.4122697368425,
+    "f0Median": 285.84059593701,
+    "f0P10": 204.52036444593526,
+    "f0P90": 394.377798563331,
+    "voicedSeconds": 2.98
+  },
+  "sweep-12": {
+    "durationSeconds": 7.76,
+    "lufs": -20.2,
+    "peakDb": -4.8,
+    "centroidHz": 3482.0063373134303,
+    "f0Median": 152.53078561524086,
+    "f0P10": 105.03165946651033,
+    "f0P90": 262.13203409362626,
+    "voicedSeconds": 2.54
+  },
+  "sweep-13": {
+    "durationSeconds": 7.76,
+    "lufs": -21.4,
+    "peakDb": -3,
+    "centroidHz": 3571.5809283582084,
+    "f0Median": 329.7528776768536,
+    "f0P10": 211.84378686742457,
+    "f0P90": 426.2665583523457,
+    "voicedSeconds": 3.45
+  },
+  "sweep-14": {
+    "durationSeconds": 8.32,
+    "lufs": -19,
+    "peakDb": -0.6,
+    "centroidHz": 3390.2337353760463,
+    "f0Median": 240.64410991992588,
+    "f0P10": 138.93767568466063,
+    "f0P90": 332.49807277664513,
+    "voicedSeconds": 3.54
+  },
+  "sweep-15": {
+    "durationSeconds": 7.12,
+    "lufs": -21.3,
+    "peakDb": -4.9,
+    "centroidHz": 3802.0272475570055,
+    "f0Median": 200.6068600932496,
+    "f0P10": 123.9618610666484,
+    "f0P90": 282.360076985772,
+    "voicedSeconds": 2.53
+  },
+  "sweep-16": {
+    "durationSeconds": 7.76,
+    "lufs": -20.9,
+    "peakDb": -0.8,
+    "centroidHz": 4639.3602537313445,
+    "f0Median": 270.7472482097426,
+    "f0P10": 181.6985793402389,
+    "f0P90": 341.96133765486354,
+    "voicedSeconds": 4.02
+  },
+  "sweep-17": {
+    "durationSeconds": 7.36,
+    "lufs": -18.2,
+    "peakDb": -1.8,
+    "centroidHz": 3432.9104858044143,
+    "f0Median": 163.39210166601305,
+    "f0P10": 110.12617846391925,
+    "f0P90": 232.87194239184396,
+    "voicedSeconds": 2.61
+  },
+  "sweep-18": {
+    "durationSeconds": 7.28,
+    "lufs": -19.6,
+    "peakDb": -0.9,
+    "centroidHz": 3857.283012738849,
+    "f0Median": 298.29827566021544,
+    "f0P10": 174.63360238951086,
+    "f0P90": 439.69201037774286,
+    "voicedSeconds": 3.46
+  },
+  "sweep-19": {
+    "durationSeconds": 7.36,
+    "lufs": -25.5,
+    "peakDb": -5.8,
+    "centroidHz": 3724.4619999999977,
+    "f0Median": 266.94578413048725,
+    "f0P10": 165.32805323808142,
+    "f0P90": 391.01553500328214,
+    "voicedSeconds": 3.2
+  },
+  "sweep-20": {
+    "durationSeconds": 6.88,
+    "lufs": -22.4,
+    "peakDb": -1.2,
+    "centroidHz": 3649.126053872055,
+    "f0Median": 234.98349891213786,
+    "f0P10": 173.51289702112538,
+    "f0P90": 324.2216424279161,
+    "voicedSeconds": 3.37
+  },
+  "sweep-21": {
+    "durationSeconds": 8.16,
+    "lufs": -20.9,
+    "peakDb": -5.5,
+    "centroidHz": 3466.450803977274,
+    "f0Median": 194.15444234169922,
+    "f0P10": 136.09930351025227,
+    "f0P90": 263.79389521805547,
+    "voicedSeconds": 3.43
+  },
+  "sweep-22": {
+    "durationSeconds": 8.16,
+    "lufs": -19.9,
+    "peakDb": -1.4,
+    "centroidHz": 4666.18991477273,
+    "f0Median": 221.33092281245058,
+    "f0P10": 148.32903102589378,
+    "f0P90": 308.39084524378086,
+    "voicedSeconds": 2.83
+  },
+  "sweep-23": {
+    "durationSeconds": 7.2,
+    "lufs": -18.6,
+    "peakDb": -2.2,
+    "centroidHz": 4050.422154340837,
+    "f0Median": 321.7630660132425,
+    "f0P10": 247.15816414186486,
+    "f0P90": 413.7650466924245,
+    "voicedSeconds": 3.42
+  },
+  "sweep-24": {
+    "durationSeconds": 7.92,
+    "lufs": -28.3,
+    "peakDb": -9.6,
+    "centroidHz": 3289.2718976608194,
+    "f0Median": 263.790890322104,
+    "f0P10": 170.0253510967652,
+    "f0P90": 367.0611416997127,
+    "voicedSeconds": 3.41
+  },
+  "sweep-25": {
+    "durationSeconds": 8.32,
+    "lufs": -17.3,
+    "peakDb": -1.6,
+    "centroidHz": 3194.3397186629513,
+    "f0Median": 161.30059199148366,
+    "f0P10": 116.92543377949666,
+    "f0P90": 228.6193929967181,
+    "voicedSeconds": 2.77
+  },
+  "sweep-26": {
+    "durationSeconds": 7.6,
+    "lufs": -24.1,
+    "peakDb": -5.3,
+    "centroidHz": 3486.660996951221,
+    "f0Median": 284.25680202011034,
+    "f0P10": 190.50482351101013,
+    "f0P90": 362.04404533108044,
+    "voicedSeconds": 3.74
+  },
+  "sweep-27": {
+    "durationSeconds": 8.32,
+    "lufs": -19.9,
+    "peakDb": -1.2,
+    "centroidHz": 4128.87529805014,
+    "f0Median": 346.5453623255833,
+    "f0P10": 227.61737640608519,
+    "f0P90": 460.53873473390183,
+    "voicedSeconds": 3.85
+  },
+  "sweep-28": {
+    "durationSeconds": 9.12,
+    "lufs": -22.5,
+    "peakDb": -3,
+    "centroidHz": 4045.0375750636163,
+    "f0Median": 228.79380122077902,
+    "f0P10": 134.38353798820782,
+    "f0P90": 380.17181331553263,
+    "voicedSeconds": 2.21
+  },
+  "sweep-29": {
+    "durationSeconds": 8.56,
+    "lufs": -13.6,
+    "peakDb": -0.4,
+    "centroidHz": 2680.141281842816,
+    "f0Median": 183.57778755330187,
+    "f0P10": 126.56071439887762,
+    "f0P90": 297.9614696956995,
+    "voicedSeconds": 3.57
+  },
+  "sweep-30": {
+    "durationSeconds": 8.56,
+    "lufs": -21.7,
+    "peakDb": -1.8,
+    "centroidHz": 3877.109487804877,
+    "f0Median": 387.8280174141495,
+    "f0P10": 212.4959675406922,
+    "f0P90": 469.82112997477674,
+    "voicedSeconds": 1.01
+  },
+  "sweep-31": {
+    "durationSeconds": 7.28,
+    "lufs": -24.8,
+    "peakDb": -6.3,
+    "centroidHz": 4328.213439490443,
+    "f0Median": 260.7931870288238,
+    "f0P10": 141.55153983972224,
+    "f0P90": 357.50968645094486,
+    "voicedSeconds": 3.38
+  },
+  "sweep-32": {
+    "durationSeconds": 7.52,
+    "lufs": -20.5,
+    "peakDb": -2.1,
+    "centroidHz": 4180.390885802467,
+    "f0Median": 291.49274732477346,
+    "f0P10": 177.22336690804906,
+    "f0P90": 389.7358182219122,
+    "voicedSeconds": 3.25
+  },
+  "sweep-33": {
+    "durationSeconds": 7.2,
+    "lufs": -20.3,
+    "peakDb": -1.8,
+    "centroidHz": 3328.9264790996767,
+    "f0Median": 249.85082951593944,
+    "f0P10": 191.15666482480265,
+    "f0P90": 379.97523071123925,
+    "voicedSeconds": 3.66
+  },
+  "sweep-34": {
+    "durationSeconds": 7.52,
+    "lufs": -20.4,
+    "peakDb": -2.9,
+    "centroidHz": 3839.340564814815,
+    "f0Median": 142.27929520369983,
+    "f0P10": 102.76675391973886,
+    "f0P90": 203.17964799137047,
+    "voicedSeconds": 3.22
+  },
+  "sweep-35": {
+    "durationSeconds": 6.8,
+    "lufs": -19.7,
+    "peakDb": -1.2,
+    "centroidHz": 3635.6742423208216,
+    "f0Median": 194.1840995852047,
+    "f0P10": 121.30916325157287,
+    "f0P90": 249.55390472405068,
+    "voicedSeconds": 2.93
+  },
+  "sweep-36": {
+    "durationSeconds": 7.44,
+    "lufs": -20.2,
+    "peakDb": -0.9,
+    "centroidHz": 3757.156781931466,
+    "f0Median": 224.54351237478116,
+    "f0P10": 148.31188124021824,
+    "f0P90": 308.78573783200767,
+    "voicedSeconds": 3.77
+  },
+  "sweep-37": {
+    "durationSeconds": 7.76,
+    "lufs": -24.8,
+    "peakDb": -7.9,
+    "centroidHz": 4922.327417910447,
+    "f0Median": 343.4080955476462,
+    "f0P10": 179.72300620711565,
+    "f0P90": 439.7685510158239,
+    "voicedSeconds": 3.58
+  },
+  "sweep-38": {
+    "durationSeconds": 7.28,
+    "lufs": -18.9,
+    "peakDb": -1,
+    "centroidHz": 3493.7120095541395,
+    "f0Median": 235.09584273294533,
+    "f0P10": 146.55048057937194,
+    "f0P90": 337.5275204786124,
+    "voicedSeconds": 3.83
+  },
+  "sweep-39": {
+    "durationSeconds": 7.76,
+    "lufs": -20.3,
+    "peakDb": -1,
+    "centroidHz": 4551.508343283581,
+    "f0Median": 211.32544035390688,
+    "f0P10": 110.55788156107626,
+    "f0P90": 279.7333298142056,
+    "voicedSeconds": 3.59
+  },
+  "sweep-40": {
+    "durationSeconds": 7.2,
+    "lufs": -16.4,
+    "peakDb": -0.8,
+    "centroidHz": 4142.497945337619,
+    "f0Median": 300.62043185934294,
+    "f0P10": 196.39192837058886,
+    "f0P90": 408.09745124573334,
+    "voicedSeconds": 3.64
+  },
+  "sweep-41": {
+    "durationSeconds": 7.04,
+    "lufs": -21.4,
+    "peakDb": -2.2,
+    "centroidHz": 3563.2883486842125,
+    "f0Median": 261.7430446973809,
+    "f0P10": 173.7097499151088,
+    "f0P90": 359.1915420355802,
+    "voicedSeconds": 3.15
+  },
+  "sweep-42": {
+    "durationSeconds": 7.04,
+    "lufs": -18.4,
+    "peakDb": -0.4,
+    "centroidHz": 4114.48010197368,
+    "f0Median": 213.21269799673058,
+    "f0P10": 134.95155449912528,
+    "f0P90": 287.96142580764075,
+    "voicedSeconds": 2.88
+  },
+  "sweep-43": {
+    "durationSeconds": 7.52,
+    "lufs": -19.6,
+    "peakDb": -1,
+    "centroidHz": 3266.1871543209886,
+    "f0Median": 197.51669131014611,
+    "f0P10": 112.21865567972335,
+    "f0P90": 268.0269340700656,
+    "voicedSeconds": 2.89
+  },
+  "sweep-44": {
+    "durationSeconds": 7.36,
+    "lufs": -19.3,
+    "peakDb": -1,
+    "centroidHz": 3753.879410094633,
+    "f0Median": 239.22313288103493,
+    "f0P10": 154.55767723405197,
+    "f0P90": 338.6097923018508,
+    "voicedSeconds": 3.62
+  },
+  "sweep-45": {
+    "durationSeconds": 7.2,
+    "lufs": -20.2,
+    "peakDb": -1.2,
+    "centroidHz": 3716.9980353697747,
+    "f0Median": 163.42289355803902,
+    "f0P10": 119.22944012413105,
+    "f0P90": 232.193150865006,
+    "voicedSeconds": 2.81
+  },
+  "sweep-46": {
+    "durationSeconds": 7.44,
+    "lufs": -21.5,
+    "peakDb": -2.8,
+    "centroidHz": 2835.0470124610583,
+    "f0Median": 231.25526953211363,
+    "f0P10": 140.24768206774547,
+    "f0P90": 344.0731689197668,
+    "voicedSeconds": 4.27
+  },
+  "sweep-47": {
+    "durationSeconds": 7.04,
+    "lufs": -16.9,
+    "peakDb": -0.6,
+    "centroidHz": 2946.8626611842114,
+    "f0Median": 174.86322271552197,
+    "f0P10": 120.36835504647081,
+    "f0P90": 258.08018537337836,
+    "voicedSeconds": 2.99
+  },
+  "sweep-48": {
+    "durationSeconds": 7.44,
+    "lufs": -19.6,
+    "peakDb": -1.2,
+    "centroidHz": 3529.230616822427,
+    "f0Median": 258.8116464272521,
+    "f0P10": 192.2154874954032,
+    "f0P90": 348.86305017815675,
+    "voicedSeconds": 2.99
+  },
+  "sweep-49": {
+    "durationSeconds": 7.92,
+    "lufs": -22.1,
+    "peakDb": -1.9,
+    "centroidHz": 4059.995959064325,
+    "f0Median": 333.0885816283224,
+    "f0P10": 212.32813724848106,
+    "f0P90": 458.83687160243073,
+    "voicedSeconds": 3.93
+  },
+  "pip-a-fear": {
+    "durationSeconds": 7.52,
+    "lufs": -27.9,
+    "peakDb": -8.6,
+    "centroidHz": 3480.6659382716043,
+    "f0Median": 237.49145208522117,
+    "f0P10": 78.07961677839923,
+    "f0P90": 470.2833647383532,
+    "voicedSeconds": 1.33
+  },
+  "pip-a-relief": {
+    "durationSeconds": 9.2,
+    "lufs": -25.3,
+    "peakDb": -2.4,
+    "centroidHz": 2887.085947103274,
+    "f0Median": 245.8998261869411,
+    "f0P10": 139.55086768078255,
+    "f0P90": 410.21646262993954,
+    "voicedSeconds": 2.92
+  },
+  "pip-a-wish": {
+    "durationSeconds": 5.6,
+    "lufs": -23.3,
+    "peakDb": -3.7,
+    "centroidHz": 3035.3516900826457,
+    "f0Median": 207.48940016626528,
+    "f0P10": 131.9960132737939,
+    "f0P90": 327.4126575381367,
+    "voicedSeconds": 2.3
+  },
+  "pip-b-fear": {
+    "durationSeconds": 7.68,
+    "lufs": -27.7,
+    "peakDb": -8.8,
+    "centroidHz": 3845.7849395770404,
+    "f0Median": 232.32767869126326,
+    "f0P10": 136.74546969477743,
+    "f0P90": 457.05871317891535,
+    "voicedSeconds": 1.48
+  },
+  "pip-b-relief": {
+    "durationSeconds": 8.96,
+    "lufs": -24.4,
+    "peakDb": -2.7,
+    "centroidHz": 3526.3324585492273,
+    "f0Median": 284.76932862736294,
+    "f0P10": 134.46458766841886,
+    "f0P90": 454.0711677475365,
+    "voicedSeconds": 3.58
+  },
+  "pip-b-wish": {
+    "durationSeconds": 5.6,
+    "lufs": -21.5,
+    "peakDb": -1.2,
+    "centroidHz": 3329.6288223140514,
+    "f0Median": 267.4517099620907,
+    "f0P10": 135.66547547069703,
+    "f0P90": 438.0707135028795,
+    "voicedSeconds": 2.95
+  },
+  "pip-c-fear": {
+    "durationSeconds": 7.52,
+    "lufs": -29,
+    "peakDb": -10.6,
+    "centroidHz": 4931.292524691355,
+    "f0Median": 215.95840921496472,
+    "f0P10": 153.53162054688525,
+    "f0P90": 287.28327456427553,
+    "voicedSeconds": 0.79
+  },
+  "pip-c-relief": {
+    "durationSeconds": 8.24,
+    "lufs": -25,
+    "peakDb": -7.2,
+    "centroidHz": 3506.8401323943676,
+    "f0Median": 244.64755639775873,
+    "f0P10": 131.5058832966057,
+    "f0P90": 400.795651428803,
+    "voicedSeconds": 2.1
+  },
+  "pip-c-wish": {
+    "durationSeconds": 6.16,
+    "lufs": -21.9,
+    "peakDb": -5.5,
+    "centroidHz": 3580.791443609021,
+    "f0Median": 260.7909462327198,
+    "f0P10": 178.04190219484167,
+    "f0P90": 409.06036454036115,
+    "voicedSeconds": 2.36
+  },
+  "wick-a-grumble": {
+    "durationSeconds": 9.28,
+    "lufs": -24.5,
+    "peakDb": -2.2,
+    "centroidHz": 3291.590885,
+    "f0Median": 119.222861642547,
+    "f0P10": 87.86128282684874,
+    "f0P90": 190.07365948056153,
+    "voicedSeconds": 3.62
+  },
+  "wick-a-sight": {
+    "durationSeconds": 7.36,
+    "lufs": -25.6,
+    "peakDb": -7.2,
+    "centroidHz": 3477.9034100946365,
+    "f0Median": 110.41602205548676,
+    "f0P10": 81.670116780012,
+    "f0P90": 167.29020542903052,
+    "voicedSeconds": 2.38
+  },
+  "wick-a-warmth": {
+    "durationSeconds": 6.64,
+    "lufs": -24.7,
+    "peakDb": -7.9,
+    "centroidHz": 2981.931318181818,
+    "f0Median": 113.60323970369156,
+    "f0P10": 86.95855060028448,
+    "f0P90": 217.14018193730078,
+    "voicedSeconds": 3.01
+  },
+  "wick-b-grumble": {
+    "durationSeconds": 9.2,
+    "lufs": -25.5,
+    "peakDb": -6.7,
+    "centroidHz": 2970.082095717886,
+    "f0Median": 142.82868563002594,
+    "f0P10": 115.18793438692497,
+    "f0P90": 186.1215848950253,
+    "voicedSeconds": 3.31
+  },
+  "wick-b-sight": {
+    "durationSeconds": 7.2,
+    "lufs": -27,
+    "peakDb": -6.3,
+    "centroidHz": 3408.0584340835994,
+    "f0Median": 133.35067949663923,
+    "f0P10": 109.26457552638608,
+    "f0P90": 174.62585104243166,
+    "voicedSeconds": 1.8
+  },
+  "wick-b-warmth": {
+    "durationSeconds": 6.4,
+    "lufs": -25.3,
+    "peakDb": -9.5,
+    "centroidHz": 2873.718300724637,
+    "f0Median": 138.31613276801076,
+    "f0P10": 118.0789317774472,
+    "f0P90": 232.22788664472793,
+    "voicedSeconds": 2.37
+  },
+  "wick-c-grumble": {
+    "durationSeconds": 10.32,
+    "lufs": -14.5,
+    "peakDb": -0.4,
+    "centroidHz": 2393.4601887640447,
+    "f0Median": 136.54304905638153,
+    "f0P10": 99.1520983788022,
+    "f0P90": 258.7751707437832,
+    "voicedSeconds": 3.53
+  },
+  "wick-c-sight": {
+    "durationSeconds": 7.76,
+    "lufs": -15.3,
+    "peakDb": -0.8,
+    "centroidHz": 2878.6436388059724,
+    "f0Median": 125.89738237611773,
+    "f0P10": 97.64324169629904,
+    "f0P90": 174.24283280873695,
+    "voicedSeconds": 2.47
+  },
+  "wick-c-warmth": {
+    "durationSeconds": 7.04,
+    "lufs": -15.1,
+    "peakDb": -1,
+    "centroidHz": 2774.181907894738,
+    "f0Median": 133.7513534449962,
+    "f0P10": 76.81479496988685,
+    "f0P90": 273.6219379168415,
+    "voicedSeconds": 2.5
+  },
+  "moth-a-bright": {
+    "durationSeconds": 6.96,
+    "lufs": -21.4,
+    "peakDb": -1.6,
+    "centroidHz": 3365.862779999999,
+    "f0Median": 314.11559035127715,
+    "f0P10": 224.59374158188845,
+    "f0P90": 447.80178933898134,
+    "voicedSeconds": 1.35
+  },
+  "moth-a-find": {
+    "durationSeconds": 9.44,
+    "lufs": -22.4,
+    "peakDb": -1,
+    "centroidHz": 3825.2962530712507,
+    "f0Median": null,
+    "f0P10": null,
+    "f0P90": null,
+    "voicedSeconds": 0.58
+  },
+  "moth-a-sorry": {
+    "durationSeconds": 8.88,
+    "lufs": -22.3,
+    "peakDb": -2.3,
+    "centroidHz": 3910.0892167101806,
+    "f0Median": 386.0548179170389,
+    "f0P10": 101.00825355678315,
+    "f0P90": 482.3455841033289,
+    "voicedSeconds": 0.92
+  },
+  "moth-b-bright": {
+    "durationSeconds": 6.56,
+    "lufs": -23.5,
+    "peakDb": -6.4,
+    "centroidHz": 4472.629042402827,
+    "f0Median": 374.644591273717,
+    "f0P10": 208.34956397115923,
+    "f0P90": 469.3567002005051,
+    "voicedSeconds": 2.85
+  },
+  "moth-b-find": {
+    "durationSeconds": 7.36,
+    "lufs": -26.6,
+    "peakDb": -6.2,
+    "centroidHz": 4509.8282271293365,
+    "f0Median": 220.20010222491842,
+    "f0P10": 132.07542453900643,
+    "f0P90": 395.6834255099059,
+    "voicedSeconds": 2.45
+  },
+  "moth-b-sorry": {
+    "durationSeconds": 7.6,
+    "lufs": -25.2,
+    "peakDb": -7.6,
+    "centroidHz": 5030.763923780489,
+    "f0Median": 310.3184824232981,
+    "f0P10": 206.75604740830752,
+    "f0P90": 409.5186671242406,
+    "voicedSeconds": 3.62
+  },
+  "moth-c-bright": {
+    "durationSeconds": 6.72,
+    "lufs": -17.6,
+    "peakDb": -1.1,
+    "centroidHz": 3526.171779310346,
+    "f0Median": 322.52327387418467,
+    "f0P10": 229.1858458083037,
+    "f0P90": 465.0391512354124,
+    "voicedSeconds": 3.22
+  },
+  "moth-c-find": {
+    "durationSeconds": 7.76,
+    "lufs": -22.9,
+    "peakDb": -2.4,
+    "centroidHz": 3706.4045910447744,
+    "f0Median": 318.85079233071315,
+    "f0P10": 201.16740817203433,
+    "f0P90": 445.3738328262026,
+    "voicedSeconds": 3.51
+  },
+  "moth-c-sorry": {
+    "durationSeconds": 8.08,
+    "lufs": -19.6,
+    "peakDb": -2.4,
+    "centroidHz": 4162.007166666667,
+    "f0Median": 329.526904272971,
+    "f0P10": 256.9712910385517,
+    "f0P90": 477.8232050443207,
+    "voicedSeconds": 4.16
+  },
+  "narrator-a-opening": {
+    "durationSeconds": 8.72,
+    "lufs": -22.6,
+    "peakDb": -3.7,
+    "centroidHz": 2952.4782819148936,
+    "f0Median": 120.5132687829372,
+    "f0P10": 89.51104652348022,
+    "f0P90": 202.41822618107668,
+    "voicedSeconds": 3.99
+  },
+  "narrator-a-aside": {
+    "durationSeconds": 9.68,
+    "lufs": -21,
+    "peakDb": -3.6,
+    "centroidHz": 2544.2524100719434,
+    "f0Median": 124.9375902185836,
+    "f0P10": 85.49077228166858,
+    "f0P90": 217.05005819269255,
+    "voicedSeconds": 4.51
+  },
+  "narrator-b-opening": {
+    "durationSeconds": 8.48,
+    "lufs": -21.8,
+    "peakDb": -4,
+    "centroidHz": 2748.7156530054635,
+    "f0Median": 170.97063720903515,
+    "f0P10": 124.38379453620531,
+    "f0P90": 253.506738780695,
+    "voicedSeconds": 5.51
+  },
+  "narrator-b-aside": {
+    "durationSeconds": 8.96,
+    "lufs": -20.3,
+    "peakDb": -4.3,
+    "centroidHz": 2309.928510362694,
+    "f0Median": 167.26473463894797,
+    "f0P10": 125.09457711589975,
+    "f0P90": 272.4285990631548,
+    "voicedSeconds": 5.54
+  },
+  "narrator-c-opening": {
+    "durationSeconds": 8.56,
+    "lufs": -22.9,
+    "peakDb": -2.4,
+    "centroidHz": 3418.4210433604353,
+    "f0Median": 130.96326994652782,
+    "f0P10": 101.95242231546892,
+    "f0P90": 168.3912967515505,
+    "voicedSeconds": 4.33
+  },
+  "narrator-c-aside": {
+    "durationSeconds": 9.04,
+    "lufs": -21.2,
+    "peakDb": -2,
+    "centroidHz": 3058.262382051282,
+    "f0Median": 132.4188266358294,
+    "f0P10": 100.7823900633437,
+    "f0P90": 203.79318898931078,
+    "voicedSeconds": 4.29
+  }
+}

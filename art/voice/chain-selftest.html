@@ -1,0 +1,160 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>Chain self-test</title>
+<script type="module">
+  const SR = 48000;
+  const db = (d) => 10 ** (d / 20);
+  const toDb = (x) => 20 * Math.log10(Math.max(x, 1e-12));
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+  function tones(freqs, amp, seconds) {
+    const n = Math.round(SR * seconds);
+    const data = new Float32Array(n);
+    for (let i = 0; i < n; i += 1) for (const f of freqs) data[i] += amp * Math.sin((2 * Math.PI * f * i) / SR);
+    return data;
+  }
+
+  function bandLevel(samples, f) {
+    let re = 0;
+    let im = 0;
+    let norm = 0;
+    const n = samples.length;
+    for (let i = 0; i < n; i += 1) {
+      const w = 0.5 - 0.5 * Math.cos((2 * Math.PI * i) / (n - 1));
+      const p = (2 * Math.PI * f * i) / SR;
+      re += samples[i] * w * Math.cos(p);
+      im += samples[i] * w * Math.sin(p);
+      norm += w;
+    }
+    return (2 * Math.hypot(re, im)) / norm;
+  }
+
+  function audioBuffer(ctx, data) {
+    const b = ctx.createBuffer(1, data.length, SR);
+    b.copyToChannel(data, 0);
+    return b;
+  }
+
+  function wavBlob(data) {
+    const bytes = new ArrayBuffer(44 + data.length * 2);
+    const v = new DataView(bytes);
+    const text = (o, s) => [...s].forEach((c, i) => v.setUint8(o + i, c.charCodeAt(0)));
+    text(0, "RIFF"); v.setUint32(4, 36 + data.length * 2, true); text(8, "WAVEfmt ");
+    v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+    v.setUint32(24, SR, true); v.setUint32(28, SR * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+    text(36, "data"); v.setUint32(40, data.length * 2, true);
+    data.forEach((x, i) => v.setInt16(44 + i * 2, Math.max(-1, Math.min(1, x)) * 32767, true));
+    return new Blob([bytes], { type: "audio/wav" });
+  }
+
+  async function renderOffline(createVoiceChain, settings, data) {
+    const ctx = new OfflineAudioContext(1, data.length, SR);
+    const chain = createVoiceChain(ctx, settings);
+    const src = ctx.createBufferSource();
+    src.buffer = audioBuffer(ctx, data);
+    src.connect(chain.input);
+    chain.output.connect(ctx.destination);
+    src.start();
+    const out = await ctx.startRendering();
+    return { samples: out.getChannelData(0), filters: chain.filters };
+  }
+
+  async function renderLive(createVoiceChain, settings, data, how) {
+    const ctx = new AudioContext({ sampleRate: SR });
+    await ctx.resume();
+    const chain = createVoiceChain(ctx, settings);
+    const analyser = ctx.createAnalyser();
+    analyser.fftSize = 32768;
+    chain.output.connect(analyser);
+    analyser.connect(ctx.destination);
+    let cleanup = () => {};
+    if (how === "buffer") {
+      const src = ctx.createBufferSource();
+      src.buffer = audioBuffer(ctx, data);
+      src.connect(chain.input);
+      src.start();
+    } else if (how === "element") {
+      const url = URL.createObjectURL(wavBlob(data));
+      const el = new Audio(url);
+      const src = ctx.createMediaElementSource(el);
+      src.connect(chain.input);
+      await el.play();
+      cleanup = () => { el.pause(); URL.revokeObjectURL(url); };
+    } else {
+      const chunk = Math.round(SR * 0.2);
+      const start = ctx.currentTime + 0.05;
+      for (let i = 0; i * chunk < data.length; i += 1) {
+        const src = ctx.createBufferSource();
+        src.buffer = audioBuffer(ctx, data.subarray(i * chunk, Math.min((i + 1) * chunk, data.length)));
+        src.connect(chain.input);
+        src.start(start + (i * chunk) / SR);
+      }
+    }
+    await sleep(1500);
+    const out = new Float32Array(analyser.fftSize);
+    analyser.getFloatTimeDomainData(out);
+    cleanup();
+    await ctx.close();
+    return out;
+  }
+
+  try {
+    const { createVoiceChain, createRoomTone, saturationCurve } = await import("./chain.mjs");
+    const config = await (await fetch("./chain.json")).json();
+    const result = { settings: {}, curve: {} };
+    const responseHz = [60, 280, 1800, 6000, 10000];
+
+    for (const [name, settings] of Object.entries(config.settings)) {
+      // Low level, so saturation and the compressor stay linear and only add flat gain.
+      const signal = tones([...responseHz, 1000], db(-50), 1);
+      const { samples, filters } = await renderOffline(createVoiceChain, settings, signal);
+      const tail = samples.subarray(samples.length / 2);
+      const hz = new Float32Array([...responseHz, 1000]);
+      const summed = new Float32Array(hz.length);
+      for (const f of filters) {
+        const mag = new Float32Array(hz.length);
+        f.getFrequencyResponse(hz, mag, new Float32Array(hz.length));
+        mag.forEach((m, i) => { summed[i] += toDb(m); });
+      }
+      const ref = hz.length - 1;
+      const response = responseHz.map((f, i) => ({
+        hz: f,
+        measuredDb: toDb(bandLevel(tail, f)) - toDb(bandLevel(tail, 1000)),
+        expectedDb: summed[i] - summed[ref],
+      }));
+
+      // The same signal through every kind of source a later ticket might use.
+      const pathHz = [200, 800, 2000, 5000];
+      const pathSignal = tones(pathHz, db(-30), 3);
+      const offline = (await renderOffline(createVoiceChain, settings, pathSignal)).samples;
+      const offlineTail = offline.subarray(offline.length - 32768);
+      const levels = (s) => pathHz.map((f) => toDb(bandLevel(s, f)));
+      const paths = { offline: levels(offlineTail) };
+      for (const how of ["buffer", "element", "chunks"]) paths[how] = levels(await renderLive(createVoiceChain, settings, pathSignal, how));
+      result.settings[name] = { response, paths };
+    }
+
+    const tone = () => {
+      const ctx = new OfflineAudioContext(1, SR, SR);
+      return createRoomTone(ctx, config.roomTone).buffer.getChannelData(0);
+    };
+    const a = tone();
+    const b = tone();
+    let rms = 0;
+    let identical = a.length === b.length;
+    for (let i = 0; i < a.length; i += 1) {
+      rms += a[i] * a[i];
+      if (a[i] !== b[i]) identical = false;
+    }
+    result.roomTone = { identical, rmsDb: toDb(Math.sqrt(rms / a.length)), seam: Math.abs(a[a.length - 1] - a[0]), seconds: a.length / SR };
+
+    const curve = saturationCurve(1.6);
+    let monotonic = true;
+    for (let i = 1; i < curve.length; i += 1) if (curve[i] < curve[i - 1]) monotonic = false;
+    result.curve = { first: curve[0], last: curve[curve.length - 1], monotonic, length: curve.length };
+
+    await fetch("/__result", { method: "POST", body: JSON.stringify(result) });
+  } catch (e) {
+    await fetch("/__result", { method: "POST", body: JSON.stringify({ error: String(e) }) });
+  }
+</script>

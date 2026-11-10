@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "default": "warm-radio",
+  "settings": {
+    "soft-paper": {
+      "highpassHz": 110,
+      "warmthHz": 280,
+      "warmthQ": 0.9,
+      "warmthDb": 1.5,
+      "presenceHz": 1800,
+      "presenceQ": 1,
+      "presenceDb": 1,
+      "lowpassHz": 9000,
+      "drive": 1.2,
+      "compressor": {
+        "thresholdDb": -20,
+        "kneeDb": 6,
+        "ratio": 2,
+        "attackMs": 10,
+        "releaseMs": 150
+      },
+      "outputDb": -4.2
+    },
+    "warm-radio": {
+      "highpassHz": 130,
+      "warmthHz": 280,
+      "warmthQ": 0.9,
+      "warmthDb": 2.5,
+      "presenceHz": 1800,
+      "presenceQ": 1,
+      "presenceDb": 2.5,
+      "lowpassHz": 6500,
+      "drive": 1.6,
+      "compressor": {
+        "thresholdDb": -22,
+        "kneeDb": 6,
+        "ratio": 3,
+        "attackMs": 5,
+        "releaseMs": 180
+      },
+      "outputDb": -4.5
+    },
+    "old-wireless": {
+      "highpassHz": 180,
+      "warmthHz": 280,
+      "warmthQ": 0.9,
+      "warmthDb": 1.5,
+      "presenceHz": 1800,
+      "presenceQ": 1,
+      "presenceDb": 4,
+      "lowpassHz": 4200,
+      "drive": 2.4,
+      "compressor": {
+        "thresholdDb": -24,
+        "kneeDb": 6,
+        "ratio": 4,
+        "attackMs": 3,
+        "releaseMs": 150
+      },
+      "outputDb": -4.5
+    }
+  },
+  "roomTone": {
+    "seed": 5,
+    "loopSeconds": 12,
+    "lowHz": 180,
+    "highHz": 2500,
+    "rmsDb": -46,
+    "driftDb": 1.5
+  }
+}
