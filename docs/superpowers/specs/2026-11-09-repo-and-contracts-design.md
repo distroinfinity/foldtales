@@ -260,7 +260,7 @@ Beyond the event fields above, `relay.ts` has the wire messages, a union on `kin
 
 | Direction | `kind` | Fields |
 |---|---|---|
-| Client | `join` | `room, player, afterSeq` (nullable), `startSeq` (nullable, used only by the first joiner, who opens the room) |
+| Client | `join` | `room, player, afterSeq` (nullable), `startSeq` and `seriesId` (both nullable, used only by the first joiner, who opens the room) |
 | Client | `append` | `event` |
 | Client | `pose` | `part` (an `entity`, or `head`, `hand_left`, `hand_right`), `position, rotation` (quaternion) |
 | Client | `request_grab`, `release_grab` | `entity` |

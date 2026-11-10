@@ -96,7 +96,7 @@ const pose = { position: [0, 1, 0], rotation: [0, 0, 0, 1] };
 const event = { ...base, type: 'session.resumed', data: {} };
 
 const clientMessages: Record<string, { valid: unknown; invalid: unknown }> = {
-  join: { valid: { room: 'abc', player, afterSeq: null, startSeq: 10 }, invalid: { room: 'abc', player, afterSeq: null } },
+  join: { valid: { room: 'abc', player, afterSeq: null, startSeq: 10, seriesId: 'series' }, invalid: { room: 'abc', player, afterSeq: null } },
   append: { valid: { event }, invalid: { event: {} } },
   pose: { valid: { part: 'head', ...pose }, invalid: { part: 'knee', ...pose } },
   request_grab: { valid: { entity: 'object:string#a' }, invalid: { entity: 'reader' } },

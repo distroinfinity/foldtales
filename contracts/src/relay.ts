@@ -17,6 +17,8 @@ export const RelayClientMessage = z.discriminatedUnion('kind', [
     afterSeq: z.number().int().nonnegative().nullable(),
     /** Used only by the first joiner, who opens the room: the host's last seq plus one. */
     startSeq: z.number().int().nonnegative().nullable(),
+    /** Used only by the first joiner: the host's series, which this room's events belong to. */
+    seriesId: Id.nullable(),
   }),
   z.strictObject({ kind: z.literal('append'), event: ShowEvent }),
   z.strictObject({ kind: z.literal('pose'), ...pose }),
