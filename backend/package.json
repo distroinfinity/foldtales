@@ -3,5 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "scripts": { "typecheck": "tsc -p ." }
+  "scripts": {
+    "dev": "node --watch src/server.ts --dev",
+    "start": "node src/server.ts",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "@hono/node-server": "^2.1.6",
+    "@tabletop/contracts": "workspace:*",
+    "hono": "^4.13.17"
+  }
 }
