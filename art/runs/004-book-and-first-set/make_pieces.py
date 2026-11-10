@@ -222,7 +222,7 @@ def write_metadata():
             "cover": {"file": "cover-front.png", "face": "cover outside", "sizeM": [0.21, 0.315], "title": "blank panel in the top third, for Fraunces set by the Stage"},
             "spine": {"file": "spine.png", "face": "spine, stretched along its length", "sizeM": [0.03, 0.315]},
             "page-edge": {"file": "page-edge.png", "face": "page block sides while closed", "sizeM": [0.315, 0.025]},
-            "ribbon": {"file": "ribbon.png", "attach": "top edge of the right page at x 0.15 m, hanging over the far edge", "sizeM": [0.012, 0.11]},
+            "ribbon": {"file": "ribbon.png", "attach": "the far edge of the right page at x 0.19 m, 0.04 m showing on the page as in the mockup", "sizeM": [0.012, 0.04]},
             "tab-gold": {"file": "tab-gold.png", "attach": "right fore-edge, 0.06 m from the far edge, rounded end outward", "sizeM": [0.02, 0.0113]},
             "tab-sage": {"file": "tab-sage.png", "attach": "right fore-edge, 0.1 m from the far edge, rounded end outward", "sizeM": [0.02, 0.0113]},
             "drawer-pull": {"file": "drawer-pull.png", "attach": "center of the near edge, below the pages", "sizeM": [0.044, 0.0144]},

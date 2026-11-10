@@ -43,10 +43,10 @@
     },
     "ribbon": {
       "file": "ribbon.png",
-      "attach": "top edge of the right page at x 0.15 m, hanging over the far edge",
+      "attach": "the far edge of the right page at x 0.19 m, 0.04 m showing on the page as in the mockup",
       "sizeM": [
         0.012,
-        0.11
+        0.04
       ]
     },
     "tab-gold": {

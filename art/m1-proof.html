@@ -1,0 +1,179 @@
+<!doctype html>
+<!-- The M1 moment with run 004's real pieces: the book unfolds, the set rises, the lantern goes out, Pip looks up.
+     Reference only, not product code, and CSS 3D rather than IWSDK. Move the mouse to stand in for moving your head.
+     Serve art/ with any static server on this workspace's CLIENT_PORT, then open /m1-proof.html. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>M1 Proof</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;500&family=Fraunces:opsz,wght@144,500&display=swap" rel="stylesheet">
+<style>
+  :root { --k: 1.5px; --page: #f6efe2; --navy: #1f2a44; }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; background: radial-gradient(ellipse at 50% 40%, #5d5249, #2b2420 75%); color: #f6efe2; font-family: 'Atkinson Hyperlegible Next', sans-serif; overflow: hidden; }
+  .view { position: fixed; inset: 0; perspective: 1500px; perspective-origin: 50% 20%; }
+  .table { position: absolute; left: 50%; top: 58%; width: 0; height: 0; transform-style: preserve-3d; transform: rotateX(50deg); }
+  .wood { position: absolute; left: -900px; top: -700px; width: 1800px; height: 1300px; background: radial-gradient(ellipse at 50% 50%, #8a6a4c, #4d3a2a 70%); }
+  .p3 { position: absolute; transform-style: preserve-3d; }
+  .face { position: absolute; inset: 0; backface-visibility: hidden; background-repeat: no-repeat; filter: url(#mood); }
+  .back { transform: rotateY(180deg); }
+  .shadow { position: absolute; border-radius: 50%; background: radial-gradient(ellipse, rgba(10,8,12,.55), rgba(10,8,12,0) 70%); }
+  .dim { position: fixed; inset: 0; pointer-events: none; opacity: 0; background: radial-gradient(ellipse 46% 52% at 50% 58%, rgba(255,214,150,.05), rgba(8,10,26,.68) 100%); }
+  .title { position: absolute; left: 10%; right: 10%; top: 10.5%; height: 17%; display: grid; place-items: center; text-align: center; font-family: 'Fraunces', serif; font-weight: 500; font-variation-settings: 'opsz' 144; color: var(--navy); line-height: 1.05; font-size: calc(var(--k) * 19); backface-visibility: hidden; }
+  .rig { position: absolute; left: 50%; bottom: 0; width: 0; height: 0; }
+  .rig img { position: absolute; display: block; max-width: none; filter: url(#mood); }
+  .glow { position: absolute; border-radius: 50%; mix-blend-mode: screen; background: radial-gradient(circle, rgba(255,214,130,.6), rgba(255,200,110,.18) 45%, rgba(255,190,90,0) 70%); }
+  .fx { position: absolute; opacity: 0; filter: url(#mood); }
+  .controls { position: fixed; left: 0; right: 0; bottom: 16px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; padding: 0 16px; }
+  .controls button { font: inherit; font-size: 15px; padding: 9px 15px; border-radius: 7px; border: 1px solid #f6efe244; background: #f6efe2; color: #2b2420; cursor: pointer; }
+  .controls button[aria-pressed="true"] { background: #1f2a44; color: #f6efe2; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><filter id="mood"><feColorMatrix id="tint" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1 0"/></filter></svg>
+<div class="view" id="view"><div class="table" id="table"><div class="wood"></div></div></div>
+<div class="dim" id="dim"></div>
+<div class="controls">
+  <button id="open">Open the book</button>
+  <button data-mood="dusk" aria-pressed="true">Dusk</button>
+  <button data-mood="night" aria-pressed="false">Night</button>
+  <button data-mood="gold" aria-pressed="false">Gold</button>
+  <button id="sky" aria-pressed="false">Hide sky layer</button>
+</div>
+<script>
+(async function () {
+  const px0 = (n) => n + 'px';
+  const load = (p) => fetch(p).then((r) => r.json());
+  const [set, book, rig] = await Promise.all([load('sets/shore-path/set.json'), load('book/book.json'), load('cast/pip/rig.json')]);
+  const k = Math.min(1.7, (innerWidth - 32) / 430, (innerHeight - 120) / 420);
+  document.documentElement.style.setProperty('--k', k + 'px');
+  const mm = (m) => m * 1000 * k;
+  // The spec's reference eye: about 0.66 m from the book's center, 40 degrees above the table.
+  document.getElementById('view').style.perspective = px0(mm(0.66));
+  const table = document.getElementById('table');
+  const T = mm(0.012), W = mm(0.21), D = mm(0.315);
+  // Stage space: x right, +z toward the reader, y up. On the table plane, CSS y grows toward the reader.
+  const el = (parent, cls, css) => { const d = document.createElement('div'); d.className = cls; Object.assign(d.style, css || {}); parent.appendChild(d); return d; };
+  const px = (n) => n + 'px';
+
+  el(table, 'shadow', { left: px(-W * 1.15), top: px(-D * 0.62), width: px(W * 2.3), height: px(D * 1.25) });
+  const bookRoot = el(table, 'p3', { left: 0, top: 0, transform: `translateZ(${T}px)` });
+  const half = (x, img, pos, extra) => el(bookRoot, 'face', Object.assign({ left: px(x), top: px(-D / 2), width: px(W), height: px(D), backgroundImage: `url(${img})`, backgroundSize: '200% 100%', backgroundPosition: pos }, extra || {}));
+  half(0, 'sets/shore-path/ground.png', '100% 0');
+  const edge = el(bookRoot, 'face', { left: 0, top: px(D / 2), width: px(W), height: px(T), transformOrigin: 'top', transform: 'rotateX(-90deg)', backgroundImage: 'url(book/page-edge.png)', backgroundSize: '100% 100%' });
+  const pull = el(edge, 'face', { left: px(W / 2 - mm(0.022)), top: px(T * 0.15), width: px(mm(0.044)), height: px(mm(0.0144)), backgroundImage: 'url(book/drawer-pull.png)', backgroundSize: 'contain' });
+  for (const [name, z] of [['tab-gold', 0.06], ['tab-sage', 0.1]]) {
+    el(bookRoot, 'face', { left: px(W - mm(0.006)), top: px(-D / 2 + mm(z)), width: px(mm(0.02)), height: px(mm(0.0113)), backgroundImage: `url(book/${name}.png)`, backgroundSize: '100% 100%', transform: 'translateZ(-1px)' });
+  }
+  el(bookRoot, 'face', { left: px(mm(0.19)), top: px(-D / 2 - mm(0.004)), width: px(mm(0.012)), height: px(mm(0.04)), backgroundImage: 'url(book/ribbon.png)', backgroundSize: '100% 100%', transform: 'translateZ(1px)' });
+
+  // The cover swings about the spine. Its inside is the left half of the ground.
+  const cover = el(bookRoot, 'p3', { left: 0, top: px(-D / 2), width: px(W), height: px(D), transformOrigin: 'left center', transform: 'translateZ(1px)' });
+  el(cover, 'face', { backgroundImage: 'url(book/cover-front.png)', backgroundSize: '100% 100%' });
+  const title = el(cover, 'title'); title.textContent = 'The Lighthouse at the Edge of the Table';
+  el(cover, 'face back', { backgroundImage: 'url(sets/shore-path/ground.png)', backgroundSize: '200% 100%', backgroundPosition: '0 0' });
+
+  // A card stands on its hinge. Angles: -180 lies flat toward the reader, face down; -90 stands.
+  function card(x, zStage, w, h, img, pos) {
+    const c = el(bookRoot, 'p3', { left: px(x), top: px(mm(zStage) - h), width: px(w), height: px(h), transformOrigin: 'bottom center' });
+    el(c, 'face', { backgroundImage: `url(${img})`, backgroundSize: '200% 100%', backgroundPosition: pos });
+    el(c, 'face back', { background: 'var(--page)', webkitMaskImage: `url(${img})`, maskImage: `url(${img})`, webkitMaskSize: '200% 100%', maskSize: '200% 100%', webkitMaskPosition: pos, maskPosition: pos, maskRepeat: 'no-repeat', webkitMaskRepeat: 'no-repeat' });
+    return c;
+  }
+  const cards = {};
+  for (const layer of set.layers) {
+    const h = mm(layer.sizeM[1]), z = layer.hinge[0][2], img = `sets/shore-path/${layer.file}`;
+    cards[layer.id] = [card(-W, z, W, h, img, '0 0'), card(0, z, W, h, img, '100% 0')];
+  }
+
+  // Pip, built from his rig at 12 poses a second.
+  const mark = set.marks[0];
+  const pipH = mm(mark.heightM), pipW = pipH * 0.62, rigScale = pipH / 1000;
+  const pipShadow = el(bookRoot, 'shadow', { left: px(mm(mark.position[0]) - pipW * 0.45), top: px(mm(mark.position[2]) - mm(0.012)), width: px(pipW * 0.9), height: px(mm(0.024)), transform: 'translateZ(1px)' });
+  const pipCard = el(bookRoot, 'p3', { left: px(mm(mark.position[0]) - pipW / 2), top: px(mm(mark.position[2]) - pipH), width: px(pipW), height: px(pipH), transformOrigin: 'bottom center' });
+  const pipFace = el(pipCard, 'face', { filter: 'none', overflow: 'visible' });
+  const root = el(pipFace, 'rig', { transform: `scale(${rigScale})` });
+  const img = (src, d) => {
+    const i = new Image(); i.src = src; i.alt = '';
+    Object.assign(i.style, { left: px(d.x), top: px(d.y), zIndex: d.z, transformOrigin: `${d.pivot[0]}% ${d.pivot[1]}%` });
+    i.onload = () => { i.style.width = px(i.naturalWidth * d.scale); };
+    root.appendChild(i); return i;
+  };
+  const parts = {};
+  for (const [name, p] of Object.entries(rig.parts)) parts[name] = img('cast/pip/' + p.file, p);
+  const out = img('cast/pip/parts/lantern-out.png', rig.parts.lantern); out.style.display = 'none';
+  const cs = rig.chinShadow;
+  el(root, 'shadow', { left: px(cs.x), top: px(cs.y), width: px(cs.width), height: px(cs.height), zIndex: cs.z, background: 'radial-gradient(ellipse, rgba(38,26,34,.5), rgba(38,26,34,0) 72%)' });
+  const heads = {};
+  for (const [name, o] of Object.entries(rig.head.offsets)) {
+    const h = rig.head;
+    heads[name] = img('cast/pip/' + h.files.replace('<name>', name), { x: h.x + o[0] * h.scale, y: h.y + o[1] * h.scale, z: h.z, pivot: h.pivot, scale: h.scale });
+    heads[name].style.display = 'none';
+  }
+  const glow = el(root, 'glow', { zIndex: 8, width: '620px', height: '620px', left: px(96 - 310), top: px(-215 - 310) });
+  const smoke = el(root, 'fx', { zIndex: 9, width: '150px', height: '210px', left: '40px', top: '-560px', backgroundImage: 'url(fx/smoke.png)', backgroundSize: 'contain', backgroundRepeat: 'no-repeat' });
+  const leaves = ['leaf-1', 'leaf-2'].map((n) => el(bookRoot, 'fx', { width: px(mm(0.014)), height: px(mm(0.014)), left: px(-W), top: px(mm(0.03)), backgroundImage: `url(fx/${n}.png)`, backgroundSize: 'contain', backgroundRepeat: 'no-repeat' }));
+
+  // Mood is one tint across the stage, as the design language says.
+  const tint = document.getElementById('tint');
+  function mood(name) {
+    const [r, g, b] = set.moods[name];
+    tint.setAttribute('values', `${r} 0 0 0 0  0 ${g} 0 0 0  0 0 ${b} 0 0  0 0 0 1 0`);
+    document.querySelectorAll('[data-mood]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mood === name)));
+  }
+  document.querySelectorAll('[data-mood]').forEach((b) => (b.onclick = () => mood(b.dataset.mood)));
+  mood('dusk');
+  const skyBtn = document.getElementById('sky');
+  skyBtn.onclick = () => { const hide = skyBtn.getAttribute('aria-pressed') !== 'true'; skyBtn.setAttribute('aria-pressed', String(hide)); cards['layer-1-sky'].forEach((c) => (c.style.visibility = hide ? 'hidden' : '')); };
+
+  // Moving the mouse stands in for moving your head.
+  const view = document.getElementById('view');
+  addEventListener('pointermove', (e) => { view.style.perspectiveOrigin = `${30 + 40 * e.clientX / innerWidth}% ${5 + 30 * e.clientY / innerHeight}%`; });
+
+  const clamp = (v) => Math.max(0, Math.min(1, v));
+  const ease = (v) => v < 0.5 ? 2 * v * v : 1 - Math.pow(-2 * v + 2, 2) / 2;
+  const back = (v) => 1 + 2.2 * Math.pow(v - 1, 3) + 1.2 * Math.pow(v - 1, 2);
+  const order = set.stack.topToBottom;
+  let start = null;
+  // ?at=<seconds> holds one moment still, for checking stills. ?look=<0..1> sets the head position.
+  const q = new URLSearchParams(location.search);
+  const held = q.has('at') ? Number(q.get('at')) : null;
+  if (q.has('look')) { const l = Number(q.get('look')); view.style.perspectiveOrigin = `${30 + 40 * l}% 20%`; }
+  document.getElementById('open').onclick = () => { start = performance.now(); document.getElementById('open').textContent = 'Replay'; };
+
+  function frame(now) {
+    const t = held !== null ? held : start === null ? -1 : (now - start) / 1000;
+    const pose = Math.floor(Math.max(t, 0) * 12) / 12;
+    document.getElementById('dim').style.opacity = clamp(t / 2);
+    const coverAt = ease(clamp((t - 0.6) / 1.8));
+    cover.style.transform = `translateZ(1px) rotateY(${-180 * coverAt}deg)`;
+    order.forEach((id, i) => {
+      const v = clamp((t - 2.5 - i * 0.28) / 0.6);
+      const a = -180 + 90 * (v === 0 ? 0 : back(v));
+      const targets = id === 'pip' ? [pipCard] : cards[id];
+      targets.forEach((c, side) => { c.style.transform = `rotateX(${a}deg)`; c.style.opacity = t < 2.4 && (side === 0 || id === 'pip') ? 0 : 1; });
+    });
+    pipShadow.style.opacity = clamp((t - 3.5) / 0.4);
+    // The gust, the flame going out, then Pip looks up.
+    const gust = clamp((t - 5.6) / 1.6), out_ = t > 6.4;
+    leaves.forEach((l, i) => { const g = clamp((t - 5.6 - i * 0.25) / 1.5); l.style.opacity = g > 0 && g < 1 ? 1 : 0; l.style.transform = `translate(${g * W * 1.6}px, ${-Math.sin(g * 3.1) * mm(0.03)}px) translateZ(${mm(0.04) + Math.sin(g * 6) * mm(0.015)}px) rotateX(-70deg) rotate(${g * 540 + i * 90}deg)`; });
+    cards['layer-4-foreground'].forEach((c) => { if (t > 4) c.style.transform = `rotateX(${-90 + 4 * Math.sin(gust * Math.PI) * Math.sin(pose * 14)}deg)`; });
+    const sway = Math.sin(pose * 2.2) * 2.2 + (gust > 0 && gust < 1 ? Math.sin(pose * 18) * 9 * (1 - gust) : 0);
+    parts.lantern.style.transform = out.style.transform = `rotate(${sway}deg)`;
+    parts.lantern.style.display = out_ ? 'none' : ''; out.style.display = out_ ? '' : 'none';
+    glow.style.opacity = out_ ? 0 : 0.9 + 0.1 * Math.sin(pose * 7);
+    const s = clamp((t - 6.4) / 1.8); smoke.style.opacity = s > 0 && s < 1 ? 1 - s : 0; smoke.style.transform = `translateY(${-s * 160}px) scale(${0.7 + s * 0.5})`;
+    const blink = Math.floor(pose * 12) % 47 === 0;
+    const face = t > 7.6 ? 'up' : t > 6.5 ? 'scared' : blink ? 'blink' : 'forward';
+    const lift = t > 7.6 ? -4 * clamp((t - 7.6) / 0.4) : 0;
+    for (const [n, h] of Object.entries(heads)) { h.style.display = n === face ? '' : 'none'; h.style.transform = `rotate(${lift + Math.sin(pose * 1.3) * 1.2}deg)`; }
+    parts.coat.style.transform = `scaleY(${1 + Math.sin(pose * 2.4) * 0.006})`;
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
