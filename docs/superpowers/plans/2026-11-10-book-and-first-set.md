@@ -17,17 +17,19 @@
 - Keys stay in `.env.local`. Never print or copy them. Nothing goes to Claude artifacts or Claude Docs.
 - **No paid invocation without the owner's approval by question card**, and each invocation needs the owner's confirmation that the other workspace won't generate from before the first job until after the final balance read.
 - Total run cap 120 credits. Before each invocation, `capCredits` = 120 − spent so far − 9, and the queue at list price must fit within 120 − spent so far.
+- **Spent so far** debits list price for every attempted job, whether it logged `done` or `FAILED`. Any balance change that doesn't match stops the run and goes to the owner. That covers lost images and top-ups.
+- **The queue is every job without an output file**, because that's what the tool runs. A failed job that's being replaced comes out of `plan.json` first.
 - List prices: 5 credits at 1K ratios, 9 at 2K ratios. Reference images stay under 5 MB, so keys are 1K.
 - Reference size: closed book 210 x 315 mm, open spread 420 x 315 mm. Origin at the near end of the spine, x right, y away from the reader, z up. Page color `#F6EFE2`.
-- Layers: `layer-1-sky` hinge y 290, height ≤ 236. `layer-2-headland` hinge y 240, height ≤ 200. `layer-3-dunes` hinge y 185, height ≤ 120. `layer-4-foreground` hinge y 70, height ≤ 65 at the sides, under 30 in the center. Pip's mark y 130, right of center, about 170 mm tall. Near 45 mm of page stays bare.
+- Layers: `layer-1-sky` hinge y 295, height ≤ 236. `layer-2-headland` hinge y 250, height ≤ 200. `layer-3-dunes` hinge y 215, height ≤ 120. `layer-4-foreground` hinge y 70, height ≤ 65 at the sides, under 30 in the center. Pip's mark y 175, right of center, about 170 mm tall. Flat stack from the top: sky, headland, dunes, Pip, foreground. Near 45 mm of page stays bare.
 - Nothing important in the center 6% of any layer. The lighthouse lamp is unlit. No painted beams, lit windows or directional cast shadows. Title lettering is never painted.
 - Commit to this branch as you go. Do not push.
 
 ## Review Focus
 
 - The painter ignores the paper margin and paints to the image border: the sheet is rejected before cutting, because `cutout.py` would invert it (Task 1 test).
-- A layer comes out in several pieces, or trapped paper remains: the check fails rather than silently shipping the largest piece (Task 1 test).
-- A job fails after being charged, or balance moves more than list price: the run's spend counts the observed change and shows the mismatch (Task 1 test).
+- A layer comes out in several pieces, or trapped paper remains: extraction counts are asserted against `cutout.py`'s real output before finishing (Task 1 test).
+- A job fails after being charged, or balance moves more than list price: every attempt is debited at list price and a mismatch stops the run (Task 1 test).
 - The new head or unlit lantern doesn't land on Pip's real body: the swap check fails before anything reaches `rig.json` (Task 1 test).
 - The set goes muddy when tinted, or the dunes get darker than Pip's coat: the value check fails (Task 1 test).
 
@@ -46,14 +48,16 @@
 - `finish.trim_base(rgba, solid=0.9) -> rgba`: crop below the lowest row where opaque pixels cover at least `solid` of the painted width.
 - `finish.center_on_canvas(rgba, canvas_width) -> rgba`: pad left and right so the painted bbox center is the canvas center, keeping height.
 - `finish.calibrate_paper(rgb, target=(246,239,226), margin=0.03) -> rgb`: per-channel gain from the median of the outer margin.
-- `finish.register_head(new, forward) -> (scale, dx, dy)`: scale so bbox widths match, offset so the anchors at 50% width and 72% height match.
+- `finish.register_head(new, forward) -> (scale, dx, dy)`: uniform scale so bbox widths match, offset so the chin anchors match. The chin anchor is the centroid of the lowest 10% of opaque rows, which is where the head seats in the collar.
 - `finish.fit_lantern(new, lit) -> rgba`: resample `new` onto `lit`'s canvas, matching bbox and top edge.
 - `finish.outline_error(a, b) -> int`: largest per-row difference between the left or right alpha edges, in pixels.
-- `checks.border_is_paper(rgb, tolerance=30) -> bool`: at least 97% of the border is within tolerance of its median and the image's center is not.
+- `checks.border_is_paper(rgb, tolerance=30) -> bool`: at least 97% of the border is within tolerance of its median, and at least 5% of interior pixels are not.
+- `checks.MOODS`: `{'dusk': (0.86,0.90,1.00), 'night': (0.45,0.55,0.70), 'gold': (1.00,0.88,0.66)}`, multiplied into RGB. The proof page uses the same values.
+- `checks.cut_count(out_dir) -> int`: PNGs that `cutout.py` wrote.
 - `checks.check_cut(rgba, min_w, min_h) -> list[str]`: problems, one string each: `no alpha`, `pieces:N`, `specks:N`, `halo:<frac>`, `small`.
 - `checks.check_layer(rgba, hinge_mm, max_h_mm, px_per_mm) -> list[str]`: adds `base`, `too tall`, `off center`.
 - `checks.value_margin(backdrop_rgb, coat_rgb) -> float`: difference in mean L* (backdrop minus coat).
-- `budget.price(ratio) -> int`, `budget.queue_cost(plan) -> int`, `budget.safe_cap(spent, total=120, largest=9) -> int`, `budget.assert_queue_fits(plan, spent, total=120)`, `budget.reconcile(manifest_rows, observed_delta) -> dict` with `listed`, `observed`, `unexplained`.
+- `budget.price(ratio) -> int`, `budget.pending_jobs(plan, run_dir) -> list`, `budget.queue_cost(jobs) -> int`, `budget.safe_cap(spent, total=120, largest=9) -> int`, `budget.assert_queue_fits(jobs, spent, total=120)`, `budget.attempted_cost(log_text, plan) -> int`, `budget.reconcile(listed, observed_delta) -> dict` with `listed`, `observed`, `unexplained`.
 
 - [ ] **Step 1: Write failing tests in `test_tools.py` using `unittest` and synthetic images**
 
@@ -110,13 +114,36 @@ def test_prices(self):
 
 def test_queue_must_fit_remaining(self):
     with self.assertRaises(ValueError):
-        budget.assert_queue_fits({'jobs': [{'ratio': '2720:1530'}] * 3}, spent=95)
+        budget.assert_queue_fits([{'ratio': '2720:1530'}] * 3, spent=95)
+
+def test_pending_counts_every_job_without_a_file(self):
+    plan = {'jobs': [{'id': 'a', 'ratio': '1376:768'}, {'id': 'b', 'ratio': '1376:768'}]}
+    with tempfile.TemporaryDirectory() as d:
+        Path(d, 'a.png').write_bytes(b'x')
+        self.assertEqual([j['id'] for j in budget.pending_jobs(plan, d)], ['b'])
+
+def test_failed_attempts_are_debited(self):
+    plan = {'jobs': [{'id': 'a', 'ratio': '2720:1530'}, {'id': 'b', 'ratio': '2720:1530'}]}
+    self.assertEqual(budget.attempted_cost('done a: 100s, 9 credits\nFAILED b: rejected', plan), 18)
+
+def test_border_allows_an_empty_center(self):
+    img = np.full((100, 200, 3), (190, 40, 120), 'uint8')
+    img[60:90, 15:60] = (60, 90, 160); img[60:90, 140:185] = (60, 90, 160)   # the foreground's shape
+    self.assertTrue(checks.border_is_paper(img))
+
+def test_cutout_reports_a_split_layer(self):
+    with tempfile.TemporaryDirectory() as d:
+        sheet = np.full((400, 700, 3), (190, 40, 120), 'uint8')
+        sheet[150:350, 60:300] = (60, 90, 160); sheet[150:350, 400:640] = (60, 90, 160)
+        Image.fromarray(sheet).save(Path(d, 's.png'))
+        subprocess.run([sys.executable, 'art/tools/cutout.py', '--seal=3', str(Path(d, 's.png')), str(Path(d, 'o'))], check=True, capture_output=True)
+        self.assertEqual(checks.cut_count(Path(d, 'o')), 2)
 
 def test_safe_cap(self):
     self.assertEqual(budget.safe_cap(spent=15), 96)
 
 def test_reconcile_shows_unexplained_spend(self):
-    r = budget.reconcile([{'ratio': '1376:768'}, {'ratio': '2720:1530'}], observed_delta=23)
+    r = budget.reconcile(listed=14, observed_delta=23)
     self.assertEqual(r, {'listed': 14, 'observed': 23, 'unexplained': 9})
 ```
 
@@ -175,8 +202,8 @@ Jobs, each with ratio `1376:768`:
 
 - [ ] **Step 2: Confirm the queue fits**
 
-Run a one-liner calling `budget.assert_queue_fits(plan, spent=0)`.
-Expected: no error, queue cost 15.
+Run a one-liner calling `budget.assert_queue_fits(budget.pending_jobs(plan, run_dir), spent=0)`.
+Expected: no error, queue cost 15, and three jobs listed.
 
 - [ ] **Step 3: Ask the owner by question card**
 
@@ -189,7 +216,7 @@ Expected: three `done` lines, no `FAILED`.
 
 - [ ] **Step 5: Reconcile**
 
-Parse start balance and `total spent` from the log, call `budget.reconcile`. Expected: `unexplained` 0. If it's not 0, record it in `notes-phase-a.md` and tell the owner before continuing.
+Compute `attempted_cost` from the log and compare with this invocation's `total spent` using `budget.reconcile`, then start the ledger in `notes-phase-a.md`. Expected: `unexplained` 0. If it's not 0, stop and tell the owner before anything else is queued.
 
 - [ ] **Step 6: Test the paper**
 
@@ -222,7 +249,7 @@ git commit -m "Paint run 004 keys and test the cutting paper"
 
 Set `capCredits` to `budget.safe_cap(spent_so_far)`. Jobs (all `seedream5_pro`):
 
-`LAYER` is `Figure 1 is the composed scene. Paint only {what} from Figure 1, as a single die-cut paper stage piece, flat-on, in exactly the same painting style and colors. {shape} Its silhouette has a clean hard edge traced with a fine pencil line, and a perfectly straight flat bottom edge. Leave a wide margin of empty paper on all four sides, with nothing touching the edge of the image. The center of the piece stays free of important detail. {STYLE} Pale, gentle dusk values. No lit windows, no beams, no directional cast shadows. On plain flat solid vivid {PAPER} paper, one even color. No text.`
+`LAYER` is `Figure 1 is the composed scene. Paint only {what} from Figure 1, as a single die-cut paper stage piece, flat-on, in exactly the same painting style and colors. {shape} Its silhouette has a clean hard edge traced with a fine pencil line, and a perfectly straight flat bottom edge. Leave a wide margin of empty paper on all four sides, with nothing touching the edge of the image. The center of the piece stays free of important detail. Paint the whole piece continuously, including every part that other pieces would normally hide, right down to its straight bottom edge, with no gaps or holes. {STYLE} Pale, gentle dusk values. No lit windows, no beams, no directional cast shadows. On plain flat solid vivid {PAPER} paper, one even color. No text.`
 
 | id | ratio | refs | fill |
 |---|---|---|---|
@@ -236,11 +263,11 @@ Set `capCredits` to `budget.safe_cap(spent_so_far)`. Jobs (all `seedream5_pro`):
 | `ground` | `2304:1728` | `key.png` | `The printed page of an open picture book, seen flat from directly above, in exactly the painting style of Figure 1. Soft pale sand and a winding path, painted as flat watercolor washes with no horizon and no perspective, fading gently to bare warm white paper at all edges. The bottom sixth of the image is bare paper. A faint darkening down the exact center line where the two pages meet. {STYLE} No characters, no text, no border, not a photo of a book.` |
 | `cover-front` | `1664:2496` | `pip-master-v2.png` | `The front cover of an old storybook, filling the whole image edge to edge, seen perfectly flat. Deep navy blue cloth with visible watercolor texture, in the painting style of Figure 1. A restrained gold-stamped ornamental border, a small gold-stamped lighthouse emblem in the lower half, and an empty plain panel in the upper third for a title to be added later. {STYLE} No text, no letters, no fox, no perspective, no book edges, no background.` |
 | `trims-sheet` | `2048:2048` | `pip-master-v2.png` | `A paper-doll parts sheet, in exactly the painting style of Figure 1, of separate pieces for a storybook, with wide empty space between them, none touching: a rust-red cloth ribbon bookmark with a notched end, hanging straight; a gold cloth tab with a rounded end; a sage-green cloth tab with a rounded end; a small brown leather drawer pull with a brass handle; a long thin horizontal strip of stacked cream page edges with fine pencil lines; one opaque pale grey die-cut curl of paper smoke with a pencil outline; two small brown autumn leaves. Leave a wide margin of empty paper on all four sides. Each piece is complete, with a clean hard edge. {STYLE} On plain flat solid vivid {PAPER} paper, one even color. No scenery, no text.` |
-| `pip-sheet` | `1024:1024` | `art/runs/003-cast-puppets/pip-heads-sheet.png`, `art/runs/002-pip-puppet-and-live-painter/pip-parts-sheet.png` | `A sheet for the fox character and lantern in Figures 1 and 2, in exactly the same painting style. Three separate pieces with wide empty space between them, none touching. First, the fox's head with ears, chin lifted, looking up toward someone far above with big frightened eyes. Second, the same head and angle, chin lifted, looking up with a small hopeful pleading look. Both heads exactly the same size as the heads in Figure 1, ending cleanly at the chin ruff. Third, the same brass lantern as in Figure 2, exactly the same shape and size, but its flame has gone out: dark clear glass, a burnt wick and no glow. {STYLE} Natural animal anatomy, gentle and dignified, not a cartoon. On plain white paper. No scenery, no ground, no text.` |
+| `pip-sheet` | `1024:1024` | `art/runs/003-cast-puppets/pip-heads-sheet.png`, `art/runs/002-pip-puppet-and-live-painter/pip-parts-sheet.png` | `A sheet for the fox character and lantern in Figures 1 and 2, in exactly the same painting style. Three separate pieces with wide empty space between them, none touching. First, the fox's head with ears, chin lifted, looking up toward someone far above with big frightened eyes. Second, the same head and angle, chin lifted, looking up with a small hopeful pleading look. Both heads exactly the same size as the heads in Figure 1, ending cleanly at the chin ruff. Third, the same brass lantern as in Figure 2, exactly the same shape and size, but its flame has gone out: dark clear glass, a burnt wick and no glow. Leave a wide margin of empty paper on all four sides. {STYLE} Natural animal anatomy, gentle and dignified, not a cartoon. On plain white paper. No scenery, no ground, no text.` |
 
 - [ ] **Step 2: Confirm the queue fits and the cap is set**
 
-Assert `budget.assert_queue_fits` against only the new jobs and the spend so far. Expected queue cost 68.
+Assert `budget.assert_queue_fits` against `budget.pending_jobs` and the ledger's spend so far, and print the exact job list. Expected queue cost 68, eight jobs.
 
 - [ ] **Step 3: Ask the owner by question card to confirm the exclusive window**
 
@@ -248,11 +275,11 @@ States Phase B: 68 credits, about 16 minutes, how much remains under the cap. St
 
 - [ ] **Step 4: Run in the background, teeing to `log-b.txt`, and reconcile**
 
-Same command as Task 2. Expected eight `done` lines, then `budget.reconcile` with `unexplained` 0. If a job failed, compare balance change before resubmitting.
+Same command as Task 2. Expected eight `done` lines, then reconcile this invocation only, from `log-b.txt`, and add it to the ledger. Expected `unexplained` 0. If a job failed, stop and work out from the balance whether it was charged before queuing anything.
 
 - [ ] **Step 5: Look at every painting against Pip and the mockup**
 
-Reject anything with text, a framed book, a lit lamp or a border. A repaint is a new job id such as `layer-3-dunes-v2`, changes one thing, and needs the budget check and an exclusive window again. Repaints beyond the three budgeted go to the owner.
+Reject anything with text, a lit lamp, a picture of a book, or a frame around the whole image. The cover's gold ornament is wanted. A repaint is a new job id such as `layer-3-dunes-v2`, changes one thing, removes any failed job it replaces from `plan.json`, and needs the budget check, the exact queue shown to the owner, and an exclusive window again. Repaints beyond the three budgeted go to the owner.
 
 - [ ] **Step 6: Commit**
 
@@ -275,9 +302,9 @@ git commit -m "Paint run 004 layers, book and Pip's additions"
 
 - [ ] **Step 1: Write `make_pieces.py`, reproducible from the run folder**
 
-For each layer: `checks.border_is_paper`, then `cutout.py --seal=3`, then `despill`, `clear_enclosed`, `remove_specks`, `trim_base`, `center_on_canvas(…, 2720)`. Ground: `calibrate_paper`. Spine: a 48 px strip from the cover's left edge, without any border ornament. Trims: cutout with the piece names from the prompt in the tool's reading order, verified by eye.
+Before anything is finished, assert piece counts from `cutout.py`: one output for each layer, eight for trims and effects (ribbon, gold tab, sage tab, drawer pull, page edge, smoke, two leaves), three for Pip's sheet. For each layer: `checks.border_is_paper`, then `cutout.py --seal=3`, then `despill`, `clear_enclosed`, `remove_specks`, `trim_base`, `center_on_canvas(…, 2720)`. Ground: `calibrate_paper`. Spine: a 48 px strip from the cover's left edge, without any border ornament. Trims: cutout with the piece names from the prompt in the tool's reading order, verified by eye.
 
-Pip: choose the better of the two up heads by eye (the choice is mine, and the owner can overrule it in the proof), then `register_head` against `heads/forward.png`, save it scaled to the forward head's size, and add `up` to `rig.json`'s `head.offsets`. Save `lantern-out` through `fit_lantern`. If `outline_error` is over 5, paste its glass region inside the lit lantern's frame instead.
+Pip's sheet is on white paper, matching run 003's heads: `checks.border_is_paper`, `cutout.py --seal=3`, `clear_enclosed` on the lantern's handle, and a look at the pale fur. Choose the better of the two up heads by eye (the choice is mine, and the owner can overrule it in the proof), then `register_head` against `heads/forward.png`, saved with its aspect kept. Render a composite of `up` on Pip's real coat using the rig, and only write `up` to `rig.json`'s `head.offsets` once it seats in the collar. Save `lantern-out` through `fit_lantern`. If `outline_error` is over 5, paste its glass region inside the lit lantern's frame instead.
 
 - [ ] **Step 2: Run it and check every piece**
 
@@ -293,7 +320,7 @@ Follow the spec's list of required fields. Measure the lighthouse lamp position 
 
 - [ ] **Step 5: Run the value check**
 
-Take the coat color from Pip's `coat.png`, and the backdrop from the dunes region directly behind Pip's mark. Apply each mood tint (dusk, night, gold, values set in the proof page) to both. Expected: `checks.value_margin` at least 25 under dusk, and dunes never clip to black under night.
+Project the reference eye (y −500, z 420) through Pip at his mark onto the finished layers to get the actual backdrop behind his body, his head and the unlit lantern. Apply each of `checks.MOODS` to the backdrop and to Pip's coat, and to the lantern's glass. Expected `checks.value_margin` at least 25 under dusk and gold, at least 12 under night.
 
 - [ ] **Step 6: Commit**
 

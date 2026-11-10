@@ -55,8 +55,8 @@ Everything in this sequence is physically possible, which is the point of the ne
 - **Art:** one painting per layer, split at its center. No extra paint or credits. The Stage can use one texture with two sets of coordinates.
 - **The seam:** a hairline at the spine, the same as the fold in the page behind it. Nothing important sits in the center 6% of any layer.
 - **Why rising waits for the cover to land:** the moving cover never sweeps through a standing layer, so no collision logic is needed.
-- **Order and stacking:** a layer folds toward the reader and lies over those in front of it, so the sky is the top of the stack. Opening rises back to front. Closing folds front to back, then the cover closes. Each flat card sits 1 mm above the one beneath it, and the cover's inner face and the page block's top are at the same height when open. The closed book is never seen inside, so this only has to look right while layers are moving.
-- **Pip folds the other way.** At 170 mm tall on a mark 130 mm from the near edge, he'd overhang the page folding toward you. He folds away from you instead, about a hinge at his feet, and 130 + 170 = 300 mm fits on the 315 mm page. He rises last, so he's on top of the stack, and his puppet's parts go flat with him.
+- **Order and stacking:** every card folds toward the reader and lies over those in front of it. From the top of the flat stack down: sky, headland, dunes, Pip, foreground. Opening rises in that order, closing is the reverse, then the cover closes. Each flat card sits 1 mm above the one beneath it, and the cover's inner face and the page block's top are at the same height when open. The closed book is never seen inside, so this only has to look right while cards are moving.
+- **Pip is a card in that stack, not an exception.** Each card's sweep stays in front of its hinge, so rising back to front means no card passes through one already standing. That needs Pip's height to fit in front of his mark, so his mark moves to 175 mm: 170 mm of Pip folds down to 5 mm from the near edge. His puppet's parts go flat with him, and his timing is Ticket 1's.
 
 **Layers fold toward the reader, so you see their backs while they rise.** A double-sided card would show the painting mirrored, which is wrong. **Decision: backs are plain card in page color `#F6EFE2`.** No art is needed, and a flat layer is camouflaged on the page until it lifts.
 
@@ -74,10 +74,10 @@ Everything in this sequence is physically possible, which is the point of the ne
 
 | Piece | Hinge from near edge | Height | What it is |
 |---|---|---|---|
-| `layer-1-sky` | 290 mm | up to 236 mm | Pale dusk sky with a die-cut cloud top, faint moon |
-| `layer-2-headland` | 240 mm | up to 200 mm | Far headland with the lighthouse in the left third |
-| `layer-3-dunes` | 185 mm | up to 120 mm | Low dunes and a strip of sea, the pale band behind Pip |
-| Pip's mark | 130 mm, right of center | about 170 mm tall | |
+| `layer-1-sky` | 295 mm | up to 236 mm | Pale dusk sky with a die-cut cloud top, faint moon |
+| `layer-2-headland` | 250 mm | up to 200 mm | Far headland with the lighthouse in the left third |
+| `layer-3-dunes` | 215 mm | up to 120 mm | Low dunes and a strip of sea, the pale band behind Pip |
+| Pip's mark | 175 mm, right of center | about 170 mm tall | |
 | `layer-4-foreground` | 70 mm | up to 65 mm at the sides, under 30 mm in the center | Low reed and stone framing with a dip in the middle |
 | `ground` | on the page | full spread | Sand and path printed on the page, fading to bare paper at the edges |
 
@@ -86,8 +86,8 @@ The near 45 mm of the page stays bare paper for captions.
 **Why those numbers.** At a reference eye 500 mm back from the near edge and 420 mm above the table:
 
 - Ten centimeters of head sway moves the front layer against the back one by about 1.8 degrees, around 46 headset pixels. That's clearly visible.
-- The foreground's center dip keeps Pip's feet in view (its 30 mm hides ground only up to about 114 mm, and Pip stands at 130 mm).
-- The sight line through Pip's body lands on the dunes and through his head on the dunes and headland, which is why those two carry the value rule below.
+- The foreground's center dip keeps Pip's feet in view (its 30 mm hides ground only up to about 114 mm, and Pip stands at 175 mm).
+- The sight line through Pip's body lands on the dunes and through his head on the headland, which is why those two carry the value rule below.
 
 **Painting rules, each from a stated constraint:**
 
@@ -238,4 +238,6 @@ Findings not taken as written:
 - **"Make the sky and effects contingent on a composition test."** Not taken for the effects, because they cost nothing extra on a sheet being painted anyway, and I cut them to three. The sky stays for the reason given above, and the proof page lets you judge it.
 - **"The tool's cap failures mean it should be changed."** The ticket allows editing it only if it's actually broken for this run. Setting the per-invocation cap as described guarantees the limit without touching a tool that other workspaces are using.
 - **"The proof page is a second renderer and out of scope."** The ticket asks for the result to be shown for approval on the Mac, and approved acting and page design already live in reference pages like this. It stays, bounded to one file and three motions.
-- **"Pip's stowed pose needs a full mechanism."** Pip's fold direction fits the page and is recorded. His timing and hold are Ticket 1's, because they're acting and code.
+- **"Pip's stowed pose needs a full mechanism."** Pip's fold fits the page and is recorded. His timing and hold are Ticket 1's, because they're acting and code.
+
+The plan review found Pip would sweep through a standing layer with the away-fold from the second review, so he now folds like every other card, on a mark further back. It also found the plan's cost and queue checks were too loose, which the plan now fixes. It flagged commits as breaking `AGENTS.md`, which I rejected: the owner's ticket asks for commits as we go.
