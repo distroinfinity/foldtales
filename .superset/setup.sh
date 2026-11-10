@@ -57,7 +57,9 @@ allocate_ports() {
   done < <(git worktree list --porcelain | grep '^worktree ')
 
   local base="$PORT_START"
-  while [[ " $taken " == *" $base "* ]] || lsof -nP -iTCP:"$base" -sTCP:LISTEN >/dev/null 2>&1; do
+  while [[ " $taken " == *" $base "* ]] \
+    || lsof -nP -iTCP:"$base" -sTCP:LISTEN >/dev/null 2>&1 \
+    || lsof -nP -iTCP:"$((base + 1))" -sTCP:LISTEN >/dev/null 2>&1; do
     base=$((base + PORTS_PER_WORKSPACE))
   done
   printf 'PORT_BASE=%s\nCLIENT_PORT=%s\nBACKEND_PORT=%s\n' "$base" "$base" "$((base + 1))" > .env.ports
