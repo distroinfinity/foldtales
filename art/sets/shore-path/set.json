@@ -1,0 +1,203 @@
+{
+  "note": "The shore path set, as the art proposes it. Stage space as in contracts: meters at reference size, origin at the center of the spine on the table, y up, +z toward the reader. Re-check on the Quest.",
+  "reference": "Open book 0.42 x 0.315 m. Each layer image spans the full 0.42 m width at pxPerM, and splits at splitColumnPx: the left half stands on the cover's inside, the right half on the page block.",
+  "pxPerM": 6476.2,
+  "ground": {
+    "file": "ground.png",
+    "sizeM": [
+      0.42,
+      0.315
+    ],
+    "faces": "left half on the cover's inside, right half on the page block",
+    "captionBandM": 0.045
+  },
+  "layers": [
+    {
+      "id": "layer-1-sky",
+      "file": "layer-1-sky.png",
+      "sizePx": [
+        2720,
+        1173
+      ],
+      "sizeM": [
+        0.42,
+        0.1811
+      ],
+      "hinge": [
+        [
+          -0.21,
+          0.0,
+          -0.1375
+        ],
+        [
+          0.21,
+          0.0,
+          -0.1375
+        ]
+      ],
+      "splitColumnPx": 1360,
+      "standingDeg": 0,
+      "flatDeg": 90
+    },
+    {
+      "id": "layer-2-headland",
+      "file": "layer-2-headland.png",
+      "sizePx": [
+        2720,
+        1280
+      ],
+      "sizeM": [
+        0.42,
+        0.1976
+      ],
+      "hinge": [
+        [
+          -0.21,
+          0.0,
+          -0.0925
+        ],
+        [
+          0.21,
+          0.0,
+          -0.0925
+        ]
+      ],
+      "splitColumnPx": 1360,
+      "standingDeg": 0,
+      "flatDeg": 90
+    },
+    {
+      "id": "layer-3-dunes",
+      "file": "layer-3-dunes.png",
+      "sizePx": [
+        2720,
+        770
+      ],
+      "sizeM": [
+        0.42,
+        0.1189
+      ],
+      "hinge": [
+        [
+          -0.21,
+          0.0,
+          -0.0575
+        ],
+        [
+          0.21,
+          0.0,
+          -0.0575
+        ]
+      ],
+      "splitColumnPx": 1360,
+      "standingDeg": 0,
+      "flatDeg": 90
+    },
+    {
+      "id": "layer-4-foreground",
+      "file": "layer-4-foreground.png",
+      "sizePx": [
+        2720,
+        730
+      ],
+      "sizeM": [
+        0.42,
+        0.1127
+      ],
+      "hinge": [
+        [
+          -0.21,
+          0.0,
+          0.0425
+        ],
+        [
+          0.21,
+          0.0,
+          0.0425
+        ]
+      ],
+      "splitColumnPx": 1360,
+      "standingDeg": 0,
+      "flatDeg": 90
+    }
+  ],
+  "angles": "Degrees about the hinge line from upright. 0 stands, 90 lies flat with the top toward the reader and the painting face down.",
+  "stack": {
+    "topToBottom": [
+      "layer-1-sky",
+      "layer-2-headland",
+      "layer-3-dunes",
+      "pip",
+      "layer-4-foreground"
+    ],
+    "riseOrder": "top to bottom",
+    "closeOrder": "bottom to top, then the cover",
+    "flatOffsetM": 0.001,
+    "backColor": "#F6EFE2"
+  },
+  "anchors": {
+    "lighthouseLamp": {
+      "layer": "layer-2-headland",
+      "px": [
+        630,
+        148
+      ],
+      "position": [
+        -0.1127,
+        0.1748,
+        -0.0925
+      ]
+    }
+  },
+  "marks": [
+    {
+      "id": "pip",
+      "label": "Pip's mark",
+      "position": [
+        0.046,
+        0.0,
+        -0.0175
+      ]
+    }
+  ],
+  "pip": {
+    "heightM": 0.17,
+    "fold": "a card like the layers, hinge at his feet, standing 0 and flat 90",
+    "rigPxPerM": 5323.5,
+    "leftExtentM": 0.0447
+  },
+  "effects": {
+    "smoke": {
+      "file": "../../fx/smoke.png",
+      "heightM": 0.045,
+      "starts": "top of Pip's lantern, rising and fading"
+    },
+    "leaf-1": {
+      "file": "../../fx/leaf-1.png",
+      "heightM": 0.012,
+      "starts": "the left page edge, carried by the gust"
+    },
+    "leaf-2": {
+      "file": "../../fx/leaf-2.png",
+      "heightM": 0.012,
+      "starts": "the left page edge, a beat after leaf-1"
+    }
+  },
+  "moods": {
+    "dusk": [
+      0.86,
+      0.9,
+      1.0
+    ],
+    "night": [
+      0.45,
+      0.55,
+      0.7
+    ],
+    "gold": [
+      1.0,
+      0.88,
+      0.66
+    ]
+  }
+}

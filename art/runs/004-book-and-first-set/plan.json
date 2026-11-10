@@ -1,0 +1,163 @@
+{
+  "id": "004-book-and-first-set",
+  "question": "Can seedream5_pro paint a book and layered paper set that sit in the same book as Pip, and cut out cleanly?",
+  "why": "M1 needs a book, a set in layers, an unlit lantern and a look up. Phase A fixes the composition and proves a paper color before Phase B pays for the 2K paintings.",
+  "sameAcrossJobs": "Same painter and style text as runs 002 and 003. The two keys differ in one thing: whether lost household things lie on the shore.",
+  "decideBy": [
+    "You pick the key by eye: which one says Lost and Found at the Edge of the Table?",
+    "The paper test cuts out as one piece, with the pale sand and blue sea intact and no pink fringe.",
+    "Every Phase B piece passes the run's checks and sits with the cast by eye."
+  ],
+  "learnEvenIfRejected": "Which paper works for many-colored scenery, whether separately painted layers match a shared key, and real 2K cost.",
+  "reusableOutput": "Layers, ground, cover and trims become product art. The chosen key is the set's master reference for later sets.",
+  "capNote": "The run's total cap is 120 credits. capCredits here is reset before each invocation to 120 minus spend so far minus 9, because the tool resets its baseline on each invocation and can start a job at its limit.",
+  "capCredits": 16,
+  "jobs": [
+    {
+      "id": "key-plain",
+      "model": "seedream5_pro",
+      "ratio": "1376:768",
+      "refs": [
+        {
+          "file": "art/runs/002-pip-puppet-and-live-painter/pip-master-v2.png"
+        }
+      ],
+      "prompt": "A wide landscape in exactly the painting style of Figure 1, but without the fox or any character. A quiet shore below a lighthouse at gentle early dusk. A tall old stone lighthouse stands on a far headland in the left third, and its lamp room is dark and unlit. A strip of calm sea lies below the headland. Low pale sand dunes cross the middle, with a sandy path winding through them. Low clumps of reeds and a few stones sit at the far left and far right in the near foreground, dipping away to nothing in the center. A pale, soft dusk-blue sky with a faint moon. Mid-to-high values throughout, never dark, no night. The center right of the picture is open and calm, for a small character to stand in. No light sources, no beams, no lit windows, no directional cast shadows. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. No text."
+    },
+    {
+      "id": "key-lost-things",
+      "model": "seedream5_pro",
+      "ratio": "1376:768",
+      "refs": [
+        {
+          "file": "art/runs/002-pip-puppet-and-live-painter/pip-master-v2.png"
+        }
+      ],
+      "prompt": "A wide landscape in exactly the painting style of Figure 1, but without the fox or any character. A quiet shore below a lighthouse at gentle early dusk. A tall old stone lighthouse stands on a far headland in the left third, and its lamp room is dark and unlit. A strip of calm sea lies below the headland. Low pale sand dunes cross the middle, with a sandy path winding through them. Low clumps of reeds and a few stones sit at the far left and far right in the near foreground, dipping away to nothing in the center. Washed up among the dunes are three large lost household things, big as boulders: a brass button half sunk in the sand, a silver thimble, and a teaspoon standing upright like a post. A pale, soft dusk-blue sky with a faint moon. Mid-to-high values throughout, never dark, no night. The center right of the picture is open and calm, for a small character to stand in. No light sources, no beams, no lit windows, no directional cast shadows. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. No text."
+    },
+    {
+      "id": "paper-test",
+      "model": "seedream5_pro",
+      "ratio": "1376:768",
+      "refs": [
+        {
+          "file": "art/runs/002-pip-puppet-and-live-painter/pip-master-v2.png"
+        }
+      ],
+      "prompt": "A single die-cut paper stage piece, flat-on, in exactly the painting style of Figure 1: a low pale sand dune with tufts of sage-green reeds and a thin strip of pale blue sea along its top. Its silhouette has a clean hard edge traced with a fine pencil line, and a perfectly straight flat bottom edge. Leave a wide margin of empty paper on all four sides, with nothing touching the edge of the image. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. On plain flat solid vivid magenta paper, one even color. No text."
+    },
+    {
+      "id": "layer-1-sky",
+      "model": "seedream5_pro",
+      "ratio": "2720:1530",
+      "refs": [
+        {
+          "file": "art/runs/004-book-and-first-set/key.png"
+        }
+      ],
+      "prompt": "Figure 1 is the composed scene. Paint only the sky from Figure 1, as a single die-cut paper stage piece, flat-on, in exactly the same painting style and colors. A wide band of pale dusk-blue sky with a faint moon, its top edge cut in soft rolling cloud shapes. Its silhouette has a clean hard edge traced with a fine pencil line, and a perfectly straight flat bottom edge. Leave a wide margin of empty paper on all four sides, with nothing touching the edge of the image. The center of the piece stays free of important detail. Paint the whole piece continuously, including every part that other pieces would normally hide, right down to its straight bottom edge, with no gaps or holes. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. Pale, gentle dusk values. No lit windows, no beams, no directional cast shadows. On plain flat solid vivid magenta paper, one even color. No text."
+    },
+    {
+      "id": "layer-2-headland",
+      "model": "seedream5_pro",
+      "ratio": "2720:1530",
+      "refs": [
+        {
+          "file": "art/runs/004-book-and-first-set/key.png"
+        }
+      ],
+      "prompt": "Figure 1 is the composed scene. Paint only the far headland, lighthouse and strip of sea from Figure 1, as a single die-cut paper stage piece, flat-on, in exactly the same painting style and colors. The lighthouse stands in the left third, dark and unlit, on a low rocky headland, and the land falls to a strip of calm sea toward the right. Pale cool values. Its silhouette has a clean hard edge traced with a fine pencil line, and a perfectly straight flat bottom edge. Leave a wide margin of empty paper on all four sides, with nothing touching the edge of the image. The center of the piece stays free of important detail. Paint the whole piece continuously, including every part that other pieces would normally hide, right down to its straight bottom edge, with no gaps or holes. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. Pale, gentle dusk values. No lit windows, no beams, no directional cast shadows. On plain flat solid vivid magenta paper, one even color. No text."
+    },
+    {
+      "id": "layer-3-dunes",
+      "model": "seedream5_pro",
+      "ratio": "2720:1530",
+      "refs": [
+        {
+          "file": "art/runs/004-book-and-first-set/key.png"
+        }
+      ],
+      "prompt": "Figure 1 is the composed scene. Paint only the low sand dunes from Figure 1, as a single die-cut paper stage piece, flat-on, in exactly the same painting style and colors. A long, low, pale band of sand dunes with a few chunky tufts of grass, its top edge rising and falling gently. Lighter in value than a navy coat by a wide margin. On the left and center-left of the dunes lie the brass button half sunk in the sand, the silver thimble, and the teaspoon standing upright like a post, as in Figure 1. Its silhouette has a clean hard edge traced with a fine pencil line, and a perfectly straight flat bottom edge. Leave a wide margin of empty paper on all four sides, with nothing touching the edge of the image. The center of the piece stays free of important detail. Paint the whole piece continuously, including every part that other pieces would normally hide, right down to its straight bottom edge, with no gaps or holes. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. Pale, gentle dusk values. No lit windows, no beams, no directional cast shadows. On plain flat solid vivid magenta paper, one even color. No text."
+    },
+    {
+      "id": "layer-4-foreground",
+      "model": "seedream5_pro",
+      "ratio": "2720:1530",
+      "refs": [
+        {
+          "file": "art/runs/004-book-and-first-set/key.png"
+        }
+      ],
+      "prompt": "Figure 1 is the composed scene. Paint only the foreground reeds and stones from Figure 1, as a single die-cut paper stage piece, flat-on, in exactly the same painting style and colors. Chunky clumps of reeds and a few stones rising at the far left and far right, and dipping almost to nothing across the middle. The reeds are bold clump shapes, not thin strands. Its silhouette has a clean hard edge traced with a fine pencil line, and a perfectly straight flat bottom edge. Leave a wide margin of empty paper on all four sides, with nothing touching the edge of the image. The center of the piece stays free of important detail. Paint the whole piece continuously, including every part that other pieces would normally hide, right down to its straight bottom edge, with no gaps or holes. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. Pale, gentle dusk values. No lit windows, no beams, no directional cast shadows. On plain flat solid vivid magenta paper, one even color. No text."
+    },
+    {
+      "id": "ground",
+      "model": "seedream5_pro",
+      "ratio": "2304:1728",
+      "refs": [
+        {
+          "file": "art/runs/004-book-and-first-set/key.png"
+        }
+      ],
+      "prompt": "The printed page of an open picture book, seen flat from directly above, in exactly the painting style of Figure 1. Soft pale sand and a winding path, painted as flat watercolor washes with no horizon and no perspective, fading gently to bare warm white paper at all edges. The bottom sixth of the image is bare paper. A faint darkening down the exact center line where the two pages meet. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. No characters, no text, no border, not a photo of a book."
+    },
+    {
+      "id": "cover-front",
+      "model": "seedream5_pro",
+      "ratio": "1664:2496",
+      "refs": [
+        {
+          "file": "art/runs/002-pip-puppet-and-live-painter/pip-master-v2.png"
+        }
+      ],
+      "prompt": "The front cover of an old storybook, filling the whole image edge to edge, seen perfectly flat. Deep navy blue cloth with visible watercolor texture, in the painting style of Figure 1. A restrained gold-stamped ornamental border, a small gold-stamped lighthouse emblem in the lower half, and an empty plain panel in the upper third for a title to be added later. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. No text, no letters, no fox, no perspective, no book edges, no background."
+    },
+    {
+      "id": "trims-sheet",
+      "model": "seedream5_pro",
+      "ratio": "2048:2048",
+      "refs": [
+        {
+          "file": "art/runs/002-pip-puppet-and-live-painter/pip-master-v2.png"
+        }
+      ],
+      "prompt": "A paper-doll parts sheet, in exactly the painting style of Figure 1, of separate pieces for a storybook, with wide empty space between them, none touching: a rust-red cloth ribbon bookmark with a notched end, hanging straight; a gold cloth tab with a rounded end; a sage-green cloth tab with a rounded end; a small brown leather drawer pull with a brass handle; a long thin horizontal strip of stacked cream page edges with fine pencil lines; one opaque pale grey die-cut curl of paper smoke with a pencil outline; two small brown autumn leaves. Leave a wide margin of empty paper on all four sides. Each piece is complete, with a clean hard edge. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. On plain flat solid vivid magenta paper, one even color. No scenery, no text."
+    },
+    {
+      "id": "pip-sheet",
+      "model": "seedream5_pro",
+      "ratio": "1024:1024",
+      "refs": [
+        {
+          "file": "art/runs/003-cast-puppets/pip-heads-sheet.png"
+        },
+        {
+          "file": "art/runs/002-pip-puppet-and-live-painter/pip-parts-sheet.png"
+        }
+      ],
+      "prompt": "A sheet for the fox character and lantern in Figures 1 and 2, in exactly the same painting style. Three separate pieces with wide empty space between them, none touching. First, the fox's head with ears, chin lifted, looking up toward someone far above with big frightened eyes. Second, the same head and angle, chin lifted, looking up with a small hopeful pleading look. Both heads exactly the same size as the heads in Figure 1, ending cleanly at the chin ruff. Third, the same brass lantern as in Figure 2, exactly the same shape and size, but its flame has gone out: dark clear glass, a burnt wick and no glow. Leave a wide margin of empty paper on all four sides. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. Natural animal anatomy, gentle and dignified, not a cartoon. On plain white paper. No scenery, no ground, no text."
+    },
+    {
+      "id": "layer-2-headland-v2",
+      "model": "seedream5_pro",
+      "ratio": "2720:1530",
+      "refs": [
+        {
+          "file": "art/runs/004-book-and-first-set/key.png"
+        }
+      ],
+      "prompt": "Figure 1 is the composed scene. Paint only the far headland, lighthouse and strip of sea from Figure 1, as a single die-cut paper stage piece, flat-on, in exactly the same painting style and colors. The lighthouse stands in the left third, dark and unlit, on a low rocky headland, and the land falls to a strip of calm sea toward the right. Pale cool values. There is no sky at all: paint nothing behind the lighthouse. The cut edge follows the exact outline of the tower and the top of the headland, with the plain paper directly around the tower. Its silhouette has a clean hard edge traced with a fine pencil line, and a perfectly straight flat bottom edge. Leave a wide margin of empty paper on all four sides, with nothing touching the edge of the image. The center of the piece stays free of important detail. Paint the whole piece continuously, including every part that other pieces would normally hide, right down to its straight bottom edge, with no gaps or holes. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. Pale, gentle dusk values. No lit windows, no beams, no directional cast shadows. On plain flat solid vivid magenta paper, one even color. No text."
+    },
+    {
+      "id": "layer-4-foreground-v2",
+      "model": "seedream5_pro",
+      "ratio": "2720:1530",
+      "refs": [
+        {
+          "file": "art/runs/004-book-and-first-set/key.png"
+        }
+      ],
+      "prompt": "Figure 1 is the composed scene. Paint only the foreground reeds and stones from Figure 1, as a single die-cut paper stage piece, flat-on, in exactly the same painting style and colors. A very low, wide strip: the whole piece is no taller than one sixth of its width. Short chunky clumps of reeds and a few stones at the far left and far right, only that tall, dipping across the middle to a thin strip of ground. The reeds are bold clump shapes, not thin strands. Its silhouette has a clean hard edge traced with a fine pencil line, and a perfectly straight flat bottom edge. Leave a wide margin of empty paper on all four sides, with nothing touching the edge of the image. The center of the piece stays free of important detail. Paint the whole piece continuously, including every part that other pieces would normally hide, right down to its straight bottom edge, with no gaps or holes. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. Pale, gentle dusk values. No lit windows, no beams, no directional cast shadows. On plain flat solid vivid magenta paper, one even color. No text."
+    }
+  ]
+}

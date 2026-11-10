@@ -1,0 +1,16 @@
+Run 004-book-and-first-set: Can seedream5_pro paint a book and layered paper set that sit in the same book as Pip, and cut out cleanly?
+balance 112061, cap 16
+skip key-plain, already generated
+skip key-lost-things, already generated
+skip paper-test, already generated
+skip layer-1-sky, already generated
+skip layer-2-headland, already generated
+skip layer-3-dunes, already generated
+skip layer-4-foreground, already generated
+skip ground, already generated
+skip cover-front, already generated
+skip trims-sheet, already generated
+skip pip-sheet, already generated
+done layer-2-headland-v2: 161s, 9 credits
+done layer-4-foreground-v2: 156s, 9 credits
+finished, total spent 18

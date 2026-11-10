@@ -66,7 +66,8 @@
   },
   "rules": [
     "The head turns and tilts from the chin. Keep its slide small, or it comes off the collar.",
-    "A soft shadow under the chin seats the head in the collar."
+    "A soft shadow under the chin seats the head in the collar.",
+    "parts/lantern-out.png is the same lantern after it blows out. Swap it in for parts/lantern.png at the same place, pivot and scale."
   ],
   "head": {
     "x": -158,
@@ -97,6 +98,10 @@
       "profile": [
         -16,
         4
+      ],
+      "up": [
+        -43,
+        -14
       ]
     },
     "files": "heads/<name>.png"
