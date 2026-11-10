@@ -1,0 +1,50 @@
+{
+  "id": "004-book-and-first-set",
+  "question": "Can seedream5_pro paint a book and layered paper set that sit in the same book as Pip, and cut out cleanly?",
+  "why": "M1 needs a book, a set in layers, an unlit lantern and a look up. Phase A fixes the composition and proves a paper color before Phase B pays for the 2K paintings.",
+  "sameAcrossJobs": "Same painter and style text as runs 002 and 003. The two keys differ in one thing: whether lost household things lie on the shore.",
+  "decideBy": [
+    "You pick the key by eye: which one says Lost and Found at the Edge of the Table?",
+    "The paper test cuts out as one piece, with the pale sand and blue sea intact and no pink fringe.",
+    "Every Phase B piece passes the run's checks and sits with the cast by eye."
+  ],
+  "learnEvenIfRejected": "Which paper works for many-colored scenery, whether separately painted layers match a shared key, and real 2K cost.",
+  "reusableOutput": "Layers, ground, cover and trims become product art. The chosen key is the set's master reference for later sets.",
+  "capNote": "The run's total cap is 120 credits. capCredits here is reset before each invocation to 120 minus spend so far minus 9, because the tool resets its baseline on each invocation and can start a job at its limit.",
+  "capCredits": 111,
+  "jobs": [
+    {
+      "id": "key-plain",
+      "model": "seedream5_pro",
+      "ratio": "1376:768",
+      "refs": [
+        {
+          "file": "art/runs/002-pip-puppet-and-live-painter/pip-master-v2.png"
+        }
+      ],
+      "prompt": "A wide landscape in exactly the painting style of Figure 1, but without the fox or any character. A quiet shore below a lighthouse at gentle early dusk. A tall old stone lighthouse stands on a far headland in the left third, and its lamp room is dark and unlit. A strip of calm sea lies below the headland. Low pale sand dunes cross the middle, with a sandy path winding through them. Low clumps of reeds and a few stones sit at the far left and far right in the near foreground, dipping away to nothing in the center. A pale, soft dusk-blue sky with a faint moon. Mid-to-high values throughout, never dark, no night. The center right of the picture is open and calm, for a small character to stand in. No light sources, no beams, no lit windows, no directional cast shadows. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. No text."
+    },
+    {
+      "id": "key-lost-things",
+      "model": "seedream5_pro",
+      "ratio": "1376:768",
+      "refs": [
+        {
+          "file": "art/runs/002-pip-puppet-and-live-painter/pip-master-v2.png"
+        }
+      ],
+      "prompt": "A wide landscape in exactly the painting style of Figure 1, but without the fox or any character. A quiet shore below a lighthouse at gentle early dusk. A tall old stone lighthouse stands on a far headland in the left third, and its lamp room is dark and unlit. A strip of calm sea lies below the headland. Low pale sand dunes cross the middle, with a sandy path winding through them. Low clumps of reeds and a few stones sit at the far left and far right in the near foreground, dipping away to nothing in the center. Washed up among the dunes are three large lost household things, big as boulders: a brass button half sunk in the sand, a silver thimble, and a teaspoon standing upright like a post. A pale, soft dusk-blue sky with a faint moon. Mid-to-high values throughout, never dark, no night. The center right of the picture is open and calm, for a small character to stand in. No light sources, no beams, no lit windows, no directional cast shadows. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. No text."
+    },
+    {
+      "id": "paper-test",
+      "model": "seedream5_pro",
+      "ratio": "1376:768",
+      "refs": [
+        {
+          "file": "art/runs/002-pip-puppet-and-live-painter/pip-master-v2.png"
+        }
+      ],
+      "prompt": "A single die-cut paper stage piece, flat-on, in exactly the painting style of Figure 1: a low pale sand dune with tufts of sage-green reeds and a thin strip of pale blue sea along its top. Its silhouette has a clean hard edge traced with a fine pencil line, and a perfectly straight flat bottom edge. Leave a wide margin of empty paper on all four sides, with nothing touching the edge of the image. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. On plain flat solid vivid magenta paper, one even color. No text."
+    }
+  ]
+}
