@@ -74,6 +74,7 @@ export const Spine = z.strictObject({
   source: z.enum(['authored', 'generated']),
   targetSeconds: z.strictObject({ min: z.number().positive(), max: z.number().positive() }),
   scenes: z.array(Scene).min(1),
+  /** Narrator lines for when a beat is late. A bridge belongs to no scene, so it can't name a mark, an object or a problem. */
   bridges: z.array(Beat),
 });
 export type Spine = z.infer<typeof Spine>;

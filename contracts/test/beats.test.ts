@@ -246,3 +246,9 @@ describe('checkSpine', () => {
     expect(beatById('funny').actions.some((a) => a.do === 'resolve')).toBe(false);
   });
 });
+
+test('a bridge has no scene, so it cannot name a mark', () => {
+  const spine = fixtureSpine();
+  spine.bridges[0]!.actions = [{ do: 'cue', withPrev: false, cue: 'sparkle', target: 'mark:brook' }];
+  expect(checkSpine(spine, fixtureLibrary()).map((i) => i.code)).toEqual(['unknown_mark']);
+});

@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { ACTING } from '../src/acting.ts';
+import { Entity, Id } from '../src/primitives.ts';
 import { StageAction, stageActionsJsonSchema } from '../src/stage-actions.ts';
 
 const validActions = [
@@ -144,4 +145,13 @@ test('the JSON Schema uses only what structured outputs accept', () => {
     if (node.type === 'array') expect((node.minItems as number | undefined) ?? 0).toBeLessThanOrEqual(1);
   });
   expect(objects).toBe(13);
+});
+
+test('a generated UUID is a valid id, and capitals are not', () => {
+  for (let i = 0; i < 200; i += 1) expect(Id.safeParse(crypto.randomUUID()).success).toBe(true);
+  expect(Id.safeParse('Bramble').success).toBe(false);
+});
+
+test('an entity can name a UUID copy', () => {
+  expect(Entity.safeParse('object:0f3a9c1e-7b2d-4c11-9e4a-1234567890ab').success).toBe(true);
 });

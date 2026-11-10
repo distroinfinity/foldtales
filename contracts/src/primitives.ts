@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
-const ID = '[a-z][a-z0-9_-]*(?:#[a-z0-9_-]+)?';
+const ID = '[a-z0-9][a-z0-9_-]*(?:#[a-z0-9_-]+)?';
 
-/** Any content id: cast, object copy, mark, set, cue, tag, beat, player. Never an enum. */
+/** Any id: cast, object copy, mark, set, cue, tag, beat, series, episode, player. Lowercase, so a crypto.randomUUID() fits. Never an enum. */
 export const Id = z.string().regex(new RegExp(`^${ID}$`));
 
 /**
@@ -80,7 +80,7 @@ export type ErrorCode = z.infer<typeof ErrorCode>;
 export const Player = z.strictObject({ id: Id, name: z.string().min(1).max(40) });
 export type Player = z.infer<typeof Player>;
 
-const ENTITY = '(?:cast|object):[a-z][a-z0-9_-]*(?:#[a-z0-9_-]+)?';
+const ENTITY = `(?:cast|object):${ID}`;
 
 /** A character or object copy that exists on stage. Unlike EntityRef, never a placeholder. */
 export const Entity = z.string().regex(new RegExp(`^${ENTITY}$`));
