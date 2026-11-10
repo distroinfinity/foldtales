@@ -1,0 +1,13 @@
+{
+  "pip": ["Mabel", "Kylie", "Elliot"],
+  "wick": ["Arjun", "Clint", "Ragnar"],
+  "moth": ["Xylar", "Ella", "Pip"],
+  "narrator": ["Bernard", "Wanda", "Tom"],
+  "why": {
+    "pip": "Young and light. Three steps up in pitch (260, 298, 330 Hz) with wide range. Mabel is the warmest (centroid 3232), Kylie has the widest range (2.52), Elliot is highest while still mid-bright.",
+    "wick": "Lowest and darkest options, on different axes. Arjun is lowest of the darker voices (150 Hz). Clint is the steadiest (range 1.64), which may read as gruff. Ragnar is the darkest timbre in the sweep (centroid 2680).",
+    "moth": "Highest and most mobile. Xylar is highest (388 Hz) but only 1 s voiced, so maybe breathy or odd, which could suit Moth. Ella is brightest (centroid 4922) with wide range. Pip (the preset, blind to its name) is high and clear.",
+    "narrator": "Mid register, warm, and two genders for a real choice. Bernard is mid-pitch and dark (197 Hz, centroid 2985). Wanda is the darkest of the higher voices (231 Hz, centroid 2835). Tom is lower and steadier (163 Hz, range 1.95).",
+    "limits": "Measurements cover register only, and the sweep line pushes pitch up. Nothing here says warm, cozy or a good actor. That's for the user's ears."
+  }
+}
