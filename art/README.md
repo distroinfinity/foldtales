@@ -16,6 +16,10 @@ Generated art is a product asset, not a temp file. Credits are only spent on pla
 - `refs/`: approved design references that generations work from.
 - `runs/<id>/`: each planned run, with its plan, images, manifest and results.
 - `cast/<who>/`: finished puppet pieces and each character's `rig.json`. These are product assets.
+- `book/`: the book's cover, spine, page edge, ribbon, tabs and drawer pull, with `book.json` saying where each goes.
+- `sets/<set>/`: a set's layers and printed ground, with `set.json` giving hinges, sizes and anchors in stage space.
+- `fx/`: small effect pieces such as smoke and leaves.
+- `m1-proof.html`: the M1 moment with the real pieces, in CSS 3D. Reference only.
 - `cast/prototype.html`: the approved acting for all three characters. Reference only.
 - `book-mockup.html`: the approved page, lettering and controls. Reference only.
 - `tools/generate.mjs`: runs a plan. Use `node --env-file=.env.local art/tools/generate.mjs art/runs/<id>` from the repo root. Needs `RUNWAYML_API_SECRET` in `.env.local`.
@@ -34,3 +38,11 @@ Generated art is a product asset, not a temp file. Credits are only spent on pla
 - **Pale pieces need contrasting paper.** Cream wings on cream paper get eaten when cut out, even with the tint removed. Tested for free on run 001's Moth, before spending credits.
 - **A speaking character costs 10 credits to prepare.** One parts sheet and one sheet of six heads. Talking and blinking heads from one sheet line up within 5 pixels once aligned (run 003).
 - **Pale fur can leak through a pencil line.** Use `cutout.py --seal=3`. Cut very pale pieces out on flat colored paper instead of white (run 003).
+- **Leave paper on all four sides.** `cutout.py` takes the paper's color from the image border, so a piece painted to the edge gets inverted (run 004).
+- **Flat vivid magenta paper suits many-colored scenery,** and needs no `--seal`. Sealing on textured colored paper keeps the whole image (run 004).
+- **Expect the painter to fill in what's behind a piece.** It painted sky behind a cut-out lighthouse twice. Say "no sky at all", and cut the rest away by color (run 004).
+- **Give heights as a fraction of width.** "Low" isn't enough (run 004).
+- **Register new heads against the puppet's real head and body, not their sheet** (run 004).
+- **The shared Runway account needs a clear window you've confirmed, and a reconcile after every invocation.** The tool measures spend from the balance, so another workspace's charges look like yours (run 004).
+- **2K costs 9 credits.** Keep reference images at 1K, under the 5 MB limit (run 004).
+
