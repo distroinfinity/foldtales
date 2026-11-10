@@ -1,0 +1,28 @@
+{
+  "id": "006-drawer-objects",
+  "question": "Can run 004's parts-sheet recipe paint the drawer's five objects for M2 so they cut out cleanly and sit in Pip's paw in his style?",
+  "why": "M2 opens the drawer at the gap so you can hand Pip anything. The gap accepts flies, climbs, spans and rope, and anything else is a funny failure. Kite, spool and ladder cover every accepted tag; an odd sock and a brass key are the failures.",
+  "sameAcrossJobs": "Run 004's trims-sheet recipe unchanged except for the pieces: seedream5_pro, 2048:2048, pip-master-v2 as Figure 1, flat vivid magenta paper with a margin on all four sides.",
+  "decideBy": [
+    "The sheet cuts into exactly five pieces without --seal, and every piece passes make_objects.py's checks.",
+    "Each object reads at a glance as what it is, in the cast's painted style.",
+    "The owner approves Pip holding each one in art/objects-proof.html."
+  ],
+  "learnEvenIfRejected": "Whether one sheet can hold objects of different sizes at one shared scale, and whether thin structures (ladder rungs, kite tail, key shaft) survive cutting and resampling to Pip's density.",
+  "reusableOutput": "Five product objects in art/objects/<id>/, each a PNG plus object.json. The prompt is the recipe for later object sheets.",
+  "capNote": "The run's total cap is 36 credits (9 planned plus up to three repaints). capCredits is reset before each invocation to 36 minus spend so far minus 9, plus 1. generate.mjs refuses a job once its own spend reaches capCredits, so this lets it start a job only when that job still fits the run's cap. A cap of 0 would block even the first job (Codex review, finding 3).",
+  "capCredits": 28,
+  "jobs": [
+    {
+      "id": "objects-sheet",
+      "model": "seedream5_pro",
+      "ratio": "2048:2048",
+      "refs": [
+        {
+          "file": "art/runs/002-pip-puppet-and-live-painter/pip-master-v2.png"
+        }
+      ],
+      "prompt": "A paper-doll parts sheet, in exactly the painting style of Figure 1, of five separate lost household things for a storybook, all painted at one shared scale as if lying side by side, with wide empty space between them, none touching. Their heights relative to the ladder: the kite with its tail is four fifths of the ladder's height, the sock three fifths, and the key and the spool each half. A little wooden ladder with five rungs standing upright, with two sturdy pale-wood rails, three times as tall as it is wide, the tallest thing on the sheet. A diamond-shaped paper kite of faded rust-red and cream patches on a thin wooden cross, with a short tail of three cloth bows joined to its bottom corner, the whole kite with its tail one and a half times as tall as it is wide, no string. A wooden spool wound thick with sage-green thread, standing upright, as tall as it is wide, its loose end tucked in. A single cream wool sock with rust and sage stripes and a darned heel, lying flat, twice as tall as it is wide. An old brass key with a round looped bow, standing upright, two and a half times as tall as it is wide. Leave a wide margin of empty paper on all four sides. Each piece is complete, with a clean hard edge. No cast shadows on the paper. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. Natural, believable objects, not cartoons. On plain flat solid vivid magenta paper, one even color. No pink or purple on any object. No scenery, no text."
+    }
+  ]
+}
