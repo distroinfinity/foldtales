@@ -75,3 +75,20 @@ def value_margin(backdrop_rgb, coat_rgb):
 
 def cut_count(out_dir):
     return len(list(Path(out_dir).glob("*.png")))
+
+
+def check_manifest(book, sets, book_dir, set_dir):
+    """Names in book.json and set.json that have no file, and files that neither names."""
+    problems = []
+    groups = [(Path(book_dir), [p["file"] for p in book["parts"].values()])]
+    named = [layer["file"] for layer in sets["layers"]] + ([sets["ground"]["file"]] if "ground" in sets else [])
+    groups.append((Path(set_dir), named))
+    for folder, names in groups:
+        label = "/".join(folder.parts[-2:]) if folder.name != "book" else "book"
+        for name in names:
+            if not (folder / name).exists():
+                problems.append(f"missing: {label}/{name}")
+        for png in folder.glob("*.png"):
+            if png.name not in names:
+                problems.append(f"unreferenced: {label}/{png.name}")
+    return problems

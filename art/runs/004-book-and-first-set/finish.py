@@ -10,7 +10,7 @@ PAGE = (246, 239, 226)
 def remove_specks(rgba, max_area=200):
     """Clear separate bits of paint smaller than max_area, such as trapped paper flecks."""
     out = rgba.copy()
-    labels, count = ni.label(out[..., 3] > 0)
+    labels, count = ni.label(out[..., 3] > 40)
     if count:
         sizes = ni.sum(np.ones(labels.shape), labels, range(1, count + 1))
         small = np.isin(labels, 1 + np.nonzero(sizes < max_area)[0])
@@ -37,6 +37,25 @@ def despill(rgba, paper_rgb, band=3):
     chroma = colors - colors.mean(axis=1, keepdims=True)
     amount = np.maximum((chroma * hue).sum(axis=1) / (hue * hue).sum(), 0)
     out[edge, :3] = np.clip(colors - amount[:, None] * hue, 0, 255).round().astype("uint8")
+    return out
+
+
+def clear_magenta(rgba):
+    """Clear any leftover vivid magenta, including shadow on the paper, without touching rust or gold."""
+    out = rgba.copy()
+    r, g, b = [out[..., i].astype(int) for i in range(3)]
+    out[(r - g > 70) & (b - g > 25), 3] = 0
+    return out
+
+
+def clear_white_fringe(rgba, paper_rgb, tolerance=14):
+    """Eat paper-white flecks inward from the outside, stopping at the first real color."""
+    out = rgba.copy()
+    near = np.abs(out[..., :3].astype(int) - paper_rgb).max(axis=2) <= tolerance
+    outside = out[..., 3] == 0
+    labels, _ = ni.label(near | outside)
+    touching = np.unique(labels[outside])
+    out[np.isin(labels, touching[touching > 0])] = 0
     return out
 
 

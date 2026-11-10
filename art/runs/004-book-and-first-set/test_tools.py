@@ -118,6 +118,19 @@ class Cuts(unittest.TestCase):
         self.assertEqual(out[40, 45, 3], 0)
         self.assertEqual(out[40, 115, 3], 255)
 
+    def test_magenta_shadow_is_cleared_and_rust_kept(self):
+        img = paint(paint(canvas(100, 200), 20, 80, 20, 180, (181, 80, 46)), 60, 80, 20, 180, (150, 30, 95))
+        out = finish.clear_magenta(img)
+        self.assertEqual(out[70, 100, 3], 0)
+        self.assertEqual(out[40, 100, 3], 255)
+
+    def test_white_fringe_is_eaten_from_outside_only(self):
+        img = paint(paint(canvas(100, 200), 20, 80, 20, 180, (246, 246, 244)), 30, 70, 30, 170, (200, 120, 70))
+        paint(img, 45, 55, 60, 90, (246, 246, 244))     # a pale patch enclosed in the fur stays
+        out = finish.clear_white_fringe(img, (246, 246, 244))
+        self.assertEqual(out[25, 100, 3], 0)
+        self.assertEqual(out[50, 75, 3], 255)
+
     def test_despill_pulls_edge_color_away_from_paper(self):
         img = paint(paint(canvas(100, 200), 20, 80, 20, 180, (170, 70, 130)), 26, 74, 26, 174, (120, 120, 120))
         out = finish.despill(img, MAGENTA)
@@ -183,6 +196,35 @@ class Paper(unittest.TestCase):
             Image.fromarray(sheet).save(Path(d, "s.png"))
             subprocess.run([sys.executable, str(CUTOUT), "--seal=3", str(Path(d, "s.png")), str(Path(d, "o"))], check=True, capture_output=True)
             self.assertEqual(checks.cut_count(Path(d, "o")), 2)
+
+
+class Manifest(unittest.TestCase):
+    def test_missing_and_unreferenced_files_are_named(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            for name in ("book/cover.png", "sets/x/layer.png", "sets/x/orphan.png"):
+                (root / name).parent.mkdir(parents=True, exist_ok=True)
+                (root / name).write_bytes(b"x")
+            book = {"parts": {"cover": {"file": "cover.png"}, "gone": {"file": "gone.png"}}}
+            sets = {"layers": [{"file": "layer.png"}], "ground": {"file": "ground.png"}}
+            problems = checks.check_manifest(book, sets, root / "book", root / "sets/x")
+            self.assertIn("missing: book/gone.png", problems)
+            self.assertIn("missing: sets/x/ground.png", problems)
+            self.assertIn("unreferenced: sets/x/orphan.png", problems)
+
+    def test_agreeing_manifest_passes(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            for name in ("book/cover.png", "sets/x/layer.png"):
+                (root / name).parent.mkdir(parents=True, exist_ok=True)
+                (root / name).write_bytes(b"x")
+            self.assertEqual(checks.check_manifest({"parts": {"c": {"file": "cover.png"}}}, {"layers": [{"file": "layer.png"}]}, root / "book", root / "sets/x"), [])
+
+    def test_speck_threshold_matches_the_check(self):
+        img = paint(canvas(120, 240), 20, 100, 20, 200)
+        img[10:12, 210:213] = (60, 90, 160, 80)
+        img[12:14, 205:215] = (60, 90, 160, 20)      # joined only at very low alpha
+        self.assertEqual(checks.check_cut(finish.remove_specks(img), 10, 10), [])
 
 
 class Registration(unittest.TestCase):
