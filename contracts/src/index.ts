@@ -5,3 +5,4 @@ export * from './stage-actions.ts';
 export * from './objects.ts';
 export * from './rig.ts';
 export * from './library.ts';
+export * from './beats.ts';
