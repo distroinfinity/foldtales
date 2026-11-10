@@ -140,6 +140,15 @@ class Cuts(unittest.TestCase):
         self.assertEqual(out[75, 60, 3], 255)
         self.assertEqual(out[85, 100, 3], 255)
 
+    def test_clear_enclosed_leaves_pale_flecks_in_the_paint(self):
+        img = paint(canvas(120, 240), 10, 110, 10, 230, (181, 80, 46))
+        img[50, 50, :3] = MAGENTA                         # a single paper-colored fleck inside the paint
+        paint(img, 30, 60, 120, 160, MAGENTA)            # a real trapped hole, 1200 px
+        out = finish.clear_enclosed(img, MAGENTA)
+        self.assertEqual(out[50, 50, 3], 255)
+        self.assertEqual(out[45, 140, 3], 0)
+        self.assertEqual(out[50, 52, 3], 255)
+
     def test_despill_pulls_edge_color_away_from_paper(self):
         img = paint(paint(canvas(100, 200), 20, 80, 20, 180, (170, 70, 130)), 26, 74, 26, 174, (120, 120, 120))
         out = finish.despill(img, MAGENTA)
@@ -251,6 +260,12 @@ class Registration(unittest.TestCase):
         out = finish.fit_lantern(smaller, lantern_shape())
         self.assertEqual(out.shape, lantern_shape().shape)
         self.assertLessEqual(finish.outline_error(out, lantern_shape()), 3)
+
+
+class Fold(unittest.TestCase):
+    def test_pip_must_stay_on_his_own_page(self):
+        self.assertFalse(checks.clears_spine(mark_x_mm=10, left_extent_mm=40))
+        self.assertTrue(checks.clears_spine(mark_x_mm=41, left_extent_mm=40))
 
 
 class Values(unittest.TestCase):

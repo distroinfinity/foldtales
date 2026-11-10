@@ -45,4 +45,3 @@ Generated art is a product asset, not a temp file. Credits are only spent on pla
 - **Register new heads against the puppet's real head and body, not their sheet** (run 004).
 - **The shared Runway account needs a clear window you've confirmed, and a reconcile after every invocation.** The tool measures spend from the balance, so another workspace's charges look like yours (run 004).
 - **2K costs 9 credits.** Keep reference images at 1K, under the 5 MB limit (run 004).
-

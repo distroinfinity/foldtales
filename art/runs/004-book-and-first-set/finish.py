@@ -18,11 +18,15 @@ def remove_specks(rgba, max_area=200):
     return out
 
 
-def clear_enclosed(rgba, paper_rgb, tolerance=40):
-    """Clear paper trapped inside a piece, leaving paint of any other color."""
+def clear_enclosed(rgba, paper_rgb, tolerance=40, min_area=200):
+    """Clear pools of paper trapped inside a piece. Flecks smaller than min_area are paint, and stay."""
     out = rgba.copy()
     near = np.abs(out[..., :3].astype(int) - paper_rgb).max(axis=2) <= tolerance
-    out[ni.binary_dilation(near & (out[..., 3] > 0)), 3] = 0
+    labels, count = ni.label(near & (out[..., 3] > 0))
+    if count:
+        sizes = ni.sum(np.ones(labels.shape), labels, range(1, count + 1))
+        pools = np.isin(labels, 1 + np.nonzero(sizes >= min_area)[0])
+        out[ni.binary_dilation(pools), 3] = 0
     return out
 
 

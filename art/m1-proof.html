@@ -75,9 +75,13 @@
   const title = el(cover, 'title'); title.textContent = 'The Lighthouse at the Edge of the Table';
   el(cover, 'face back', { backgroundImage: 'url(sets/shore-path/ground.png)', backgroundSize: '200% 100%', backgroundPosition: '0 0' });
 
+  // Left halves hinge on the cover's inside and travel with it. This frame undoes the cover's turn,
+  // so it matches the table once the cover lands, and carries the flat cards while it swings.
+  const leftFrame = el(cover, 'p3', { left: 0, top: 0, width: px(W), height: px(D), transformOrigin: 'left center', transform: 'rotateY(180deg) translateZ(1px)' });
   // A card stands on its hinge. Angles: -180 lies flat toward the reader, face down; -90 stands.
-  function card(x, zStage, w, h, img, pos) {
-    const c = el(bookRoot, 'p3', { left: px(x), top: px(mm(zStage) - h), width: px(w), height: px(h), transformOrigin: 'bottom center' });
+  function card(x, zStage, w, h, img, pos, parent) {
+    const top = mm(zStage) - h + (parent ? D / 2 : 0);
+    const c = el(parent || bookRoot, 'p3', { left: px(x), top: px(top), width: px(w), height: px(h), transformOrigin: 'bottom center' });
     el(c, 'face', { backgroundImage: `url(${img})`, backgroundSize: '200% 100%', backgroundPosition: pos });
     el(c, 'face back', { background: 'var(--page)', webkitMaskImage: `url(${img})`, maskImage: `url(${img})`, webkitMaskSize: '200% 100%', maskSize: '200% 100%', webkitMaskPosition: pos, maskPosition: pos, maskRepeat: 'no-repeat', webkitMaskRepeat: 'no-repeat' });
     return c;
@@ -85,12 +89,12 @@
   const cards = {};
   for (const layer of set.layers) {
     const h = mm(layer.sizeM[1]), z = layer.hinge[0][2], img = `sets/shore-path/${layer.file}`;
-    cards[layer.id] = [card(-W, z, W, h, img, '0 0'), card(0, z, W, h, img, '100% 0')];
+    cards[layer.id] = [card(-W, z, W, h, img, '0 0', leftFrame), card(0, z, W, h, img, '100% 0')];
   }
 
   // Pip, built from his rig at 12 poses a second.
   const mark = set.marks[0];
-  const pipH = mm(mark.heightM), pipW = pipH * 0.62, rigScale = pipH / 1000;
+  const pip = set.pip, pipH = mm(pip.heightM), pipW = pipH * 0.7, rigScale = pipH / 905;
   const pipShadow = el(bookRoot, 'shadow', { left: px(mm(mark.position[0]) - pipW * 0.45), top: px(mm(mark.position[2]) - mm(0.012)), width: px(pipW * 0.9), height: px(mm(0.024)), transform: 'translateZ(1px)' });
   const pipCard = el(bookRoot, 'p3', { left: px(mm(mark.position[0]) - pipW / 2), top: px(mm(mark.position[2]) - pipH), width: px(pipW), height: px(pipH), transformOrigin: 'bottom center' });
   const pipFace = el(pipCard, 'face', { filter: 'none', overflow: 'visible' });
@@ -113,7 +117,8 @@
     heads[name].style.display = 'none';
   }
   const glow = el(root, 'glow', { zIndex: 8, width: '620px', height: '620px', left: px(96 - 310), top: px(-215 - 310) });
-  const smoke = el(root, 'fx', { zIndex: 9, width: '150px', height: '210px', left: '40px', top: '-560px', backgroundImage: 'url(fx/smoke.png)', backgroundSize: 'contain', backgroundRepeat: 'no-repeat' });
+  const smokeH = set.effects.smoke.heightM * 905 / pip.heightM;
+  const smoke = el(root, 'fx', { zIndex: 9, width: px(smokeH * 0.47), height: px(smokeH), left: '40px', top: px(-350 - smokeH), backgroundImage: 'url(fx/smoke.png)', backgroundSize: 'contain', backgroundRepeat: 'no-repeat' });
   const leaves = ['leaf-1', 'leaf-2'].map((n) => el(bookRoot, 'fx', { width: px(mm(0.014)), height: px(mm(0.014)), left: px(-W), top: px(mm(0.03)), backgroundImage: `url(fx/${n}.png)`, backgroundSize: 'contain', backgroundRepeat: 'no-repeat' }));
 
   // Mood is one tint across the stage, as the design language says.
@@ -153,7 +158,7 @@
       const v = clamp((t - 2.5 - i * 0.28) / 0.6);
       const a = -180 + 90 * (v === 0 ? 0 : back(v));
       const targets = id === 'pip' ? [pipCard] : cards[id];
-      targets.forEach((c, side) => { c.style.transform = `rotateX(${a}deg)`; c.style.opacity = t < 2.4 && (side === 0 || id === 'pip') ? 0 : 1; });
+      targets.forEach((c) => { c.style.transform = `rotateX(${a}deg)`; });
     });
     pipShadow.style.opacity = clamp((t - 3.5) / 0.4);
     // The gust, the flame going out, then Pip looks up.

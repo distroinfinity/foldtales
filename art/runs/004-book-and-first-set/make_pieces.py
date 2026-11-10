@@ -153,35 +153,54 @@ def make_pip():
     return up, (dx, dy), out, finish.outline_error(out, lit), frightened
 
 
+def glass_mask(a):
+    """The lantern's glass: the biggest pale region in its body."""
+    lum = a[..., :3].astype(float).mean(axis=2)
+    h = a.shape[0]
+    body = np.zeros(a.shape[:2], bool)
+    body[int(h * 0.33) : int(h * 0.80)] = True
+    labels, count = ni.label((lum > 150) & (a[..., 3] > 127) & body)
+    sizes = ni.sum(np.ones(labels.shape), labels, range(1, count + 1))
+    return ni.binary_fill_holes(labels == 1 + int(np.argmax(sizes)))
+
+
 def glass_in_frame(unlit, lit):
     """Keep the lit lantern's brass exactly, with the painted dark glass inside it."""
-    def glass(a):
-        lum = a[..., :3].astype(float).mean(axis=2)
-        h = a.shape[0]
-        body = np.zeros(a.shape[:2], bool)
-        body[int(h * 0.33) : int(h * 0.80)] = True
-        labels, count = ni.label((lum > 150) & (a[..., 3] > 127) & body)
-        sizes = ni.sum(np.ones(labels.shape), labels, range(1, count + 1))
-        return ni.binary_fill_holes(labels == 1 + int(np.argmax(sizes)))
-    target, source = glass(lit), glass(unlit)
+    target, source = glass_mask(lit), glass_mask(unlit)
     top, bottom, left, right = np.nonzero(target.any(axis=1))[0][[0, -1]].tolist() + np.nonzero(target.any(axis=0))[0][[0, -1]].tolist()
     s_top, s_bottom, s_left, s_right = np.nonzero(source.any(axis=1))[0][[0, -1]].tolist() + np.nonzero(source.any(axis=0))[0][[0, -1]].tolist()
     patch = Image.fromarray(unlit[s_top : s_bottom + 1, s_left : s_right + 1]).resize((right - left + 1, bottom - top + 1), Image.LANCZOS)
     out = lit.copy()
     soft = ni.gaussian_filter(target.astype(float), 1.2)[top : bottom + 1, left : right + 1, None]
     region = out[top : bottom + 1, left : right + 1, :3].astype(float)
-    out[top : bottom + 1, left : right + 1, :3] = (region * (1 - soft) + np.asarray(patch)[..., :3] * soft).round().astype("uint8")
+    # Painted glass came back milky. Dark, cool, smoky glass is what reads as "the light went out".
+    dark = np.asarray(patch)[..., :3] * np.array([0.50, 0.55, 0.64])
+    out[top : bottom + 1, left : right + 1, :3] = (region * (1 - soft) + dark * soft).round().astype("uint8")
     return out
 
 
 SPINE_DEPTH_MM = 315 / 2
 LAMP_PX = (630, 148)
-PIP_MARK_MM = (10, 175)
+PIP_MARK_MM = (46, 175)
 
 
 def stage(x_mm, depth_mm, up_mm=0.0):
     """Millimeters on the reference book (depth from the near edge) to contract stage space in meters."""
     return [round(x_mm / 1000, 4), round(up_mm / 1000, 4), round((SPINE_DEPTH_MM - depth_mm) / 1000, 4)]
+
+
+def sized(name, width_m, by="width"):
+    """A trim's size in meters at a given width, keeping the painting's own shape."""
+    h, w = load_rgba(ART / "book" / name).shape[:2]
+    return [width_m, round(width_m * h / w, 4)]
+
+
+def pip_left_extent_mm():
+    """How far Pip's painted parts reach left of his feet, at 905 rig px to 170 mm."""
+    import json
+    rig = json.loads((ART / "cast/pip/rig.json").read_text())
+    lefts = [p["x"] for p in rig["parts"].values()] + [rig["head"]["x"] + min(o[0] for o in rig["head"]["offsets"].values()) * rig["head"]["scale"]]
+    return -min(lefts) * 170 / 905
 
 
 def write_metadata():
@@ -194,7 +213,7 @@ def write_metadata():
             "sizeM": [round(w / PX_PER_MM / 1000, 4), round(h / PX_PER_MM / 1000, 4)],
             "hinge": [stage(-210, hinge), stage(210, hinge)],
             "splitColumnPx": w // 2,
-            "standingDeg": 0, "flatDeg": 90, "folds": "toward the reader, top first",
+            "standingDeg": 0, "flatDeg": 90,
         })
     lamp_x = (LAMP_PX[0] - 1360) / PX_PER_MM
     lamp_up = (1280 - LAMP_PX[1]) / PX_PER_MM
@@ -204,9 +223,11 @@ def write_metadata():
         "pxPerM": round(PX_PER_MM * 1000, 1),
         "ground": {"file": "ground.png", "sizeM": [0.42, 0.315], "faces": "left half on the cover's inside, right half on the page block", "captionBandM": 0.045},
         "layers": layers,
+        "angles": "Degrees about the hinge line from upright. 0 stands, 90 lies flat with the top toward the reader and the painting face down.",
         "stack": {"topToBottom": ["layer-1-sky", "layer-2-headland", "layer-3-dunes", "pip", "layer-4-foreground"], "riseOrder": "top to bottom", "closeOrder": "bottom to top, then the cover", "flatOffsetM": 0.001, "backColor": "#F6EFE2"},
         "anchors": {"lighthouseLamp": {"layer": "layer-2-headland", "px": list(LAMP_PX), "position": stage(lamp_x, 250, lamp_up)}},
-        "marks": [{"id": "pip", "label": "Pip's mark", "position": stage(*PIP_MARK_MM), "heightM": 0.17, "folds": "toward the reader, hinge at the feet"}],
+        "marks": [{"id": "pip", "label": "Pip's mark", "position": stage(*PIP_MARK_MM)}],
+        "pip": {"heightM": 0.17, "fold": "a card like the layers, hinge at his feet, standing 0 and flat 90", "rigPxPerM": round(905 / 0.17, 1), "leftExtentM": round(pip_left_extent_mm() / 1000, 4)},
         "effects": {
             "smoke": {"file": "../../fx/smoke.png", "heightM": 0.045, "starts": "top of Pip's lantern, rising and fading"},
             "leaf-1": {"file": "../../fx/leaf-1.png", "heightM": 0.012, "starts": "the left page edge, carried by the gust"},
@@ -220,19 +241,27 @@ def write_metadata():
         "cover": {"hinge": "the spine, x = 0, along z", "closedDeg": 0, "openDeg": 180, "inside": "the left half of the set's ground"},
         "parts": {
             "cover": {"file": "cover-front.png", "face": "cover outside", "sizeM": [0.21, 0.315], "title": "blank panel in the top third, for Fraunces set by the Stage"},
-            "spine": {"file": "spine.png", "face": "spine, stretched along its length", "sizeM": [0.03, 0.315]},
-            "page-edge": {"file": "page-edge.png", "face": "page block sides while closed", "sizeM": [0.315, 0.025]},
-            "ribbon": {"file": "ribbon.png", "attach": "the far edge of the right page at x 0.19 m, 0.04 m showing on the page as in the mockup", "sizeM": [0.012, 0.04]},
-            "tab-gold": {"file": "tab-gold.png", "attach": "right fore-edge, 0.06 m from the far edge, rounded end outward", "sizeM": [0.02, 0.0113]},
-            "tab-sage": {"file": "tab-sage.png", "attach": "right fore-edge, 0.1 m from the far edge, rounded end outward", "sizeM": [0.02, 0.0113]},
-            "drawer-pull": {"file": "drawer-pull.png", "attach": "center of the near edge, below the pages", "sizeM": [0.044, 0.0144]},
+            "spine": {"file": "spine.png", "face": "spine. A cloth texture, stretched to fit", "sizeM": [0.03, 0.315]},
+            "page-edge": {"file": "page-edge.png", "face": "page block sides while closed. A texture of page lines, stretched to fit", "sizeM": [0.315, 0.03]},
+            "ribbon": {"file": "ribbon.png", "attach": "the far edge of the right page at x 0.19 m, its top 0.04 m showing on the page as in the mockup", "sizeM": sized("ribbon.png", 0.012, by="width")},
+            "tab-gold": {"file": "tab-gold.png", "attach": "right fore-edge, 0.06 m from the far edge, rounded end outward", "sizeM": sized("tab-gold.png", 0.02)},
+            "tab-sage": {"file": "tab-sage.png", "attach": "right fore-edge, 0.1 m from the far edge, rounded end outward", "sizeM": sized("tab-sage.png", 0.02)},
+            "drawer-pull": {"file": "drawer-pull.png", "attach": "center of the near edge, below the pages", "sizeM": sized("drawer-pull.png", 0.044)},
         },
         "pageColor": "#F6EFE2",
     }
     (ART / "sets/shore-path/set.json").write_text(json.dumps(shore, indent=2) + "\n")
     (ART / "book/book.json").write_text(json.dumps(book, indent=2) + "\n")
     problems = checks.check_manifest(book, shore, ART / "book", ART / "sets/shore-path")
-    print("metadata", problems or "agrees with files")
+    report("metadata", problems)
+
+
+PROBLEMS = []
+
+
+def report(label, problems):
+    print(label, problems or "ok")
+    PROBLEMS.extend(f"{label}: {p}" for p in problems)
 
 
 def main():
@@ -241,7 +270,7 @@ def main():
         if (RUN / f"{source}.png").exists() and (not wanted or "layers" in wanted):
             a = make_layer(name, source)
             save(a, ART / "sets/shore-path" / f"{name}.png")
-            print(name, a.shape[:2], f"{(a.shape[0] - np.nonzero(a[..., 3] > 127)[0].min()) / PX_PER_MM:.0f}mm", checks.check_layer(a, hinge, limit, PX_PER_MM))
+            report(f"{name} {(a.shape[0] - np.nonzero(a[..., 3] > 127)[0].min()) / PX_PER_MM:.0f}mm", checks.check_layer(a, hinge, limit, PX_PER_MM))
     if not wanted or "ground" in wanted:
         save(make_ground(), ART / "sets/shore-path/ground.png")
         print("ground done")
@@ -253,7 +282,7 @@ def main():
     if not wanted or "trims" in wanted:
         for name, a in make_trims().items():
             save(a, ART / TRIM_HOMES.get(name, "book") / f"{name}.png")
-            print(name, a.shape[:2], checks.check_cut(a, 20, 20))
+            report(name, checks.check_cut(a, 20, 20))
     if not wanted or "metadata" in wanted:
         write_metadata()
     if not wanted or "pip" in wanted:
@@ -261,7 +290,13 @@ def main():
         save(up, ART / "cast/pip/heads/up.png")
         save(out, ART / "cast/pip/parts/lantern-out.png")
         save(frightened, RUN / "pip-up-frightened.png")
-        print("up", up.shape[:2], "offset", offset, "lantern outline error", err, checks.check_cut(up, 50, 50), checks.check_cut(out, 50, 50))
+        rig = __import__("json").loads((ART / "cast/pip/rig.json").read_text())
+        mismatch = [] if list(offset) == rig["head"]["offsets"]["up"] else [f"offset {offset} is not rig.json's {rig['head']['offsets']['up']}"]
+        report(f"up offset {offset}", checks.check_cut(up, 50, 50) + mismatch)
+        report(f"lantern-out outline {err}", checks.check_cut(out, 50, 50) + ([] if err <= 5 else ["outline"]))
+        report("pip on his own page", [] if checks.clears_spine(PIP_MARK_MM[0], pip_left_extent_mm()) else ["crosses the spine"])
+    if PROBLEMS:
+        sys.exit("FAILED:\n" + "\n".join(PROBLEMS))
 
 
 if __name__ == "__main__":

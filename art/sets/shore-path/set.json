@@ -37,8 +37,7 @@
       ],
       "splitColumnPx": 1360,
       "standingDeg": 0,
-      "flatDeg": 90,
-      "folds": "toward the reader, top first"
+      "flatDeg": 90
     },
     {
       "id": "layer-2-headland",
@@ -65,8 +64,7 @@
       ],
       "splitColumnPx": 1360,
       "standingDeg": 0,
-      "flatDeg": 90,
-      "folds": "toward the reader, top first"
+      "flatDeg": 90
     },
     {
       "id": "layer-3-dunes",
@@ -93,8 +91,7 @@
       ],
       "splitColumnPx": 1360,
       "standingDeg": 0,
-      "flatDeg": 90,
-      "folds": "toward the reader, top first"
+      "flatDeg": 90
     },
     {
       "id": "layer-4-foreground",
@@ -121,10 +118,10 @@
       ],
       "splitColumnPx": 1360,
       "standingDeg": 0,
-      "flatDeg": 90,
-      "folds": "toward the reader, top first"
+      "flatDeg": 90
     }
   ],
+  "angles": "Degrees about the hinge line from upright. 0 stands, 90 lies flat with the top toward the reader and the painting face down.",
   "stack": {
     "topToBottom": [
       "layer-1-sky",
@@ -157,14 +154,18 @@
       "id": "pip",
       "label": "Pip's mark",
       "position": [
-        0.01,
+        0.046,
         0.0,
         -0.0175
-      ],
-      "heightM": 0.17,
-      "folds": "toward the reader, hinge at the feet"
+      ]
     }
   ],
+  "pip": {
+    "heightM": 0.17,
+    "fold": "a card like the layers, hinge at his feet, standing 0 and flat 90",
+    "rigPxPerM": 5323.5,
+    "leftExtentM": 0.0447
+  },
   "effects": {
     "smoke": {
       "file": "../../fx/smoke.png",

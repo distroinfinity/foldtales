@@ -33,11 +33,17 @@ def painted(path):
     return a[a[..., 3] > 200][:, :3]
 
 
+def glass(path):
+    """Only the lantern's glass, since that's what has to read as gone dark."""
+    a = m.load_rgba(path)
+    return a[m.glass_mask(m.load_rgba(m.ART / "cast/pip/parts/lantern.png"))][:, :3]
+
+
 def main():
     pip = m.ART / "cast/pip"
     probes = {"coat vs what's behind his body": (painted(pip / "parts/coat.png"), 70),
               "fur vs what's behind his head": (painted(pip / "heads/up.png"), 150),
-              "unlit lantern vs what's behind it": (painted(pip / "parts/lantern-out.png"), 60)}
+              "unlit glass vs what's behind it": (glass(pip / "parts/lantern-out.png"), 60)}
     floors = {"dusk": 25, "gold": 25, "night": 12}
     ok = True
     for label, (piece, height) in probes.items():

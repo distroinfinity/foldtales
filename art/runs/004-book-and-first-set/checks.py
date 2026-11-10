@@ -106,3 +106,8 @@ def check_manifest(book, sets, book_dir, set_dir):
             if png.name not in names:
                 problems.append(f"unreferenced: {label}/{png.name}")
     return problems
+
+
+def clears_spine(mark_x_mm, left_extent_mm):
+    """True when a standing card at mark_x, reaching left_extent to its left, stays on the right page."""
+    return mark_x_mm - left_extent_mm >= 0
