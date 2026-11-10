@@ -92,10 +92,19 @@
     route.output.disconnect();
   }
 
-  function buildRoute(trimDb) {
+  // Dry has no compressor, so a level-matching trim could clip a peaky clip. The -1 dBFS ceiling wins, as it does in the chain.
+  function peakOf(buffer) {
+    const data = buffer.getChannelData(0);
+    let peak = 0;
+    for (let i = 0; i < data.length; i += 1) peak = Math.max(peak, Math.abs(data[i]));
+    return peak;
+  }
+
+  function buildRoute(trimDb, peak) {
     if (s.chainName === "dry") {
       const trim = s.ctx.createGain();
-      trim.gain.value = 10 ** (trimDb / 20);
+      const ceilingDb = -1 - 20 * Math.log10(Math.max(peak, 1e-6));
+      trim.gain.value = 10 ** (Math.min(trimDb, ceilingDb) / 20);
       return { input: trim, output: trim };
     }
     return createVoiceChain(s.ctx, s.config.settings[s.chainName], { trimDb });
@@ -106,7 +115,7 @@
       current.source.disconnect();
       disconnectRoute(current.route);
     }
-    current.route = buildRoute(current.trimDb);
+    current.route = buildRoute(current.trimDb, current.peak);
     current.source.connect(current.route.input);
     current.route.output.connect(s.ctx.destination);
   }
@@ -161,7 +170,7 @@
     if (token !== s.token) return;
     const source = s.ctx.createBufferSource();
     source.buffer = buffer;
-    const current = { key, file, trimDb, source, route: null };
+    const current = { key, file, trimDb, source, route: null, peak: peakOf(buffer) };
     s.current = current;
     connectRoute(current);
     source.onended = () => {
@@ -309,6 +318,11 @@
         roomEl.click(); gains.push(s.roomGain.gain.value);
         roomEl.click(); gains.push(s.roomGain.gain.value);
         r.roomToggle = gains;
+
+        chainsEl.querySelector('[data-chain="dry"]').click();
+        tap("pip/loud/A");
+        await wait(300);
+        r.dryHot = { gain: s.current?.route.input.gain.value ?? 0 };
       }
     } catch (e) {
       r.error = String(e && e.stack || e);
