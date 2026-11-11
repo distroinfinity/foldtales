@@ -25,7 +25,7 @@ function devServer(): ServerOptions {
 export default defineConfig(({ command }) => ({
   plugins: [iwsdkDev(), artPlugin({ artRoot: fileURLToPath(new URL('../art', import.meta.url)), folders: [stage.cast] })],
   // Only serving needs ports, so a CDN builder with no .env.ports can still build.
-  ...(command === 'serve' ? { server: devServer() } : {}),
+  ...(command === 'serve' ? { server: devServer(), preview: devServer() } : {}),
   // Vite also exposes matching process variables, so the prefix is what keeps keys out.
   envPrefix: 'TT_PUBLIC_',
   build: {

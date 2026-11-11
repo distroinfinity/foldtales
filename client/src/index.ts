@@ -1,4 +1,4 @@
-import { World } from '@iwsdk/core';
+import { VisibilityState, World } from '@iwsdk/core';
 import { CONTRACT_VERSION } from '@tabletop/contracts/version';
 import projectOptions from 'virtual:iwsdk-project';
 import { createBackendAccess, withDeadline } from './backend.ts';
@@ -7,6 +7,7 @@ import { startPlacement } from './stage/placement-runtime.ts';
 import { createTelemetry } from './telemetry.ts';
 
 const FLUSH_EVERY_MS = 10_000;
+const FRAMEBUFFER_SCALE = 1.4;
 const MAX_ERROR_LENGTH = 500;
 
 /** In dev, `/api` is proxied to this workspace's own backend. */
@@ -58,8 +59,20 @@ async function loadStage(world: World): Promise<void> {
   });
 }
 
+/** Entering XR needs a real tap, and the browser's own offer is too easy to miss. */
+function showEnterButton(world: World): void {
+  const button = document.getElementById('enter') as HTMLButtonElement;
+  button.addEventListener('click', () => world.launchXR());
+  world.visibilityState.subscribe((state) => {
+    button.hidden = state !== VisibilityState.NonImmersive;
+  });
+}
+
 World.create(document.getElementById('scene-container') as HTMLDivElement, projectOptions).then((world) => {
   document.documentElement.dataset.contract = String(CONTRACT_VERSION);
+  // Painted line work needs more pixels than the browser's default, and this scene is cheap to draw.
+  world.renderer.xr.setFramebufferScaleFactor(FRAMEBUFFER_SCALE);
   reportTelemetry(world);
+  showEnterButton(world);
   loadStage(world).catch((cause: unknown) => reportError('stage', cause));
 });

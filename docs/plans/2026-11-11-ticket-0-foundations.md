@@ -170,6 +170,8 @@ Sends a `session` event, a `frame_summary` every 10 s, a `hitch` for any frame o
 
 ### Task 7: CI, hosting and the first deploy
 
+**Order changed by the owner:** hosting waits. Pip is judged first on the Quest from the Mac, with a plain production build (`vite preview`) over `adb reverse`. Don't use `--native-xr-control` for this: it replaces real head tracking with a fixed pose and adds synthetic controllers. The workflow and config below are committed, but nothing deploys until the owner asks.
+
 **Files:** Create `.github/workflows/ci.yml`, `railway.json`, `scripts/telemetry-report.ts`. Test `tests/telemetry-report.test.ts`.
 
 - **CI, every push and PR:** `pnpm install --frozen-lockfile`, `pnpm check` (typecheck, tests, bundle key scan). Node from `.nvmrc`.
