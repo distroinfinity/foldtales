@@ -1,0 +1,22 @@
+{
+  "id": "odd-sock",
+  "name": "odd sock",
+  "description": "A single cream wool sock with rust and sage stripes and a darned heel, its partner long gone.",
+  "tags": [
+    "soft",
+    "warm",
+    "lightweight"
+  ],
+  "art": {
+    "kind": "asset",
+    "path": "objects/odd-sock/odd-sock.png"
+  },
+  "size": {
+    "heightM": 0.09
+  },
+  "pivot": [
+    67.1,
+    9.8
+  ],
+  "provenance": "library"
+}

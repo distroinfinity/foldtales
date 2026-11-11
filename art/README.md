@@ -21,6 +21,7 @@ Generated art is a product asset, not a temp file. Credits are only spent on pla
 - `fx/`: small effect pieces such as smoke and leaves.
 - `m1-proof.html`: the M1 moment with the real pieces, in CSS 3D. Reference only.
 - `cast/prototype.html`: the approved acting for all three characters. Reference only.
+- `objects/<id>/`: finished objects, each a PNG plus an `object.json` that matches `ObjectDef`. `objects-proof.html` shows Pip holding them. Reference only.
 - `book-mockup.html`: the approved page, lettering and controls. Reference only.
 - `tools/generate.mjs`: runs a plan. Use `node --env-file=.env.local art/tools/generate.mjs art/runs/<id>` from the repo root. Needs `RUNWAYML_API_SECRET` in `.env.local`.
 - `tools/cutout.py`: cuts painted pieces off plain paper, for no credits. Needs Python with `numpy` and `Pillow`.
@@ -45,6 +46,11 @@ Generated art is a product asset, not a temp file. Credits are only spent on pla
 - **Register new heads against the puppet's real head and body, not their sheet** (run 004).
 - **The shared Runway account needs a clear window you've confirmed, and a reconcile after every invocation.** The tool measures spend from the balance, so another workspace's charges look like yours (run 004).
 - **2K costs 9 credits.** Keep reference images at 1K, under the 5 MB limit (run 004).
+- **A drawer of five objects costs about 14 credits.** One 2K parts sheet, plus a 1K repaint for any piece painted too small (run 006).
+- **A shared sheet doesn't keep relative sizes,** even when the prompt states them. Measure each piece's px per mm, and repaint a small one alone at 1K with its own crop as Figure 1 (run 006).
+- **Shadow on magenta paper is deep crimson,** about (98, 9, 36), and survives `clear_magenta` as a dark fringe. Eat blue-over-green pixels inward from every edge before despill (run 006).
+- **"Die-cut paper piece" paints a white sticker border** around a single object. Use parts-sheet wording for objects. A border that does appear strips for free with a flood bounded near the edge (run 006).
+- **Objects are finished at Pip's density,** 905 px per 170 mm, with no baked shadow. The stage draws the contact shadow, so it can widen while the object is held (run 006).
 - **Voices come from a closed list.** `eleven_v4` on Runway takes only its 49 presets, with no descriptions, so sweep them once (`art/tools/generate-voice.mjs`, run 005).
 - **Voice lines cost per call.** A line of 200 characters or fewer is exactly 1 credit, so budget by line count, not characters (run 005).
 - **The balance is shared.** Cap spending from each task's reported cost, and treat balance drops only as a sign someone else is spending (run 005).

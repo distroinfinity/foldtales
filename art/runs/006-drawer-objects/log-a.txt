@@ -1,0 +1,4 @@
+Run 006-drawer-objects: Can run 004's parts-sheet recipe paint the drawer's five objects for M2 so they cut out cleanly and sit in Pip's paw in his style?
+balance 112043, cap 28
+done objects-sheet: 151s, 9 credits
+finished, total spent 9

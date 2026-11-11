@@ -1,0 +1,183 @@
+<!doctype html>
+<!-- Run 006's drawer objects with Pip, at reference size. Reference only, not product code: flat CSS, not IWSDK.
+     Serve art/ with any static server on this workspace's CLIENT_PORT, then open /objects-proof.html.
+     ?hold=<object id>&mood=<dusk|night|gold> holds one state still, for checking stills. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Drawer Objects Proof</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --page: #f6efe2; --navy: #1f2a44; --ink: #2b2420; }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; overflow: hidden; color: var(--page); font-family: 'Atkinson Hyperlegible Next', sans-serif;
+         background: radial-gradient(ellipse at 50% 30%, #4a4250, #1d1a22 75%); }
+  .stage { position: absolute; left: 50%; top: 50%; width: 0; height: 0; }
+  .table { position: absolute; background: linear-gradient(#8a6a4c, #5a4330 60%, #3d2d20); border-top: 2px solid #a48362; }
+  .pool { position: absolute; border-radius: 50%; mix-blend-mode: screen; pointer-events: none;
+          background: radial-gradient(ellipse, rgba(255,214,150,.20), rgba(255,214,150,0) 70%); }
+  .rig { position: absolute; width: 0; height: 0; }
+  .rig img, .thing { position: absolute; display: block; max-width: none; filter: url(#mood); }
+  .shadow { position: absolute; border-radius: 50%; pointer-events: none; background: radial-gradient(ellipse, rgba(10,8,12,.55), rgba(10,8,12,0) 70%); }
+  .glow { position: absolute; border-radius: 50%; mix-blend-mode: screen; pointer-events: none;
+          background: radial-gradient(circle, rgba(255,214,130,.6), rgba(255,200,110,.18) 45%, rgba(255,190,90,0) 70%); }
+  .slot { position: absolute; cursor: pointer; }
+  .ruler { position: absolute; height: 0; border-top: 3px solid var(--page); }
+  .ruler::before, .ruler::after { content: ''; position: absolute; top: -9px; width: 3px; height: 15px; background: var(--page); }
+  .ruler::after { right: 0; }
+  .label { position: absolute; padding: 3px 8px; border-radius: 4px; background: var(--page); color: var(--ink); font-size: 14px; white-space: nowrap; transform: translateX(-50%); }
+  .controls { position: fixed; left: 0; right: 0; bottom: 16px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; padding: 0 16px; }
+  .controls button { font: inherit; font-size: 15px; padding: 9px 15px; border-radius: 7px; border: 1px solid #f6efe244; background: var(--page); color: var(--ink); cursor: pointer; }
+  .controls button[aria-pressed="true"] { background: var(--navy); color: var(--page); }
+  .note { position: fixed; left: 16px; right: 16px; top: 14px; text-align: center; font-size: 15px; opacity: .8; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><filter id="mood"><feColorMatrix id="tint" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1 0"/></filter></svg>
+<div class="note" id="note">Pick an object, or tap one on the table. Pip holds it where its pivot says.</div>
+<div class="stage" id="stage"></div>
+<div class="controls" id="controls"></div>
+<script>
+(async function () {
+  const IDS = ['kite', 'spool', 'ladder', 'odd-sock', 'brass-key'];
+  const load = (p) => fetch(p).then((r) => r.json());
+  const [rig, set, ...defs] = await Promise.all([load('cast/pip/rig.json'), load('sets/shore-path/set.json'), ...IDS.map((id) => load(`objects/${id}/object.json`))]);
+  const RIG_PX_PER_MM = 905 / 170;                       // Pip's rig, and the density the objects were finished at
+  // Each object's real width, before anything is laid out.
+  const sizes = await Promise.all(defs.map((d) => new Promise((ok) => { const i = new Image(); i.onload = () => ok(i.naturalWidth / i.naturalHeight); i.src = d.art.path; })));
+  const GAP = 18, ROW_START = -40;
+  const rowMm = defs.reduce((sum, d, i) => sum + d.size.heightM * 1000 * sizes[i], 0) + GAP * (defs.length - 1);
+  const left = -250, right = ROW_START + rowMm + 20;
+  const k = Math.min(2.4, (innerWidth - 32) / (right - left), (innerHeight - 150) / 230);   // screen px per mm
+  const px = (n) => n + 'px';
+  const el = (parent, tag, cls, css) => { const d = document.createElement(tag); if (cls) d.className = cls; Object.assign(d.style, css || {}); parent.appendChild(d); return d; };
+  const stage = document.getElementById('stage');
+  // Origin: the table's front edge under Pip's feet. Millimetres, y up.
+  const at = (xMm, yMm) => ({ left: px(xMm * k), top: px(-yMm * k) });
+  const ox = -150, floor = 40;                            // Pip stands at x = -150 mm; the table top is 40 mm below stage centre
+  stage.style.transform = `translate(${px(-(left + right) / 2 * k)}, ${px(floor * k)})`;
+  el(stage, 'div', 'table', { left: px((left - 10) * k), top: 0, width: px((right - left + 20) * k), height: px(160 * k) });
+  el(stage, 'div', 'pool', { left: px((left - 10) * k), top: px(-110 * k), width: px((right - left + 20) * k), height: px(220 * k) });
+
+  // Pip, from his rig, at reference size.
+  const rigScale = k / RIG_PX_PER_MM;
+  const pipShadow = el(stage, 'div', 'shadow', { left: px((ox - 50) * k), top: px(-4 * k), width: px(100 * k), height: px(9 * k) });
+  const root = el(stage, 'div', 'rig', { left: px(ox * k), top: 0, transform: `scale(${rigScale})`, transformOrigin: '0 0' });
+  const img = (parent, src, d) => {
+    const i = new Image(); i.src = src; i.alt = '';
+    Object.assign(i.style, { left: px(d.x), top: px(d.y), zIndex: d.z, transformOrigin: `${d.pivot[0]}% ${d.pivot[1]}%` });
+    i.onload = () => { i.style.width = px(i.naturalWidth * d.scale); };
+    parent.appendChild(i); return i;
+  };
+  const parts = {};
+  for (const [name, p] of Object.entries(rig.parts)) if (name !== 'lantern') parts[name] = img(root, 'cast/pip/' + p.file, p);
+  const cs = rig.chinShadow;
+  el(root, 'div', 'shadow', { left: px(cs.x), top: px(cs.y), width: px(cs.width), height: px(cs.height), zIndex: cs.z, background: 'radial-gradient(ellipse, rgba(38,26,34,.5), rgba(38,26,34,0) 72%)' });
+  const heads = {};
+  for (const [name, o] of Object.entries(rig.head.offsets)) {
+    const h = rig.head;
+    heads[name] = img(root, 'cast/pip/' + h.files.replace('<name>', name), { x: h.x + o[0] * h.scale, y: h.y + o[1] * h.scale, z: h.z, pivot: h.pivot, scale: h.scale });
+    heads[name].style.display = 'none';
+  }
+
+  // The lantern's grip in rig px: where its pivot sits. A held object's pivot goes to the same point on the paw.
+  const L = rig.parts.lantern;
+  const lanternW = 138 * L.scale, lanternH = 286 * L.scale;
+  const grip = [L.x + lanternW * L.pivot[0] / 100, L.y + lanternH * L.pivot[1] / 100];
+  const arm = rig.parts.arm, armImgW = 172, armImgH = 303;
+  const shoulder = [arm.x + armImgW * arm.pivot[0] / 100, arm.y + armImgH * arm.pivot[1] / 100];
+  const toPaw = [grip[0] - shoulder[0], grip[1] - shoulder[1]];
+  // Pip sets his lantern down beside him, still lit, while his paw is busy.
+  const LX = -360;
+  img(root, 'cast/pip/' + L.file, { x: LX, y: -lanternH, z: 1, pivot: L.pivot, scale: L.scale });
+  el(stage, 'div', 'shadow', { left: px((ox + (LX + lanternW / 2) / RIG_PX_PER_MM - 14) * k), top: px(-3 * k), width: px(28 * k), height: px(6 * k) });
+  const glow = el(root, 'div', 'glow', { zIndex: 8, width: '520px', height: '520px', left: px(LX + lanternW / 2 - 260), top: px(-lanternH * 0.45 - 260) });
+
+  // The drawer's objects, resting on the table at reference size, each with its contact shadow.
+  const things = {};
+  let x = ROW_START;
+  for (const [n, def] of defs.entries()) {
+    const hMm = def.size.heightM * 1000, wMm = hMm * sizes[n];
+    const slot = el(stage, 'div', 'slot', { left: px(x * k), top: px(-hMm * k), height: px(hMm * k) });
+    const shadow = el(stage, 'div', 'shadow', {});
+    const thing = new Image(); thing.src = def.art.path; thing.alt = def.name; thing.className = 'thing';
+    thing.style.height = px(hMm * k);
+    slot.appendChild(thing);
+    const lbl = el(stage, 'div', 'label', { top: px(10 * k) });
+    lbl.textContent = def.name;
+    slot.style.width = px(wMm * k);
+    Object.assign(shadow.style, { left: px((x + wMm * 0.05) * k), top: px(-3 * k), width: px(wMm * 0.9 * k), height: px(7 * k) });
+    lbl.style.left = px((x + wMm / 2) * k);
+    slot.onclick = () => hold(def.id);
+    things[def.id] = { def, slot, shadow, lbl, hMm, wMm };
+    x += wMm + GAP;
+  }
+  el(stage, 'div', 'ruler', { left: px(ROW_START * k), top: px(34 * k), width: px(64 * k) });
+  el(stage, 'div', 'label', { left: px((ROW_START + 32) * k), top: px(40 * k) }).textContent = '64 mm, the smallest grab';
+
+  // The held copy: the object hangs from Pip's paw by its pivot, and his arm rises just enough to clear the table.
+  const heldImg = new Image(); heldImg.alt = ''; heldImg.className = 'thing'; heldImg.style.zIndex = 6; heldImg.style.display = 'none';
+  root.appendChild(heldImg);
+  const heldShadow = el(stage, 'div', 'shadow', { display: 'none', background: 'radial-gradient(ellipse, rgba(10,8,12,.32), rgba(10,8,12,0) 70%)' });
+  let heldId = null, raise = 0;
+  const CLEAR_PX = 5 * RIG_PX_PER_MM;
+  function pawAt(deg) {
+    const r = deg * Math.PI / 180, c = Math.cos(r), s = Math.sin(r);
+    return [shoulder[0] + toPaw[0] * c - toPaw[1] * s, shoulder[1] + toPaw[0] * s + toPaw[1] * c];
+  }
+  function hold(id) {
+    heldId = id;
+    for (const [tid, t] of Object.entries(things)) t.slot.style.visibility = t.shadow.style.visibility = tid === id ? 'hidden' : '';
+    document.querySelectorAll('[data-hold]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.hold === (id || 'none'))));
+    if (!id) { heldImg.style.display = heldShadow.style.display = 'none'; raise = 0; return; }
+    const t = things[id], hPx = t.hMm * RIG_PX_PER_MM;
+    heldImg.src = t.def.art.path; heldImg.style.display = ''; heldShadow.style.display = '';
+    heldImg.style.height = px(hPx);
+    // Raise the arm (negative turns the paw forward and up) until the object's lowest point clears the table.
+    raise = 0;
+    while (raise > -95 && pawAt(raise)[1] + hPx * (1 - t.def.pivot[1] / 100) > -CLEAR_PX) raise -= 1;
+    document.getElementById('note').textContent = `${t.def.name}: ${t.def.description} Tags: ${t.def.tags.join(', ')}.`;
+  }
+
+  const tint = document.getElementById('tint');
+  function mood(name) {
+    const [r, g, b] = set.moods[name];
+    tint.setAttribute('values', `${r} 0 0 0 0  0 ${g} 0 0 0  0 0 ${b} 0 0  0 0 0 1 0`);
+    document.querySelectorAll('[data-mood]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mood === name)));
+  }
+  const controls = document.getElementById('controls');
+  for (const [id, label] of [['none', 'Lantern only'], ...defs.map((d) => [d.id, d.name])]) {
+    const b = el(controls, 'button'); b.dataset.hold = id; b.textContent = label; b.onclick = () => hold(id === 'none' ? null : id);
+  }
+  for (const m of ['dusk', 'night', 'gold']) { const b = el(controls, 'button'); b.dataset.mood = m; b.textContent = m[0].toUpperCase() + m.slice(1); b.onclick = () => mood(m); }
+
+  const q = new URLSearchParams(location.search);
+  mood(q.get('mood') || 'dusk');
+  hold(q.get('hold') || null);
+  const still = q.has('hold');
+
+  // 12 poses a second: breathing, a blink, and the held object turning gently in the paw, as the lantern swings.
+  function frame(now) {
+    const pose = still ? 0.5 : Math.floor(now / 1000 * 12) / 12;
+    const blink = !still && Math.floor(pose * 12) % 47 === 0;
+    for (const [n, h] of Object.entries(heads)) { h.style.display = n === (heldId ? (blink ? 'blink' : 'forward') : 'forward') ? '' : 'none'; h.style.transform = `rotate(${Math.sin(pose * 1.3) * 1.2}deg)`; }
+    parts.coat.style.transform = `scaleY(${1 + Math.sin(pose * 2.4) * 0.006})`;
+    parts.arm.style.transform = `rotate(${raise}deg)`;
+    glow.style.opacity = 0.9 + 0.1 * Math.sin(pose * 7);
+    if (heldId) {
+      const t = things[heldId], hPx = t.hMm * RIG_PX_PER_MM, wPx = t.wMm * RIG_PX_PER_MM;
+      const paw = pawAt(raise), [pxp, pyp] = t.def.pivot;
+      Object.assign(heldImg.style, { left: px(paw[0] - wPx * pxp / 100), top: px(paw[1] - hPx * pyp / 100), transformOrigin: `${pxp}% ${pyp}%`, transform: `rotate(${Math.sin(pose * 2.2) * 3}deg)` });
+      // Holding: the shadow lifts off, widens and softens, straight below the object.
+      const cx = ox + (paw[0] - wPx * pxp / 100 + wPx / 2) / RIG_PX_PER_MM, wMm = t.wMm * 1.3;
+      Object.assign(heldShadow.style, { left: px((cx - wMm / 2) * k), top: px(-5 * k), width: px(wMm * k), height: px(11 * k) });
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
