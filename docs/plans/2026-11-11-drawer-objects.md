@@ -1,6 +1,6 @@
 # Drawer objects for M2 (run 006)
 
-**Ticket:** art-drawer-objects. **Run:** `art/runs/006-drawer-objects/`. **Status:** done, waiting on the owner's Mac approval. Run closed in `art/runs/006-drawer-objects/results.md`: 14 credits, including one approved 5-credit spool repaint.
+**Ticket:** art-drawer-objects. **Run:** `art/runs/006-drawer-objects/`. **Status:** done. Approved on the Mac and in Quest Browser on Nov 11, 2026. The immersive check waits for tickets 1 and 2. Run closed in `art/runs/006-drawer-objects/results.md`: 14 credits, including one approved 5-credit spool repaint.
 
 M2 needs a drawer you can open at the gap and hand Pip anything from. The gap accepts `flies`, `climbs`, `spans` and `rope` (`docs/technical-design.md`, Objects). Anything else gets a funny failure, and Pip keeps it. This run paints the drawer's presets for episode 1.
 
