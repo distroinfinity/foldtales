@@ -89,7 +89,7 @@ Idle values, from `prototype.html`'s `draw`: time is stepped to 12 poses a secon
 
 ### Task 4: Placement on the real table
 
-**Files:** Create `client/src/stage/surface.ts` (pure), `client/src/stage/placement-system.ts`. Modify `client/src/index.ts`, `client/index.html`. Test `tests/surface.test.ts`.
+**Files:** Create `client/src/stage/surface.ts` (pure), `client/src/stage/placement.ts`, `client/src/stage/placement-runtime.ts`. Modify `client/src/index.ts`, `client/index.html`. Test `tests/surface.test.ts`.
 
 **Interfaces:**
 - `Hit = { position: Vec3, normalY: number }`, where `normalY` is the Y of the hit pose's up axis (a WebXR hit pose's Y axis is the surface normal).
@@ -97,13 +97,13 @@ Idle values, from `prototype.html`'s `draw`: time is stepped to 12 poses a secon
 - `horizontalForward(forward: Vec3, up: Vec3): Vec3`
 - `fallbackSpot(head: Vec3, forward: Vec3): Vec3`
 - `createPlacement(): { step(nowMs: number, input: { head: Vec3 | null, forward: Vec3 | null, hits: Hit[] }): PlacementDecision }`, pure and clock-injected. `PlacementDecision = { state: 'searching' | 'fallback' | 'placed', moveTo: Vec3 | null, surface: 'hit_test' | 'fallback' | null }`.
-- `PlacementSystem`, an IWSDK system: it owns the hit-test sources and one `createPlacement()` per session.
+- `startPlacement(world, target, onPlaced)` in `placement-runtime.ts`, on `world.onXRFrame` (IWSDK's documented route for hit-test): it owns the hit-test sources and one `createPlacement()` per session.
 
 Rules for `pickSurface`: a hit counts if `normalY >= 0.9` (facing up), it's within **0.6 m** horizontally of the head (the design's reach rule, tighter than the spike's 0.8 m), `y > 0.35`, `y < head.y - 0.1`, and its straight-line distance from the eyes is at least **0.5 m**. Hits too close are dropped, not pushed outward, so Pip is never moved off the surface that was found. Group by connection: hits within 3 cm of height and 20 cm of a neighbour. A group needs at least 3 hits. Take the highest group, and return **the member nearest the group's centroid**, which is a point that was actually hit, not a centroid over empty space.
 
 `horizontalForward` flattens `forward`, and if you're looking almost straight down (flattened length under 0.2) uses the flattened `up` instead, which points where your face points. `fallbackSpot` is 0.55 m along that, 0.4 m below the head.
 
-The machine: a **fixed 5 s deadline from session start**, which unstable or intermittent hits can't postpone. A surface must hold within 2 cm for 0.5 s before it locks. At the deadline with no lock, and once a head pose exists, Pip appears at the fallback, and the first stable real surface after that moves him once and locks. Null head poses (tracking lost) don't advance stability. Pip faces the head at placement (yaw only) and stays put. Each placement sends a `stage_fit` event.
+The machine: a **fixed 5 s deadline from session start**, which unstable or intermittent hits can't postpone. A surface must hold within 2 cm of height and 10 cm across for 0.5 s before it locks, since the rays move with small head movements. At the deadline with no lock, and once a head pose exists, Pip appears at the fallback, and the first stable real surface after that moves him once and locks. Null head poses (tracking lost) don't advance stability. Pip faces the head at placement (yaw only) and stays put. Each placement sends a `stage_fit` event.
 
 The system runs 12 viewer-space hit-test rays per frame. Sources are created once per session and cancelled at its end, and a request that finishes after its session ended is ignored. If hit-test is unsupported or the request rejects, the machine simply gets no hits and reaches the fallback. Leaving and re-entering makes a new machine. `index.html` gets a plain page colour and one line of text, since the real landing page is ticket 1.
 

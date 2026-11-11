@@ -102,3 +102,32 @@ describe('idlePose', () => {
     }
   });
 });
+
+describe('loadPuppet', () => {
+  const stageConfig = { cast: 'x', heightM: 0.17, glow: { x: 0, y: 0, sizePx: 10 }, shadow: { widthM: 0.1, depthM: 0.03 } };
+
+  test('rejects when a file is missing, so no half-built puppet appears', async () => {
+    const { loadPuppet } = await import('../client/src/puppet/puppet.ts');
+    await expect(
+      loadPuppet('base', stageConfig, {
+        json: async () => rig,
+        texture: async (url) => {
+          if (url.endsWith('coat.png')) throw new Error('404');
+          const { Texture } = await import('@iwsdk/core');
+          const texture = new Texture();
+          texture.image = { width: 10, height: 10 };
+          return texture;
+        },
+      }),
+    ).rejects.toThrow('404');
+  });
+
+  test('cards discard transparent texels with or without multisampling', async () => {
+    const { cardMaterial } = await import('../client/src/puppet/puppet.ts');
+    const { Texture } = await import('@iwsdk/core');
+    const material = cardMaterial(new Texture());
+    expect(material.alphaTest).toBeGreaterThan(0);
+    expect(material.alphaToCoverage).toBe(true);
+    expect(material.transparent).toBe(false);
+  });
+});
