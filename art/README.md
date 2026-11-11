@@ -21,6 +21,9 @@ Generated art is a product asset, not a temp file. Credits are only spent on pla
 - `fx/`: small effect pieces such as smoke and leaves.
 - `m1-proof.html`: the M1 moment with the real pieces, in CSS 3D. Reference only.
 - `cast/prototype.html`: the approved acting for all three characters. Reference only.
+- `book/drawer/`: the drawer's tray, front and side, with `drawer.json` saying where it slides and where each drawer object stands.
+- `satchel/`: the satchel's back, pocket and pocket flap, with `satchel.json`.
+- `m2-proof.html`: run 007's gap set, drawer, satchel, crossings and lit lamp with the cast, in CSS 3D. Reference only.
 - `objects/<id>/`: finished objects, each a PNG plus an `object.json` that matches `ObjectDef`. `objects-proof.html` shows Pip holding them. Reference only.
 - `book-mockup.html`: the approved page, lettering and controls. Reference only.
 - `tools/generate.mjs`: runs a plan. Use `node --env-file=.env.local art/tools/generate.mjs art/runs/<id>` from the repo root. Needs `RUNWAYML_API_SECRET` in `.env.local`.
@@ -54,3 +57,11 @@ Generated art is a product asset, not a temp file. Credits are only spent on pla
 - **Voices come from a closed list.** `eleven_v4` on Runway takes only its 49 presets, with no descriptions, so sweep them once (`art/tools/generate-voice.mjs`, run 005).
 - **Voice lines cost per call.** A line of 200 characters or fewer is exactly 1 credit, so budget by line count, not characters (run 005).
 - **The balance is shared.** Cap spending from each task's reported cost, and treat balance drops only as a sign someone else is spending (run 005).
+- **The painter makes gaps far narrower than asked.** "Exactly one quarter of the width" gave a chasm of about one eighth, on the ground and both rims. Measure it, then widen for free: remap the ground's columns (widen the water, keep the walls, narrow the sand a little) and squeeze each bluff toward its outer end (run 007).
+- **Paint a two-sided layer as two pieces on one sheet.** Each bluff cuts cleanly and can be registered to the printed ground on its own (run 007).
+- **A lit window can be made for free.** Map the painted glass onto a gold ramp that keeps its strokes, and keep the alpha exactly. Five credits saved, and the outline can't drift (run 007).
+- **Parts of one object, painted on a shared sheet, don't keep their stated proportions.** The satchel's pocket and flap came out narrower than its back, and the drawer rail twice as thin. Keep one scale for parts that must fit together, and check each part's shape (run 007).
+- **Some sheets cast a darker shadow,** around (64, 11, 13), with purple-pink fringe. Treat red-and-blue-over-green as paper before checking that finishing kept the paint (run 007).
+- **Prove stage geometry, not only art.** The drawer's stow and the near rim in front of Pip's paw were both caught by numeric checks before the proof page (run 007).
+- **In CSS 3D proofs, keep puppet cards narrow** (0.7 of their height, as `m1-proof.html`). A wider card let Chrome draw the layer behind in front of the puppet (run 007).
+

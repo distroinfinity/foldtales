@@ -39,7 +39,7 @@
   },
   "stow": [
     "Closed and while sliding, every object lies flat on the felt, its long axis across the tray, centered at flatXM.",
-    "Only at full travel, when the whole interior has cleared the book's edge: each tips up onto its long edge, into its own plane at planeZM from the back wall.",
+    "Only at full travel, when the whole interior has cleared the book's edge: each tips up onto its long edge about a hinge at planeZM from the back wall, lying behind that line while flat, the way the set's cards stand up.",
     "Then it swings upright in that plane, sliding to standXM, with its lowest point kept on the felt. turn is the way it swings, so its low end moves away from the nearer wall.",
     "Closing runs the same steps backward, all objects flat before the tray moves."
   ],
@@ -48,7 +48,7 @@
       "object": "ladder",
       "flatXM": 0.0,
       "standXM": -0.066,
-      "planeZM": 0.016,
+      "planeZM": 0.045,
       "turn": -1,
       "paintedLengthM": 0.1483,
       "paintedWidthM": 0.0393
@@ -57,7 +57,7 @@
       "object": "kite",
       "flatXM": 0.0,
       "standXM": 0.045,
-      "planeZM": 0.028,
+      "planeZM": 0.066,
       "turn": 1,
       "paintedLengthM": 0.1183,
       "paintedWidthM": 0.0627
@@ -66,7 +66,7 @@
       "object": "odd-sock",
       "flatXM": -0.03,
       "standXM": -0.056,
-      "planeZM": 0.052,
+      "planeZM": 0.082,
       "turn": -1,
       "paintedLengthM": 0.0882,
       "paintedWidthM": 0.0551
@@ -75,7 +75,7 @@
       "object": "spool",
       "flatXM": 0.03,
       "standXM": 0.007,
-      "planeZM": 0.045,
+      "planeZM": 0.072,
       "turn": 1,
       "paintedLengthM": 0.0687,
       "paintedWidthM": 0.0604
@@ -84,7 +84,7 @@
       "object": "brass-key",
       "flatXM": 0.04,
       "standXM": 0.06,
-      "planeZM": 0.065,
+      "planeZM": 0.098,
       "turn": 1,
       "paintedLengthM": 0.0732,
       "paintedWidthM": 0.0271

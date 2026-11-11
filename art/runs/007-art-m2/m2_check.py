@@ -197,8 +197,8 @@ def drawer_problems(slots, interior_w_mm, interior_d_mm, clearance_mm, wall_mm=2
     for s in slots:
         if abs(s["flat_x"]) + s["length"] / 2 > half:
             problems.append(f"{s['id']}: flat past the tray's sides")
-        # It tips up about its rear long edge, so flat it covers plane_z to plane_z + width.
-        if s["plane_z"] < 0 or s["plane_z"] + s["width"] > interior_d_mm:
+        # It tips up about its front long edge, the hinge on its plane, so flat it lies behind: plane_z - width to plane_z.
+        if s["plane_z"] - s["width"] < 0 or s["plane_z"] > interior_d_mm:
             problems.append(f"{s['id']}: past the tray's depth")
         if abs(s["stand_x"]) + s["width"] / 2 > half:
             problems.append(f"{s['id']}: upright past the tray's sides")

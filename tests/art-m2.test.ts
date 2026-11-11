@@ -88,7 +88,9 @@ describe('the drawer', () => {
       // Flat across the tray, then standing in its own plane.
       expect(Math.abs(slot.flatXM) + slot.paintedLengthM / 2, slot.object).toBeLessThanOrEqual(interiorW / 2);
       expect(Math.abs(slot.standXM) + slot.paintedWidthM / 2, slot.object).toBeLessThanOrEqual(interiorW / 2);
-      expect(slot.planeZM + slot.paintedWidthM, slot.object).toBeLessThanOrEqual(interiorD);
+      // Flat, it lies behind its plane, from planeZM - width to planeZM.
+      expect(slot.planeZM - slot.paintedWidthM, slot.object).toBeGreaterThanOrEqual(0);
+      expect(slot.planeZM, slot.object).toBeLessThanOrEqual(interiorD);
       expect([1, -1]).toContain(slot.turn);
       planes.add(slot.planeZM);
     }

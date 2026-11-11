@@ -37,17 +37,21 @@ GROUND_WATER = (2, 3)
 
 # Rim layers: hinge depth from the near edge and height limit, both mm (plan, Design).
 RIMS = {"layer-3-far-rim": (215, 120), "layer-4-near-rim": (115, 115)}
-# Pip stands 35 mm past the near rim. His legs must show, so the near rim stays under MAX_IN_FRONT_OF_PIP_MM across
-# them. His tail may pass behind the reeds, as it does on shore-path.
-PIP_FROM_RIM_MM = 35
+# Pip stands 25 mm past the near rim, right where the path ends. His legs and his paw, with whatever he holds, must
+# show, so the near rim stays under MAX_IN_FRONT_OF_PIP_MM across them: a conservative test that ignores the viewing
+# angle. At 35 mm his paw would reach over the right reed clump. His tail may pass behind the reeds, as on shore-path.
+PIP_FROM_RIM_MM = 25
 
 
 def pip_legs_mm():
-    """Pip's legs, left and right of his feet in mm, from his rig at 905 px per 170 mm."""
+    """Pip's legs and paw, left and right of his feet in mm, from his rig at 905 px per 170 mm. The paw is where the
+    lantern hangs, so its right edge is the lantern's."""
     rig = json.loads((ART / "cast" / "pip" / "rig.json").read_text())
-    legs = rig["parts"]["legs"]
-    width = Image.open(ART / "cast" / "pip" / legs["file"]).width * legs["scale"]
-    return -legs["x"] * 170 / 905, (legs["x"] + width) * 170 / 905
+    legs, lantern = rig["parts"]["legs"], rig["parts"]["lantern"]
+    legs_w = Image.open(ART / "cast" / "pip" / legs["file"]).width * legs["scale"]
+    lantern_w = Image.open(ART / "cast" / "pip" / lantern["file"]).width * lantern["scale"]
+    right = max(legs["x"] + legs_w, lantern["x"] + lantern_w)
+    return -legs["x"] * 170 / 905, right * 170 / 905
 
 # Each sheet's pieces, by their center on the sheet, read off contact-raw-<sheet>.png after painting.
 DRAWER_SHEET = {"tray": (1032, 632), "front": (1014, 1368), "side": (902, 1730)}
@@ -76,11 +80,11 @@ ROPE = {
 
 # Slots for the stow (plan, Design): which way each lies, where it stands, its own plane, and which way it swings.
 SLOTS = [
-    {"id": "ladder", "flat_x": 0, "stand_x": -66, "plane_z": 16, "turn": -1},
-    {"id": "kite", "flat_x": 0, "stand_x": 45, "plane_z": 28, "turn": 1},
-    {"id": "odd-sock", "flat_x": -30, "stand_x": -56, "plane_z": 52, "turn": -1},
-    {"id": "spool", "flat_x": 30, "stand_x": 7, "plane_z": 45, "turn": 1},
-    {"id": "brass-key", "flat_x": 40, "stand_x": 60, "plane_z": 65, "turn": 1},
+    {"id": "ladder", "flat_x": 0, "stand_x": -66, "plane_z": 45, "turn": -1},
+    {"id": "kite", "flat_x": 0, "stand_x": 45, "plane_z": 66, "turn": 1},
+    {"id": "odd-sock", "flat_x": -30, "stand_x": -56, "plane_z": 82, "turn": -1},
+    {"id": "spool", "flat_x": 30, "stand_x": 7, "plane_z": 72, "turn": 1},
+    {"id": "brass-key", "flat_x": 40, "stand_x": 60, "plane_z": 98, "turn": 1},
 ]
 
 PROBLEMS = []
@@ -198,7 +202,7 @@ def make_rim(name, max_h_mm, chasm):
         region[keep] = piece[keep]
     if name == "layer-4-near-rim":
         feet, (left_mm, right_mm) = chasm[1] + PIP_FROM_RIM_MM, pip_legs_mm()
-        report(f"{name} in front of Pip's legs, {mc.height_over_mm(canvas, feet - left_mm, feet + right_mm):.0f}mm",
+        report(f"{name} in front of Pip's legs and paw, {mc.height_over_mm(canvas, feet - left_mm, feet + right_mm):.0f}mm",
                mc.in_front_of_pip_problems(canvas, feet - left_mm, feet + right_mm))
     edges = mc.inner_edges_mm(canvas)
     report(f"{name} {(height - np.nonzero(canvas[..., 3] > 127)[0].min()) / mc.SET_PX_PER_MM:.0f}mm",
@@ -378,8 +382,8 @@ def write_set(rims, at_pip, ladder_mm, spans):
         },
         "anchors": SHORE["anchors"],
         "marks": [
-            {"id": "near-edge", "label": "the near edge of the gap", "position": stage(right_mm + 35, PIP_DEPTH_MM)},
-            {"id": "far-side", "label": "the far side of the gap", "position": stage(left_mm - 35, PIP_DEPTH_MM)},
+            {"id": "near-edge", "label": "the near edge of the gap", "position": stage(right_mm + PIP_FROM_RIM_MM, PIP_DEPTH_MM)},
+            {"id": "far-side", "label": "the far side of the gap", "position": stage(left_mm - PIP_FROM_RIM_MM, PIP_DEPTH_MM)},
             {"id": "gap-middle", "label": "over the middle of the gap", "position": stage(0, PIP_DEPTH_MM)},
             {"id": "wick-arrives", "label": "the path on the far side", "position": stage(-130, PIP_DEPTH_MM)},
             {"id": "lighthouse-way", "label": "the way to the lighthouse", "position": stage(-190, PIP_DEPTH_MM)},
@@ -415,7 +419,7 @@ def write_drawer(slots, clearance, side_h_mm):
                    "slides": "along +z, toward the reader", "travelM": TRAVEL_M, "clearanceAtFullTravelM": round(clearance / 1000, 4)},
         "stow": [
             "Closed and while sliding, every object lies flat on the felt, its long axis across the tray, centered at flatXM.",
-            "Only at full travel, when the whole interior has cleared the book's edge: each tips up onto its long edge, into its own plane at planeZM from the back wall.",
+            "Only at full travel, when the whole interior has cleared the book's edge: each tips up onto its long edge about a hinge at planeZM from the back wall, lying behind that line while flat, the way the set's cards stand up.",
             "Then it swings upright in that plane, sliding to standXM, with its lowest point kept on the felt. turn is the way it swings, so its low end moves away from the nearer wall.",
             "Closing runs the same steps backward, all objects flat before the tray moves.",
         ],
@@ -438,7 +442,8 @@ def write_satchel(made):
         "parts": {
             "back": {"file": "satchel-back.png", "sizeM": size("satchel-back"), "z": 0, "face": "back panel and strap, standing facing the reader"},
             "front": {"file": "satchel-front.png", "sizeM": size("satchel-front"), "z": 0.012, "face": "front pocket, its bottom on the back's bottom. Objects go between back and front"},
-            "flap": {"file": "satchel-flap.png", "sizeM": size("satchel-flap"), "z": 0.014, "face": "hinged at its top edge on the back's top edge. Closed it hangs over the front; open it lifts back"},
+            "flap": {"file": "satchel-flap.png", "sizeM": size("satchel-flap"), "z": 0.014,
+                     "face": "the pocket's flap, hinged at its top edge along the pocket's top edge. Closed it hangs over the pocket; open it lifts back over the bag"},
         },
         "position": [0.29, 0, 0.06],
         "positionNote": "A suggestion: right of the book's fore-edge, within the 0.6 m reach. The gold tab opens it.",

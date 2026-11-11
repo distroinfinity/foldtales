@@ -164,7 +164,7 @@
       "id": "near-edge",
       "label": "the near edge of the gap",
       "position": [
-        0.0859,
+        0.0759,
         0.0,
         -0.0175
       ]
@@ -173,7 +173,7 @@
       "id": "far-side",
       "label": "the far side of the gap",
       "position": [
-        -0.0851,
+        -0.0751,
         0.0,
         -0.0175
       ]

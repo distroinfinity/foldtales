@@ -192,11 +192,11 @@ class Pieces(unittest.TestCase):
 
 class Drawer(unittest.TestCase):
     SLOTS = [
-        {"id": "ladder", "length": 148, "width": 41, "flat_x": 0, "stand_x": -66, "plane_z": 16, "turn": -1},
-        {"id": "kite", "length": 118, "width": 64, "flat_x": 0, "stand_x": 45, "plane_z": 28, "turn": 1},
-        {"id": "sock", "length": 88, "width": 57, "flat_x": -30, "stand_x": -56, "plane_z": 52, "turn": -1},
-        {"id": "spool", "length": 70, "width": 62, "flat_x": 30, "stand_x": 7, "plane_z": 45, "turn": 1},
-        {"id": "key", "length": 73, "width": 29, "flat_x": 40, "stand_x": 60, "plane_z": 65, "turn": 1},
+        {"id": "ladder", "length": 148, "width": 41, "flat_x": 0, "stand_x": -66, "plane_z": 45, "turn": -1},
+        {"id": "kite", "length": 118, "width": 64, "flat_x": 0, "stand_x": 45, "plane_z": 66, "turn": 1},
+        {"id": "sock", "length": 88, "width": 57, "flat_x": -30, "stand_x": -56, "plane_z": 82, "turn": -1},
+        {"id": "spool", "length": 70, "width": 62, "flat_x": 30, "stand_x": 7, "plane_z": 72, "turn": 1},
+        {"id": "key", "length": 73, "width": 29, "flat_x": 40, "stand_x": 60, "plane_z": 98, "turn": 1},
     ]
 
     def test_the_planned_slots_pass(self):
@@ -215,15 +215,15 @@ class Drawer(unittest.TestCase):
         self.assertTrue(any("through a wall" in p for p in mc.drawer_problems(slots, 176, 111, 2)))
 
     def test_flat_footprint_past_the_depth_fails(self):
-        slots = [dict(self.SLOTS[1], plane_z=55)]  # a 64 mm kite covers 55 to 119 in a 111 mm tray
+        slots = [dict(self.SLOTS[1], plane_z=50)]  # a 64 mm kite lying behind its plane would reach 14 mm past the back wall
         self.assertTrue(any("past the tray's depth" in p for p in mc.drawer_problems(slots, 176, 111, 2)))
 
     def test_edge_through_a_wall_is_caught_when_the_corner_is_above_it(self):
-        slots = [{"id": "edge", "length": 148.3, "width": 40.8, "flat_x": -13.27, "stand_x": -25.61, "plane_z": 20, "turn": 1}]
+        slots = [{"id": "edge", "length": 148.3, "width": 40.8, "flat_x": -13.27, "stand_x": -25.61, "plane_z": 60, "turn": 1}]
         self.assertTrue(any("through a wall" in p for p in mc.drawer_problems(slots, 176, 111, 2)))
 
     def test_shared_plane_fails(self):
-        slots = [self.SLOTS[0], dict(self.SLOTS[1], plane_z=16)]
+        slots = [self.SLOTS[0], dict(self.SLOTS[1], plane_z=45)]
         self.assertIn("two objects share a plane", mc.drawer_problems(slots, 176, 111, 2))
 
     def test_interior_inside_the_book_fails(self):

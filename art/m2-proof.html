@@ -1,0 +1,306 @@
+<!doctype html>
+<!-- Run 007's pieces for M2, with the cast: the gap set, the drawer sliding out with the five objects standing up,
+     each way across the gap, the satchel, and the relit lamp's beam. Reference only, not product code: CSS 3D, not IWSDK.
+     Serve art/ with any static server on this workspace's CLIENT_PORT, then open /m2-proof.html.
+     Move the mouse to stand in for moving your head. For stills: ?cross=none|ladder|kite|thread|rope, ?drawer=0..1
+     (0 shut, 1 open and standing), ?satchel=open, ?lamp=1, ?mood=dusk|night|gold, ?look=0..1. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>M2 Proof</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --page: #f6efe2; --navy: #1f2a44; --ink: #2b2420; }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; background: radial-gradient(ellipse at 50% 40%, #5d5249, #2b2420 75%); color: var(--page); font-family: 'Atkinson Hyperlegible Next', sans-serif; overflow: hidden; }
+  .view { position: fixed; inset: 0; perspective: 1500px; perspective-origin: 50% 20%; }
+  .table { position: absolute; left: 50%; top: 44%; width: 0; height: 0; transform-style: preserve-3d; transform: rotateX(50deg); }
+  .wood { position: absolute; left: -1100px; top: -800px; width: 2200px; height: 1500px; background: radial-gradient(ellipse at 50% 50%, #8a6a4c, #4d3a2a 70%); }
+  .p3 { position: absolute; transform-style: preserve-3d; }
+  .face { position: absolute; inset: 0; backface-visibility: hidden; background-repeat: no-repeat; filter: url(#mood); }
+  .both { backface-visibility: visible; }
+  .back { transform: rotateY(180deg); }
+  .shadow { position: absolute; border-radius: 50%; pointer-events: none; background: radial-gradient(ellipse, rgba(10,8,12,.55), rgba(10,8,12,0) 70%); }
+  .rig { position: absolute; left: 50%; bottom: 0; width: 0; height: 0; }
+  .rig img, img.piece { position: absolute; display: block; max-width: none; filter: url(#mood); }
+  /* Plain blending: a screen blend inside a 3D scene flattens its neighbours into a box. */
+  .glow { position: absolute; border-radius: 50%; pointer-events: none; background: radial-gradient(circle, rgba(255,220,140,.42), rgba(255,206,120,.12) 45%, rgba(255,190,90,0) 70%); }
+  .dim { position: fixed; inset: 0; pointer-events: none; background: radial-gradient(ellipse 50% 55% at 50% 55%, rgba(255,214,150,.04), rgba(8,10,26,.62) 100%); }
+  .beam { position: fixed; inset: 0; pointer-events: none; mix-blend-mode: screen; opacity: 0; }
+  .controls { position: fixed; left: 0; right: 0; bottom: 14px; display: flex; flex-wrap: wrap; gap: 7px; justify-content: center; padding: 0 16px; }
+  .controls button { font: inherit; font-size: 14px; padding: 8px 13px; border-radius: 7px; border: 1px solid #f6efe244; background: var(--page); color: var(--ink); cursor: pointer; }
+  .controls button[aria-pressed="true"] { background: var(--navy); color: var(--page); }
+  .controls .sep { width: 10px; }
+  .note { position: fixed; left: 16px; right: 16px; top: 12px; text-align: center; font-size: 15px; opacity: .85; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><filter id="mood"><feColorMatrix id="tint" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1 0"/></filter></svg>
+<div class="view" id="view"><div class="table" id="table"><div class="wood"></div></div></div>
+<div class="dim" id="dim"></div>
+<div class="beam" id="beam"></div>
+<div class="note" id="note"></div>
+<div class="controls" id="controls"></div>
+<script>
+(async function () {
+  const load = (p) => fetch(p).then((r) => r.json());
+  const [set, book, drawer, satchel, pipRig, wickRig, ...defs] = await Promise.all([
+    load('sets/the-gap/set.json'), load('book/book.json'), load('book/drawer/drawer.json'), load('satchel/satchel.json'),
+    load('cast/pip/rig.json'), load('cast/wick/rig.json'),
+    ...['kite', 'spool', 'ladder', 'odd-sock', 'brass-key', 'rope-coil'].map((id) => load(`objects/${id}/object.json`)),
+  ]);
+  const obj = Object.fromEntries(defs.map((d) => [d.id, d]));
+  const natural = (src) => new Promise((ok) => { const i = new Image(); i.onload = () => ok([i.naturalWidth, i.naturalHeight]); i.src = src; });
+  const aspect = Object.fromEntries(await Promise.all(defs.map(async (d) => { const [w, h] = await natural(d.art.path); return [d.id, w / h]; })));
+
+  const k = Math.min(1.5, (innerWidth - 32) / 620, (innerHeight - 140) / 560);  // screen px per mm
+  const mm = (m) => m * 1000 * k;
+  const px = (n) => n + 'px';
+  const el = (parent, cls, css, tag) => { const d = document.createElement(tag || 'div'); if (cls) d.className = cls; Object.assign(d.style, css || {}); parent.appendChild(d); return d; };
+  const view = document.getElementById('view');
+  view.style.perspective = px(mm(0.66));
+  const table = document.getElementById('table');
+  table.style.left = `calc(50% - ${mm(0.07)}px)`;
+  const W = mm(0.21), D = mm(0.315), T = mm(book.thicknessM);
+  const RIG_PX_PER_M = 905 / 0.17;
+
+  // Stage space: x right, +z toward the reader, y up. On the table plane, CSS y grows toward the reader.
+  el(table, 'shadow', { left: px(-W * 1.12), top: px(-D * 0.6), width: px(W * 2.24), height: px(D * 1.22) });
+  const bookRoot = el(table, 'p3', { left: 0, top: 0, transform: `translateZ(${T}px)` });
+  const ground = (x, pos) => el(bookRoot, 'face', { left: px(x), top: px(-D / 2), width: px(W), height: px(D), backgroundImage: 'url(sets/the-gap/ground.png)', backgroundSize: '200% 100%', backgroundPosition: pos });
+  ground(-W, '0 0'); ground(0, '100% 0');
+  // The page block's near edge, with the drawer front set into it and the pull on that.
+  const edge = el(bookRoot, 'face', { left: 0, top: px(D / 2), width: px(W), height: px(T), transformOrigin: 'top', transform: 'rotateX(-90deg)', backgroundImage: 'url(book/page-edge.png)', backgroundSize: '100% 100%' });
+  el(bookRoot, 'face', { left: px(-W), top: px(D / 2), width: px(W), height: px(mm(0.004)), transformOrigin: 'top', transform: 'rotateX(-90deg)', background: '#1f2a44' });
+  for (const [name, z] of [['tab-gold', 0.06], ['tab-sage', 0.1]]) {
+    el(bookRoot, 'face', { left: px(W - mm(0.006)), top: px(-D / 2 + mm(z)), width: px(mm(0.02)), height: px(mm(0.0113)), backgroundImage: `url(book/${name}.png)`, backgroundSize: '100% 100%', transform: 'translateZ(-1px)' });
+  }
+
+  // A card stands on its hinge at stage depth z: -90 stands, 0 lies flat behind the hinge.
+  function card(x, zStage, w, h, img, pos) {
+    const c = el(bookRoot, 'p3', { left: px(x), top: px(mm(zStage) - h), width: px(w), height: px(h), transformOrigin: 'bottom center', transform: 'rotateX(-90deg)' });
+    const f = el(c, 'face', { backgroundImage: `url(${img})`, backgroundSize: '200% 100%', backgroundPosition: pos });
+    el(c, 'face back', { background: 'var(--page)', webkitMaskImage: `url(${img})`, maskImage: `url(${img})`, webkitMaskSize: '200% 100%', maskSize: '200% 100%', webkitMaskPosition: pos, maskPosition: pos, maskRepeat: 'no-repeat', webkitMaskRepeat: 'no-repeat' });
+    return { c, f };
+  }
+  const cards = {};
+  for (const layer of set.layers) {
+    const h = mm(layer.sizeM[1]), z = layer.hinge[0][2], img = `sets/the-gap/${layer.file}`;
+    cards[layer.id] = [card(-W, z, W, h, img, '0 0'), card(0, z, W, h, img, '100% 0')];
+  }
+  // The relit lamp is a swap over the headland's own lamp room, at its px, on the left half.
+  const lampFx = set.effects['lamp-lit'], head = set.layers.find((l) => l.id === lampFx.layer);
+  const perPx = (2 * W) / head.sizePx[0];
+  const lampLit = el(cards[lampFx.layer][0].c, 'face', { inset: 'auto', left: px(lampFx.px[0] * perPx), top: px(lampFx.px[1] * perPx), width: px(mm(lampFx.sizeM[0])), height: px(mm(lampFx.sizeM[1])), backgroundImage: 'url(sets/the-gap/' + lampFx.file + ')', backgroundSize: '100% 100%', transform: 'translateZ(0.5px)', display: 'none' }, 'div');
+  const lampGlow = el(cards[lampFx.layer][0].c, 'glow', { left: px(lampFx.px[0] * perPx + mm(lampFx.sizeM[0]) / 2 - mm(0.04)), top: px(lampFx.px[1] * perPx + mm(lampFx.sizeM[1]) * 0.55 - mm(0.04)), width: px(mm(0.08)), height: px(mm(0.08)), transform: 'translateZ(1px)', display: 'none' });
+
+  const mark = (id) => set.marks.find((m) => m.id === id).position;
+
+  // A puppet from its rig, as a standing card.
+  function puppet(rig, who, heightM, flip) {
+    // 0.7 of the height, as m1-proof: a wider card made Chrome sort the far rim in front of the puppet.
+    const h = mm(heightM), w = h * 0.7, scale = h / (heightM * RIG_PX_PER_M);
+    const shadow = el(bookRoot, 'shadow', { width: px(w * 0.8), height: px(mm(0.02)), transform: 'translateZ(1px)' });
+    const c = el(bookRoot, 'p3', { width: px(w), height: px(h), transformOrigin: 'bottom center' });
+    const f = el(c, 'face', { filter: 'none', overflow: 'visible' });
+    const root = el(f, 'rig', { transform: `scale(${flip ? -scale : scale}, ${scale})` });
+    const img = (src, d) => {
+      const i = new Image(); i.src = src; i.alt = '';
+      Object.assign(i.style, { left: px(d.x), top: px(d.y), zIndex: d.z, transformOrigin: `${d.pivot[0]}% ${d.pivot[1]}%` });
+      i.onload = () => { i.style.width = px(i.naturalWidth * d.scale); };
+      root.appendChild(i); return i;
+    };
+    const parts = {};
+    for (const [name, p] of Object.entries(rig.parts)) parts[name] = img(`cast/${who}/${p.file}`, p);
+    const heads = {};
+    if (rig.head) for (const [name, o] of Object.entries(rig.head.offsets)) {
+      const hd = rig.head;
+      heads[name] = img(`cast/${who}/` + hd.files.replace('<name>', name), { x: hd.x + o[0] * hd.scale, y: hd.y + o[1] * hd.scale, z: hd.z, pivot: hd.pivot, scale: hd.scale });
+      heads[name].style.display = 'none';
+    }
+    if (rig.chinShadow) { const cs = rig.chinShadow; el(root, 'shadow', { left: px(cs.x), top: px(cs.y), width: px(cs.width), height: px(cs.height), zIndex: cs.z, background: 'radial-gradient(ellipse, rgba(38,26,34,.5), rgba(38,26,34,0) 72%)' }); }
+    const place = (pos, lift = 0) => {
+      const [x, , z] = pos;
+      Object.assign(c.style, { left: px(mm(x) - w / 2), top: px(mm(z) - h), transform: `translateZ(${mm(lift)}px) rotateX(-90deg)` });
+      Object.assign(shadow.style, { left: px(mm(x) - w * 0.4), top: px(mm(z) - mm(0.01)), opacity: lift ? 0.35 : 1 });
+    };
+    const show = (on) => { c.style.display = shadow.style.display = on ? '' : 'none'; };
+    return { c, root, parts, heads, img, place, show };
+  }
+
+  const pip = puppet(pipRig, 'pip', set.pip.heightM, false);
+  const L = pipRig.parts.lantern, lanternW = 138 * L.scale, lanternH = 286 * L.scale;
+  const grip = [L.x + lanternW * L.pivot[0] / 100, L.y + lanternH * L.pivot[1] / 100];
+  const arm = pipRig.parts.arm, shoulder = [arm.x + 172 * arm.pivot[0] / 100, arm.y + 303 * arm.pivot[1] / 100];
+  const toPaw = [grip[0] - shoulder[0], grip[1] - shoulder[1]];
+  const pawAt = (deg) => { const r = deg * Math.PI / 180, c = Math.cos(r), s = Math.sin(r); return [shoulder[0] + toPaw[0] * c - toPaw[1] * s, shoulder[1] + toPaw[0] * s + toPaw[1] * c]; };
+  const pipGlow = el(pip.root, 'glow', { zIndex: 8, width: '620px', height: '620px', left: px(96 - 310), top: px(-215 - 310) });
+  const held = new Image(); held.alt = ''; held.className = 'piece'; held.style.zIndex = 6; pip.root.appendChild(held);
+
+  const wick = puppet(wickRig, 'wick', 0.18, true);
+  const rope = obj['rope-coil'], ropeImg = new Image(); ropeImg.src = rope.art.path; ropeImg.className = 'piece'; ropeImg.style.zIndex = 8; wick.root.appendChild(ropeImg);
+  const ropeHpx = rope.size.heightM * RIG_PX_PER_M, ropeWpx = ropeHpx * aspect['rope-coil'];
+  const wickPaw = [12 + 280 * 0.82, -585 + 228 * 0.82];
+  Object.assign(ropeImg.style, { height: px(ropeHpx), left: px(wickPaw[0] - ropeWpx * rope.pivot[0] / 100), top: px(wickPaw[1] - ropeHpx * rope.pivot[1] / 100) });
+
+  // Crossings: pieces laid across the gap at Pip's depth.
+  const gap = set.gapM, depth = gap.atZ;
+  const ladder = obj.ladder, ladderLen = mm(ladder.size.heightM), ladderW = ladderLen * aspect.ladder;
+  const ladderFlat = el(bookRoot, 'p3', { left: px(-ladderW / 2), top: px(mm(depth) - ladderLen / 2), width: px(ladderW), height: px(ladderLen), transform: 'translateZ(1.5px) rotate(90deg)' });
+  el(ladderFlat, 'face', { backgroundImage: `url(${ladder.art.path})`, backgroundSize: '100% 100%' });
+  const span = (name) => {
+    const fx = set.effects[name], len = mm(fx.lengthM), th = Math.max(2, mm(fx.thicknessM));
+    const c = el(bookRoot, 'p3', { left: px(-len / 2), top: px(mm(depth) - th), width: px(len), height: px(th), transformOrigin: 'bottom center', transform: `translateZ(${mm(0.003)}px) rotateX(-90deg)` });
+    el(c, 'face both', { backgroundImage: `url(sets/the-gap/${fx.file})`, backgroundSize: '100% 100%' });
+    return c;
+  };
+  const ropeSpan = span('rope-span'), threadSpan = span('thread-span');
+
+  // The drawer: tray, front with the pull, and both sides, sliding out from under the page block.
+  const tray = el(bookRoot, 'p3', { left: px(mm(drawer.attach.centerX)), top: px(mm(drawer.attach.edgeZ)), width: 0, height: 0, transform: `translateZ(${-T + 1}px)` });
+  const [tw, td] = drawer.tray.sizeM.map(mm), wall = mm(drawer.tray.wallHeightM);
+  el(tray, 'face', { inset: 'auto', left: px(-tw / 2), top: px(-td), width: px(tw), height: px(td), backgroundImage: 'url(book/drawer/tray.png)', backgroundSize: '100% 100%' });
+  const [fw, fh] = drawer.front.sizeM.map(mm);
+  const front = el(tray, 'p3', { left: px(-fw / 2), top: px(-fh), width: px(fw), height: px(fh), transformOrigin: 'bottom center', transform: 'rotateX(-90deg)' });
+  el(front, 'face', { backgroundImage: 'url(book/drawer/front.png)', backgroundSize: '100% 100%' });
+  const [pw, ph] = book.parts['drawer-pull'].sizeM.map(mm);
+  el(front, 'face', { inset: 'auto', left: px(fw / 2 - pw / 2), top: px(fh * 0.2), width: px(pw), height: px(ph), backgroundImage: 'url(book/drawer-pull.png)', backgroundSize: '100% 100%', transform: 'translateZ(1px)' });
+  const [sl, sh] = drawer.side.sizeM.map(mm);
+  for (const side of [-1, 1]) {
+    const s = el(tray, 'p3', { left: px(side * tw / 2 - sh / 2), top: px(-td), width: px(sh), height: px(sl), transformOrigin: 'center', transform: `translateX(${-side * sh / 2}px) rotateY(${side * 90}deg) translateX(${side * sh / 2}px)` });
+    el(s, 'face both', { backgroundImage: 'url(book/drawer/side.png)', backgroundSize: '100% 100%', transform: 'rotate(90deg)', inset: 'auto', left: px((sh - sl) / 2), top: px((sl - sh) / 2), width: px(sl), height: px(sh) });
+  }
+  // Each object: lies flat behind its plane, tips up onto its long edge, then swings upright, as drawer.json says.
+  const [iw, idp] = drawer.tray.interiorM.map(mm), backWall = -td + (td - idp) / 2;
+  const stowed = drawer.slots.map((s) => {
+    const def = obj[s.object], imgH = mm(def.size.heightM), imgW = imgH * aspect[s.object];
+    const P = mm(0.2);
+    const plane = el(tray, 'p3', { left: px(-iw / 2), top: px(backWall + mm(s.planeZM) - P), width: px(iw), height: px(P), transformOrigin: 'bottom center' });
+    const im = el(plane, 'p3', { width: px(imgW), height: px(imgH) });
+    el(im, 'face both', { backgroundImage: `url(${def.art.path})`, backgroundSize: '100% 100%' });
+    return { s, plane, im, imgW, imgH, P, L: mm(s.paintedLengthM), Wd: mm(s.paintedWidthM) };
+  });
+  function drawerAt(v) {
+    // 0 shut, .55 fully out and still flat, .75 tipped onto edges, 1 standing.
+    const slide = Math.min(1, v / 0.55), tip = Math.max(0, Math.min(1, (v - 0.55) / 0.2)), swing = Math.max(0, Math.min(1, (v - 0.75) / 0.25));
+    tray.style.transform = `translateZ(${-T + 1}px) translateY(${mm(drawer.attach.travelM) * slide}px)`;
+    for (const o of stowed) {
+      const phi = 90 * swing * Math.PI / 180;
+      const xc = mm(o.s.flatXM + (o.s.standXM - o.s.flatXM) * swing) + o.L * 0 ;
+      const yc = o.L / 2 * Math.sin(phi) + o.Wd / 2 * Math.cos(phi);
+      o.plane.style.transform = `rotateX(${-90 * tip}deg)`;
+      Object.assign(o.im.style, { left: px(iw / 2 + xc - o.imgW / 2), top: px(o.P - yc - o.imgH / 2), transform: `rotate(${o.s.turn * 90 * (1 - swing)}deg)` });
+    }
+  }
+
+  // The satchel, beside the book: back, pocket, and the pocket's flap on its hinge.
+  const sat = el(bookRoot, 'p3', { left: px(mm(satchel.position[0])), top: px(mm(satchel.position[2])), width: 0, height: 0, transform: `translateZ(${-T}px)` });
+  el(sat, 'shadow', { left: px(-mm(0.065)), top: px(-mm(0.01)), width: px(mm(0.13)), height: px(mm(0.025)) });
+  const standing = (part, z, extra) => {
+    const [w, h] = satchel.parts[part].sizeM.map(mm);
+    const c = el(sat, 'p3', Object.assign({ left: px(-w / 2), top: px(mm(z) - h), width: px(w), height: px(h), transformOrigin: 'bottom center', transform: 'rotateX(-90deg)' }, extra || {}));
+    el(c, 'face both', { backgroundImage: `url(satchel/${satchel.parts[part].file})`, backgroundSize: '100% 100%' });
+    return c;
+  };
+  standing('back', 0);
+  standing('front', satchel.parts.front.z);
+  const pocketTop = mm(satchel.parts.front.sizeM[1]);
+  const [flw, flh] = satchel.parts.flap.sizeM.map(mm);
+  const flapHinge = el(sat, 'p3', { left: px(-flw / 2), top: px(mm(satchel.parts.flap.z)), width: px(flw), height: 0, transform: `translateZ(${pocketTop}px)` });
+  const flap = el(flapHinge, 'p3', { left: 0, top: 0, width: px(flw), height: px(flh), transformOrigin: 'top center' });
+  el(flap, 'face both', { backgroundImage: `url(satchel/${satchel.parts.flap.file})`, backgroundSize: '100% 100%' });
+  const flapAt = (open) => { flap.style.transform = `rotateX(${-90 + 160 * open}deg)`; };
+
+  // State, controls and moods.
+  const q = new URLSearchParams(location.search);
+  const state = { cross: q.get('cross') || 'none', drawer: q.has('drawer') ? Number(q.get('drawer')) : 0, satchel: q.get('satchel') === 'open' ? 1 : 0, lamp: q.get('lamp') === '1', mood: q.get('mood') || 'dusk' };
+  const still = ['cross', 'drawer', 'satchel', 'lamp', 'mood'].some((p) => q.has(p));
+  const NOTES = {
+    none: 'The path ends at the gap. Pip waits on the near edge, and the drawer slides out under the pull.',
+    ladder: 'The ladder laid across as a bridge: about 24 mm rests on each rim.',
+    kite: 'The kite lifts Pip over the gap.',
+    thread: 'The spool thrown across: its thread strung over the gap.',
+    rope: 'Doing nothing: Wick arrives on the far side and throws his rope across.',
+  };
+  let drawerTarget = state.drawer, drawerNow = state.drawer;
+  const tint = document.getElementById('tint');
+  function mood(name) {
+    state.mood = name;
+    const [r, g, b] = set.moods[name];
+    tint.setAttribute('values', `${r} 0 0 0 0  0 ${g} 0 0 0  0 0 ${b} 0 0  0 0 0 1 0`);
+    sync();
+  }
+  function cross(name) { state.cross = name; sync(); }
+  function sync() {
+    const c = state.cross;
+    pip.show(true); wick.show(c === 'rope');
+    pip.place(c === 'kite' ? [0, 0, depth] : mark('near-edge'), c === 'kite' ? 0.07 : 0);
+    wick.place(mark('far-side'));
+    ladderFlat.style.display = c === 'ladder' ? '' : 'none';
+    ropeSpan.style.display = c === 'rope' ? '' : 'none';
+    threadSpan.style.display = c === 'thread' ? '' : 'none';
+    wick.parts.logbook.style.display = 'none';
+    const holding = c === 'kite' ? obj.kite : c === 'thread' ? obj.spool : null;
+    pip.parts.lantern.style.display = holding ? 'none' : '';
+    pipGlow.style.display = holding ? 'none' : '';
+    held.style.display = holding ? '' : 'none';
+    let raise = 0;
+    if (holding) {
+      held.src = holding.art.path;
+      const hPx = holding.size.heightM * RIG_PX_PER_M, wPx = hPx * aspect[holding.id];
+      raise = c === 'kite' ? -150 : -20;
+      const paw = pawAt(raise), [gx, gy] = holding.pivot;
+      Object.assign(held.style, { height: px(hPx), left: px(paw[0] - wPx * gx / 100), top: px(paw[1] - hPx * gy / 100) });
+    }
+    pip.parts.arm.style.transform = `rotate(${raise}deg)`;
+    const lit = state.lamp;
+    lampLit.style.display = lampGlow.style.display = lit ? '' : 'none';
+    document.getElementById('beam').style.opacity = lit ? 1 : 0;
+    document.getElementById('note').textContent = (lit ? 'The lamp is relit, and its beam sweeps the room. ' : '') + NOTES[c];
+    flapAt(state.satchel);
+    document.querySelectorAll('[data-cross]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.cross === c)));
+    document.querySelectorAll('[data-mood]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mood === state.mood)));
+    document.querySelector('[data-drawer]').setAttribute('aria-pressed', String(drawerTarget > 0.5));
+    document.querySelector('[data-satchel]').setAttribute('aria-pressed', String(state.satchel > 0.5));
+    document.querySelector('[data-lamp]').setAttribute('aria-pressed', String(lit));
+  }
+  const controls = document.getElementById('controls');
+  const button = (label, attr, on) => { const b = el(controls, '', {}, 'button'); b.textContent = label; b.dataset[attr[0]] = attr[1]; b.onclick = on; return b; };
+  for (const [id, label] of [['none', 'At the gap'], ['ladder', 'Ladder'], ['kite', 'Kite'], ['thread', 'Spool'], ['rope', "Wick's rope"]]) button(label, ['cross', id], () => cross(id));
+  el(controls, 'sep', {}, 'span');
+  button('Drawer', ['drawer', '1'], () => { drawerTarget = drawerTarget > 0.5 ? 0 : 1; sync(); });
+  button('Satchel flap', ['satchel', '1'], () => { state.satchel = state.satchel ? 0 : 1; sync(); });
+  button('Light the lamp', ['lamp', '1'], () => { state.lamp = !state.lamp; if (state.lamp) mood('gold'); else sync(); });
+  el(controls, 'sep', {}, 'span');
+  for (const m of ['dusk', 'night', 'gold']) button(m[0].toUpperCase() + m.slice(1), ['mood', m], () => mood(m));
+
+  addEventListener('pointermove', (e) => { view.style.perspectiveOrigin = `${30 + 40 * e.clientX / innerWidth}% ${5 + 30 * e.clientY / innerHeight}%`; });
+  if (q.has('look')) view.style.perspectiveOrigin = `${30 + 40 * Number(q.get('look'))}% 20%`;
+
+  mood(state.mood);
+  let last = 0;
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    const pose = still ? 0.5 : Math.floor(now / 1000 * 12) / 12;
+    if (!still && drawerNow !== drawerTarget) drawerNow += Math.sign(drawerTarget - drawerNow) * Math.min(Math.abs(drawerTarget - drawerNow), dt / 2.4);
+    drawerAt(drawerNow);
+    const blink = !still && Math.floor(pose * 12) % 47 === 0;
+    for (const [n, h] of Object.entries(pip.heads)) h.style.display = n === (state.cross === 'kite' ? 'up' : blink ? 'blink' : state.cross === 'none' ? 'profile' : 'forward') ? '' : 'none';
+    for (const [n, h] of Object.entries(wick.heads)) h.style.display = n === (state.cross === 'rope' ? 'profile' : 'forward') ? '' : 'none';
+    pip.parts.coat.style.transform = `scaleY(${1 + Math.sin(pose * 2.4) * 0.006})`;
+    pipGlow.style.opacity = 0.9 + 0.1 * Math.sin(pose * 7);
+    if (state.lamp) {
+      // The beam: a soft warm sector turning about the lamp's place on screen, lifting the dim as it passes.
+      const r = lampLit.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+      const a = still ? 115 : (now / 1000 * 40) % 360;
+      document.getElementById('beam').style.background = `conic-gradient(from ${a - 9}deg at ${cx}px ${cy}px, rgba(255,214,140,0) 0deg, rgba(255,214,140,.55) 9deg, rgba(255,214,140,0) 18deg, rgba(255,214,140,0) 360deg)`;
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
