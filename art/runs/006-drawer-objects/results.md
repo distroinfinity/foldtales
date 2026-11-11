@@ -60,6 +60,8 @@ Everything in `art/objects/` is product art. `make_objects.py` rebuilds all five
 
 Approved on the Mac by the owner on Nov 11, 2026, in `art/objects-proof.html`. That approval is provisional. Final approval happens in the headset.
 
+**Quest Browser, Nov 11, 2026 (items 1–4 below, passed).** The owner opened the proof in Quest Browser on the Quest 3, served over USB (`adb reverse` on `CLIENT_PORT`). All five objects were recognized, they look sharp, and their style matches Pip's. Pip holding each one looks right, and the subtle animation works. The moods look good. Every file loaded, and the browser's log showed no errors. This is still a flat page in the headset, not the immersive stage, so items 5–9 remain open until the Painted Stage Kit (ticket 1) and Hands and objects (ticket 2) render objects in IWSDK.
+
 ## Quest test, when the headset is connected
 
 **Now, in Quest Browser.** Serve `art/` on the Mac (`python3 -m http.server 5100 --bind 0.0.0.0 -d art`, from the repo root, using `CLIENT_PORT` from `.env.ports`). Open `http://<Mac's LAN IP>:5100/objects-proof.html` on the Quest. It's a flat page, so this tests the art, not the interaction.
