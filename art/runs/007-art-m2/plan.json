@@ -1,0 +1,85 @@
+{
+  "id": "007-art-m2",
+  "question": "Can run 004 and 006's recipe paint the gap set, the drawer, the satchel and the rope that M2 still needs, and fit the objects and cast already approved?",
+  "why": "M2 plays one complete authored episode. The path has to end at a gap the ladder really spans, the drawer has to slide out, what you give has to be keepable, and Wick needs a rope.",
+  "sameAcrossJobs": "seedream5_pro, flat vivid magenta paper with a margin for cut pieces, no --seal, run 004's and 006's wording. The key and ground are full-bleed and don't get cut.",
+  "decideBy": [
+    "Every piece passes make_m2.py, which exits non-zero on any problem.",
+    "The chasm measures 92-128 mm at Pip's depth, against the ladder's measured span.",
+    "The owner approves art/m2-proof.html. Final approval is in the headset."
+  ],
+  "learnEvenIfRejected": "Whether a painted two-bluff layer can register against a printed chasm, and whether long thin strands survive a shared parts sheet.",
+  "reusableOutput": "The gap set, drawer, satchel, rope and spans become product art. Prompts are the recipe for later sets.",
+  "capNote": "Run total cap 100 credits. capCredits is reset before each invocation to objects_check.invocation_cap(spent, 100, largest). Spend for the cap is the higher of list price and the balance drop per invocation.",
+  "capCredits": 96,
+  "jobs": [
+    {
+      "id": "gap-key",
+      "model": "seedream5_pro",
+      "ratio": "1376:768",
+      "refs": [
+        {
+          "file": "art/runs/004-book-and-first-set/key.png"
+        }
+      ],
+      "prompt": "A wide landscape in exactly the painting style and colors of Figure 1, with no characters. The same quiet shore at gentle early dusk. The same tall old stone lighthouse stands on its far headland in the left third, dark and unlit. A strip of calm sea lies below it. In the middle distance and foreground, the sandy dune path comes from the right and stops dead at a narrow, deep chasm. The chasm runs straight down the exact center of the picture, from the foreground back to the sea, and it is exactly one quarter of the picture's width across, with ragged rock-and-sand rims. Calm dark blue-green water lies far below in it. The path carries on from the far rim toward the lighthouse. Low clumps of reeds and stones sit at the far left and far right of the foreground, dipping away to nothing toward the center. The ground beside the right rim is open and calm, for a small character to stand on. Mid-to-high values, never dark, no night. No light sources, no beams, no lit windows, no directional cast shadows. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. No text."
+    }
+  ],
+  "phaseBJobs": [
+    {
+      "id": "layer-3-far-rim",
+      "model": "seedream5_pro",
+      "ratio": "2720:1530",
+      "refs": [
+        {
+          "file": "art/runs/007-art-m2/gap-key.png"
+        }
+      ],
+      "prompt": "Figure 1 is the composed scene. Paint only the far rim of the chasm from Figure 1, as exactly two separate die-cut paper stage pieces, flat-on, in exactly the same painting style and colors, with a wide empty space of paper between them across the middle. On the left, a low sand-and-rock bluff with chunky grass tufts, whose right end drops steeply as a rocky cliff face. On the right, its mirror: a low bluff whose left end drops steeply as a rocky cliff face. The empty space between the two cliff faces is exactly one quarter of the image's width, centered. Neither bluff is taller than one sixth of the image's width. No sky, no sea, no lighthouse behind them: the plain paper shows directly around them. Each piece has a clean hard edge traced with a fine pencil line, and a perfectly straight flat bottom edge. Paint each piece continuously right down to its straight bottom edge, with no gaps or holes. Leave a wide margin of empty paper on all four sides, with nothing touching the edge of the image. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. Pale, gentle dusk values. No lit windows, no beams, no directional cast shadows. On plain flat solid vivid magenta paper, one even color. No text."
+    },
+    {
+      "id": "layer-4-near-rim",
+      "model": "seedream5_pro",
+      "ratio": "2720:1530",
+      "refs": [
+        {
+          "file": "art/runs/007-art-m2/gap-key.png"
+        }
+      ],
+      "prompt": "Figure 1 is the composed scene. Paint only the near rim of the chasm from Figure 1, as exactly two separate die-cut paper stage pieces, flat-on, in exactly the same painting style and colors, with a wide empty space of paper between them across the middle. On the far left, a low clump of chunky reeds and stones on a strip of ground, sloping down toward the middle and ending in a low rocky lip. On the far right, its mirror, sloping down toward the middle and ending in a low rocky lip. The empty space between the two lips is exactly one quarter of the image's width, centered. Neither piece is taller than one seventh of the image's width, and each is lowest at its inner end. The reeds are bold clump shapes, not thin strands. Each piece has a clean hard edge traced with a fine pencil line, and a perfectly straight flat bottom edge. Paint each piece continuously right down to its straight bottom edge, with no gaps or holes. Leave a wide margin of empty paper on all four sides, with nothing touching the edge of the image. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. Pale, gentle dusk values. No lit windows, no beams, no directional cast shadows. On plain flat solid vivid magenta paper, one even color. No text."
+    },
+    {
+      "id": "ground",
+      "model": "seedream5_pro",
+      "ratio": "2304:1728",
+      "refs": [
+        {
+          "file": "art/runs/007-art-m2/gap-key.png"
+        }
+      ],
+      "prompt": "The printed page of an open picture book, seen flat from directly above, in exactly the painting style of Figure 1. Soft pale sand and a sandy path painted as flat watercolor washes with no horizon and no perspective. The path comes in from the right and stops at a chasm. The chasm runs straight down the exact center of the image from the top edge to the start of the bottom sixth, and it is exactly one quarter of the image's width across, with ragged rocky edges. Inside it, dark blue-green water seen from far above, in soft washes. The path carries on from the left rim of the chasm toward the top left. The whole picture fades gently to bare warm white paper at the left, right and top edges. The bottom sixth of the image is bare paper. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. No characters, no text, no border, not a photo of a book."
+    },
+    {
+      "id": "drawer-sheet",
+      "model": "seedream5_pro",
+      "ratio": "2048:2048",
+      "refs": [
+        {
+          "file": "art/runs/002-pip-puppet-and-live-painter/pip-master-v2.png"
+        }
+      ],
+      "prompt": "A paper-doll parts sheet, in exactly the painting style of Figure 1, of three separate pieces of a small wooden drawer for a storybook, with wide empty space between them, none touching. One: the drawer tray seen from directly above, flat-on with no perspective, a shallow open tray, empty, its floor lined with worn sage-green felt and its four thin pale wooden walls visible all the way round, small dovetail joints at the corners. The tray is about two thirds of the sheet's width, and exactly 1.5 times as wide as it is tall. Two: the front panel of the same drawer, a long thin horizontal strip of the same pale wood with a fine pencil line just inside its edge, no handle and no knob, as wide as the tray and exactly seven times as wide as it is tall. Three: the side rail of the drawer, a long thin horizontal strip of the same pale wood, plain, two thirds of the tray's width and exactly five times as wide as it is tall. Leave a wide margin of empty paper on all four sides. Each piece is complete, with a clean hard edge. No cast shadows on the paper. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. Natural, believable objects, not cartoons. On plain flat solid vivid magenta paper, one even color. No pink or purple on any piece. No scenery, no text."
+    },
+    {
+      "id": "satchel-sheet",
+      "model": "seedream5_pro",
+      "ratio": "2048:2048",
+      "refs": [
+        {
+          "file": "art/runs/002-pip-puppet-and-live-painter/pip-master-v2.png"
+        }
+      ],
+      "prompt": "A paper-doll parts sheet, in exactly the painting style of Figure 1, of six separate pieces for a storybook, with wide empty space between them, none touching. One: the back panel of a small worn brown leather satchel, seen flat-on from the front, about two fifths of the sheet's width, a little wider than it is tall, with a short curved leather carrying strap joined to its top corners. Two: the front pocket panel of the same satchel, exactly as wide as the back panel, twice as wide as it is tall, plain leather with a small brass buckle at its top center. Three: the top flap of the same satchel, exactly as wide as the back panel, three times as wide as it is tall, with softly rounded lower corners and stitching along its edge. Four: a coil of rough pale hemp rope lying in a round loop, seen from above, as tall as it is wide, about one fifth of the sheet's width. Five: a single straight length of the same hemp rope running exactly horizontally, about three fifths of the sheet's width, its thickness one twentieth of its length. Six: a single straight length of sage-green thread running exactly horizontally, about three fifths of the sheet's width, its thickness one sixtieth of its length. Leave a wide margin of empty paper on all four sides. Each piece is complete, with a clean hard edge. No cast shadows on the paper. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. Natural, believable objects, not cartoons. On plain flat solid vivid magenta paper, one even color. No pink or purple on any piece. No scenery, no text."
+    }
+  ]
+}
