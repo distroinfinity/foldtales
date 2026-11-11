@@ -11,7 +11,7 @@
   "learnEvenIfRejected": "Whether a painted two-bluff layer can register against a printed chasm, and whether long thin strands survive a shared parts sheet.",
   "reusableOutput": "The gap set, drawer, satchel, rope and spans become product art. Prompts are the recipe for later sets.",
   "capNote": "Run total cap 100 credits. capCredits is reset before each invocation to objects_check.invocation_cap(spent, 100, largest). Spend for the cap is the higher of list price and the balance drop per invocation.",
-  "capCredits": 96,
+  "capCredits": 87,
   "jobs": [
     {
       "id": "gap-key",
@@ -23,9 +23,7 @@
         }
       ],
       "prompt": "A wide landscape in exactly the painting style and colors of Figure 1, with no characters. The same quiet shore at gentle early dusk. The same tall old stone lighthouse stands on its far headland in the left third, dark and unlit. A strip of calm sea lies below it. In the middle distance and foreground, the sandy dune path comes from the right and stops dead at a narrow, deep chasm. The chasm runs straight down the exact center of the picture, from the foreground back to the sea, and it is exactly one quarter of the picture's width across, with ragged rock-and-sand rims. Calm dark blue-green water lies far below in it. The path carries on from the far rim toward the lighthouse. Low clumps of reeds and stones sit at the far left and far right of the foreground, dipping away to nothing toward the center. The ground beside the right rim is open and calm, for a small character to stand on. Mid-to-high values, never dark, no night. No light sources, no beams, no lit windows, no directional cast shadows. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. No text."
-    }
-  ],
-  "phaseBJobs": [
+    },
     {
       "id": "layer-3-far-rim",
       "model": "seedream5_pro",
