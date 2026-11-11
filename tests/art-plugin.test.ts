@@ -1,4 +1,4 @@
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import type { AddressInfo } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -47,7 +47,7 @@ describe('resolveArtPath', () => {
 });
 
 describe('in a real Vite', () => {
-  const root = mkdtempSync(join(tmpdir(), 'tt-art-root-'));
+  const root = realpathSync(mkdtempSync(join(tmpdir(), 'tt-art-root-')));
   const outDir = mkdtempSync(join(tmpdir(), 'tt-art-out-'));
   writeFileSync(join(root, 'index.html'), '<!doctype html><script type="module" src="/main.js"></script>');
   writeFileSync(join(root, 'main.js'), 'console.log(1);');
@@ -66,7 +66,7 @@ describe('in a real Vite', () => {
   });
 
   test('the dev server answers art and refuses the rest', async () => {
-    const server = await createServer({ root, configFile: false, logLevel: 'silent', appType: 'custom', plugins, server: { port: 0, ws: false } });
+    const server = await createServer({ root, configFile: false, logLevel: 'silent', appType: 'custom', plugins, server: { host: '127.0.0.1', ws: false } });
     await server.listen();
     try {
       const { port } = server.httpServer!.address() as AddressInfo;
