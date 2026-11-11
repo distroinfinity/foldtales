@@ -79,7 +79,7 @@ Codex reviewed the plan read-only before any credits were spent, over three roun
 
 ## Approval
 
-Waiting for the owner's Mac approval in `art/m2-proof.html`. It will be provisional. Final approval happens in the headset.
+Approved on the Mac by the owner on Nov 11, 2026, in `art/m2-proof.html`, including the free widening of the chasm. That approval is provisional. Final approval happens in the headset.
 
 ## Quest test
 
