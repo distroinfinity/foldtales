@@ -1,4 +1,4 @@
-import { DoubleSide, Group, LinearFilter, LinearMipmapLinearFilter, Mesh, MeshBasicMaterial, PlaneGeometry, SRGBColorSpace, TextureLoader, type Texture } from '@iwsdk/core';
+import { CustomBlending, DoubleSide, Group, LinearFilter, LinearMipmapLinearFilter, Mesh, MeshBasicMaterial, OneFactor, OneMinusSrcAlphaFactor, PlaneGeometry, SRGBColorSpace, TextureLoader, type Texture } from '@iwsdk/core';
 import { Rig } from '@tabletop/contracts';
 import { idlePose } from './idle.ts';
 import { layoutCards, metresPerPixel } from './layout.ts';
@@ -37,16 +37,30 @@ const browserDeps: PuppetDeps = {
 };
 
 /**
- * With multisampling, coverage turns alphaTest into a soft edge. Without it, the same
- * test still discards transparent texels, so card margins never write depth.
+ * The painted edges fade over many pixels, so they're blended, not cut. The texture is
+ * premultiplied so the paper colour hidden under transparent pixels can't bleed into an
+ * edge when it's filtered. The alphaTest drops the faintest edge pixels, which carry the
+ * paper's tint as a pale rim, and keeps empty margins out of the depth buffer.
  */
 export function cardMaterial(map: Texture): MeshBasicMaterial {
   map.colorSpace = SRGBColorSpace;
+  map.premultiplyAlpha = true;
   map.generateMipmaps = true;
   map.minFilter = LinearMipmapLinearFilter;
   map.magFilter = LinearFilter;
   map.anisotropy = ANISOTROPY;
-  return new MeshBasicMaterial({ map, alphaToCoverage: true, alphaTest: 0.5, transparent: false, side: DoubleSide, toneMapped: false });
+  return new MeshBasicMaterial({
+    map,
+    transparent: true,
+    alphaTest: 0.25,
+    blending: CustomBlending,
+    blendSrc: OneFactor,
+    blendDst: OneMinusSrcAlphaFactor,
+    blendSrcAlpha: OneFactor,
+    blendDstAlpha: OneMinusSrcAlphaFactor,
+    side: DoubleSide,
+    toneMapped: false,
+  });
 }
 
 function textureSize(texture: Texture): [number, number] {
@@ -73,6 +87,8 @@ export async function loadPuppet(base: string, stage: StageConfig, deps: PuppetD
     group.position.set(...card.pivot);
     const mesh = new Mesh(new PlaneGeometry(...card.size), cardMaterial(textures.get(card.name)!));
     mesh.position.set(card.anchor[0], card.anchor[1], 0);
+    // Blended cards draw back to front in the rig's own layer order.
+    mesh.renderOrder = card.pivot[2] * 1000;
     group.add(mesh);
     root.add(group);
     groups.set(card.name, group);
@@ -84,6 +100,7 @@ export async function loadPuppet(base: string, stage: StageConfig, deps: PuppetD
   shadow.name = 'contact-shadow';
   shadow.rotation.x = -Math.PI / 2;
   shadow.position.y = SHADOW_LIFT_M;
+  shadow.renderOrder = -1;
   root.add(shadow);
 
   if (rig.chinShadow) {
@@ -91,6 +108,7 @@ export async function loadPuppet(base: string, stage: StageConfig, deps: PuppetD
     const chin = softPlane(radialTexture([[0, 'rgba(38,26,34,.5)'], [0.45, 'rgba(38,26,34,.28)'], [0.72, 'rgba(38,26,34,0)']]), width * m, height * m);
     chin.name = 'chin-shadow';
     chin.position.set((x + width / 2) * m, -(y + height / 2) * m, z * 0.001);
+    chin.renderOrder = z;
     root.add(chin);
   }
 
@@ -98,7 +116,7 @@ export async function loadPuppet(base: string, stage: StageConfig, deps: PuppetD
   const glow = softPlane(radialTexture([[0, 'rgba(255,214,130,.35)'], [0.45, 'rgba(255,214,130,.12)'], [0.7, 'rgba(255,214,130,0)']]), glowSize, glowSize);
   glow.name = 'lantern-glow';
   glow.position.set(stage.glow.x * m, -stage.glow.y * m, 0.009);
-  glow.renderOrder = 2;
+  glow.renderOrder = 100;
   root.add(glow);
 
   const set = (name: string, deg: number): void => {

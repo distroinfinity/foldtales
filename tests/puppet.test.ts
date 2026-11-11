@@ -122,12 +122,15 @@ describe('loadPuppet', () => {
     ).rejects.toThrow('404');
   });
 
-  test('cards discard transparent texels with or without multisampling', async () => {
+  test('cards blend soft edges from premultiplied art, and keep empty margins out of depth', async () => {
     const { cardMaterial } = await import('../client/src/puppet/puppet.ts');
-    const { Texture } = await import('@iwsdk/core');
-    const material = cardMaterial(new Texture());
+    const { Texture, OneFactor } = await import('@iwsdk/core');
+    const map = new Texture();
+    const material = cardMaterial(map);
+    expect(map.premultiplyAlpha).toBe(true);
+    expect(material.transparent).toBe(true);
+    expect(material.blendSrc).toBe(OneFactor);
     expect(material.alphaTest).toBeGreaterThan(0);
-    expect(material.alphaToCoverage).toBe(true);
-    expect(material.transparent).toBe(false);
+    expect(material.alphaTest).toBeLessThan(0.5);
   });
 });

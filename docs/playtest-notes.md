@@ -14,3 +14,7 @@ Run from the Mac over USB, in a room with a desk.
 Telemetry from that session: a real AR session with passthrough, median 90 fps, low 52 in the first 10 seconds, no errors. It was drawn from the fake pose, so it says little about placement.
 
 The pixelation was seen only in the test mode and at the browser's default render resolution. The render resolution is now 1.4×, which hasn't been seen in the headset yet.
+
+### After, on the Mac only
+
+The cards were cut hard at 50% alpha, relying on multisampling to smooth the cut, which the Quest's multiview rendering may not do. Pip's edges fade over thousands of pixels, and the hidden pixels are paper-coloured. The cards are now blended from premultiplied textures, which keeps paper out of the filtering, and only pixels under 25% alpha are dropped, which removes the pale rim. In the emulator this is clearly smoother than the hard cut, and has less rim than blending everything. Not yet seen in the headset.
