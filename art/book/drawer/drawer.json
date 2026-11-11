@@ -1,0 +1,93 @@
+{
+  "note": "The drawer, as the art proposes it. Same stage space as book.json. Pieces are at Pip's density, 905 px per 170 mm. Re-check on the Quest.",
+  "tray": {
+    "file": "tray.png",
+    "face": "seen from above: the felt floor and the inside of the walls",
+    "sizeM": [
+      0.19,
+      0.125
+    ],
+    "interiorM": [
+      0.176,
+      0.111
+    ],
+    "wallHeightM": 0.026
+  },
+  "front": {
+    "file": "front.png",
+    "face": "the near face, carrying book/drawer-pull.png at its center",
+    "sizeM": [
+      0.19,
+      0.026
+    ]
+  },
+  "side": {
+    "file": "side.png",
+    "face": "both outer sides, the left one mirrored. Bottom-aligned with the front, which stands a little taller",
+    "sizeM": [
+      0.125,
+      0.0227
+    ]
+  },
+  "attach": {
+    "centerX": 0.105,
+    "edgeZ": 0.1575,
+    "under": "the page block, below the pages",
+    "slides": "along +z, toward the reader",
+    "travelM": 0.12,
+    "clearanceAtFullTravelM": 0.002
+  },
+  "stow": [
+    "Closed and while sliding, every object lies flat on the felt, its long axis across the tray, centered at flatXM.",
+    "Only at full travel, when the whole interior has cleared the book's edge: each tips up onto its long edge, into its own plane at planeZM from the back wall.",
+    "Then it swings upright in that plane, sliding to standXM, with its lowest point kept on the felt. turn is the way it swings, so its low end moves away from the nearer wall.",
+    "Closing runs the same steps backward, all objects flat before the tray moves."
+  ],
+  "slots": [
+    {
+      "object": "ladder",
+      "flatXM": 0.0,
+      "standXM": -0.066,
+      "planeZM": 0.016,
+      "turn": -1,
+      "paintedLengthM": 0.1483,
+      "paintedWidthM": 0.0393
+    },
+    {
+      "object": "kite",
+      "flatXM": 0.0,
+      "standXM": 0.045,
+      "planeZM": 0.028,
+      "turn": 1,
+      "paintedLengthM": 0.1183,
+      "paintedWidthM": 0.0627
+    },
+    {
+      "object": "odd-sock",
+      "flatXM": -0.03,
+      "standXM": -0.056,
+      "planeZM": 0.052,
+      "turn": -1,
+      "paintedLengthM": 0.0882,
+      "paintedWidthM": 0.0551
+    },
+    {
+      "object": "spool",
+      "flatXM": 0.03,
+      "standXM": 0.007,
+      "planeZM": 0.045,
+      "turn": 1,
+      "paintedLengthM": 0.0687,
+      "paintedWidthM": 0.0604
+    },
+    {
+      "object": "brass-key",
+      "flatXM": 0.04,
+      "standXM": 0.06,
+      "planeZM": 0.065,
+      "turn": 1,
+      "paintedLengthM": 0.0732,
+      "paintedWidthM": 0.0271
+    }
+  ]
+}

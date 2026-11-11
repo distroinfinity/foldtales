@@ -1,0 +1,42 @@
+{
+  "note": "The satchel, as the art proposes it. Same stage space as book.json. Pieces are at Pip's density, 905 px per 170 mm. Re-check on the Quest.",
+  "parts": {
+    "back": {
+      "file": "satchel-back.png",
+      "sizeM": [
+        0.1123,
+        0.1116
+      ],
+      "z": 0,
+      "face": "back panel and strap, standing facing the reader"
+    },
+    "front": {
+      "file": "satchel-front.png",
+      "sizeM": [
+        0.0926,
+        0.0528
+      ],
+      "z": 0.012,
+      "face": "front pocket, its bottom on the back's bottom. Objects go between back and front"
+    },
+    "flap": {
+      "file": "satchel-flap.png",
+      "sizeM": [
+        0.0992,
+        0.0537
+      ],
+      "z": 0.014,
+      "face": "hinged at its top edge on the back's top edge. Closed it hangs over the front; open it lifts back"
+    }
+  },
+  "position": [
+    0.29,
+    0,
+    0.06
+  ],
+  "positionNote": "A suggestion: right of the book's fore-edge, within the 0.6 m reach. The gold tab opens it.",
+  "flap": {
+    "closedDeg": 0,
+    "openDeg": -150
+  }
+}

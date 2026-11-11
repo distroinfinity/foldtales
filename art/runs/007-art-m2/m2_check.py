@@ -10,7 +10,8 @@ MIN_BEARING_MM = 10
 MIN_GAP_MM = SOCK_MM + 2
 MAX_RIM_OVER_MM, MAX_RIM_BACK_MM = 6, 12
 RIM_SETBACK_MM = 4
-MAX_BLUFF_SHIFT_SHARE = 0.05
+MIN_SQUEEZE, MAX_SQUEEZE = 0.75, 1.05
+MIN_SAND_SCALE, MAX_WATER_SCALE = 0.8, 3.0
 PAGE = (246, 239, 226)
 MAX_OFF_CENTER_MM = 12
 SPINE_CLEAR_MM = 35
@@ -94,9 +95,41 @@ def rim_problems(rgba, max_h_mm, px_per_mm=SET_PX_PER_MM):
     return problems
 
 
-def bluff_shift_px(inner_edge_mm, chasm_edge_mm, px_per_mm=SET_PX_PER_MM):
-    """Pixels to move a bluff away from the spine so its inner edge lands RIM_SETBACK_MM back from the printed chasm."""
-    return int(round((chasm_edge_mm + RIM_SETBACK_MM - inner_edge_mm) * px_per_mm))
+def bluff_squeeze(outer_mm, inner_mm, chasm_edge_mm):
+    """How much to scale a bluff across, holding its outer end, so its inner edge lands RIM_SETBACK_MM back from the
+    printed chasm. All distances are mm from the spine. Run 007's painter made the gap far too narrow."""
+    return (outer_mm - chasm_edge_mm - RIM_SETBACK_MM) / (outer_mm - inner_mm)
+
+
+def squeeze_problems(k):
+    return [] if MIN_SQUEEZE <= k <= MAX_SQUEEZE else [f"squeeze {k:.2f}"]
+
+
+def column_map_problems(src_mm, dst_mm, water):
+    """A remap of the ground's columns: knots in mm from the spine, both increasing. Sand may narrow a little,
+    and only the water segment (an index pair) may widen much."""
+    problems = []
+    for i in range(len(src_mm) - 1):
+        k = (dst_mm[i + 1] - dst_mm[i]) / (src_mm[i + 1] - src_mm[i])
+        limit = MAX_WATER_SCALE if (i, i + 1) == water else 1.4
+        if not MIN_SAND_SCALE <= k <= limit:
+            problems.append(f"segment {src_mm[i]}..{src_mm[i + 1]} scaled {k:.2f}")
+    if src_mm[0] != dst_mm[0] or src_mm[-1] != dst_mm[-1]:
+        problems.append("the page edges moved")
+    return problems
+
+
+def remap_columns(rgb, src_mm, dst_mm, width_mm=420):
+    """Resample an image's columns along a piecewise-linear map from src to dst knots, the same for every row."""
+    w = rgb.shape[1]
+    per_mm = w / width_mm
+    out_mm = (np.arange(w) + 0.5) / per_mm - width_mm / 2
+    src_x = (np.interp(out_mm, dst_mm, src_mm) + width_mm / 2) * per_mm - 0.5
+    x0 = np.clip(np.floor(src_x).astype(int), 0, w - 1)
+    x1 = np.clip(x0 + 1, 0, w - 1)
+    t = (src_x - x0)[None, :, None]
+    out = rgb[:, x0].astype(float) * (1 - t) + rgb[:, x1].astype(float) * t
+    return np.clip(out, 0, 255).round().astype("uint8")
 
 
 def inner_edges_mm(rgba, px_per_mm=SET_PX_PER_MM):
@@ -122,8 +155,6 @@ def rim_agreement_problems(edges_mm, ground_left_mm, ground_right_mm):
     return problems
 
 
-def shift_problems(shift, width):
-    return [f"shift {shift} px"] if abs(shift) > MAX_BLUFF_SHIFT_SHARE * width else []
 
 
 def aspect_problems(width_px, height_px, want_w, want_h, limit):
@@ -204,3 +235,45 @@ def spent_for_cap(listed, observed_drop):
     """What an invocation counts as toward the cap. The tool logs only finished jobs, so an interrupted one can
     charge with no log line. The larger of list price and the balance drop can't under-count it."""
     return max(listed, observed_drop)
+
+
+MAX_IN_FRONT_OF_PIP_MM = 45
+
+
+def height_over_mm(rgba, from_mm, to_mm, px_per_mm=SET_PX_PER_MM):
+    """The tallest paint between two x positions, in mm from the spine, as a height above the layer's base."""
+    w = rgba.shape[1]
+    lo, hi = int(w / 2 + from_mm * px_per_mm), int(w / 2 + to_mm * px_per_mm)
+    rows = np.nonzero((rgba[:, lo:hi, 3] > 127).any(axis=1))[0]
+    return 0.0 if not rows.size else (rgba.shape[0] - rows.min()) / px_per_mm
+
+
+def in_front_of_pip_problems(rgba, from_mm, to_mm):
+    """The near rim may be tall at the page's ends, but where Pip stands it must stay low enough to show his legs."""
+    h = height_over_mm(rgba, from_mm, to_mm)
+    return [f"{h:.0f} mm in front of Pip"] if h > MAX_IN_FRONT_OF_PIP_MM else []
+
+
+def deep_shadow(rgba):
+    """The paper's shadow and tint on this run's sheets: a deep crimson such as (64, 11, 13), whose blue isn't above
+    its green so run 006's shadow_tint misses it, and purple-pink fringe such as (70, 37, 61) or (197, 130, 134).
+    Nothing painted here has red and blue both above green: wood, hemp, leather and rock run red over green over
+    blue, the felt is green, and pencil is grey."""
+    r, g, b = [rgba[..., i].astype(int) for i in range(3)]
+    return ((r - g > 25) & (g < 30) & (b < 45)) | ((r - g > 20) & (b - g > 3))
+
+
+def without_deep_shadow(rgba):
+    """A raw cut with its deep shadow made transparent, for run 006's preservation check."""
+    out = rgba.copy()
+    out[deep_shadow(rgba), 3] = 0
+    return out
+
+
+def raw_for_preservation(rgba):
+    """A raw cut as run 006's preservation check should see it: no deep shadow, and no specks or slivers under 3 px at the edge,
+    which are fringe rather than paint and would otherwise flag a box that shrank by a pixel or two."""
+    out = without_deep_shadow(rgba)
+    solid = out[..., 3] > 127
+    out[solid & ~ni.binary_opening(solid, structure=np.ones((3, 3), bool)), 3] = 0
+    return out

@@ -1,0 +1,9 @@
+Run 007-art-m2: Can run 004 and 006's recipe paint the gap set, the drawer, the satchel and the rope that M2 still needs, and fit the objects and cast already approved?
+balance 112024, cap 87
+skip gap-key, already generated
+done layer-3-far-rim: 132s, 9 credits
+done layer-4-near-rim: 129s, 9 credits
+done ground: 142s, 9 credits
+done drawer-sheet: 117s, 9 credits
+done satchel-sheet: 181s, 9 credits
+finished, total spent 45

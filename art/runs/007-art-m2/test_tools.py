@@ -100,9 +100,58 @@ class Agreement(unittest.TestCase):
     def test_set_too_far_back_fails(self):
         self.assertTrue(any("right rim" in p for p in mc.rim_agreement_problems((60, 66), 52, 52)))
 
-    def test_shift_registers_a_bluff_to_the_chasm(self):
-        # Its inner edge is 70 mm out, and the printed chasm's edge is 52 mm, so it moves in by 14 mm, setting back 4.
-        self.assertEqual(mc.bluff_shift_px(70, 52), round(-14 * PX))
+    def test_squeeze_lands_the_inner_edge_behind_the_chasm(self):
+        # Outer end 190 mm out, inner 12 mm, chasm edge 50 mm: the inner edge must move to 54 mm.
+        k = mc.bluff_squeeze(190, 12, 50)
+        self.assertAlmostEqual(190 - (190 - 12) * k, 54)
+
+    def test_squeeze_limits(self):
+        self.assertEqual(mc.squeeze_problems(0.8), [])
+        self.assertTrue(mc.squeeze_problems(0.6))
+
+
+class InFrontOfPip(unittest.TestCase):
+    def test_low_lip_passes_and_tall_reeds_fail(self):
+        img = bluffs(height_mm=30)
+        self.assertEqual(mc.in_front_of_pip_problems(img, 60, 140), [])
+        img[H - int(80 * PX) :, int(W / 2 + 100 * PX) : int(W / 2 + 110 * PX)] = (150, 140, 110, 255)
+        self.assertTrue(mc.in_front_of_pip_problems(img, 60, 140))
+
+
+class Shadow(unittest.TestCase):
+    def test_deep_crimson_is_shadow_and_leather_is_not(self):
+        img = np.zeros((1, 7, 4), "uint8")
+        img[0] = [(64, 11, 13, 255), (70, 37, 61, 255), (197, 130, 134, 255),
+                  (150, 90, 50, 255), (90, 40, 20, 255), (40, 35, 30, 255), (90, 130, 80, 255)]
+        self.assertEqual(mc.deep_shadow(img)[0].tolist(), [True, True, True, False, False, False, False])
+        self.assertEqual(mc.without_deep_shadow(img)[0, :, 3].tolist(), [0, 0, 0, 255, 255, 255, 255])
+
+
+class Slivers(unittest.TestCase):
+    def test_a_one_pixel_sliver_is_dropped_and_paint_stays(self):
+        img = np.zeros((20, 20, 4), "uint8")
+        img[5:15, 5:15] = (150, 120, 80, 255)
+        img[10, 15:19] = (205, 164, 162, 255)
+        out = mc.raw_for_preservation(img)
+        self.assertEqual(int((out[..., 3] > 127).sum()), 100)
+
+
+class Columns(unittest.TestCase):
+    SRC = [-210, -32, -14, 16, 42, 210]
+    DST = [-210, -60, -38, 38, 70, 210]
+
+    def test_planned_map_passes(self):
+        self.assertEqual(mc.column_map_problems(self.SRC, self.DST, (2, 3)), [])
+
+    def test_squashed_sand_fails(self):
+        self.assertTrue(mc.column_map_problems([-210, -32, 32, 210], [-210, -150, 150, 210], (1, 2)))
+
+    def test_remap_moves_a_column(self):
+        img = np.zeros((4, 420, 3), "uint8")
+        img[:, 210] = 255  # the column at +0.5 mm
+        out = mc.remap_columns(img, [-210, 0, 210], [-210, 100, 210])
+        self.assertGreater(out[0, 310:312].max(), 100)
+        self.assertEqual(out.shape, img.shape)
 
 
 class Rims(unittest.TestCase):
@@ -128,9 +177,6 @@ class Rims(unittest.TestCase):
         img[-1:, 200:900, 3] = 0
         self.assertIn("base", mc.rim_problems(img, 100))
 
-    def test_big_shift_fails(self):
-        self.assertTrue(mc.shift_problems(200, W))
-        self.assertEqual(mc.shift_problems(100, W), [])
 
 
 class Pieces(unittest.TestCase):
