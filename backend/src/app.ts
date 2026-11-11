@@ -8,7 +8,7 @@ import {
   type ErrorCode,
   type ReplyChunk,
 } from '@tabletop/contracts';
-import { Hono, type Context } from 'hono';
+import { Hono, type Context, type MiddlewareHandler } from 'hono';
 import { streamSSE } from 'hono/streaming';
 
 const STATUS = {
@@ -21,18 +21,28 @@ const STATUS = {
   invalid_output: 502,
 } as const satisfies Record<ErrorCode, number>;
 
-function errorResponse(c: Context, error: BackendError): Response {
+export function errorResponse(c: Context, error: BackendError): Response {
   const body: ErrorBody = { error: { code: error.code, retryable: error.retryable, message: error.message } };
   return c.json(body, STATUS[error.code]);
 }
 
 type AnyMethod = (request: unknown) => Promise<unknown> | AsyncIterable<ReplyChunk>;
 
+export interface AppOptions {
+  beforeContract?: MiddlewareHandler[];
+  afterContract?: MiddlewareHandler[];
+  extend?: (app: Hono) => void;
+}
+
 /** Mounts the route table over any BackendApi. Deploy swaps real handlers in route by route. */
-export function createApp(api: BackendApi, log: (message: string, cause: unknown) => void = console.error): Hono {
+export function createApp(api: BackendApi, log: (message: string, cause: unknown) => void = console.error, options: AppOptions = {}): Hono {
   const app = new Hono();
 
   app.get('/healthz', (c) => c.json({ ok: true, contract: CONTRACT_VERSION }));
+  options.extend?.(app);
+
+  // CORS must come first, because a browser's preflight carries no contract header.
+  for (const middleware of options.beforeContract ?? []) app.use('/v1/*', middleware);
 
   app.use('/v1/*', async (c, next) => {
     const sent = c.req.header(CONTRACT_HEADER);
@@ -42,6 +52,8 @@ export function createApp(api: BackendApi, log: (message: string, cause: unknown
     await next();
     return undefined;
   });
+
+  for (const middleware of options.afterContract ?? []) app.use('/v1/*', middleware);
 
   for (const [name, route] of Object.entries(routes)) {
     const method = api[name as keyof BackendApi] as AnyMethod;
