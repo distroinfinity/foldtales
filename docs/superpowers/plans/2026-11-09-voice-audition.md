@@ -1,5 +1,7 @@
 # Voice audition implementation plan
 
+**Status:** ✅ Done. Run 005 closed with a full cast, for 82 of 100 credits (`art/runs/005-voice-audition/results.md`). The owner delegated the casting, so the picks came from measurements, and nobody has compared them by ear yet. Swapping a voice later is free.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Put a small, grouped set of voice options in front of the user on the Quest's speakers, record the cast they pick, and close run 005 with costs.
@@ -62,7 +64,7 @@
 
 A rerun that finds `succeeded` with no `done`, or `done` whose file is missing or has unrecognized bytes, re-reads that task id and retries only the download, with zero POSTs. If the URL has expired, it stops and says so. A job is finished when a `done` event exists and its file is on disk and valid.
 
-- [ ] **Step 1: Write failing tests** with a fake `fetchImpl` that scripts `/organization`, `/text_to_speech`, `/tasks/:id` and the output URL, and a no-op `sleep`. Names and assertions:
+- [x] **Step 1: Write failing tests** with a fake `fetchImpl` that scripts `/organization`, `/text_to_speech`, `/tasks/:id` and the output URL, and a no-op `sleep`. Names and assertions:
 
 ```js
 test('dry run makes no network calls and reports estimated credits')
@@ -89,13 +91,13 @@ test('format is read from bytes: ID3 and MPEG sync give mp3; unknown bytes fail 
 test('the api key never appears in log output or the manifest, including on errors')
 ```
 
-- [ ] **Step 2: Run to verify failure.** `node --test art/tools/generate-voice.test.mjs`. Expected: FAIL, module not found.
+- [x] **Step 2: Run to verify failure.** `node --test art/tools/generate-voice.test.mjs`. Expected: FAIL, module not found.
 
-- [ ] **Step 3: Implement `generate-voice.mjs`.** API base `https://api.dev.runwayml.com/v1`, header `X-Runway-Version: 2024-11-06`. `POST /text_to_speech` body: `{ model, promptText, voice: { type: 'runway-preset', presetId }, stability, similarityBoost, languageCode, seed }`. Poll `/tasks/:id` every 2 s for up to 15 minutes, keep polling through network errors, and at the limit stop with the `started` line in place. A POST that returns 5xx or throws is `ambiguous`. A rejected 4xx writes `failed` with `credits: 0`, then stops. Check balance before the first job and after each job, and stop if `start − current` exceeds the sum of this process's recorded credits. The CLI, run only when the file is the entry point: `node --env-file=.env.local art/tools/generate-voice.mjs <runDir> --phase <sweep|audition> [--spend] [--accept-lost <job>]`. A missing key exits with an error naming the variable, only when `--spend` is set.
+- [x] **Step 3: Implement `generate-voice.mjs`.** API base `https://api.dev.runwayml.com/v1`, header `X-Runway-Version: 2024-11-06`. `POST /text_to_speech` body: `{ model, promptText, voice: { type: 'runway-preset', presetId }, stability, similarityBoost, languageCode, seed }`. Poll `/tasks/:id` every 2 s for up to 15 minutes, keep polling through network errors, and at the limit stop with the `started` line in place. A POST that returns 5xx or throws is `ambiguous`. A rejected 4xx writes `failed` with `credits: 0`, then stops. Check balance before the first job and after each job, and stop if `start − current` exceeds the sum of this process's recorded credits. The CLI, run only when the file is the entry point: `node --env-file=.env.local art/tools/generate-voice.mjs <runDir> --phase <sweep|audition> [--spend] [--accept-lost <job>]`. A missing key exits with an error naming the variable, only when `--spend` is set.
 
-- [ ] **Step 4: Run tests.** Expected: all PASS.
+- [x] **Step 4: Run tests.** Expected: all PASS.
 
-- [ ] **Step 5: Commit.** `git add art/tools/generate-voice.mjs art/tools/generate-voice.test.mjs && git commit -m "Add voice generation script with spend ledger"`
+- [x] **Step 5: Commit.** `git add art/tools/generate-voice.mjs art/tools/generate-voice.test.mjs && git commit -m "Add voice generation script with spend ledger"`
 
 ### Task 2: The voice chain and room tone
 
@@ -111,7 +113,7 @@ test('the api key never appears in log output or the manifest, including on erro
 - Produces `chain.json`: `{ version: 1, default: "warm-radio", settings: { "soft-paper": {...}, "warm-radio": {...}, "old-wireless": {...} }, roomTone: { seed, loopSeconds: 12, lowHz: 180, highHz: 2500, rmsDb: -46, driftDb: 1.5 } }`. Each setting has `highpassHz`, `warmthHz`, `warmthQ`, `warmthDb`, `presenceHz`, `presenceQ`, `presenceDb`, `lowpassHz`, `drive`, `compressor: { thresholdDb, ratio, attackMs, releaseMs }`, `outputDb: 0`. Values are the spec's table. `outputDb` gets calibrated in Task 7.
 - Produces `chrome-harness.mjs`: `runInChrome({ handler, path, timeoutMs }) → Promise<result>`. It starts a local server on an OS-assigned port (test only, no `.env.ports` use), serves `handler`, and adds `POST /__result` which resolves with the JSON body. It launches `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome` with `--headless=new --autoplay-policy=no-user-gesture-required --user-data-dir=<temp>`, and always kills Chrome and removes the temp directory.
 
-- [ ] **Step 1: Write the failing test.** `chain.test.mjs` runs `chain-selftest.html` in Chrome and asserts on the posted JSON, for each of the three settings:
+- [x] **Step 1: Write the failing test.** `chain.test.mjs` runs `chain-selftest.html` in Chrome and asserts on the posted JSON, for each of the three settings:
 
 ```js
 test('low-level multi-tone, relative to 1 kHz, is within 2 dB of summed getFrequencyResponse at 60, 280, 1800, 6000, 10000 Hz')   // saturation and compressor add flat gain, so compare relative to 1 kHz
@@ -123,13 +125,13 @@ test('chain.mjs does not reference AudioWorklet')
 
 The self-test synthesizes all signals itself. For `MediaElementSource`, it builds a WAV `Blob` URL.
 
-- [ ] **Step 2: Run to verify failure.** `node --test art/tools/chain.test.mjs`. Expected: FAIL.
+- [x] **Step 2: Run to verify failure.** `node --test art/tools/chain.test.mjs`. Expected: FAIL.
 
-- [ ] **Step 3: Implement `chain.mjs`, `chain.json`, `chain-selftest.html`, `chrome-harness.mjs`.** Room tone: seeded `mulberry32` white noise, cascaded one-pole high and low passes at `lowHz` and `highHz`, a wrap crossfade over the final 100 ms for the seam, drift as a sine with a whole number of cycles per loop, normalized to `rmsDb`. Compute it in JS so the buffer is deterministic and adds no live nodes.
+- [x] **Step 3: Implement `chain.mjs`, `chain.json`, `chain-selftest.html`, `chrome-harness.mjs`.** Room tone: seeded `mulberry32` white noise, cascaded one-pole high and low passes at `lowHz` and `highHz`, a wrap crossfade over the final 100 ms for the seam, drift as a sine with a whole number of cycles per loop, normalized to `rmsDb`. Compute it in JS so the buffer is deterministic and adds no live nodes.
 
-- [ ] **Step 4: Run tests.** Expected: all PASS. If a tolerance fails, fix the chain, never the tolerance. A failure that shows a spec number is unachievable goes back to the spec with a written reason.
+- [x] **Step 4: Run tests.** Expected: all PASS. If a tolerance fails, fix the chain, never the tolerance. A failure that shows a spec number is unachievable goes back to the spec with a written reason.
 
-- [ ] **Step 5: Commit.** `git add art/voice art/tools/chrome-harness.mjs art/tools/chain.test.mjs && git commit -m "Add paper-radio voice chain and room tone"`
+- [x] **Step 5: Commit.** `git add art/voice art/tools/chrome-harness.mjs art/tools/chain.test.mjs && git commit -m "Add paper-radio voice chain and room tone"`
 
 ### Task 3: Measurement and clip index
 
@@ -147,7 +149,7 @@ The self-test synthesizes all signals itself. For `MediaElementSource`, it build
 - `art/runs/005-voice-audition/clips.json`: `{ roles: [{ id, name, options: ['A','B','C'], beats: [{ id, label, promptText, clips: { A: { file, trimDb } } }] }], sweep: [{ label: 'Voice 1', file, f0Median, trimDb }] }`. Sorted by `f0Median`, nulls last. No preset names, so the page stays blind. Retakes replace their `retakeOf` clip.
 - CLI: `node art/tools/analyze-voice.mjs <runDir>`. Decodes with `ffmpeg` to 16 kHz mono float PCM, `ebur128` for loudness, `aspectralstats=measure=centroid` for centroid. Reports any clip that is silent, shorter than 1 s, or peaking at 0 dBFS.
 
-- [ ] **Step 1: Write failing tests:**
+- [x] **Step 1: Write failing tests:**
 
 ```js
 test('220 Hz sine measures within 3 Hz of 220')
@@ -157,13 +159,13 @@ test('trimForVoice averages across clips: [-18, -22] gives 0')
 test('buildClipIndex: retake replaces original; no preset name appears anywhere in the JSON; sweep sorted by pitch with nulls last')
 ```
 
-- [ ] **Step 2: Run to verify failure.** `node --test art/tools/analyze-voice.test.mjs`. Expected: FAIL.
+- [x] **Step 2: Run to verify failure.** `node --test art/tools/analyze-voice.test.mjs`. Expected: FAIL.
 
-- [ ] **Step 3: Implement.**
+- [x] **Step 3: Implement.**
 
-- [ ] **Step 4: Run tests.** Expected: all PASS.
+- [x] **Step 4: Run tests.** Expected: all PASS.
 
-- [ ] **Step 5: Commit.** `git add art/tools/analyze-voice.mjs art/tools/analyze-voice.test.mjs && git commit -m "Add voice clip measurement and index"`
+- [x] **Step 5: Commit.** `git add art/tools/analyze-voice.mjs art/tools/analyze-voice.test.mjs && git commit -m "Add voice clip measurement and index"`
 
 ### Task 4: The LAN server
 
@@ -177,7 +179,7 @@ test('buildClipIndex: retake replaces original; no preset name appears anywhere 
   - `readClientPort(portsFilePath: string): number`, throws if the file or `CLIENT_PORT` is missing.
 - CLI: `node art/tools/serve-audition.mjs [art/runs/005-voice-audition]`. Binds `0.0.0.0`, prints the `http://<lan-ip>:<CLIENT_PORT>/` URLs.
 
-- [ ] **Step 1: Write failing tests:**
+- [x] **Step 1: Write failing tests:**
 
 ```js
 test('serves the allowlisted paths with correct content types')
@@ -186,13 +188,13 @@ test('Range request returns 206 with the right bytes')
 test('readClientPort reads the value and throws when missing, with no default')
 ```
 
-- [ ] **Step 2: Run to verify failure.** `node --test art/tools/serve-audition.test.mjs`. Expected: FAIL.
+- [x] **Step 2: Run to verify failure.** `node --test art/tools/serve-audition.test.mjs`. Expected: FAIL.
 
-- [ ] **Step 3: Implement.**
+- [x] **Step 3: Implement.**
 
-- [ ] **Step 4: Run tests.** Expected: all PASS.
+- [x] **Step 4: Run tests.** Expected: all PASS.
 
-- [ ] **Step 5: Commit.** `git add art/tools/serve-audition.mjs art/tools/serve-audition.test.mjs && git commit -m "Add LAN audition server"`
+- [x] **Step 5: Commit.** `git add art/tools/serve-audition.mjs art/tools/serve-audition.test.mjs && git commit -m "Add LAN audition server"`
 
 ### Task 5: The listening page
 
@@ -206,7 +208,7 @@ test('readClientPort reads the value and throws when missing, with no default')
 
 The page: one section per role (Pip, Wick, Moth, Narrator) and an "All voices" view. Per role, a grid with beats as rows and A, B, C as columns. Top controls: chain setting (Dry, Soft paper, Warm radio, Old wireless, default Warm radio) and room tone (on by default). Beat row shows the spoken line without tags. Tap targets at least 96 px CSS tall. Colors and fonts follow `docs/design-language.md`: Page `#F6EFE2`, Ink `#2B2420`, Lamp gold `#D4A23E` for the playing state, Fraunces and Atkinson Hyperlegible Next with serif and sans fallbacks, loaded from Google Fonts. The playing state is shown by label and position as well as by color. A chain or room-tone change applies to the clip playing without restarting it. One `AudioContext`, created on first tap and resumed on every tap. Each cell plays `source → createVoiceChain(ctx, settings, { trimDb }) → destination`, or `source → trim → destination` for Dry.
 
-- [ ] **Step 1: Write the failing test,** using a temp run folder with synthesized short WAVs, a `clips.json` that references one missing file, and the real handler:
+- [x] **Step 1: Write the failing test,** using a temp run folder with synthesized short WAVs, a `clips.json` that references one missing file, and the real handler:
 
 ```js
 test('renders each role with its beats and A, B, C options, and a sweep-only index shows just All voices')
@@ -218,15 +220,15 @@ test('switching chain setting while playing reroutes without restarting the sour
 test('no preset names or plan fields appear in the DOM')
 ```
 
-- [ ] **Step 2: Run to verify failure.** `node --test art/tools/audition-page.test.mjs`. Expected: FAIL.
+- [x] **Step 2: Run to verify failure.** `node --test art/tools/audition-page.test.mjs`. Expected: FAIL.
 
-- [ ] **Step 3: Implement `audition.html`.**
+- [x] **Step 3: Implement `audition.html`.**
 
-- [ ] **Step 4: Run tests.** Expected: all PASS.
+- [x] **Step 4: Run tests.** Expected: all PASS.
 
-- [ ] **Step 5: View the page in a phone-width and a desktop-width headless screenshot** and fix anything that overflows or is unreadable.
+- [x] **Step 5: View the page in a phone-width and a desktop-width headless screenshot** and fix anything that overflows or is unreadable.
 
-- [ ] **Step 6: Commit.** `git add art/voice/audition.html art/tools/audition-page.test.mjs && git commit -m "Add audition listening page"`
+- [x] **Step 6: Commit.** `git add art/voice/audition.html art/tools/audition-page.test.mjs && git commit -m "Add audition listening page"`
 
 ### Task 6: Plan and sweep round — paid, needs approval
 
@@ -237,17 +239,17 @@ test('no preset names or plan fields appear in the DOM')
 **Interfaces:**
 - Produces: `build-voice-plan.mjs <runDir> [shortlist.json]`. Writes `plan.json` with one `jobs` array: `phase: 'sweep'` jobs for all 49 presets using the spec's sweep line (ids like `sweep-Maya`), and, given `shortlist.json` (`{ pip: ['Preset','Preset','Preset'], wick: [...], moth: [...], narrator: [...] }`), `phase: 'audition'` jobs from the spec's line table with ids like `pip-a-fear`. Seed: FNV-1a 32-bit of the job id. The script copies the spec's text exactly and calls `validatePlan`.
 
-- [ ] **Step 1: Write the builder and generate the plan.** Fill in `question`, `why`, `decideBy`, `learnEvenIfRejected`, `reusableOutput` from the spec. Test in `art/tools/build-voice-plan.test.mjs`: `test('builder output passes validatePlan; sweep has 49 jobs; a 12-voice shortlist adds 33 audition jobs')`.
+- [x] **Step 1: Write the builder and generate the plan.** Fill in `question`, `why`, `decideBy`, `learnEvenIfRejected`, `reusableOutput` from the spec. Test in `art/tools/build-voice-plan.test.mjs`: `test('builder output passes validatePlan; sweep has 49 jobs; a 12-voice shortlist adds 33 audition jobs')`.
 
-- [ ] **Step 2: Dry run.** `node art/tools/generate-voice.mjs art/runs/005-voice-audition --phase sweep`. Expected: 49 jobs, estimated 49 credits, cap 100, no network. Commit plan.
+- [x] **Step 2: Dry run.** `node art/tools/generate-voice.mjs art/runs/005-voice-audition --phase sweep`. Expected: 49 jobs, estimated 49 credits, cap 100, no network. Commit plan.
 
-- [ ] **Step 3: Question card (AskUserQuestion).** Show: 49 credits ($0.49) for the sweep, total plan 82, cap 100, and ask the user to confirm the other workspace isn't generating and won't start until this round reports back. **Stop here until approved.**
+- [x] **Step 3: Question card (AskUserQuestion).** Show: 49 credits ($0.49) for the sweep, total plan 82, cap 100, and ask the user to confirm the other workspace isn't generating and won't start until this round reports back. **Stop here until approved.**
 
-- [ ] **Step 4: Run with spend,** with the key read from the environment file: `node --env-file=.env.local art/tools/generate-voice.mjs art/runs/005-voice-audition --phase sweep --spend`, in the background. **Wait for its completion notice.** If it stops at the polling limit, rerun until every task is resolved. If it stops for money or `ambiguous`, go to the user. If it can't continue, close the run per the terminal outcomes in Task 8.
+- [x] **Step 4: Run with spend,** with the key read from the environment file: `node --env-file=.env.local art/tools/generate-voice.mjs art/runs/005-voice-audition --phase sweep --spend`, in the background. **Wait for its completion notice.** If it stops at the polling limit, rerun until every task is resolved. If it stops for money or `ambiguous`, go to the user. If it can't continue, close the run per the terminal outcomes in Task 8.
 
-- [ ] **Step 5: Measure.** `node art/tools/analyze-voice.mjs art/runs/005-voice-audition`. Expected: 49 entries, a list of any broken clips. Start the server in the background so the sweep can be heard if the user asks at the next card, and confirm the page loads a sweep-only `clips.json`.
+- [x] **Step 5: Measure.** `node art/tools/analyze-voice.mjs art/runs/005-voice-audition`. Expected: 49 entries, a list of any broken clips. Start the server in the background so the sweep can be heard if the user asks at the next card, and confirm the page loads a sweep-only `clips.json`.
 
-- [ ] **Step 6: Commit.** `git add art/runs/005-voice-audition art/tools/build-voice-plan.mjs && git commit -m "Run voice sweep for run 005"`
+- [x] **Step 6: Commit.** `git add art/runs/005-voice-audition art/tools/build-voice-plan.mjs && git commit -m "Run voice sweep for run 005"`
 
 ### Task 7: Shortlist and audition round — paid, needs approval
 
@@ -259,17 +261,17 @@ test('no preset names or plan fields appear in the DOM')
 - Consumes: `measurements.json`, the plan, `runInChrome`, `createVoiceChain`.
 - Produces: `calibrate-chain.mjs <runDir>`, exporting `calibrate({ clips, chainJson, runInChrome }) → { settings: { [name]: { outputDb, rmsDeltaDb, peakDb, peakLimited } } }`. It renders every round 2 clip with its trim through each setting in Chrome and writes each setting's `outputDb` so RMS is within 1 dB of Dry. Peak wins: if matching would pass −1 dBFS, it lowers `outputDb` to the ceiling and sets `peakLimited`, for reporting in `results.md`. Test in `art/tools/calibrate-chain.test.mjs` with synthesized clips, including a transient burst: `test('calibrated settings match Dry within 1 dB')`, `test('a peak conflict lowers outputDb, sets peakLimited and keeps peaks at or below -1 dBFS')`.
 
-- [ ] **Step 1: Choose the shortlist** per the spec: three per role, far apart in the measurements, no preset in two roles unless a pitch band forces it. Record the reasoning in `shortlist.json` under a `why` key.
+- [x] **Step 1: Choose the shortlist** per the spec: three per role, far apart in the measurements, no preset in two roles unless a pitch band forces it. Record the reasoning in `shortlist.json` under a `why` key.
 
-- [ ] **Step 2: Regenerate the plan and dry run.** `node art/tools/build-voice-plan.mjs art/runs/005-voice-audition art/runs/005-voice-audition/shortlist.json`, then dry-run `--phase audition`. Expected: 33 jobs, 33 credits, committed 49 from the sweep, within the cap.
+- [x] **Step 2: Regenerate the plan and dry run.** `node art/tools/build-voice-plan.mjs art/runs/005-voice-audition art/runs/005-voice-audition/shortlist.json`, then dry-run `--phase audition`. Expected: 33 jobs, 33 credits, committed 49 from the sweep, within the cap.
 
-- [ ] **Step 3: Question card.** Describe the shortlist by role and measured character, **with no preset names**, and 33 credits, with the exclusive-window confirmation and the option to hear the sweep first. **Stop here until approved.**
+- [x] **Step 3: Question card.** Describe the shortlist by role and measured character, **with no preset names**, and 33 credits, with the exclusive-window confirmation and the option to hear the sweep first. **Stop here until approved.**
 
-- [ ] **Step 4: Run with spend,** as in Task 6 Step 4, with `--phase audition`. Wait for its completion notice.
+- [x] **Step 4: Run with spend,** as in Task 6 Step 4, with `--phase audition`. Wait for its completion notice.
 
-- [ ] **Step 5: Measure, retake any objectively broken clip** as a new job with `retakeOf`, within the cap and within this approved window, then run the rebuild sequence: generate, `analyze-voice.mjs`, `calibrate-chain.mjs`. Always run all three, in that order, after any new clip, so `clips.json`, trims and calibration can't go stale.
+- [x] **Step 5: Measure, retake any objectively broken clip** as a new job with `retakeOf`, within the cap and within this approved window, then run the rebuild sequence: generate, `analyze-voice.mjs`, `calibrate-chain.mjs`. Always run all three, in that order, after any new clip, so `clips.json`, trims and calibration can't go stale.
 
-- [ ] **Step 6: Commit.** `git add art/runs/005-voice-audition art/voice/chain.json art/tools/calibrate-chain.mjs && git commit -m "Run voice audition round for run 005"`
+- [x] **Step 6: Commit.** `git add art/runs/005-voice-audition art/voice/chain.json art/tools/calibrate-chain.mjs && git commit -m "Run voice audition round for run 005"`
 
 ### Task 8: The user's audition, then close the run
 
@@ -277,21 +279,23 @@ test('no preset names or plan fields appear in the DOM')
 - Create: `art/cast/<who>/voice.json` for each cast role, `art/runs/005-voice-audition/approved-cast.json`, `art/runs/005-voice-audition/results.md`
 - Modify: `art/README.md` (durable learnings only), `docs/v2-ideas.md` only if a new idea came up
 
-- [ ] **Step 1: Start the server in the background** and confirm the page responds. Command: `node art/tools/serve-audition.mjs art/runs/005-voice-audition`.
+- [x] **Step 1: Start the server in the background** and confirm the page responds. Command: `node art/tools/serve-audition.mjs art/runs/005-voice-audition`.
 
-- [ ] **Step 2: Hand it over.** Give the user the LAN URL and exactly what to do in Quest Browser, including the first-tap and headset-off-and-on checks the browser tests can't prove. Ask for the cast with question cards, one role at a time, with options A, B, C and "try something else". Then one card for the chain setting, with room tone on or off, shared across the cast (the user can answer per role through Other).
+- [x] **Step 2: Hand it over.** Give the user the LAN URL and exactly what to do in Quest Browser, including the first-tap and headset-off-and-on checks the browser tests can't prove. Ask for the cast with question cards, one role at a time, with options A, B, C and "try something else". Then one card for the chain setting, with room tone on or off, shared across the cast (the user can answer per role through Other).
 
-- [ ] **Step 3: If anything is rejected,** propose the next step. A paid retake needs a new question card and a new exclusive window, even within the cap. Then run the rebuild sequence from Task 7 Step 5 and go back to Step 2. Anything past the cap needs a new approved plan.
+  *Outcome:* the owner delegated the casting ("Choose any voices... Anything that you like"), so the cast was picked from measurements, not by ear.
+
+- [x] **Step 3: If anything is rejected,** propose the next step. A paid retake needs a new question card and a new exclusive window, even within the cap. Then run the rebuild sequence from Task 7 Step 5 and go back to Step 2. Anything past the cap needs a new approved plan.
 
 **Terminal outcomes,** each of which goes to Step 4 and Step 5 with whatever exists: full cast; partial cast; total rejection; user cancels; cap reached or `ambiguous` unresolved. Closure never depends on reaching a full cast.
 
-- [ ] **Step 4: Record the cast.** Write `art/cast/<who>/voice.json` for each cast role: `{ role, presetId, model, settings, chain: { name, ...fullSettings }, roomTone: { enabled, ...fullSettings }, trimDb, run, referenceTakes: [files] }`. Write `approved-cast.json` with the same data for all roles, the name mapping, and the SHA-256 of `art/voice/chain.mjs`.
+- [x] **Step 4: Record the cast.** Write `art/cast/<who>/voice.json` for each cast role: `{ role, presetId, model, settings, chain: { name, ...fullSettings }, roomTone: { enabled, ...fullSettings }, trimDb, run, referenceTakes: [files] }`. Write `approved-cast.json` with the same data for all roles, the name mapping, and the SHA-256 of `art/voice/chain.mjs`.
 
-- [ ] **Step 5: Close the run.** Write `results.md` for whichever outcome happened, covering everything the spec's closure paragraph lists, including the 1-credit-minimum consequence for the pre-render estimate. Add durable learnings to `art/README.md`. Check that the manifest's committed credits are within the cap and that each round's cost matches its `balance` events, and report any difference.
+- [x] **Step 5: Close the run.** Write `results.md` for whichever outcome happened, covering everything the spec's closure paragraph lists, including the 1-credit-minimum consequence for the pre-render estimate. Add durable learnings to `art/README.md`. Check that the manifest's committed credits are within the cap and that each round's cost matches its `balance` events, and report any difference.
 
-- [ ] **Step 6: Run all tests.** `node --test art/tools/*.test.mjs`. Expected: all PASS. Stop the server.
+- [x] **Step 6: Run all tests.** `node --test art/tools/*.test.mjs`. Expected: all PASS. Stop the server.
 
-- [ ] **Step 7: Commit.** `git add art/cast art/runs/005-voice-audition art/README.md && git commit -m "Close voice audition run 005"`
+- [x] **Step 7: Commit.** `git add art/cast art/runs/005-voice-audition art/README.md && git commit -m "Close voice audition run 005"`
 
 ## Codex review of this plan, and what I did about it
 

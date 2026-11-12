@@ -1,6 +1,17 @@
 # Ticket 0: Foundations, the rest of it (ends at M0)
 
-**Status:** M0 signed off by the owner on the Quest 3 on Nov 12, 2026, from a local build over USB (`docs/playtest-notes.md`). Tasks 1–6 and 8 done. Task 7's workflow and config are committed. The owner chose to hold hosting (the preview link and live backend) as a follow-up, so the deploy jobs stay gated on `vars.BACKEND_URL`.
+**Status:** ✅ Done, merged in PR #3 on Nov 12, 2026, with one follow-up held. M0 signed off by the owner on the Quest 3 on Nov 12, 2026, from a local build over USB (`docs/playtest-notes.md`). Tasks 1–6 and 8 done. Task 7's workflow and config are committed. The owner chose to hold hosting (the preview link and live backend) as a follow-up, so the deploy jobs stay gated on `vars.BACKEND_URL`. Boxes marked **⏸ Held** wait for that follow-up.
+
+| Task | State |
+|---|---|
+| 1. Serve cast art | ✅ Done |
+| 2. Puppet geometry and idle motion | ✅ Done |
+| 3. The puppet on screen | ✅ Done |
+| 4. Placement on the real table | ✅ Done |
+| 5. The backend for real | ✅ Done |
+| 6. Client telemetry and device token | ✅ Done |
+| 7. CI, hosting and the first deploy | 🟡 CI and config done, hosting held |
+| 8. M0 sign-off | ✅ Signed off from a local build. Preview link held |
 
 > **For agentic workers:** executed in one workspace with `superpowers:executing-plans`. Steps use checkbox (`- [ ]`) syntax.
 
@@ -53,12 +64,12 @@ The client can't reach `art/` today: `publicDir` is `client/public`. Copying the
 ```
 And `artPlugin({ artRoot, folders })`, a Vite plugin: in `serve` it answers `/art/<folder>/...` from `art/<folder>`, and in `build` it calls `this.emitFile({ type: 'asset', fileName: 'art/...', source })` in `generateBundle`, so the files honour whatever `outDir` is resolved and survive Vite's output cleanup. `scripts/check-bundle.ts` overrides `outDir`, so this also puts art inside what it scans. `folders` is read from `stage.json`'s `cast`.
 
-- [ ] Write `tests/art-plugin.test.ts`: `art/cast/pip/rig.json` parses as `Rig` and every file it names exists; `resolveArtPath('/art/cast/pip/rig.json', ...)` returns the file; `/art/runs/001/x.png`, `/art/cast/pip/../../../.env.local` and an absolute path return `null`.
-- [ ] Run it and see it fail.
-- [ ] Implement `resolveArtPath(url, artRoot, folders): string | null` and the plugin. Reject anything that resolves outside an allowed folder.
-- [ ] Add two integration cases to that test, through Vite's API: a build with an overridden temporary `outDir` contains `art/cast/pip/rig.json` and no `art/runs`, and leaves `client/dist` alone; a dev server's middleware answers the rig with 200 and `/art/runs/...` with no art file.
-- [ ] Run it and see it pass. `pnpm check:bundle` still passes.
-- [ ] Commit.
+- [x] Write `tests/art-plugin.test.ts`: `art/cast/pip/rig.json` parses as `Rig` and every file it names exists; `resolveArtPath('/art/cast/pip/rig.json', ...)` returns the file; `/art/runs/001/x.png`, `/art/cast/pip/../../../.env.local` and an absolute path return `null`.
+- [x] Run it and see it fail.
+- [x] Implement `resolveArtPath(url, artRoot, folders): string | null` and the plugin. Reject anything that resolves outside an allowed folder.
+- [x] Add two integration cases to that test, through Vite's API: a build with an overridden temporary `outDir` contains `art/cast/pip/rig.json` and no `art/runs`, and leaves `client/dist` alone; a dev server's middleware answers the rig with 200 and `/art/runs/...` with no art file.
+- [x] Run it and see it pass. `pnpm check:bundle` still passes.
+- [x] Commit.
 
 ### Task 2: Puppet geometry and idle motion, as pure code
 
@@ -73,8 +84,8 @@ Rig maths, from the prototype's `add` and `heads`: a part's box is `(x, y, w*sca
 
 Idle values, from `prototype.html`'s `draw`: time is stepped to 12 poses a second. `sway = sin(1.1t)`, `breathe = sin(1.9t)`, `flick = sin(2.7t)`. `coat` scaleY `1 + .008*breathe`, `arm` `2*sway`, `tail` `5*flick`, `lantern` `2.2*sin(2.2t)`, `head` `1.5*sway`, blink while `t % 4.1 < .17`, glow size `1 + .05*sin(7t)`.
 
-- [ ] Write tests against the real rig: the top of `head:forward` lands at `heightM` within 1 mm; the feet origin is y=0; `coat` pivot is at rig (`-238 + w/2`, `-730 + h`) converted to metres; `lantern`'s size is `.78` of its image; z order puts `arm` in front of `coat`; head offsets move `head:up` by `-43*.7` px; `idlePose(1.0)` equals `idlePose(1.0 + 1/40)` (stepped), blink is on at `t=0.1` and off at `t=1`.
-- [ ] Run, see them fail, implement, see them pass, commit.
+- [x] Write tests against the real rig: the top of `head:forward` lands at `heightM` within 1 mm; the feet origin is y=0; `coat` pivot is at rig (`-238 + w/2`, `-730 + h`) converted to metres; `lantern`'s size is `.78` of its image; z order puts `arm` in front of `coat`; head offsets move `head:up` by `-43*.7` px; `idlePose(1.0)` equals `idlePose(1.0 + 1/40)` (stepped), blink is on at `t=0.1` and off at `t=1`.
+- [x] Run, see them fail, implement, see them pass, commit.
 
 ### Task 3: The puppet on screen
 
@@ -86,8 +97,8 @@ Idle values, from `prototype.html`'s `draw`: time is stepped to 12 poses a secon
 - Contact shadow: horizontal `CanvasTexture` ellipse from `stage.shadow`, `rgba(10,8,12,.55)` fading to 0 at 70%, 1 mm above the surface, `depthWrite: false`.
 - Chin shadow: `rig.chinShadow`'s ellipse at its position and z, `rgba(38,26,34,.5)`, `.28` at 45%, 0 at 72%, `transparent`, `depthWrite: false`. Skipped if the rig has none.
 - Lantern glow: a plane at `stage.glow`, radial warm `rgb(255,214,130)`, `NormalBlending` with alpha `.35` at the centre, `.12` at 45%, 0 at 70%, `depthWrite: false`, drawn after the cards, scaled by `glowScale`. CSS `screen` doesn't translate: additive blending adds alpha too, so over passthrough it can dim the room instead of lightening it. Normal blending composites predictably. The peak is a starting value, and the owner's checklist tries it against a bright wall and a dark one.
-- [ ] Add `tests/puppet.test.ts` cases: `loadPuppet` rejects when a file 404s (with a stub loader), and every card's material has `alphaTest > 0`.
-- [ ] Implement, typecheck, commit. The visual check is in Task 4, once something can show it.
+- [x] Add `tests/puppet.test.ts` cases: `loadPuppet` rejects when a file 404s (with a stub loader), and every card's material has `alphaTest > 0`.
+- [x] Implement, typecheck, commit. The visual check is in Task 4, once something can show it.
 
 ### Task 4: Placement on the real table
 
@@ -109,12 +120,12 @@ The machine: a **fixed 5 s deadline from session start**, which unstable or inte
 
 The system runs 12 viewer-space hit-test rays per frame. Sources are created once per session and cancelled at its end, and a request that finishes after its session ended is ignored. If hit-test is unsupported or the request rejects, the machine simply gets no hits and reaches the fallback. Leaving and re-entering makes a new machine. `index.html` gets a plain page colour and one line of text, since the real landing page is ticket 1.
 
-- [ ] Write `tests/surface.test.ts`: Review Focus 1 and 4: no hits gives `null`; two hits don't make a group; a shelf above the head and a floor hit are ignored; vertical-wall hits (`normalY` 0) are ignored; the highest group wins; two disconnected patches at one height aren't merged and the result is a real hit; beyond 0.6 m is ignored; a surface 0.3 m from the eyes is rejected, not moved; a tray edge returns a point on the tray; a pitched head still gets a good `horizontalForward`, including looking straight down.
-- [ ] Write machine tests with a fake clock: no hits reaches fallback at exactly 5 s; flickering hits don't delay it; jitter over 2 cm restarts stability only; a stable surface before the deadline locks with no fallback; a late surface moves him exactly once and later surfaces don't; a null head pose at the deadline delays the fallback until a pose exists; a new machine starts clean.
-- [ ] Run, see them fail, implement, see them pass.
-- [ ] Wire `loadPuppet` and `PlacementSystem` into `index.ts`. A failed load reports an `error` event and leaves the stage empty (Review Focus 5).
-- [ ] Emulator: `pnpm --filter @tabletop/client dev:agent`, enter AR, then confirm with `iwsdk xr status` that the session is active, Pip's root exists at a surface height in the hierarchy, and the pose changes over time. Then one screenshot, checked against the design language's look bar.
-- [ ] `pnpm typecheck`, `pnpm test`, commit.
+- [x] Write `tests/surface.test.ts`: Review Focus 1 and 4: no hits gives `null`; two hits don't make a group; a shelf above the head and a floor hit are ignored; vertical-wall hits (`normalY` 0) are ignored; the highest group wins; two disconnected patches at one height aren't merged and the result is a real hit; beyond 0.6 m is ignored; a surface 0.3 m from the eyes is rejected, not moved; a tray edge returns a point on the tray; a pitched head still gets a good `horizontalForward`, including looking straight down.
+- [x] Write machine tests with a fake clock: no hits reaches fallback at exactly 5 s; flickering hits don't delay it; jitter over 2 cm restarts stability only; a stable surface before the deadline locks with no fallback; a late surface moves him exactly once and later surfaces don't; a null head pose at the deadline delays the fallback until a pose exists; a new machine starts clean.
+- [x] Run, see them fail, implement, see them pass.
+- [x] Wire `loadPuppet` and `PlacementSystem` into `index.ts`. A failed load reports an `error` event and leaves the stage empty (Review Focus 5).
+- [x] Emulator: `pnpm --filter @tabletop/client dev:agent`, enter AR, then confirm with `iwsdk xr status` that the session is active, Pip's root exists at a surface height in the hierarchy, and the pose changes over time. Then one screenshot, checked against the design language's look bar.
+- [x] `pnpm typecheck`, `pnpm test`, commit.
 
 ### Task 5: The backend for real
 
@@ -150,9 +161,9 @@ AI routes: `planBeat`, `planSpine`, `reactToObject`, `replyAsCharacter`, `speakL
 - `GET /admin/telemetry?since=` needs `Authorization: Bearer $TT_ADMIN_TOKEN`, is outside `/v1`, and returns 404 if the token isn't configured.
 - `DATA_DIR` picks the database location. Production refuses to start without `TT_TOKEN_SECRET`.
 
-- [ ] Write tests with `app.request()` and `createHttpBackend` pointed at the app: a missing, tampered or expired token is refused on an AI route; `/v1/device` works without one; renewing with an expired but valid token keeps the `deviceId`, and memory is still readable after; a forged bearer gets a new identity; the 21st new identity from one address is throttled and renewals aren't counted; a full browser preflight (with `content-type`, `authorization` and the contract header requested) passes from an allowed origin and the authenticated POST then works; `evil-tabletop-theater.pages.dev` and an http origin get no CORS header; each cap, including a cap of 0, returns `quota_exceeded`, as `BackendError` on a JSON route and an `error` chunk on a stream; the caps reset the next UTC day; device B can't read device A's series; a resent event id adds nothing; a null `seq` and two ids sharing a `seq` behave as above; a mismatched `seriesId` and an oversized body are refused; 501 events is `bad_request`; 5,001 events tied at one `seq`, appended over several requests, all come back from paged reads.
-- [ ] Run, see them fail, implement, see them pass. `tests/repo.test.ts` and existing `backend/test/app.test.ts` stay green.
-- [ ] Commit.
+- [x] Write tests with `app.request()` and `createHttpBackend` pointed at the app: a missing, tampered or expired token is refused on an AI route; `/v1/device` works without one; renewing with an expired but valid token keeps the `deviceId`, and memory is still readable after; a forged bearer gets a new identity; the 21st new identity from one address is throttled and renewals aren't counted; a full browser preflight (with `content-type`, `authorization` and the contract header requested) passes from an allowed origin and the authenticated POST then works; `evil-tabletop-theater.pages.dev` and an http origin get no CORS header; each cap, including a cap of 0, returns `quota_exceeded`, as `BackendError` on a JSON route and an `error` chunk on a stream; the caps reset the next UTC day; device B can't read device A's series; a resent event id adds nothing; a null `seq` and two ids sharing a `seq` behave as above; a mismatched `seriesId` and an oversized body are refused; 501 events is `bad_request`; 5,001 events tied at one `seq`, appended over several requests, all come back from paged reads.
+- [x] Run, see them fail, implement, see them pass. `tests/repo.test.ts` and existing `backend/test/app.test.ts` stay green.
+- [x] Commit.
 
 ### Task 6: Client telemetry and device token
 
@@ -166,9 +177,9 @@ AI routes: `planBeat`, `planSpine`, `reactToObject`, `replyAsCharacter`, `speakL
 
 Sends a `session` event, a `frame_summary` every 10 s, a `hitch` for any frame over 100 ms, `error` from `window.onerror` and rejected promises, and `stage_fit`. Flushes every 10 s and on `visibilitychange`. Batches stay within the contract's 500-event limit. At most one send is in flight, and the queue holds at most 500 events, dropping the oldest. Nothing here can throw into the frame loop, and nothing is awaited by the stage.
 
-- [ ] Write tests: Review Focus 2 (a rejecting `send` is swallowed, a never-settling `send` leaves one in flight and a bounded queue, and placement's frame path never waits on it) and 3 (an `unauthorized` reply re-issues exactly once, including with overlapping replies); median and low fps from known frame times; a batch over 500 is split.
-- [ ] Write the `aiOrAuthored` tests: each error maps to its reason, and against the real app (`createApp` from Task 5, `CAP_GLOBAL=0`) a `planBeat` call through `createHttpBackend` returns the authored fixture with reason `cap`. This is the ticket's "a hit cap falls back to authored".
-- [ ] Run, see them fail, implement, see them pass, commit.
+- [x] Write tests: Review Focus 2 (a rejecting `send` is swallowed, a never-settling `send` leaves one in flight and a bounded queue, and placement's frame path never waits on it) and 3 (an `unauthorized` reply re-issues exactly once, including with overlapping replies); median and low fps from known frame times; a batch over 500 is split.
+- [x] Write the `aiOrAuthored` tests: each error maps to its reason, and against the real app (`createApp` from Task 5, `CAP_GLOBAL=0`) a `planBeat` call through `createHttpBackend` returns the authored fixture with reason `cap`. This is the ticket's "a hit cap falls back to authored".
+- [x] Run, see them fail, implement, see them pass, commit.
 
 ### Task 7: CI, hosting and the first deploy
 
@@ -181,19 +192,19 @@ Sends a `session` event, a `frame_summary` every 10 s, a `hitch` for any frame o
 - **Backend, after CI passes on main:** `railway up --service backend --ci`. `railway.json` sets the Node build, `pnpm --filter @tabletop/backend start`, and the `/healthz` health check. One volume at `/data`, `DATA_DIR=/data`. US region.
 - **`scripts/telemetry-report.ts`:** reads `/admin/telemetry` and prints per session: device, median and low fps, hitches, errors, placement surface. Reads `TT_ADMIN_TOKEN` from the environment and never prints it.
 
-- [ ] Test the report's summary with fixture events. Write the workflow and `railway.json`. Commit.
-- [ ] **Stop for the owner.** Show the estimate (Railway about $7 a month, part or all covered by plan credit; Cloudflare Pages and GitHub Actions free tiers) and get a yes. The owner creates two tokens in the dashboards, since a CLI login can't mint them: a Cloudflare API token with Pages edit, and a Railway project token. They go straight into GitHub secrets (`gh secret set`, values typed by the owner, never through an agent).
-- [ ] Create the Pages project and Railway service with the logged-in CLIs. Generate `TT_TOKEN_SECRET` and `TT_ADMIN_TOKEN` with `openssl rand`, written straight to Railway variables and `.env.local` without being displayed. Set `TT_CLIENT_HOST`. Attach the volume at `/data` and generate the public domain.
-- [ ] **Bootstrap deploy, covered by the owner's yes above:** run `railway up --service backend` once from this reviewed branch, since CI only deploys the backend from main. Confirm `/healthz`. Store the URL as the GitHub variable `BACKEND_URL`.
-- [ ] Push the branch, which the owner asks for at this step. Confirm CI is green, the preview URL (built against `BACKEND_URL`) serves `art/cast/pip/rig.json`, and the preview can reach the backend. From here on, the backend deploys only from main.
-- [ ] From this machine, against the live URL: get a token, send a telemetry batch, and read it back with the report. Confirm a request with no token is refused. Temporarily set `CAP_GLOBAL=0` on Railway, confirm `quota_exceeded`, then restore it. Confirm the per-address throttle sees a real `X-Real-IP` by checking that two calls from this machine share one bucket.
-- [ ] Scan the deployed bundle for key shapes, using `scripts/scan-secrets.ts`'s rules.
+- [x] Test the report's summary with fixture events. Write the workflow and `railway.json`. Commit. *(CI runs green on every push.)*
+- [ ] ⏸ Held. **Stop for the owner.** Show the estimate (Railway about $7 a month, part or all covered by plan credit; Cloudflare Pages and GitHub Actions free tiers) and get a yes. The owner creates two tokens in the dashboards, since a CLI login can't mint them: a Cloudflare API token with Pages edit, and a Railway project token. They go straight into GitHub secrets (`gh secret set`, values typed by the owner, never through an agent).
+- [ ] ⏸ Held. Create the Pages project and Railway service with the logged-in CLIs. Generate `TT_TOKEN_SECRET` and `TT_ADMIN_TOKEN` with `openssl rand`, written straight to Railway variables and `.env.local` without being displayed. Set `TT_CLIENT_HOST`. Attach the volume at `/data` and generate the public domain.
+- [ ] ⏸ Held. **Bootstrap deploy, covered by the owner's yes above:** run `railway up --service backend` once from this reviewed branch, since CI only deploys the backend from main. Confirm `/healthz`. Store the URL as the GitHub variable `BACKEND_URL`.
+- [ ] ⏸ Held. Push the branch, which the owner asks for at this step. Confirm CI is green, the preview URL (built against `BACKEND_URL`) serves `art/cast/pip/rig.json`, and the preview can reach the backend. From here on, the backend deploys only from main.
+- [ ] ⏸ Held. From this machine, against the live URL: get a token, send a telemetry batch, and read it back with the report. Confirm a request with no token is refused. Temporarily set `CAP_GLOBAL=0` on Railway, confirm `quota_exceeded`, then restore it. Confirm the per-address throttle sees a real `X-Real-IP` by checking that two calls from this machine share one bucket.
+- [ ] ⏸ Held. Scan the deployed bundle for key shapes, using `scripts/scan-secrets.ts`'s rules.
 
 ### Task 8: M0 sign-off
 
-- [ ] Agent checks, all reported with evidence: `pnpm check` green in CI, Pip boots in the emulator, keys absent from the bundle, the cap test from Task 7.
-- [ ] Give the owner the preview link, with no USB needed, and a short headset checklist: the link opens and offers AR; Pip lands on the table within a few seconds; is he at the right size (170 mm) and sitting on the surface with a shadow; does he breathe, blink, and does the lantern glow and flicker, against a bright wall and a dark one; do the card edges look clean where parts overlap, with no boxes around them; how does he hold up walking around to the side; frame rate from telemetry. The test only the owner can pass: **does Pip feel alive in your real room?**
-- [ ] Write what the owner says in `docs/playtest-notes.md`. A sign-off unblocks ticket 1.
+- [x] Agent checks, all reported with evidence: `pnpm check` green in CI, Pip boots in the emulator, keys absent from the bundle, the cap test from Task 7. *(The cap fallback is proven locally against the real app with `CAP_GLOBAL=0`. The live-URL cap test is held with Task 7.)*
+- [x] Give the owner the preview link, with no USB needed, and a short headset checklist: *(Done from a local production build over USB instead, since hosting is held. The preview link comes with Task 7.)* the link opens and offers AR; Pip lands on the table within a few seconds; is he at the right size (170 mm) and sitting on the surface with a shadow; does he breathe, blink, and does the lantern glow and flicker, against a bright wall and a dark one; do the card edges look clean where parts overlap, with no boxes around them; how does he hold up walking around to the side; frame rate from telemetry. The test only the owner can pass: **does Pip feel alive in your real room?**
+- [x] Write what the owner says in `docs/playtest-notes.md`. A sign-off unblocks ticket 1.
 
 ## Done means
 
