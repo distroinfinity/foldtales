@@ -7,6 +7,10 @@ Not in scope now. We build and use the frozen v1 first, then decide these from r
 - **Are three fixed characters enough?** You weren't sure how much depth and how many interesting stories Pip, Wick and Moth can carry. Watch for episodes starting to feel the same.
 - **Is the first five minutes constraining the product too much?** It shapes much of v1, because judges decide quickly and it has its own award. After submission, the product should be designed for the evening you come back, as well as the first time.
 
+## From the owner, Nov 12 (after the first ticket 1 headset session)
+
+- **A complete story, told in chapters.** Aim to finish one whole story with real chapters, then keep adding more detailed chapters and books, so it feels like an actual theater. v1's tickets 2 and 3 build the first episode and the next; anything past that goes here.
+
 ## Directions to consider
 
 - **New characters that join for good.** Visitors who stay, instead of passing through.

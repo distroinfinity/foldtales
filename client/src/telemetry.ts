@@ -12,7 +12,8 @@ const MAX_FRAMES = 2048;
 
 export interface Telemetry {
   record(event: Unstamped): void;
-  frame(deltaMs: number, render: { calls: number; triangles: number }): void;
+  /** `phase` names the moment (searching, drop, opening…) a hitch happened in. */
+  frame(deltaMs: number, render: { calls: number; triangles: number }, phase?: string): void;
   flush(): Promise<void>;
   queued(): number;
 }
@@ -51,9 +52,9 @@ export function createTelemetry(
 
   return {
     record,
-    frame(deltaMs, render) {
+    frame(deltaMs, render, phase = 'frame') {
       if (deltaMs <= 0 || deltaMs > PAUSE_MS) return;
-      if (deltaMs > HITCH_MS) record({ kind: 'hitch', ms: deltaMs, phase: 'frame' });
+      if (deltaMs > HITCH_MS) record({ kind: 'hitch', ms: deltaMs, phase });
       if (frameCount < MAX_FRAMES) frames[frameCount++] = deltaMs;
       windowMs += deltaMs;
       if (windowMs >= WINDOW_MS) summarise(render);

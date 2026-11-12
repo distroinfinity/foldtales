@@ -2,12 +2,17 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, test } from 'vitest';
+import { DoubleSide, Texture, type Group, type Mesh, type MeshBasicMaterial, type Object3D } from '@iwsdk/core';
+import { buildPuppet, loadPuppet } from '../client/src/puppet/puppet.ts';
+import { wholeRef, type TexRef } from '../client/src/paint/texref.ts';
+import { actingPose } from '../client/src/puppet/acting.ts';
 import { Rig } from '../contracts/src/index.ts';
-import { idlePose } from '../client/src/puppet/idle.ts';
 import { layoutCards, metresPerPixel, type CardLayout } from '../client/src/puppet/layout.ts';
 
 const artRoot = fileURLToPath(new URL('../art', import.meta.url));
-const stage = JSON.parse(readFileSync(new URL('../client/public/stage.json', import.meta.url), 'utf8')) as { cast: string; heightM: number };
+const manifest = JSON.parse(readFileSync(new URL('../client/public/show/manifest.json', import.meta.url), 'utf8'));
+const entry = manifest.cast[0];
+const stage = { cast: entry.member.rig as string, heightM: entry.member.heightM as number };
 const castDir = join(artRoot, stage.cast);
 const rig = Rig.parse(JSON.parse(readFileSync(join(castDir, 'rig.json'), 'utf8')));
 
@@ -78,59 +83,89 @@ describe('layoutCards, against the real rig', () => {
   });
 });
 
-describe('idlePose', () => {
-  test('moves at twelve poses a second', () => {
-    expect(idlePose(1)).toEqual(idlePose(1 + 1 / 40));
-    expect(idlePose(1)).not.toEqual(idlePose(1 + 1 / 11));
+
+function fakeTextures(dir: string, r: Rig, extra: string[] = []): Map<string, TexRef> {
+  const files = [...Object.values(r.parts).map((p) => p.file), ...Object.keys(r.head?.offsets ?? {}).map((f) => r.head!.files.replace('<name>', f)), ...extra];
+  return new Map(files.map((file) => {
+    const texture = new Texture();
+    const [width, height] = pngSize(join(dir, file));
+    texture.image = { width, height };
+    return [file, wholeRef(texture)];
+  }));
+}
+const fx = { shadow: new Texture(), glow: new Texture(), chin: new Texture(), smoke: wholeRef(new Texture()) };
+const rigOf = (who: string) => Rig.parse(JSON.parse(readFileSync(join(artRoot, `cast/${who}/rig.json`), 'utf8')));
+const entryOf = (i: number) => manifest.cast[i];
+
+describe('buildPuppet', () => {
+  const fox = buildPuppet(entry, rig, fakeTextures(castDir, rig, ['parts/lantern-out.png']), fx);
+  const named = (root: Object3D, name: string) => root.getObjectByName(name)!;
+  const pose = (face: string) => actingPose(entry.member, { acting: null, localMs: 0, target: null }, 0, { gust: 0, seed: 0, heads: [] }) && { ...actingPose(entry.member, { acting: null, localMs: 0, target: null }, 0, { gust: 0, seed: 0, heads: ['forward'] }), face };
+  const state = { stand: 1, glow: 1, smoke: 0 };
+
+  test('every head is a card, and exactly the posed one shows', () => {
+    fox.apply(pose('up'), state);
+    const visible = Object.keys(rig.head!.offsets).filter((f) => named(fox.root, `head:${f}`).visible);
+    expect(visible).toEqual(['up']);
   });
 
-  test('blinks briefly every few seconds', () => {
-    expect(idlePose(0.1).face).toBe('blink');
-    expect(idlePose(1).face).toBe('forward');
-    expect(idlePose(4.2).face).toBe('blink');
+  test('a variant swaps in at the same place, pivot and scale', () => {
+    fox.setVariant('lantern', 'out');
+    const base = named(fox.root, 'lantern').children.find((c) => c.name === 'lantern#base')!;
+    const out = named(fox.root, 'lantern').children.find((c) => c.name === 'lantern#out')!;
+    expect([base.visible, out.visible]).toEqual([false, true]);
+    expect(out.position.toArray()).toEqual(base.position.toArray());
+    fox.setVariant('lantern', 'base');
+    expect([base.visible, out.visible]).toEqual([true, false]);
   });
 
-  test('stays within the approved motion', () => {
-    for (let t = 0; t < 30; t += 0.083) {
-      const pose = idlePose(t);
-      expect(Math.abs(pose.rotationsDeg.arm!)).toBeLessThanOrEqual(2);
-      expect(Math.abs(pose.rotationsDeg.tail!)).toBeLessThanOrEqual(5);
-      expect(Math.abs(pose.rotationsDeg.lantern!)).toBeLessThanOrEqual(2.2);
-      expect(Math.abs(pose.rotationsDeg.head!)).toBeLessThanOrEqual(1.5);
-      expect(Math.abs(pose.breatheScaleY - 1)).toBeLessThanOrEqual(0.008);
-      expect(Math.abs(pose.glowScale - 1)).toBeLessThanOrEqual(0.05);
-    }
+  test('the glow and the smoke travel with the swinging lantern', () => {
+    let node: Object3D | null = named(fox.root, 'carried-glow');
+    while (node && node.name !== 'lantern') node = node.parent;
+    expect(node?.name).toBe('lantern');
+  });
+
+  test('nothing in the puppet is a Group, so it draws at its mount\'s place in the stack', () => {
+    const groups: string[] = [];
+    fox.root.traverse((o) => { if ((o as Group).isGroup) groups.push(o.name); });
+    expect(groups).toEqual([]);
+  });
+
+  test('a flipped character is mirrored and drawn from both sides', () => {
+    const wickRig = rigOf('wick');
+    const wick = buildPuppet(entryOf(1), wickRig, fakeTextures(join(artRoot, 'cast/wick'), wickRig), fx);
+    expect(wick.body.scale.x).toBeLessThan(0);
+    const mesh = named(wick.root, 'body').children[0] as Mesh;
+    expect((mesh.material as MeshBasicMaterial).side).toBe(DoubleSide);
+  });
+
+  test('a mirrored part gets its painted-once counterpart', () => {
+    const mothRig = rigOf('moth');
+    const moth = buildPuppet(entryOf(2), mothRig, fakeTextures(join(artRoot, 'cast/moth'), mothRig), fx);
+    expect(moth.root.getObjectByName('upperWing~mirror')).toBeDefined();
+    expect(moth.root.getObjectByName('body~mirror')).toBeUndefined();
+  });
+
+  test('the contact shadow stays on the page while the card folds', () => {
+    const shadow = named(fox.root, 'contact-shadow');
+    let node: Object3D | null = shadow;
+    while (node && node !== fox.fold && node !== fox.root) node = node.parent;
+    expect(node).toBe(fox.root);
   });
 });
 
 describe('loadPuppet', () => {
-  const stageConfig = { cast: 'x', heightM: 0.17, glow: { x: 0, y: 0, sizePx: 10 }, shadow: { widthM: 0.1, depthM: 0.03 } };
-
   test('rejects when a file is missing, so no half-built puppet appears', async () => {
-    const { loadPuppet } = await import('../client/src/puppet/puppet.ts');
     await expect(
-      loadPuppet('base', stageConfig, {
+      loadPuppet(entry, 'base', fx, {
         json: async () => rig,
         texture: async (url) => {
           if (url.endsWith('coat.png')) throw new Error('404');
-          const { Texture } = await import('@iwsdk/core');
           const texture = new Texture();
           texture.image = { width: 10, height: 10 };
           return texture;
         },
       }),
     ).rejects.toThrow('404');
-  });
-
-  test('cards blend soft edges from premultiplied art, and keep empty margins out of depth', async () => {
-    const { cardMaterial } = await import('../client/src/puppet/puppet.ts');
-    const { Texture, OneFactor } = await import('@iwsdk/core');
-    const map = new Texture();
-    const material = cardMaterial(map);
-    expect(map.premultiplyAlpha).toBe(true);
-    expect(material.transparent).toBe(true);
-    expect(material.blendSrc).toBe(OneFactor);
-    expect(material.alphaTest).toBeGreaterThan(0);
-    expect(material.alphaTest).toBeLessThan(0.5);
   });
 });

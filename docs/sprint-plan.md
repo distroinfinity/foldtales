@@ -4,13 +4,13 @@
 
 ## Progress
 
-*Last updated Nov 12, 2026. A workstream is ticked when it's merged to main, and a milestone when the owner signs it off in the headset. ⏸ means held by the owner's choice. **Next up: ticket 1.***
+*Last updated Nov 13, 2026. A workstream is ticked when it's merged to main, and a milestone when the owner signs it off in the headset. ⏸ means held by the owner's choice. **Next: ticket 2.***
 
 ### Milestones
 
 - [x] **M0, Pip on your table.** Signed off on the Quest 3 on Nov 12, from a local build over USB (hosting is held).
-- [ ] **M1, the first 30 seconds.** ← next
-- [ ] **M2, first five minutes.**
+- [x] **M1, the first 30 seconds.** Signed off on the Quest 3 on Nov 13, from a local review build over USB (PR #6).
+- [ ] **M2, first five minutes.** ← next
 - [ ] **M3, a story that bends and remembers.**
 - [ ] **M4, voices and Talk.**
 - [ ] **M5, Story Circle.**
@@ -23,12 +23,12 @@
   - [x] Pip on the table
   - [x] Deploy and backend: CI, device tokens, caps, memory, telemetry and the report
   - [ ] ⏸ Hosting: Cloudflare previews per branch, the live Railway backend, and the live cap test. Workflow and config are committed, and deploys stay off until `BACKEND_URL` is set
-- [ ] **1. First 30 seconds.** ← next up, not started
-  - [ ] Painted Stage Kit
-  - [ ] Stage and room
-  - [ ] Found-surface moment, from M0 playtest notes (needs a design pass first)
-  - [ ] Room dim, from M0 playtest notes
-- [ ] **2. First five minutes**
+- [x] **1. First 30 seconds** (PR #6). Plan: `docs/plans/2026-11-12-ticket-1-first-30-seconds.md`
+  - [x] Painted Stage Kit
+  - [x] Stage and room
+  - [x] Found-surface moment, from M0 playtest notes ("ember and wash")
+  - [x] Room dim, from M0 playtest notes
+- [ ] **2. First five minutes** ← next
   - [ ] Hands and objects
   - [ ] Show and flagship
 - [ ] **3. A story that bends and remembers**
@@ -47,6 +47,7 @@
   - [x] Book and first set for M1 (run 004, PR #1). Approved on the Mac
   - [x] Drawer objects for M2 (run 006, PR #2). Approved on the Mac and in Quest Browser
   - [x] Gap set, drawer, satchel and Wick's rope for M2 (run 007, PR #4). Approved on the Mac
+  - [x] Painted reading room (run 008) and M1 sound (run 009), PR #6. Approved in the headset at the M1 sign-off
   - [ ] Headset approval of the above, once tickets 1 and 2 can show them
   - [ ] Prepared visitors, remaining cast actions, rest of the object library
 

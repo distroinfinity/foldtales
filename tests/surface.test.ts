@@ -132,6 +132,22 @@ describe('the placement machine', () => {
     expect(place.step(5100, nothing).state).toBe('fallback');
   });
 
+  test('once the book starts opening, a late surface no longer moves it', () => {
+    const place = createPlacement();
+    place.step(0, nothing);
+    expect(place.step(5000, nothing).state).toBe('fallback');
+    place.lock();
+    place.step(7000, see(table()));
+    expect(place.step(7600, see(table()))).toEqual({ state: 'fallback', moveTo: null, surface: null });
+  });
+
+  test('locking while still searching stops the fallback too', () => {
+    const place = createPlacement();
+    place.step(0, nothing);
+    place.lock();
+    expect(place.step(6000, nothing).moveTo).toBeNull();
+  });
+
   test('a new machine starts clean', () => {
     const first = createPlacement();
     first.step(0, nothing);

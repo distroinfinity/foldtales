@@ -5,7 +5,7 @@ import { defineConfig, type ServerOptions } from 'vite';
 import { readPorts } from '../tools/ports.ts';
 import { artPlugin } from './vite/art-plugin.ts';
 
-const stage = JSON.parse(readFileSync(new URL('./public/stage.json', import.meta.url), 'utf8')) as { cast: string };
+const manifest = JSON.parse(readFileSync(new URL('./public/show/manifest.json', import.meta.url), 'utf8')) as { artFolders: string[] };
 
 function devServer(): ServerOptions {
   const { CLIENT_PORT, BACKEND_PORT } = readPorts();
@@ -23,7 +23,14 @@ function devServer(): ServerOptions {
 }
 
 export default defineConfig(({ command }) => ({
-  plugins: [iwsdkDev(), artPlugin({ artRoot: fileURLToPath(new URL('../art', import.meta.url)), folders: [stage.cast] })],
+  plugins: [
+    iwsdkDev(),
+    artPlugin({
+      artRoot: fileURLToPath(new URL('../art', import.meta.url)),
+      folders: manifest.artFolders,
+      ktx2: { cacheDir: fileURLToPath(new URL('./.art-cache', import.meta.url)) },
+    }),
+  ],
   // Only serving needs ports, so a CDN builder with no .env.ports can still build.
   ...(command === 'serve' ? { server: devServer(), preview: devServer() } : {}),
   // Vite also exposes matching process variables, so the prefix is what keeps keys out.

@@ -1,0 +1,78 @@
+{
+  "id": "008-reading-room",
+  "question": "Can the run 004 recipe paint a small cozy room at bedtime, as toy-theater flats around a seated reader, that the book reads as belonging to?",
+  "why": "Ticket 1's no-passthrough path: without a real table or passthrough, the book stands on a painted table in a small painted room. Without it, a VR session is a book floating in a void.",
+  "sameAcrossJobs": "seedream5_pro, run 004's style text, flat vivid magenta paper with a margin for cut flats. The key and tabletop are full-bleed and aren't cut.",
+  "design": {
+    "flats": "Three tall painted flats in a loose arc 1.8 to 2.2 m around you, each standing like a toy-theater scene card: a night window wall, a bookshelf wall, and a warm lamp corner. Low values at the edges, so the book stays the brightest thing.",
+    "tabletop": "A worn wooden reading table top, seen from straight above, under the book.",
+    "light": "Painted once in warm lamplight. The house-lights-down dim and the mood tint come from the same uniforms as the stage."
+  },
+  "decideBy": [
+    "Every flat cuts out as one clean piece with a straight base (cutout.py checks).",
+    "The book stays the brightest, warmest thing in a still from the seated view.",
+    "The owner approves a Mac proof, then the room in the headset."
+  ],
+  "learnEvenIfRejected": "Whether the painter can hold one interior across three separately painted flats, and how dark a room can be painted before the tint makes it muddy.",
+  "reusableOutput": "The reading room ships as the no-passthrough stage. The key is the reference for any later interior.",
+  "estimateCredits": 41,
+  "capNote": "5 for the 1K key, 9 each for three 2K flats and the 2K tabletop. Up to two repaints at 9 within the cap. Phase A (the key) runs alone; phaseB moves into jobs only after the key is checked. Phase B: capCredits set to 55 (60 minus the 5 spent on the key) before invoking, since the tool measures its cap from this invocation's start.",
+  "capCredits": 55,
+  "jobs": [
+    {
+      "id": "room-key",
+      "model": "seedream5_pro",
+      "ratio": "1376:768",
+      "refs": [
+        {
+          "file": "art/runs/004-book-and-first-set/key.png"
+        }
+      ],
+      "prompt": "A small cozy reading room at bedtime, in exactly the painting style and palette of Figure 1, with no characters. Seen from a chair at a wooden table. Left: a tall window with deep blue night outside and a pale moon. Middle: a wall of bookshelves with worn spines, a small brass clock. Right: a corner with an armchair and a warm table lamp glowing gold. The room is dim at its edges and warm near the table. Low, quiet values, never black. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. No text."
+    },
+    {
+      "id": "flat-window",
+      "model": "seedream5_pro",
+      "ratio": "1664:2496",
+      "refs": [
+        {
+          "file": "art/runs/008-reading-room/room-key.png"
+        }
+      ],
+      "prompt": "Figure 1 is the composed room. Paint only the left wall of Figure 1 as one tall die-cut paper stage flat, flat-on: a tall window with deep blue night and a pale moon, curtains at either side, and a strip of wallpaper below. Shaped top edge following the curtain rail. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. Quiet low values. Each piece has a clean hard die-cut edge traced with a fine pencil line and a perfectly straight flat bottom edge. Leave a wide margin of empty paper on all four sides, with nothing touching the edge of the image. On plain flat solid vivid magenta paper, one even color. No text."
+    },
+    {
+      "id": "flat-shelves",
+      "model": "seedream5_pro",
+      "ratio": "1664:2496",
+      "refs": [
+        {
+          "file": "art/runs/008-reading-room/room-key.png"
+        }
+      ],
+      "prompt": "Figure 1 is the composed room. Paint only the bookshelf wall of Figure 1 as one tall die-cut paper stage flat, flat-on: shelves of worn book spines in muted colors, a small brass clock, a pot plant. Shaped top edge following the top of the shelves. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. Quiet low values. Each piece has a clean hard die-cut edge traced with a fine pencil line and a perfectly straight flat bottom edge. Leave a wide margin of empty paper on all four sides, with nothing touching the edge of the image. On plain flat solid vivid magenta paper, one even color. No text."
+    },
+    {
+      "id": "flat-lamp",
+      "model": "seedream5_pro",
+      "ratio": "1664:2496",
+      "refs": [
+        {
+          "file": "art/runs/008-reading-room/room-key.png"
+        }
+      ],
+      "prompt": "Figure 1 is the composed room. Paint only the right corner of Figure 1 as one tall die-cut paper stage flat, flat-on: a soft armchair and a small table lamp with a warm gold shade. The lamp is painted unlit, with no glow and no light rays: the stage adds light. Shaped top edge. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. Quiet low values. Each piece has a clean hard die-cut edge traced with a fine pencil line and a perfectly straight flat bottom edge. Leave a wide margin of empty paper on all four sides, with nothing touching the edge of the image. On plain flat solid vivid magenta paper, one even color. No text."
+    },
+    {
+      "id": "tabletop",
+      "model": "seedream5_pro",
+      "ratio": "2304:1728",
+      "refs": [
+        {
+          "file": "art/runs/008-reading-room/room-key.png"
+        }
+      ],
+      "prompt": "A worn wooden table top seen flat from directly above, filling the whole image edge to edge, in exactly the painting style and palette of Figure 1: warm brown planks with soft grain, a few faint rings and scratches, gently darker toward every edge. No objects, no perspective, no border. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. No text."
+    }
+  ]
+}

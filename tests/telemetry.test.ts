@@ -66,6 +66,14 @@ describe('telemetry', () => {
     expect(events.find((e) => e.kind === 'hitch')).toMatchObject({ ms: 120 });
     expect(events.find((e) => e.kind === 'frame_summary')).toMatchObject({ medianFps: 100, lowFps: 50, drawCalls: 7, triangles: 40 });
   });
+
+  test('a hitch names the moment it happened in, so a stall can be traced to what appeared', async () => {
+    const batches: TelemetryBatch[] = [];
+    const telemetry = createTelemetry(async (b) => void batches.push(b), clock, ids);
+    telemetry.frame(150, { calls: 7, triangles: 40 }, 'drop');
+    await telemetry.flush();
+    expect(batches[0]!.events.find((e) => e.kind === 'hitch')).toMatchObject({ ms: 150, phase: 'drop' });
+  });
 });
 
 describe('pauses', () => {

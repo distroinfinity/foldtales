@@ -5,7 +5,11 @@ import { describe, expect, test } from 'vitest';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const at = (path: string) => `${root}${path}`;
-const tracked = execFileSync('git', ['ls-files'], { cwd: root, encoding: 'utf8' }).split('\n').filter(Boolean);
+// Tracked plus new files not yet committed, so the rules hold before a commit, not only after.
+const tracked = [
+  ...execFileSync('git', ['ls-files'], { cwd: root, encoding: 'utf8' }).split('\n'),
+  ...execFileSync('git', ['ls-files', '--others', '--exclude-standard'], { cwd: root, encoding: 'utf8' }).split('\n'),
+].filter((f) => f && existsSync(at(f)));
 const sources = (...dirs: string[]) => tracked.filter((f) => f.endsWith('.ts') && dirs.some((d) => f.startsWith(d)));
 const read = (file: string) => readFileSync(at(file), 'utf8');
 

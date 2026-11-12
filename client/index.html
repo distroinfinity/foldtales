@@ -1,23 +1,33 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, shrink-to-fit=no"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#151c2e" />
     <link rel="icon" href="data:," />
     <title>Tabletop Theater</title>
   </head>
-  <body style="margin: 0; background: #f6efe2; color: #1f2a44; font-family: Georgia, serif">
-    <p style="position: fixed; inset: 40% 0 auto; text-align: center; font-size: 22px; margin: 0">Tabletop Theater</p>
-    <button
-      id="enter"
-      hidden
-      style="position: fixed; inset: 52% 0 auto; margin: auto; width: 240px; height: 80px; z-index: 10; font: 28px Georgia, serif; color: #f6efe2; background: #1f2a44; border: 0; border-radius: 12px"
-    >
-      Begin
-    </button>
+  <body>
+    <main id="landing" class="landing" data-state="loading">
+      <div class="book" aria-hidden="true">
+        <div class="cover">
+          <img class="cloth" src="./art/book/cover-front.png" alt="" />
+          <p class="title">The Lighthouse at the Edge of the Table</p>
+        </div>
+        <div class="pages"></div>
+      </div>
+      <h1 class="sr-only">The Lighthouse at the Edge of the Table</h1>
+      <button id="open" class="open" type="button" disabled>
+        <span class="open-label">Getting the book ready</span>
+        <span class="open-progress" aria-hidden="true"></span>
+      </button>
+      <p class="hint">Sit at a table, and look down at it once you’re in.</p>
+      <button id="room" class="room" type="button" hidden>No table nearby? Read in the painted room.</button>
+      <p class="voice">
+        <span class="voice-text">Characters can hear you when you pinch them and speak. Your voice goes to a cloud service to be understood, and isn’t kept.</span>
+        <button id="mic" class="mic" type="button">Let them hear you</button>
+      </p>
+    </main>
     <div id="scene-container"></div>
     <script type="module" src="/src/index.ts"></script>
   </body>

@@ -9,8 +9,9 @@ import { afterAll, describe, expect, test } from 'vitest';
 import { artPlugin, resolveArtPath } from '../client/vite/art-plugin.ts';
 
 const artRoot = fileURLToPath(new URL('../art', import.meta.url));
-const stage = JSON.parse(readFileSync(new URL('../client/public/stage.json', import.meta.url), 'utf8')) as { cast: string };
-const folders = [stage.cast];
+const manifest = JSON.parse(readFileSync(new URL('../client/public/show/manifest.json', import.meta.url), 'utf8')) as { artFolders: string[]; cast: Array<{ member: { rig: string } }> };
+const stage = { cast: manifest.cast[0]!.member.rig };
+const folders = manifest.artFolders;
 const rigUrl = `/art/${stage.cast}/rig.json`;
 
 describe('the cast the stage names', () => {
@@ -78,4 +79,20 @@ describe('in a real Vite', () => {
       await server.close();
     }
   });
+
+  test('with KTX2 on, a build also emits the compressed art, its index, and the transcoder', async () => {
+    const out = mkdtempSync(join(tmpdir(), 'tt-art-ktx2-'));
+    const cacheDir = mkdtempSync(join(tmpdir(), 'tt-art-cache-'));
+    try {
+      await build({ root, configFile: false, logLevel: 'silent', plugins: [artPlugin({ artRoot, folders: ['fx'], ktx2: { cacheDir } })], build: { outDir: out, emptyOutDir: true } });
+      const index = JSON.parse(readFileSync(join(out, 'art', 'ktx2.json'), 'utf8'));
+      expect(index.files['fx/smoke.png'].ktx2).toBe('ktx2/fx/smoke.ktx2');
+      expect(existsSync(join(out, 'art', 'ktx2', 'fx', 'smoke.ktx2'))).toBe(true);
+      expect(existsSync(join(out, 'basis', 'basis_transcoder.wasm'))).toBe(true);
+      expect(existsSync(join(out, 'art', 'fx', 'smoke.png'))).toBe(true);
+    } finally {
+      rmSync(out, { recursive: true, force: true });
+      rmSync(cacheDir, { recursive: true, force: true });
+    }
+  }, 120_000);
 });

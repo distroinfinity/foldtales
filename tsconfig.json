@@ -4,13 +4,18 @@
     "tools",
     "tests",
     "scripts",
-    "vitest.config.ts"
+    "vitest.config.ts",
+    "client/src/troika.d.ts"
   ],
   "compilerOptions": {
     "lib": [
       "ES2023",
       "DOM",
       "DOM.Iterable"
+    ],
+    "types": [
+      "node",
+      "vite/client"
     ]
   }
 }

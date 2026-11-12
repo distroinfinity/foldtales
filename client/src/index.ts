@@ -1,14 +1,43 @@
-import { VisibilityState, World } from '@iwsdk/core';
+import { DepthOccludable, DepthSensingSystem, Group, SessionMode, Vector3, VisibilityState, World } from '@iwsdk/core';
+import { roomLight, tableSpot } from './room/room.ts';
+import { buildRoom, roomLook } from './room/room-view.ts';
+import { REVIEW_HOOKS, reviewQuery } from './dev.ts';
+import { useMaterialConfig } from './paint/card-material.ts';
 import { CONTRACT_VERSION } from '@tabletop/contracts/version';
 import projectOptions from 'virtual:iwsdk-project';
 import { createBackendAccess, withDeadline } from './backend.ts';
-import { loadPuppet, type StageConfig } from './puppet/puppet.ts';
+import { OVER_STACK } from './book/book-view.ts';
+import { preloadFonts } from './book/text.ts';
+import { setLandingState, type LandingState } from './landing/landing.ts';
+import { buildDim } from './light/dim.ts';
+import { loadStageAssets, uploadAll } from './paint/assets.ts';
+import { makeSoftPieces } from './paint/soft.ts';
+import { CHECKPOINT_VERSION, readCheckpoint, writeCheckpoint, type Checkpoint } from './show/checkpoint.ts';
+import { createShowClock } from './show/clock.ts';
+import { createShowLog, indexedDbLogStore } from './show/log.ts';
+import { ShowManifest } from './show/manifest.ts';
+import { createPauseControl } from './show/pause.ts';
+import { createShowRuntime } from './show/runtime.ts';
+import { createSoundEngine } from './sound/engine.ts';
+import narratorVoice from '../../art/voice/narrator.json';
+import { arrivalAt, OPEN_AT_MS } from './stage/arrival.ts';
+import { buildStage } from './stage/build.ts';
+import { createBookControls } from './stage/controls.ts';
+import { reviewOverride } from './stage/review.ts';
+import { createFrameGuard } from './stage/frame-guard.ts';
 import { startPlacement } from './stage/placement-runtime.ts';
+import { createSessionFlow } from './stage/session-flow.ts';
+import { minTextSizeM, settleOnTable } from './stage/sizing.ts';
+import { warmUp } from './stage/warm-up.ts';
+import { buildEmber, buildWash } from './stage/wash.ts';
 import { createTelemetry } from './telemetry.ts';
 
 const FLUSH_EVERY_MS = 10_000;
 const FRAMEBUFFER_SCALE = 1.4;
 const MAX_ERROR_LENGTH = 500;
+/** The book drops its last centimetre onto the wash. */
+const SETTLE_DROP_M = 0.012;
+const CHECKPOINT_EVERY_MS = 1000;
 
 /** In dev, `/api` is proxied to this workspace's own backend. */
 const backendAccess = createBackendAccess({
@@ -29,6 +58,11 @@ function reportError(where: string, cause: unknown): void {
   telemetry.record({ kind: 'error', where, message: String(cause).slice(0, MAX_ERROR_LENGTH) || 'unknown' });
 }
 
+const guard = createFrameGuard(reportError);
+
+/** Which moment the show is in, for naming hitches. Set by the show's frame work. */
+let momentForTelemetry = 'landing';
+
 function reportTelemetry(world: World): void {
   addEventListener('error', (event) => reportError('window', event.message));
   addEventListener('unhandledrejection', (event) => reportError('promise', event.reason));
@@ -36,43 +70,371 @@ function reportTelemetry(world: World): void {
   document.addEventListener('visibilitychange', () => void telemetry.flush());
 
   let session: XRSession | undefined;
-  world.onXRFrame((frame, delta) => {
-    if (frame.session !== session) {
-      session = frame.session;
-      telemetry.record({ kind: 'session', xrMode: 'ar', device: navigator.userAgent.slice(0, 120), passthrough: session.environmentBlendMode === 'alpha-blend' });
+  world.onXRFrame(
+    guard('telemetry', (frame: XRFrame, delta: number) => {
+      if (frame.session !== session) {
+        session = frame.session;
+        telemetry.record({ kind: 'session', xrMode: session.environmentBlendMode === 'opaque' ? 'vr' : 'ar', device: navigator.userAgent.slice(0, 120), passthrough: session.environmentBlendMode === 'alpha-blend' });
+      }
+      telemetry.frame(delta * 1000, world.renderer.info.render, momentForTelemetry);
+    }),
+  );
+}
+
+async function fetchManifest(): Promise<ShowManifest> {
+  const response = await fetch('./show/manifest.json');
+  if (!response.ok) throw new Error(`manifest answered ${response.status}`);
+  return ShowManifest.parse(await response.json());
+}
+
+/** Stage one of preloading: fetch, decode and upload everything before the button is offered. */
+async function prepare(world: World) {
+  const manifest = await fetchManifest();
+  const [assets] = await Promise.all([
+    // Review builds can ask for `?art=png`, and the coverage material needs straight-alpha PNG.
+    loadStageAssets(manifest, './art', world.renderer, {
+      allowKtx2: reviewQuery('art') !== 'png' && reviewQuery('material') !== 'coverage',
+      onProgress: (done, total) => setLandingState({ kind: 'loading', share: done / total }),
+    }),
+    preloadFonts(),
+  ]);
+  const soft = makeSoftPieces();
+  // Review builds only: `?review=cast` stands the whole cast on the open book, cycling every acting.
+  const review = reviewQuery('review') === 'cast';
+  const stage = buildStage(manifest, assets, soft, review);
+  stage.root.visible = false;
+  world.scene.add(stage.root);
+  // Built before the upload, so every texture goes up with the settings its material gave it.
+  const room = assets.room ? buildRoom(assets.room.spec, assets.textures, assets.room.base, soft.shadow) : null;
+  if (room) {
+    room.root.visible = false;
+    world.scene.add(room.root);
+  }
+  uploadAll(world.renderer, [...[...assets.textures.values()].map((ref) => ref.texture), ...Object.values(soft)]);
+  document.documentElement.dataset.art = assets.format;
+
+  const dim = buildDim();
+  world.scene.add(dim.mesh);
+  const sound = createSoundEngine({
+    sounds: manifest.sounds,
+    voiceLines: manifest.voiceLines,
+    artBase: './art',
+    voice: { chain: narratorVoice.chain, trimDb: narratorVoice.trimDb, roomTone: narratorVoice.roomTone },
+  });
+  await sound.load();
+  const clock = createShowClock();
+  const runtime = createShowRuntime(manifest, assets.set.moods, { stageRoot: stage.root, book: stage.book, puppets: stage.puppets, heads: stage.heads, dim, leaves: stage.leaves, caption: stage.caption, sound }, clock);
+  const wash = buildWash();
+  stage.root.add(wash.root);
+
+  const ember = buildEmber(soft.ember);
+  // Over the stack, so the ember lands on the book rather than behind its cards.
+  const emberLayer = new Group();
+  emberLayer.renderOrder = OVER_STACK;
+  emberLayer.add(ember.sprite);
+  world.scene.add(emberLayer);
+  const log = createShowLog(indexedDbLogStore(), { seriesId: manifest.libraryVersion, episodeId: manifest.opening.id }, { nowIso: () => new Date().toISOString(), showMs: () => clock.ms });
+  const pause = createPauseControl(clock, {
+    suspend: () => sound.suspend(),
+    resume: () => sound.resume(),
+    log: (event) => {
+      const [type, reason] = event.split(':');
+      if (type === 'session.paused') log.append('session.paused', { reason: reason as 'ribbon' });
+      else log.append('session.resumed', {});
+    },
+  });
+  /** A size chosen by hand, or restored after a crash. */
+  const sizing: { userScale: number | null } = { userScale: null };
+  const controls = createBookControls({
+    world,
+    stageRoot: stage.root,
+    book: stage.book,
+    sound,
+    pause,
+    glow: soft.glow,
+    cards: stage.book.cards.length,
+    onMoved: () => undefined,
+    // A new size keeps the printed lines at least 1° tall.
+    onResized: (scale) => {
+      sizing.userScale = scale;
+      const head = world.camera.getWorldPosition(new Vector3());
+      const at = stage.root.position;
+      stage.caption.setSize(minTextSizeM(stage.caption.baseSizeM, scale, Math.hypot(head.x - at.x, head.y - at.y, head.z - at.z) + 0.1 * scale));
+    },
+  });
+  if (review) runtime.setOverride(reviewOverride(manifest));
+  // Review builds only: `?cue=beam` plays the lighthouse beam once the opening has finished, for P5.
+  const devCue = reviewQuery('cue');
+  if (devCue && manifest.cues.some((c) => c.id === devCue)) runtime.addCue(devCue, runtime.schedule.totalMs + 1500);
+  return { manifest, stage, dim, sound, clock, runtime, wash, ember, log, pause, controls, soft, review, room, sizing };
+}
+
+function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom: Checkpoint | null): void {
+  const { manifest, stage, sound, clock, runtime, wash, ember, log, pause, controls, room, sizing } = show;
+  const head = new Vector3();
+  const forward = new Vector3();
+  const up = new Vector3();
+  const spot = new Vector3();
+  let arrival: { atMs: number; confirmed: boolean; landed: boolean; bloomed: boolean; opened: boolean } | null = null;
+  let nowMs = 0;
+  let searching = false;
+  let lastCheckpointMs = -Infinity;
+  let completed = false;
+  let warming: (() => void) | null = null;
+  let warmedSession: XRSession | null = null;
+  let unfoldDim = 0;
+  /** No passthrough: the painted reading room, with its own table. */
+  let vr = false;
+  let roomPlaced = false;
+  let sessionFrames = 0;
+  const flow = createSessionFlow();
+  // Review builds only: `?inject=frame-error` throws inside the hand-input step, to prove the story survives it.
+  const inject = reviewQuery('inject') === 'frame-error';
+  let injected = 0;
+
+  // Back after a crash: the story waits, shut, at the saved moment. The book arrives, reopens and carries on.
+  if (resumeFrom) {
+    runtime.seek(resumeFrom.showMs);
+    controls.shut();
+    sizing.userScale = resumeFrom.scale;
+  }
+
+  const checkpoint = (): void => {
+    if (!runtime.started) return;
+    writeCheckpoint(localStorage, { v: CHECKPOINT_VERSION, savedAt: new Date().toISOString(), seriesId: manifest.libraryVersion, beatId: manifest.opening.id, showMs: clock.ms, scale: stage.root.scale.x, confirmed: arrival?.confirmed ?? false });
+  };
+
+  const placement = startPlacement(
+    world,
+    stage.root,
+    (surface, tables) => {
+      // Once the book has begun to open it never moves by itself, except to arrive again after you return.
+      if (!flow.canPlace(runtime.started)) return;
+      // On the scanned table you meant, all of it on the top; a size you chose by hand (or one restored) is kept.
+      const settled = settleOnTable({ head, spot: { x: stage.root.position.x, y: stage.root.position.y, z: stage.root.position.z }, tables, userScale: sizing.userScale ?? null });
+      const { scale, fits } = settled;
+      const where = stage.root.position.set(settled.spot.x, settled.spot.y, settled.spot.z);
+      stage.root.rotation.y = Math.atan2(head.x - where.x, head.z - where.z);
+      const outline = settled.table?.outline ?? null;
+      stage.root.scale.setScalar(scale);
+      const eyeDistance = Math.hypot(head.x - where.x, head.y - where.y, head.z - where.z) + 0.1 * scale;
+      stage.caption.setSize(minTextSizeM(stage.caption.baseSizeM, scale, eyeDistance));
+      telemetry.record({ kind: 'stage_fit', surface: outline ? 'plane' : surface, widthM: 0.42 * scale, scale });
+      document.documentElement.dataset.placement = `${surface}${fits ? '' : ':tight'}`;
+      // A first spot, or a real table found after a provisional one: the moment plays from the top there.
+      arrival = { atMs: nowMs, confirmed: surface !== 'fallback', landed: false, bloomed: false, opened: false };
+    },
+    () => vr,
+    (work) => guard('placement', work),
+  );
+
+  /** In the painted room the book goes on the painted table, at a seated reading height in front of you. */
+  function placeInRoom(): void {
+    if (!room) return;
+    const table = tableSpot(head, forward);
+    room.place(head, forward, table);
+    room.root.visible = true;
+    stage.root.position.set(table.x, table.y, table.z);
+    stage.root.rotation.y = Math.atan2(head.x - table.x, head.z - table.z);
+    const { scale } = settleOnTable({ head, spot: table, tables: [], userScale: sizing.userScale ?? null });
+    stage.root.scale.setScalar(scale);
+    stage.root.visible = true;
+    telemetry.record({ kind: 'stage_fit', surface: 'plane', widthM: 0.42 * scale, scale });
+    document.documentElement.dataset.placement = 'room';
+    arrival = { atMs: nowMs, confirmed: true, landed: false, bloomed: false, opened: false };
+    roomPlaced = true;
+  }
+
+  /** A new XR session: warm every shader up, and if the story is under way, arrive again, shut. */
+  function beginSession(session: XRSession): void {
+    warmedSession = session;
+    vr = session.environmentBlendMode === 'opaque' && !!room;
+    roomPlaced = false;
+    sessionFrames = 0;
+    if (room) room.root.visible = vr;
+    if (flow.begin(runtime.started).shut) {
+      controls.shut();
+      arrival = null;
+      pause.set('headset_off', false);
     }
-    telemetry.frame(delta * 1000, world.renderer.info.render);
-  });
-}
+    const warmStage = warmUp(stage.root, head, forward);
+    const dimWasVisible = show.dim.mesh.visible;
+    const emberWasVisible = ember.sprite.visible;
+    show.dim.mesh.visible = true;
+    ember.sprite.visible = true;
+    warming = () => {
+      warmStage();
+      show.dim.mesh.visible = dimWasVisible;
+      ember.sprite.visible = emberWasVisible;
+    };
+    momentForTelemetry = 'warm-up';
+  }
 
-async function loadStage(world: World): Promise<void> {
-  const response = await fetch('./stage.json');
-  if (!response.ok) throw new Error(`stage.json answered ${response.status}`);
-  const stage = (await response.json()) as StageConfig;
-  const puppet = await loadPuppet(`./art/${stage.cast}`, stage);
-  puppet.root.visible = false;
-  world.scene.add(puppet.root);
-  world.onXRFrame((_frame, _delta, time) => puppet.update(time));
-  startPlacement(world, puppet.root, (surface) => {
-    telemetry.record({ kind: 'stage_fit', surface, widthM: 0, scale: 1 });
-    document.documentElement.dataset.placement = surface;
+  // Each part of the frame has its own guard, so an error in one (say, hand input) never stops the story.
+  const handsStep = guard('controls', (frame: XRFrame, deltaMs: number) => {
+    controls.frame(frame, deltaMs, runtime.started && (!arrival || arrival.opened), head);
+    if (inject && injected < 3 && clock.ms > 2000) {
+      injected++;
+      throw new Error('injected frame error');
+    }
   });
-}
 
-/** Entering XR needs a real tap, and the browser's own offer is too easy to miss. */
-function showEnterButton(world: World): void {
-  const button = document.getElementById('enter') as HTMLButtonElement;
-  button.addEventListener('click', () => world.launchXR());
+  const storyStep = guard('runtime', (deltaMs: number) => {
+    const { unfold } = runtime.frame(deltaMs, head, { fold: controls.fold(), ribbon: controls.ribbonLift() });
+    unfoldDim = unfold.dim;
+    if (vr) {
+      // No passthrough to dim: the house lights go down in the painted room itself.
+      show.dim.mesh.visible = false;
+      roomLook.light.value = roomLight(unfold.dim);
+    }
+    if (runtime.started) {
+      if (!completed && clock.ms >= runtime.schedule.totalMs) {
+        completed = true;
+        log.append('beat.completed', { beatId: manifest.opening.id });
+      }
+      if (nowMs - lastCheckpointMs >= CHECKPOINT_EVERY_MS) {
+        lastCheckpointMs = nowMs;
+        checkpoint();
+      }
+    }
+  });
+
+  const arrivalStep = guard('arrival', () => {
+    if (!arrival) {
+      momentForTelemetry = warming ? 'warm-up' : 'searching';
+      const since = placement.searchStartedMs();
+      if (since !== null && (!runtime.started || flow.canPlace(true))) {
+        ember.search(head, forward, nowMs - since);
+        if (!searching) sound.hum(true);
+        searching = true;
+      }
+      stage.book.root.visible = false;
+      return;
+    }
+    const a = arrivalAt(nowMs - arrival.atMs, arrival.confirmed);
+    momentForTelemetry = arrival.opened ? `show:${Math.floor(clock.ms / 1000)}s` : a.landed ? 'landed' : a.bookVisible ? 'drop' : a.bloom > 0 ? 'bloom' : 'found';
+    stage.root.getWorldPosition(spot);
+    ember.land(spot, a.ember);
+    if (searching && a.ember === 0) {
+      searching = false;
+      sound.hum(false);
+    }
+    if (!arrival.bloomed && a.bloom > 0) {
+      arrival.bloomed = true;
+      sound.play('bloom', spot, undefined, 'ui');
+    }
+    // The wash fades to a faint stain under the book as the house lights go down.
+    wash.update(a.bloom, 1 - 0.75 * unfoldDim, a.words * (1 - unfoldDim), nowMs / 1000);
+    stage.book.root.visible = a.bookVisible;
+    stage.book.root.position.y = SETTLE_DROP_M * a.drop;
+    if (a.landed && !arrival.landed) {
+      arrival.landed = true;
+      sound.play('thump', spot, undefined, 'ui');
+    }
+    if (a.landed && !arrival.opened && nowMs - arrival.atMs >= OPEN_AT_MS) {
+      arrival.opened = true;
+      placement.lock();
+      if (flow.landed(runtime.started).reopen) {
+        // Back after leaving, or after a crash: the book opens again and the story carries on.
+        controls.reopen();
+        sound.roomTone(true);
+      } else if (!runtime.started) {
+        runtime.start();
+        log.append('beat.started', { beatId: manifest.opening.id, fallback: null });
+      }
+    }
+  });
+
+  world.onXRFrame(
+    guard('show', (frame: XRFrame, delta: number, time: number) => {
+      nowMs = time * 1000;
+      world.camera.getWorldPosition(head);
+      world.camera.getWorldDirection(forward);
+      up.set(0, 1, 0).applyQuaternion(world.camera.quaternion);
+      sound.setListener(head, forward, up);
+      // Stage two of preloading: draw everything once, out of sight, so the XR shader variants compile now.
+      if (frame.session !== warmedSession) {
+        beginSession(frame.session);
+        return;
+      }
+      if (warming) {
+        warming();
+        warming = null;
+      }
+      // Wait a few frames for a settled head pose before building the room around it.
+      if (vr && !roomPlaced && ++sessionFrames >= 3 && flow.canPlace(runtime.started)) placeInRoom();
+      handsStep(frame, delta * 1000);
+      storyStep(delta * 1000);
+      arrivalStep();
+    }),
+  );
+
+  // Taking the headset off, or leaving XR, pauses the show and its sound. Coming back resumes it.
   world.visibilityState.subscribe((state) => {
-    button.hidden = state !== VisibilityState.NonImmersive;
+    if (state === VisibilityState.NonImmersive) {
+      if (flow.end(runtime.started).pause) pause.set('headset_off', true);
+    } else {
+      pause.set('headset_off', state !== VisibilityState.Visible);
+    }
+    checkpoint();
   });
+  addEventListener('pagehide', checkpoint);
+
+  if (REVIEW_HOOKS) Object.assign(window, { __tt: { world, show, guard } });
 }
 
-World.create(document.getElementById('scene-container') as HTMLDivElement, projectOptions).then((world) => {
+// Review builds: `?occlusion=on` requests depth sensing and hides the stage behind real things (P5).
+const occlusion = reviewQuery('occlusion') === 'on';
+// Review builds: `?material=coverage` swaps soft edges to alpha-to-coverage, to compare on the Quest.
+if (reviewQuery('material') === 'coverage') useMaterialConfig('coverage');
+const baseXr = projectOptions.xr || {};
+const worldOptions = occlusion ? { ...projectOptions, xr: { ...baseXr, features: { ...baseXr.features, depthSensing: true } } } : projectOptions;
+
+World.create(document.getElementById('scene-container') as HTMLDivElement, worldOptions).then((world) => {
   document.documentElement.dataset.contract = String(CONTRACT_VERSION);
   // Painted line work needs more pixels than the browser's default, and this scene is cheap to draw.
   world.renderer.xr.setFramebufferScaleFactor(FRAMEBUFFER_SCALE);
   reportTelemetry(world);
-  showEnterButton(world);
-  loadStage(world).catch((cause: unknown) => reportError('stage', cause));
+  setLandingState({ kind: 'loading', share: 0 });
+  // Review checks that need the opening from the top skip any checkpoint.
+  const fresh = reviewQuery('inject') !== null || reviewQuery('review') !== null || reviewQuery('cue') !== null;
+  prepare(world)
+    .then((show) => {
+      const resumeFrom = fresh ? null : readCheckpoint(localStorage, Date.now(), { seriesId: show.manifest.libraryVersion, beatId: show.manifest.opening.id, untilMs: show.runtime.schedule.totalMs });
+      run(world, show, resumeFrom);
+      if (occlusion) {
+        world.registerSystem(DepthSensingSystem);
+        world.createTransformEntity(show.stage.root).addComponent(DepthOccludable);
+      }
+      const enterRoom = show.room
+        ? () => {
+            show.sound.unlock();
+            world.launchXR({ sessionMode: SessionMode.ImmersiveVR });
+          }
+        : null;
+      // Without AR (no passthrough), the book opens in the painted room.
+      let arSupported = true;
+      const enter = () => {
+        if (!arSupported && enterRoom) {
+          enterRoom();
+          return;
+        }
+        show.sound.unlock();
+        world.launchXR();
+      };
+      const ready = (): LandingState => ({ kind: 'ready', open: enter, openRoom: arSupported ? enterRoom : null });
+      void navigator.xr
+        ?.isSessionSupported('immersive-ar')
+        .then((supported) => {
+          arSupported = supported;
+          if (world.visibilityState.value === VisibilityState.NonImmersive) setLandingState(ready());
+        })
+        .catch(() => undefined);
+      setLandingState(ready());
+      world.visibilityState.subscribe((state) => setLandingState(state === VisibilityState.NonImmersive ? ready() : { kind: 'inside' }));
+    })
+    .catch((cause: unknown) => {
+      reportError('stage', cause);
+      setLandingState({ kind: 'failed' });
+    });
 });

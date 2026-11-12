@@ -102,8 +102,10 @@ function requestBody(plan, job) {
   return { model: plan.model, promptText: job.promptText, voice: { type: "runway-preset", presetId: job.presetId }, ...plan.settings, seed: job.seed };
 }
 
-export async function runPhase({ plan, runDir, phase, spend, acceptLost, retry = null, allowConcurrentSpend = false, apiKey, fetchImpl = fetch, log = console.log, sleep = (ms) => new Promise((r) => setTimeout(r, ms)) }) {
-  validatePlan(plan);
+// endpoint, buildRequest, estimate and validate let sibling tools (generate-sound.mjs) reuse the
+// ledger, cap and recovery. Their defaults are this tool's own text to speech.
+export async function runPhase({ plan, runDir, phase, spend, acceptLost, retry = null, allowConcurrentSpend = false, apiKey, fetchImpl = fetch, log = console.log, sleep = (ms) => new Promise((r) => setTimeout(r, ms)), endpoint = "text_to_speech", buildRequest = requestBody, estimate = (job) => estimateCredits(job.promptText), validate = validatePlan }) {
+  validate(plan);
   const manifestPath = path.join(runDir, "manifest.jsonl");
   const jobs = plan.jobs.filter((job) => job.phase === phase);
   const ledger = () => readLedger(manifestPath);
@@ -122,10 +124,10 @@ export async function runPhase({ plan, runDir, phase, spend, acceptLost, retry =
       const latest = latestAttempt(readLedger(manifestPath), job.id);
       return !(latest && attemptState(latest) === "done");
     });
-    const estimate = open.reduce((sum, job) => sum + estimateCredits(job.promptText), 0);
+    const estimated = open.reduce((sum, job) => sum + estimate(job), 0);
     const chars = open.reduce((sum, job) => sum + job.promptText.length, 0);
-    say(`dry run, ${phase}: ${open.length} jobs to generate of ${jobs.length}, ${chars} characters, estimated ${estimate} credits`);
-    say(`committed so far ${current}, cap ${plan.capCredits}${current + estimate > plan.capCredits ? ", WOULD PASS THE CAP" : ""}`);
+    say(`dry run, ${phase}: ${open.length} jobs to generate of ${jobs.length}, ${chars} characters, estimated ${estimated} credits`);
+    say(`committed so far ${current}, cap ${plan.capCredits}${current + estimated > plan.capCredits ? ", WOULD PASS THE CAP" : ""}`);
     return { stopped: null, committed: current };
   }
 
@@ -231,12 +233,12 @@ export async function runPhase({ plan, runDir, phase, spend, acceptLost, retry =
   }
 
   async function submit(job, attemptNumber) {
-    const request = requestBody(plan, job);
+    const request = buildRequest(plan, job);
     append({ event: "intent", job: job.id, attempt: attemptNumber, request });
     let response;
     for (let tries = 0; ; tries += 1) {
       try {
-        response = await fetchImpl(`${API}/text_to_speech`, { method: "POST", headers, body: JSON.stringify(request) });
+        response = await fetchImpl(`${API}/${endpoint}`, { method: "POST", headers, body: JSON.stringify(request) });
       } catch (e) {
         append({ event: "ambiguous", job: job.id, attempt: attemptNumber, reason: `network error on submit: ${e.message}` });
         return { stop: `ambiguous submission for ${job.id}. Check the balance, then rerun with --accept-lost ${job.id}.` };
@@ -286,9 +288,9 @@ export async function runPhase({ plan, runDir, phase, spend, acceptLost, retry =
     if (state === "failed" && job.id !== retry) {
       return { stop: `${job.id} failed last time (${find(latest, "failed").reason}). A retake costs credits and needs approval: rerun with --retry ${job.id}.` };
     }
-    const estimate = estimateCredits(job.promptText);
+    const cost = estimate(job);
     const spent = committed();
-    if (spent + estimate > plan.capCredits) return { stop: `cap reached: committed ${spent} plus ${estimate} would pass ${plan.capCredits}. Stopped before ${job.id}.` };
+    if (spent + cost > plan.capCredits) return { stop: `cap reached: committed ${spent} plus ${cost} would pass ${plan.capCredits}. Stopped before ${job.id}.` };
     const attemptNumber = (latest?.attempt ?? 0) + 1;
     const began = Date.now();
     const submitted = await submit(job, attemptNumber);

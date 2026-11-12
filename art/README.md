@@ -28,6 +28,9 @@ Generated art is a product asset, not a temp file. Credits are only spent on pla
 - `book-mockup.html`: the approved page, lettering and controls. Reference only.
 - `tools/generate.mjs`: runs a plan. Use `node --env-file=.env.local art/tools/generate.mjs art/runs/<id>` from the repo root. Needs `RUNWAYML_API_SECRET` in `.env.local`.
 - `tools/cutout.py`: cuts painted pieces off plain paper, for no credits. Needs Python with `numpy` and `Pillow`.
+- `tools/generate-sound.mjs`: runs a planned sound round (sound effects and prepared lines) with the voice tool's ledger and cap. Dry run by default.
+- `sound/<scene>/`: finished, levelled clips the show plays. Product assets.
+- `room/`: the painted reading room for no-passthrough mode (flats, tabletop, `room.json`), from run 008.
 
 ## What we've learned
 
@@ -63,5 +66,8 @@ Generated art is a product asset, not a temp file. Credits are only spent on pla
 - **Parts of one object, painted on a shared sheet, don't keep their stated proportions.** The satchel's pocket and flap came out narrower than its back, and the drawer rail twice as thin. Keep one scale for parts that must fit together, and check each part's shape (run 007).
 - **Some sheets cast a darker shadow,** around (64, 11, 13), with purple-pink fringe. Treat red-and-blue-over-green as paper before checking that finishing kept the paint (run 007).
 - **Prove stage geometry, not only art.** The drawer's stow and the near rim in front of Pip's paw were both caught by numeric checks before the proof page (run 007).
+- **Toy-theater flats paint cleanly one per image at 2:3 on magenta,** and finish with run 006's recipe (shadow eaten inward, despill, magenta cleared). "Unlit" lamps still come back faintly lit (run 008).
+- **Sound effects cost a credit per requested second** and come back at exactly that length, but their levels vary by more than 20 dB. Every sound run needs a finishing pass (run 009).
+- **Time beats from the rendered voice.** A short line ran 27% longer than its caption estimate (run 009).
 - **In CSS 3D proofs, keep puppet cards narrow** (0.7 of their height, as `m1-proof.html`). A wider card let Chrome draw the layer behind in front of the puppet (run 007).
 
