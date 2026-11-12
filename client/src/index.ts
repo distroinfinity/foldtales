@@ -202,6 +202,7 @@ async function prepare(world: World) {
     cards: stage.book.cards.length,
     onMoved: () => undefined,
     extras: () => hands.targets(),
+    onGazeSelect: (origin, direction) => hands.gazeSelect(origin, direction),
     // A new size keeps the printed lines at least 1° tall.
     onResized: (scale) => {
       sizing.userScale = scale;
@@ -284,6 +285,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       stage.root.rotation.y = Math.atan2(head.x - where.x, head.z - where.z);
       const outline = settled.table?.outline ?? null;
       tableTop.outline = outline;
+      stage.satchel.setSide(settled.satchelSide);
       stage.root.scale.setScalar(scale);
       const eyeDistance = Math.hypot(head.x - where.x, head.y - where.y, head.z - where.z) + 0.1 * scale;
       stage.caption.setSize(minTextSizeM(stage.caption.baseSizeM, scale, eyeDistance));

@@ -1,4 +1,4 @@
-import { Group, Mesh, MeshBasicMaterial, PlaneGeometry, Vector3, type Object3D, type Texture, type World } from '@iwsdk/core';
+import { Group, Mesh, MeshBasicMaterial, PlaneGeometry, Quaternion, Vector3, type Object3D, type Texture, type World } from '@iwsdk/core';
 import { OVER_STACK, RIBBON_X_SHARE } from '../book/book-view.ts';
 import type { BookView } from '../book/book-view.ts';
 import type { Unfold } from '../show/cues.ts';
@@ -61,6 +61,8 @@ export interface ControlsDeps {
   onResized(scale: number): void;
   /** Everything else the hands can take, asked for each frame. */
   extras?: () => ExtraTarget[];
+  /** VR Glasses: look at a target and pinch. Called with the gaze ray in world space. */
+  onGazeSelect?: (origin: Vector3, direction: Vector3) => void;
 }
 
 function readHand(frame: XRFrame, source: XRInputSource, space: XRReferenceSpace): HandFrame | null {
@@ -77,8 +79,12 @@ function readHand(frame: XRFrame, source: XRInputSource, space: XRReferenceSpace
 }
 
 /** The book is the only UI: shut the cover to pause, open it to resume, pinch the ribbon, slide it by the spine. */
-export function createBookControls({ world, stageRoot, book, sound, pause, glow, cards, onMoved, onResized, extras }: ControlsDeps): BookControls {
+export function createBookControls({ world, stageRoot, book, sound, pause, glow, cards, onMoved, onResized, extras, onGazeSelect }: ControlsDeps): BookControls {
+  /** The gaze ray, if this device has one (VR Glasses, or the glasses emulator). */
+  const gaze = { origin: new Vector3(), direction: new Vector3(), valid: false };
+  let listening: XRSession | null = null;
   let extraTargets: ExtraTarget[] = [];
+  let enabledNow = false;
   const pinch: Record<HandSide, Vector3 | null> = { left: null, right: null };
   const gestures = createGestures();
   let amount = 1;
@@ -263,6 +269,7 @@ export function createBookControls({ world, stageRoot, book, sound, pause, glow,
       return amount;
     },
     frame(frame, deltaMs, enabled, head) {
+      enabledNow = enabled;
       if (target !== null) {
         const step = deltaMs * SWING_PER_MS;
         setAmount(amount + Math.sign(target - amount) * Math.min(step, Math.abs(target - amount)));
@@ -272,6 +279,23 @@ export function createBookControls({ world, stageRoot, book, sound, pause, glow,
       for (const halo of halos) halo.visible = false;
       const space = world.xrReferenceSpace;
       if (!space) return;
+      // Gaze and pinch: the session's select on the gaze source picks what you're looking at.
+      gaze.valid = false;
+      for (const source of frame.session.inputSources) {
+        if (source.targetRayMode !== 'gaze') continue;
+        const pose = frame.getPose(source.targetRaySpace, space);
+        if (!pose) continue;
+        const { position: p, orientation: q } = pose.transform;
+        gaze.origin.set(p.x, p.y, p.z);
+        gaze.direction.set(0, 0, -1).applyQuaternion(new Quaternion(q.x, q.y, q.z, q.w));
+        gaze.valid = true;
+      }
+      if (listening !== frame.session && onGazeSelect) {
+        listening = frame.session;
+        frame.session.addEventListener('select', (event) => {
+          if (event.inputSource.targetRayMode === 'gaze' && gaze.valid && enabledNow) onGazeSelect(gaze.origin.clone(), gaze.direction.clone());
+        });
+      }
       const hands: Record<HandSide, HandFrame | null> = { left: null, right: null };
       for (const source of frame.session.inputSources) {
         if (source.handedness === 'left' || source.handedness === 'right') hands[source.handedness] = readHand(frame, source, space);

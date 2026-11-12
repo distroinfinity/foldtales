@@ -102,6 +102,12 @@ export interface ShowRuntime {
   drain(): SchedulerEvent[];
   /** The noticing character for a held object, if any. */
   notice(castId: string | null, objectId: string | null): void;
+  /** Characters you could pick up now, with the top of each head in world space. */
+  castTargets(): Array<{ id: string; top: Vector3 }>;
+  /** Picks a character up: it follows `point` (world) while held. */
+  holdCast(id: string, point: Vector3 | null): void;
+  /** Lets go of whoever is held: they hop back to their place. */
+  dropCast(): void;
 }
 
 const POOL_STRENGTH = 0.65;
@@ -151,6 +157,12 @@ export function createShowRuntime({ manifest, spine, defs, moods, views, clock }
   let holding = false;
   let heldCast: string | null = null;
   let noticing: { cast: string; object: string; sinceMs: number } | null = null;
+  /** A character in your hand, and where your pinch is. */
+  let carried: { cast: string; point: Vector3 } | null = null;
+  /** A character hopping back to its place after you let go: from where, and since when (wall time). */
+  const hopping = new Map<string, { from: V3; startMs: number }>();
+  let wallMs = 0;
+  const HOP_MS = 650;
   let endedAtMs: number | null = null;
   const pending: SchedulerEvent[] = [];
   const speeches: Array<{ speech: Speech; atMs: number; text: string; endMs: number }> = [];
@@ -159,6 +171,7 @@ export function createShowRuntime({ manifest, spine, defs, moods, views, clock }
   const applied = new Set<string>();
   const playedMarks = new Set<string>();
   let lastPlaces = new Map<string, CastPlace>();
+  let lastTurn = false;
   let marksKey = '';
 
   const lamp = new Vector3();
@@ -396,6 +409,34 @@ export function createShowRuntime({ manifest, spine, defs, moods, views, clock }
     drain() {
       return pending.splice(0);
     },
+    castTargets() {
+      if (!started) return [];
+      const out: Array<{ id: string; top: Vector3 }> = [];
+      if (lastTurn) return out;
+      for (const [id, puppet] of views.puppets) {
+        const place = lastPlaces.get(id);
+        if (!place || place.crossing || place.walk || !views.actors.get(id)?.visible) continue;
+        const h = entries.get(id)!.member.heightM;
+        out.push({ id, top: puppet.root.localToWorld(new Vector3(0, h * 0.86, 0)) });
+      }
+      return out;
+    },
+    holdCast(id, point) {
+      if (!carried || carried.cast !== id) {
+        heldCast = id;
+        hopping.delete(id);
+        views.sound.play('gasp', views.puppets.get(id)?.root.getWorldPosition(new Vector3()));
+      }
+      carried = { cast: id, point: (point ?? carried?.point ?? new Vector3()).clone() };
+    },
+    dropCast() {
+      if (!carried) return;
+      const actor = views.actors.get(carried.cast);
+      if (actor) hopping.set(carried.cast, { from: [actor.position.x, actor.position.y - views.book.pageY, actor.position.z], startMs: wallMs });
+      views.sound.play('hop', actor?.getWorldPosition(new Vector3()));
+      carried = null;
+      heldCast = null;
+    },
     canReceive(castId) {
       if (!started) return false;
       const puppet = views.puppets.get(castId);
@@ -439,6 +480,7 @@ export function createShowRuntime({ manifest, spine, defs, moods, views, clock }
       handleEvents(scheduler.skip(clock.ms));
     },
     frame(deltaMs, nowMs, head, hands, handPoints) {
+      wallMs = nowMs;
       if (started && !heldCast) clock.advance(deltaMs);
       const ms = started ? clock.ms : -1;
       if (started) handleEvents(scheduler.tick(ms, holding));
@@ -497,6 +539,7 @@ export function createShowRuntime({ manifest, spine, defs, moods, views, clock }
       const lip = inviting ? ease(clamp01((invite!.localMs - 300) / 700)) * (0.75 + 0.25 * Math.sin(nowMs / 380)) : 0;
       views.book.setCorner(lip, inviting ? 0.6 + 0.4 * Math.sin(nowMs / 380) : 0);
 
+      lastTurn = turn !== null;
       // Who stands where on this spread.
       const sceneStart = scheduler.sceneStartMs();
       const initial = new Map<string, V3>();
@@ -567,8 +610,25 @@ export function createShowRuntime({ manifest, spine, defs, moods, views, clock }
         actor.visible = onSpread;
         if (!place) continue;
         const crossing = place.crossing ? crossingPose(id, place, state) : null;
-        const at = crossing?.at ?? place.at;
-        actor.position.set(at[0], views.book.pageY + 0.0006, at[2]);
+        let at = crossing?.at ?? place.at;
+        let handLift = 0;
+        if (carried?.cast === id) {
+          // In your hand: it dangles from your pinch, its head just below your fingers.
+          const local = views.book.root.worldToLocal(carried.point.clone());
+          const h = entries.get(id)!.member.heightM;
+          at = [local.x, 0, local.z];
+          handLift = Math.max(0, local.y - views.book.pageY - h * 0.86);
+        } else {
+          const hop = hopping.get(id);
+          if (hop) {
+            const t = clamp01((nowMs - hop.startMs) / HOP_MS);
+            const e = ease(t);
+            at = [hop.from[0] + (at[0] - hop.from[0]) * e, 0, hop.from[2] + (at[2] - hop.from[2]) * e];
+            handLift = Math.max(0, hop.from[1] * (1 - e)) + 0.03 * Math.sin(Math.PI * t);
+            if (t >= 1) hopping.delete(id);
+          }
+        }
+        actor.position.set(at[0], views.book.pageY + 0.0006 + handLift, at[2]);
         puppet.lift.position.y = at[1] + (crossing?.lift ?? 0);
         puppet.lift.rotation.z = crossing?.tilt ?? 0;
         const layer = at[2] > views.book.frontHingeZ ? views.book.frontLayer : views.book.actorLayer;
@@ -587,6 +647,7 @@ export function createShowRuntime({ manifest, spine, defs, moods, views, clock }
           if (overlay.kind === 'aside') acting = local < 800 ? { acting: 'take', localMs: local, target: `object:${overlay.objectId}` } : { acting: 'examine', localMs: local - 800, target: `object:${overlay.objectId}` };
           else acting = { acting: 'examine', localMs: local, target: null };
         }
+        if (!acting && carried?.cast === id) acting = { acting: entry.member.acting.includes('scared') ? 'scared' : entry.member.acting.includes('flutter') ? 'flutter' : 'idle', localMs: 200, target: null };
         if (!acting && noticing?.cast === id) acting = { acting: 'reach', localMs: ms - noticing.sinceMs, target: `object:${noticing.object}` };
         if (!acting) acting = state.acting.get(id) ?? null;
         const light = entry.light;
@@ -616,8 +677,9 @@ export function createShowRuntime({ manifest, spine, defs, moods, views, clock }
         puppet.fold.rotation.x = layerRotationX(stand);
         const shadow = puppet.root.getObjectByName('contact-shadow');
         if (shadow) {
-          shadow.position.y = 0.0008 - at[1];
-          shadow.scale.setScalar(1 + (at[1] + (crossing?.lift ?? 0)) * 6);
+          // The shadow stays on the page, wider and softer the higher the character is.
+          shadow.position.y = 0.0008 - at[1] - handLift;
+          shadow.scale.setScalar(1 + (at[1] + handLift + (crossing?.lift ?? 0)) * 6);
         }
 
         // Turn toward you at twelve poses a second, easing, and only as far as the pose allows.

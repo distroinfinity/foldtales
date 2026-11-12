@@ -59,8 +59,8 @@ describe('settling onto the table you meant', () => {
     const settled = settleOnTable({ head: seat, spot: { x: 0, y: 0.43, z: -0.27 }, tables: [coffee], userScale: null });
     expect(settled.table).toBe(coffee);
     expect(footprint(settled.spot, seat, settled.scale).every(inside)).toBe(true);
-    // As near you as it can be: only as far in as the book needs.
-    expect(settled.spot.z).toBeGreaterThan(-0.3 - (0.315 * settled.scale) / 2 - 0.03);
+    // As near you as it can be: only as far in as the book and its pulled-out drawer need.
+    expect(settled.spot.z).toBeGreaterThan(-0.3 - (0.315 * settled.scale) / 2 - 0.122 * settled.scale - 0.03);
   });
 
   test('it rests at the table top, not the hit height', () => {
@@ -68,9 +68,9 @@ describe('settling onto the table you meant', () => {
   });
 
   test('a spot already well on the table stays where it is', () => {
-    const settled = settleOnTable({ head: seat, spot: { x: 0, y: 0.412, z: -0.5 }, tables: [coffee], userScale: null });
+    const settled = settleOnTable({ head: seat, spot: { x: 0, y: 0.412, z: -0.62 }, tables: [coffee], userScale: null });
     expect(settled.spot.x).toBeCloseTo(0, 3);
-    expect(settled.spot.z).toBeCloseTo(-0.5, 3);
+    expect(settled.spot.z).toBeCloseTo(-0.62, 3);
   });
 
   test('a table at another height, or across the room, is not the one you meant', () => {

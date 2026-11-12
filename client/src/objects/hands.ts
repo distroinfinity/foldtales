@@ -123,6 +123,9 @@ export function createObjectHands(deps: HandsDeps) {
   };
 
   const anyHeld = () => held.left !== null || held.right !== null;
+  /** VR Glasses: the object you've looked at and pinched, lifted and waiting for someone to give it to. */
+  let chosen: string | null = null;
+  let chosenFrom: Home | null = null;
 
   return {
     /** Each frame, before the controls ask for targets. */
@@ -173,6 +176,16 @@ export function createObjectHands(deps: HandsDeps) {
           },
         });
       }
+      // The characters themselves: pinch the top of a head to pick them up.
+      for (const c of deps.runtime.castTargets()) {
+        out.push({
+          proxy: { id: `cast:${c.id}`, position: { x: c.top.x, y: c.top.y, z: c.top.z }, radiusM: 0.034, reachUpM: REACH_UP_M },
+          onGrab: (_hand, point) => deps.runtime.holdCast(c.id, point),
+          onDrag: (_hand, point) => deps.runtime.holdCast(c.id, point),
+          onRelease: () => deps.runtime.dropCast(),
+          onCancel: () => deps.runtime.dropCast(),
+        });
+      }
       // The drawer's pull: on the page block while it's shut, riding on its front once it's out.
       const pull = deps.runtime.drawerAmount > 0.05 ? deps.drawer.pull : deps.book.root.getObjectByName('drawer-pull');
       if (pull && bookOpen) {
@@ -196,6 +209,54 @@ export function createObjectHands(deps: HandsDeps) {
         out.push({ proxy: { id: 'read-again', position: { x: p.x, y: p.y, z: p.z }, radiusM: 0.036, reachUpM: REACH_UP_M }, onRelease: () => deps.onReadAgain() });
       }
       return out;
+    },
+    /**
+     * Gaze and pinch (VR Glasses): look at an object and pinch, and it lifts. Look at a character and
+     * pinch, and it floats to them. Look at a control and pinch, and it works as if pinched by hand.
+     */
+    gazeSelect(origin: Vector3, direction: Vector3): void {
+      const dir = direction.clone().normalize();
+      const angleTo = (p: Vector3) => dir.angleTo(p.clone().sub(origin));
+      const CONE = (7 * Math.PI) / 180;
+      if (chosen) {
+        let best: { id: string; a: number } | null = null;
+        for (const [id, g] of deps.grips()) {
+          if (!deps.runtime.canReceive(id)) continue;
+          const a = Math.min(angleTo(v(g)), angleTo(v(g).add(new Vector3(0, 0.05, 0))));
+          if (a < CONE * 1.4 && (!best || a < best.a)) best = { id, a };
+        }
+        const id = chosen;
+        chosen = null;
+        deps.runtime.setHolding(anyHeld());
+        if (best && deps.runtime.gift(id, best.id)) return;
+        // Not at anyone: it goes back down where it was.
+        if (chosenFrom) deps.objects.send(id, chosenFrom, nowMs, 300, 0.02);
+        deps.sound.play('settle', deps.objects.worldOf(id, new Vector3()));
+        return;
+      }
+      let best: { t: ExtraTarget; a: number } | null = null;
+      for (const t of this.targets()) {
+        const a = angleTo(new Vector3(t.proxy.position.x, t.proxy.position.y, t.proxy.position.z));
+        if (a < CONE && (!best || a < best.a)) best = { t, a };
+      }
+      if (!best) return;
+      const id = best.t.proxy.id;
+      if (id.startsWith('object:')) {
+        const objectId = id.slice('object:'.length);
+        chosen = objectId;
+        chosenFrom = deps.objects.get(objectId)?.home ?? null;
+        // Lifted a little above where it was, so you can see it's chosen.
+        const at = deps.objects.worldOf(objectId, new Vector3()).add(new Vector3(0, 0.05 * (deps.stageRoot.scale.x || 1), 0));
+        const local = deps.book.root.worldToLocal(at);
+        deps.objects.pose(objectId, [local.x, local.y, local.z], 0, false, 1.06);
+        deps.objects.send(objectId, { kind: 'posed' }, nowMs, 200);
+        deps.runtime.setHolding(true);
+        deps.sound.play('grab', at);
+      } else if (!id.startsWith('cast:')) {
+        const p = new Vector3(best.t.proxy.position.x, best.t.proxy.position.y, best.t.proxy.position.z);
+        if (best.t.onRelease) best.t.onRelease('right', p);
+        else best.t.onGrab?.('right', p);
+      }
     },
     /** For the drawer: put anything you hold back down before it closes. */
     holding: (): string[] => [held.left, held.right].filter((x): x is string => x !== null),

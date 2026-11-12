@@ -1,0 +1,13 @@
+round sound: balance 111719, committed 0, cap 120
+done lantern-clink: 6.6s, 2 credits
+done lantern-flare: 11.4s, 1 credits
+done object-set-down: 6.5s, 1 credits
+done page-turn: 5.7s, 2 credits
+done kite-whoosh: 8.8s, 2 credits
+done ladder-creak: 123.6s, 2 credits
+done thread-pluck: 6.4s, 1 credits
+done rope-throw: 6s, 2 credits
+done spark-rise: 5.7s, 2 credits
+done lamp-light: 5.6s, 2 credits
+done satchel-in: 4.2s, 2 credits
+done drawer-slide: 7.9s, 2 credits
