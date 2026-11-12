@@ -153,9 +153,14 @@ export function createBookControls({ world, stageRoot, book, sound, pause, glow,
     sound.play('rustle', stageRoot.position, undefined, 'ui');
   }
 
+  /** What each hand took, kept until it lets go: a held object is no longer a target, but its release still matters. */
+  const heldExtra: Record<HandSide, ExtraTarget | null> = { left: null, right: null };
+
   function handleExtra(event: GestureEvent): boolean {
-    const extra = extraTargets.find((t) => t.proxy.id === event.id);
+    const extra = (heldExtra[event.hand]?.proxy.id === event.id ? heldExtra[event.hand] : null) ?? extraTargets.find((t) => t.proxy.id === event.id);
     if (!extra) return false;
+    if (event.kind === 'grab') heldExtra[event.hand] = extra;
+    if (event.kind === 'release' || event.kind === 'cancel') heldExtra[event.hand] = null;
     const p = pinch[event.hand] ?? new Vector3();
     if (event.kind === 'grab') extra.onGrab?.(event.hand, p);
     else if (event.kind === 'drag') extra.onDrag?.(event.hand, p);

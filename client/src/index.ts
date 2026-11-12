@@ -256,7 +256,12 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
     const s = runtime.scheduler;
     let t = 0;
     for (; t < 600_000 && s.current().beatId !== jump && !s.ended; t += 100) s.tick(t, false);
-    if (s.current().beatId === jump) runtime.restore({ v: 2, scheduler: s.snapshot(), objects: initialObjects, overlays: [], drawerWanted: false, satchelOpen: false }, t);
+    if (s.current().beatId === jump) {
+      // A moment before the beat, so its own first actions still happen.
+      runtime.restore({ v: 2, scheduler: s.snapshot(), objects: initialObjects, overlays: [], drawerWanted: false, satchelOpen: false }, Math.max(0, s.current().startMs - 1));
+      // Like a resume: it waits, shut, until the book has arrived and opened.
+      controls.shut();
+    }
   }
 
   const checkpoint = (): void => {
@@ -529,7 +534,11 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, world
         })
         .catch(() => undefined);
       setLandingState(ready());
-      world.visibilityState.subscribe((state) => setLandingState(state === VisibilityState.NonImmersive ? ready() : { kind: 'inside' }));
+      world.visibilityState.subscribe((state) => {
+        // An XR session started some other way (the browser's own prompt, the emulator) takes the button's default.
+        if (state !== VisibilityState.NonImmersive) begin(choice.resume);
+        setLandingState(state === VisibilityState.NonImmersive ? ready() : { kind: 'inside' });
+      });
     })
     .catch((cause: unknown) => {
       reportError('stage', cause);
