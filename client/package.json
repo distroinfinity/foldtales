@@ -11,12 +11,18 @@
     "dev:status": "iwsdk dev status",
     "typecheck": "tsc --noEmit",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build:review": "vite build --mode review --outDir dist-review"
   },
   "dependencies": {
+    "@fontsource-variable/fraunces": "^5.3.0",
+    "@fontsource/atkinson-hyperlegible-next": "^5.3.0",
+    "@fontsource/fraunces": "^5.3.0",
     "@iwsdk/core": "1.1.0-rc.2",
     "@tabletop/contracts": "workspace:*",
-    "three": "npm:super-three@0.185.0"
+    "three": "npm:super-three@0.185.0",
+    "troika-three-text": "^0.53.1",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@iwsdk/cli": "1.1.0-rc.2",

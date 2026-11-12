@@ -19,16 +19,26 @@ const HOLD_HEIGHT_M = 0.02;
 const HOLD_REACH_M = 0.1;
 
 /** One placement per session. The deadline is fixed from the first step, so unsteady hits can't postpone it. */
-export function createPlacement(): { step(nowMs: number, input: PlacementInput): PlacementDecision } {
+export interface Placement {
+  step(nowMs: number, input: PlacementInput): PlacementDecision;
+  /** Once the book begins to open it never moves by itself again: only you move it, by the spine. */
+  lock(): void;
+}
+
+export function createPlacement(): Placement {
   let startedMs: number | null = null;
   let state: PlacementDecision['state'] = 'searching';
   let holding: { point: Vec3; sinceMs: number } | null = null;
+  let locked = false;
 
   const stay = (): PlacementDecision => ({ state, moveTo: null, surface: null });
 
   return {
+    lock() {
+      locked = true;
+    },
     step(nowMs, { head, forward, hits }) {
-      if (state === 'placed') return stay();
+      if (state === 'placed' || locked) return stay();
       startedMs ??= nowMs;
 
       const surface = head ? pickSurface(hits, head) : null;

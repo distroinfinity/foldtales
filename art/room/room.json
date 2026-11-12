@@ -1,0 +1,48 @@
+{
+  "note": "The reading room for no-passthrough mode, from run 008. Flats stand on the floor in a loose arc, each facing the reader; the tabletop is the surface the book stands on.",
+  "flats": [
+    {
+      "id": "flat-window",
+      "file": "flat-window.png",
+      "sizePx": [
+        1050,
+        2048
+      ],
+      "heightM": 2.0,
+      "distanceM": 2.0,
+      "azimuthDeg": -50
+    },
+    {
+      "id": "flat-shelves",
+      "file": "flat-shelves.png",
+      "sizePx": [
+        1266,
+        2048
+      ],
+      "heightM": 2.1,
+      "distanceM": 2.2,
+      "azimuthDeg": 0
+    },
+    {
+      "id": "flat-lamp",
+      "file": "flat-lamp.png",
+      "sizePx": [
+        1304,
+        2048
+      ],
+      "heightM": 1.8,
+      "distanceM": 2.0,
+      "azimuthDeg": 50
+    }
+  ],
+  "tabletop": {
+    "file": "tabletop.png",
+    "sizeM": [
+      0.9,
+      0.675
+    ],
+    "heightM": 0.74
+  },
+  "floorColor": "#3A2E28",
+  "wallColor": "#2A2F3D"
+}

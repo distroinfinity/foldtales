@@ -44,7 +44,7 @@ Color is never the only signal. Story Circle players are told apart by their sat
 
 ## Light and the room
 
-- **Theater lights down:** about 68% dim at the room's edges, with a warm pool around the book, over about 2 s. It's one adjustable value, so it can go darker later. No sudden swaps between real and virtual.
+- **Theater lights down:** about 80% dim at the room's edges, with a warm pool hugging the book, over about 2 s (raised from 68% after the owner's first ticket 1 headset session found too much room light). It's one adjustable value. No sudden swaps between real and virtual.
 - **The lantern glows and flickers,** and its pool of light moves with Pip.
 - **The signature moment:** the relit lamp's beam sweeps across your real room. The beam lifts the dim as it passes, so it looks like your walls are being lit. Passthrough has to do something here that nothing else can.
 

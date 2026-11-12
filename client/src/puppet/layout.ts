@@ -8,6 +8,10 @@ export interface CardLayout {
   size: [number, number];
   /** The card's centre, from its pivot. */
   anchor: [number, number];
+  /** Painted once; the renderer also draws the opposite-side counterpart. */
+  mirrored: boolean;
+  /** The part's resting turn, clockwise degrees. */
+  baseDeg: number;
 }
 
 const LAYER_GAP_M = 0.001;
@@ -30,6 +34,8 @@ interface Box {
   pivot: readonly [number, number];
   z: number;
   scale: number;
+  mirrored?: boolean;
+  rotation?: number;
 }
 
 function boxes(rig: Rig): Box[] {
@@ -65,6 +71,8 @@ export function layoutCards(rig: Rig, sizes: Record<string, [number, number]>, h
         pivot: [(box.x + pivotX) * m, -(box.y + pivotY) * m, box.z * LAYER_GAP_M] as [number, number, number],
         size: [width * m, height * m] as [number, number],
         anchor: [(width / 2 - pivotX) * m, -(height / 2 - pivotY) * m] as [number, number],
+        mirrored: box.mirrored ?? false,
+        baseDeg: box.rotation ?? 0,
       },
     ];
   });

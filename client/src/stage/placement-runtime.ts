@@ -1,5 +1,6 @@
 import { Quaternion, Vector3, type Object3D, type World } from '@iwsdk/core';
-import { createPlacement, type PlacementDecision } from './placement.ts';
+import { createPlacement, type Placement, type PlacementDecision } from './placement.ts';
+import type { Table } from './sizing.ts';
 import { horizontalForward, placementRays, type Hit, type Vec3 } from './surface.ts';
 
 const SETUP_LIMIT_MS = 3000;
@@ -7,13 +8,50 @@ const orientation = new Quaternion();
 const forwardAxis = new Vector3();
 const upAxis = new Vector3();
 
-export type OnPlaced = (surface: NonNullable<PlacementDecision['surface']>) => void;
+export type OnPlaced = (surface: NonNullable<PlacementDecision['surface']>, tables: Table[]) => void;
+
+/** Surfaces you don't read a book on, even at the right height. */
+const NOT_A_TABLE = new Set(['floor', 'ceiling', 'couch', 'bed', 'wall_art', 'window_frame', 'door_frame']);
+
+/** Every scanned horizontal surface you might set a book on, flattened to the floor plan. */
+function scannedTables(frame: XRFrame, space: XRReferenceSpace): Table[] {
+  const planes = (frame as XRFrame & { detectedPlanes?: Set<XRPlane> }).detectedPlanes;
+  if (!planes) return [];
+  const tables: Table[] = [];
+  for (const plane of planes) {
+    if (plane.orientation !== 'horizontal') continue;
+    const label = (plane as XRPlane & { semanticLabel?: string }).semanticLabel;
+    if (label && NOT_A_TABLE.has(label)) continue;
+    const pose = frame.getPose(plane.planeSpace, space);
+    if (!pose) continue;
+    const m = pose.transform.matrix;
+    tables.push({ y: m[13]!, outline: plane.polygon.map((p) => ({ x: m[0]! * p.x + m[4]! * p.y + m[8]! * p.z + m[12]!, z: m[2]! * p.x + m[6]! * p.y + m[10]! * p.z + m[14]! })) });
+  }
+  return tables;
+}
+
+export interface PlacementRun {
+  /** Stops listening to XR frames. */
+  stop(): void;
+  /** The book has begun to open: from now on only you move it. */
+  lock(): void;
+  /** When this session's search began, in XR frame time (ms), or null before the first frame. */
+  searchStartedMs(): number | null;
+}
 
 /** Runs placement for each XR session: rays, one machine, and moving `target` when it decides. */
-export function startPlacement(world: World, target: Object3D, onPlaced: OnPlaced): () => void {
+export function startPlacement(
+  world: World,
+  target: Object3D,
+  onPlaced: OnPlaced,
+  skip: () => boolean = () => false,
+  /** Wraps the frame work, so an error here is caught and reported like the rest. */
+  wrap: <A extends unknown[]>(work: (...args: A) => void) => (...args: A) => void = (work) => work,
+): PlacementRun {
   let session: XRSession | undefined;
   let sources: XRHitTestSource[] = [];
-  let machine = createPlacement();
+  let machine: Placement = createPlacement();
+  let searchStart: number | null = null;
   // The fallback deadline starts once the rays exist, so slow setup doesn't use up the search time.
   let ready = false;
 
@@ -22,6 +60,7 @@ export function startPlacement(world: World, target: Object3D, onPlaced: OnPlace
     sources = [];
     ready = false;
     machine = createPlacement();
+    searchStart = null;
     target.visible = false;
     const owned = next;
     // A request that never answers mustn't keep the puppet off the stage.
@@ -43,10 +82,13 @@ export function startPlacement(world: World, target: Object3D, onPlaced: OnPlace
       .finally(() => { if (session === owned) ready = true; });
   }
 
-  return world.onXRFrame((frame, _delta, time) => {
+  const stop = world.onXRFrame(wrap((frame: XRFrame, _delta: number, time: number) => {
     const space = world.xrReferenceSpace;
     if (!space) return;
+    // The painted room has its own table: no search for a real one.
+    if (skip()) return;
     if (frame.session !== session) beginSession(frame.session);
+    searchStart ??= time * 1000;
     if (!ready) return;
 
     const viewer = frame.getViewerPose(space);
@@ -75,6 +117,7 @@ export function startPlacement(world: World, target: Object3D, onPlaced: OnPlace
     target.position.set(decision.moveTo.x, decision.moveTo.y, decision.moveTo.z);
     target.rotation.y = Math.atan2(head.x - decision.moveTo.x, head.z - decision.moveTo.z);
     target.visible = true;
-    onPlaced(decision.surface);
-  });
+    onPlaced(decision.surface, scannedTables(frame, space));
+  }));
+  return { stop, lock: () => machine.lock(), searchStartedMs: () => searchStart };
 }

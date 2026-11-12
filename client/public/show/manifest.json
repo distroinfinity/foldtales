@@ -1,0 +1,359 @@
+{
+  "v": 1,
+  "libraryVersion": "flagship-1",
+  "title": "The Lighthouse at the Edge of the Table",
+  "artFolders": [
+    "cast/pip",
+    "cast/wick",
+    "cast/moth",
+    "book",
+    "sets/shore-path",
+    "fx",
+    "sound/m1",
+    "room"
+  ],
+  "book": "book/book.json",
+  "room": "room/room.json",
+  "set": {
+    "id": "shore-path",
+    "name": "The shore path",
+    "description": "A sandy path along the shore below the lighthouse, at dusk.",
+    "file": "sets/shore-path/set.json",
+    "marks": [
+      {
+        "id": "pip",
+        "label": "Pip's mark",
+        "position": [
+          0.046,
+          0,
+          -0.0175
+        ]
+      }
+    ]
+  },
+  "cast": [
+    {
+      "member": {
+        "id": "pip",
+        "name": "Pip",
+        "description": "A young fox in a keeper's coat far too big for him, sleeves rolled up and hem dragging, carrying a brass lantern.",
+        "persona": "Afraid of the dark, and quietly hoping to be the next keeper. Brave when it counts, and grateful for help.",
+        "voice": "pip",
+        "rig": "cast/pip",
+        "acting": [
+          "idle",
+          "look",
+          "scared",
+          "raise",
+          "hop",
+          "turn",
+          "examine",
+          "reach",
+          "take"
+        ],
+        "heightM": 0.17,
+        "facing": "left",
+        "anatomy": {
+          "torso": "coat",
+          "grip": {
+            "part": "arm",
+            "at": [
+              51,
+              87
+            ]
+          },
+          "held": "lantern",
+          "arms": [
+            "arm"
+          ],
+          "tail": "tail",
+          "wings": []
+        },
+        "actingHeads": {
+          "scared": "scared",
+          "look": "up",
+          "turn": "profile",
+          "examine": "profile"
+        }
+      },
+      "variants": {
+        "lantern": {
+          "out": "parts/lantern-out.png"
+        }
+      },
+      "light": {
+        "part": "lantern",
+        "glowAt": [
+          96,
+          -215
+        ],
+        "glowSizePx": 620,
+        "smokeFrom": [
+          96,
+          -350
+        ],
+        "outVariant": "out"
+      },
+      "shadow": {
+        "widthM": 0.085,
+        "depthM": 0.03
+      },
+      "flip": false
+    },
+    {
+      "member": {
+        "id": "wick",
+        "name": "Wick",
+        "description": "An old badger keeper in a flat blue cap, blue-grey coat and cream waistcoat, with thick round spectacles and a logbook held close.",
+        "persona": "Grumpy, proud and secretly losing his sight. Gruff on top, tender underneath.",
+        "voice": "wick",
+        "rig": "cast/wick",
+        "acting": [
+          "idle",
+          "look",
+          "turn",
+          "grumble",
+          "examine",
+          "reach",
+          "take",
+          "raise"
+        ],
+        "heightM": 0.175,
+        "facing": "right",
+        "anatomy": {
+          "torso": "body",
+          "grip": {
+            "part": "armRight",
+            "at": [
+              5,
+              90
+            ]
+          },
+          "held": "logbook",
+          "arms": [
+            "armLeft",
+            "armRight"
+          ],
+          "tail": "tail",
+          "wings": []
+        },
+        "actingHeads": {
+          "grumble": "grumpy",
+          "turn": "profile",
+          "examine": "profile"
+        }
+      },
+      "variants": {},
+      "light": null,
+      "shadow": {
+        "widthM": 0.1,
+        "depthM": 0.034
+      },
+      "flip": true
+    },
+    {
+      "member": {
+        "id": "moth",
+        "name": "Moth",
+        "description": "A fluffy moth with a fur collar, feathered antennae and big dark eyes.",
+        "persona": "Flies at anything bright, brings odd finds, and means well.",
+        "voice": "moth",
+        "rig": "cast/moth",
+        "acting": [
+          "idle",
+          "look",
+          "flutter",
+          "seek_light",
+          "examine"
+        ],
+        "heightM": 0.075,
+        "facing": "left",
+        "anatomy": {
+          "torso": "body",
+          "grip": null,
+          "held": null,
+          "arms": [],
+          "tail": null,
+          "wings": [
+            "upperWing",
+            "lowerWing"
+          ]
+        },
+        "actingHeads": {}
+      },
+      "variants": {},
+      "light": null,
+      "shadow": {
+        "widthM": 0.05,
+        "depthM": 0.02
+      },
+      "flip": false
+    }
+  ],
+  "onStage": [
+    {
+      "cast": "pip",
+      "mark": "pip"
+    }
+  ],
+  "cues": [
+    {
+      "id": "open-book",
+      "summary": "the book opens and its pages stand up",
+      "nominalMs": 2600,
+      "kind": "unfold"
+    },
+    {
+      "id": "gust",
+      "summary": "a gust of wind crosses the page",
+      "nominalMs": 800,
+      "kind": "gust"
+    },
+    {
+      "id": "lantern-out",
+      "summary": "a carried light blows out",
+      "nominalMs": 0,
+      "kind": "light-out"
+    },
+    {
+      "id": "beam",
+      "summary": "the lighthouse beam sweeps the room",
+      "nominalMs": 6000,
+      "kind": "beam"
+    }
+  ],
+  "narrator": {
+    "voice": "narrator"
+  },
+  "sounds": {
+    "thump": {
+      "files": [
+        "sound/m1/book-thump.mp3"
+      ]
+    },
+    "bloom": {
+      "files": [
+        "sound/m1/wash-bloom.mp3"
+      ]
+    },
+    "cover": {
+      "files": [
+        "sound/m1/cover-open.mp3"
+      ]
+    },
+    "fold": {
+      "files": [
+        "sound/m1/card-fold-a.mp3",
+        "sound/m1/card-fold-b.mp3",
+        "sound/m1/card-fold-c.mp3"
+      ]
+    },
+    "gust": {
+      "files": [
+        "sound/m1/gust.mp3"
+      ]
+    },
+    "puff": {
+      "files": [
+        "sound/m1/lantern-puff.mp3"
+      ]
+    },
+    "gasp": {
+      "files": [
+        "sound/m1/pip-gasp.mp3"
+      ],
+      "voice": true
+    },
+    "tap": {
+      "files": [
+        "sound/m1/card-tap.mp3"
+      ]
+    },
+    "rustle": {
+      "files": [
+        "sound/m1/paper-rustle.mp3"
+      ]
+    },
+    "settle": {
+      "files": [
+        "sound/m1/card-fold-c.mp3"
+      ]
+    },
+    "felt": {
+      "files": [
+        "sound/m1/felt-thud.mp3"
+      ]
+    },
+    "hum": {
+      "files": [
+        "sound/m1/ember-hum.mp3"
+      ],
+      "loop": true
+    },
+    "chime": {
+      "files": [
+        "sound/m1/wash-bloom.mp3"
+      ]
+    }
+  },
+  "voiceLines": {
+    "line_9cnsuy7crj": {
+      "url": "sound/m1/narrator-opening.mp3",
+      "durationMs": 5040
+    }
+  },
+  "opening": {
+    "id": "opening",
+    "source": "authored",
+    "sceneId": null,
+    "estSeconds": 10,
+    "actions": [
+      {
+        "do": "cue",
+        "withPrev": false,
+        "cue": "open-book",
+        "target": null
+      },
+      {
+        "do": "narrate",
+        "withPrev": false,
+        "text": "Down where lost things wash ashore, a small fox kept a small light.",
+        "mood": "warm"
+      },
+      {
+        "do": "cue",
+        "withPrev": false,
+        "cue": "gust",
+        "target": "cast:pip"
+      },
+      {
+        "do": "cue",
+        "withPrev": false,
+        "cue": "lantern-out",
+        "target": "cast:pip"
+      },
+      {
+        "do": "light",
+        "withPrev": true,
+        "mood": "night",
+        "seconds": 1.2
+      },
+      {
+        "do": "emote",
+        "withPrev": true,
+        "who": "pip",
+        "acting": "scared",
+        "target": null
+      },
+      {
+        "do": "emote",
+        "withPrev": false,
+        "who": "pip",
+        "acting": "look",
+        "target": "reader"
+      }
+    ],
+    "next": null,
+    "replaces": null
+  }
+}

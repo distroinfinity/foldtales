@@ -11,10 +11,11 @@
   "world": {
     "xr": {
       "mode": "ar",
-      "offer": "always",
+      "offer": "none",
       "features": {
         "handTracking": true,
         "hitTest": true,
+        "planeDetection": true,
         "anchors": true
       }
     },

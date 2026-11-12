@@ -1,0 +1,104 @@
+{
+  "id": "009-m1-sound",
+  "question": "Can Runway's sound effects and the run-005 voices give every M1 action a small, real, radio-play-warm sound?",
+  "why": "The look bar says every action has a visual and a sound. M1 currently plays temporary synthesized foley, and the narrator's line shows as a caption only.",
+  "sameAcrossJobs": "Sound effects through POST /v1/sound_effect, model eleven_text_to_sound_v2, at 1 credit a second (vendor price list). Voices through the run-005 tool and presets, 1 credit a line. Every clip goes through art/voice/chain.mjs in the client, so all sources match.",
+  "decideBy": [
+    "Each clip is checked by script: it decodes, its length is within 20% of the request, and its peak and loudness are inside the chain's targets.",
+    "The owner judges the mix on the Quest's speakers, in the M1 moment."
+  ],
+  "learnEvenIfRejected": "How Runway's sound effects take small, quiet foley prompts, and the real cost per second.",
+  "reusableOutput": "The foley set ships for M1 and is reused by every later scene (paper, brass, felt, wood). The narrator line is the first prepared line.",
+  "estimateCredits": 21,
+  "capNote": "19 seconds of sound effects plus 2 voice lines. The cap leaves room to redo every clip once.",
+  "capCredits": 50,
+  "soundJobs": [
+    {
+      "id": "book-thump",
+      "durationS": 1,
+      "use": "the closed book lands on your table",
+      "promptText": "A small hardback book set down softly on a wooden table, one soft thump, close, dry room, no reverb."
+    },
+    {
+      "id": "cover-open",
+      "durationS": 2,
+      "use": "the cover swings open and lands",
+      "promptText": "A cloth-bound hardcover book opened slowly, the board creaks gently at the spine, then the cover settles flat on a table. Close and quiet."
+    },
+    {
+      "id": "card-fold-a",
+      "durationS": 1,
+      "use": "a pop-up card stands up",
+      "promptText": "A single stiff paper card folding up quickly, one soft papery flick, close, quiet."
+    },
+    {
+      "id": "card-fold-b",
+      "durationS": 1,
+      "use": "a pop-up card stands up (variation)",
+      "promptText": "Thick paper popping upright from a book, a short crisp papery snap, close, quiet."
+    },
+    {
+      "id": "card-fold-c",
+      "durationS": 1,
+      "use": "a pop-up card stands up (variation)",
+      "promptText": "A paper cutout lifting and settling, a soft rustle and tap, close, quiet."
+    },
+    {
+      "id": "gust",
+      "durationS": 2,
+      "use": "the wind that blows the lantern out",
+      "promptText": "A single short gust of wind sweeping past, soft and airy, rising then falling away, no rain, no howling."
+    },
+    {
+      "id": "lantern-puff",
+      "durationS": 1,
+      "use": "the flame goes out",
+      "promptText": "A small candle flame in a brass lantern blown out, a soft puff and a tiny tinny rattle of the brass lid."
+    },
+    {
+      "id": "wash-bloom",
+      "durationS": 2,
+      "use": "the found surface blooms",
+      "promptText": "A gentle magical shimmer of soft chimes blooming outward, warm, quiet, like a whisper of light, no melody."
+    },
+    {
+      "id": "card-tap",
+      "durationS": 1,
+      "use": "pinching a page control",
+      "promptText": "A fingertip tapping stiff card once, a soft dry tap, very close."
+    },
+    {
+      "id": "paper-rustle",
+      "durationS": 1,
+      "use": "holding the cover",
+      "promptText": "A quiet rustle of thick paper pages being held, close, short."
+    },
+    {
+      "id": "felt-thud",
+      "durationS": 1,
+      "use": "the ribbon is pinched, or something can't be done",
+      "promptText": "A soft muffled thud on felt, gentle, very short."
+    },
+    {
+      "id": "ember-hum",
+      "durationS": 5,
+      "loop": true,
+      "use": "while the ember searches",
+      "promptText": "A very soft warm magical hum with a faint flicker, steady and calm, seamless loop, no melody."
+    }
+  ],
+  "voiceJobs": [
+    {
+      "id": "narrator-opening",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "Down where lost things wash ashore, a small fox kept a small light."
+    },
+    {
+      "id": "pip-gasp",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "[gasps] Oh!"
+    }
+  ]
+}
