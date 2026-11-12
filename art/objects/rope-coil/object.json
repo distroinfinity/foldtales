@@ -1,0 +1,21 @@
+{
+  "id": "rope-coil",
+  "name": "coil of rope",
+  "description": "A coil of rough hemp rope, the keeper's own, long enough to throw across a gap.",
+  "tags": [
+    "rope",
+    "ties"
+  ],
+  "art": {
+    "kind": "asset",
+    "path": "objects/rope-coil/rope-coil.png"
+  },
+  "size": {
+    "heightM": 0.069
+  },
+  "pivot": [
+    50.0,
+    12.8
+  ],
+  "provenance": "library"
+}

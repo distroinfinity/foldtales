@@ -6,6 +6,7 @@ Read `docs/prd.md`, `docs/technical-design.md`, `docs/design-language.md` and yo
 
 - Do not publish anything to Claude artifacts or Claude Docs. Documents live as plain files in `docs/`.
 - Commit or push only when asked.
+- The Quest is for testing XR experiences only. Don't ask the owner to check a flat 2D page in Quest Browser; a Mac proof covers that. Bring the headset in once IWSDK renders the thing being tested.
 - API keys stay in backend or local environment variables, never in the repo, the client bundle or the headset.
 - `spikes/` is throwaway reference code. Do not import from it.
 - No build ships with test visuals. Visual work follows `docs/design-language.md` and its look bar.
