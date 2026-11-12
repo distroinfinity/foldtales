@@ -16,6 +16,21 @@ What the owner noticed in the headset, in plain words. These come before new fea
 - [x] The book sat at or past the table's rim, so it felt sunk in and hard to reach (Nov 13). It now settles fully on the scanned table top; confirmed in the headset ("feels nice").
 - [ ] The two-handed stretch may be too sensitive: in session 2 it jumped between 0.6× and 1.3× within 2 s several times. Watch for it; damp it if the owner finds it twitchy.
 - [ ] ⏸ Hosted preview link, so testing needs no USB. Held with ticket 0's Task 7.
+- [ ] Chapter 1 runs too long before the first page turn, and the spreads look the same (session 1, ticket 2).
+- [ ] Open with the lit lamp and its beam, then it goes out and the journey is to relight it (owner's story idea, session 1).
+- [ ] The reader's help doesn't feel needed; it plays like a fixed play (session 1).
+
+## Ticket 2, headset session 1, Nov 13, 2026 (review build over USB, seated at a table)
+
+The whole episode, played start to finish once (about 6:20, no stall), then a second run cut short when USB dropped.
+
+- **What happened, from the live log:** the lantern was handed back at 0:26 on the first try (0:18 on the second). Pip and Moth were picked up. The page was turned by hand. The drawer was pulled early, and the ladder took three tries before Pip took it at 3:40. The beam ran, the ladder went into the satchel, and "Read it again" restarted the chapter.
+- **Fixed straight after:** "Read it again" left the ribbon's pause on, so the restart sat at 0:00 (released remotely during the session); it now lowers the ribbon and sits clear of it. A gift from the drawer before Pip asks now counts. Hand-over is measured to the object's body, with more slack. The drawer tucks away once the gap is solved.
+- **Owner, on the story:** "this looks nice." But:
+  - "Before I turned page one, the first bit looked unnecessarily long. I think there should be at least two turn pages. We can play with the set as well. Right now the set feels static on every page turn."
+  - "The lighthouse and its light surrounding, going round and round in my space, is a very good wow factor." Open with it: the book opens, the beam sweeps the room, then it goes out, "and we go on a journey to fix it … find your friends along the way, and find objects."
+  - "It feels like a static play right now. I don't think my interference is needed in it in the first place. I don't see any AI in it. I think that's planned ahead." (The director is ticket 3.)
+  - "That's just my current thoughts that we can fix later or think on more."
 
 ## Nov 11, 2026: first look at Pip on a Quest 3 (M0, not signed off)
 
