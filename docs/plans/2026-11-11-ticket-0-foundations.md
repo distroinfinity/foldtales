@@ -1,5 +1,7 @@
 # Ticket 0: Foundations, the rest of it (ends at M0)
 
+**Status:** M0 signed off by the owner on the Quest 3 on Nov 12, 2026, from a local build over USB (`docs/playtest-notes.md`). Tasks 1–6 and 8 done. Task 7's workflow and config are committed. The owner chose to hold hosting (the preview link and live backend) as a follow-up, so the deploy jobs stay gated on `vars.BACKEND_URL`.
+
 > **For agentic workers:** executed in one workspace with `superpowers:executing-plans`. Steps use checkbox (`- [ ]`) syntax.
 
 **Goal:** A link opens on the Quest, and Pip stands on your real table, breathing, with the lantern glowing. Behind it: CI, a preview URL per branch, and a live backend that holds no AI keys yet and enforces its caps.
