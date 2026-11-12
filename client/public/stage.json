@@ -1,0 +1,6 @@
+{
+  "cast": "cast/pip",
+  "heightM": 0.17,
+  "glow": { "x": 96, "y": -215, "sizePx": 620 },
+  "shadow": { "widthM": 0.085, "depthM": 0.03 }
+}

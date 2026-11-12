@@ -1,6 +1,11 @@
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { iwsdkDev } from '@iwsdk/vite-plugin-dev';
 import { defineConfig, type ServerOptions } from 'vite';
 import { readPorts } from '../tools/ports.ts';
+import { artPlugin } from './vite/art-plugin.ts';
+
+const stage = JSON.parse(readFileSync(new URL('./public/stage.json', import.meta.url), 'utf8')) as { cast: string };
 
 function devServer(): ServerOptions {
   const { CLIENT_PORT, BACKEND_PORT } = readPorts();
@@ -18,9 +23,9 @@ function devServer(): ServerOptions {
 }
 
 export default defineConfig(({ command }) => ({
-  plugins: [iwsdkDev()],
+  plugins: [iwsdkDev(), artPlugin({ artRoot: fileURLToPath(new URL('../art', import.meta.url)), folders: [stage.cast] })],
   // Only serving needs ports, so a CDN builder with no .env.ports can still build.
-  ...(command === 'serve' ? { server: devServer() } : {}),
+  ...(command === 'serve' ? { server: devServer(), preview: devServer() } : {}),
   // Vite also exposes matching process variables, so the prefix is what keeps keys out.
   envPrefix: 'TT_PUBLIC_',
   build: {
