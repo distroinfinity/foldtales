@@ -41,7 +41,8 @@ function carry(s: Harness, h: ReturnType<typeof hands>, id: string, to: Vector3)
 
 describe('handing the lantern back (P1)', () => {
   test('the lantern drops and rolls to the page edge, where a hand can take it from above', () => {
-    const s = playTo(stage(), 14_000);
+    const s = playTo(playUntil(stage(), 'lantern-drop'), 0);
+    playTo(s, s.clock.ms + 3000);
     expect(s.objects.get('lantern')!.home.kind).toBe('page');
     const h = hands(s);
     h.frame(s.clock.ms, true);
@@ -51,7 +52,8 @@ describe('handing the lantern back (P1)', () => {
   });
 
   test('a character notices what you hold before you let go, and reaches', () => {
-    const s = playTo(stage(), 15_000);
+    const s = playUntil(stage(), 'lantern-drop');
+    playTo(s, s.clock.ms + 4000);
     const h = hands(s);
     const near = grip(s).add(new Vector3(0, 0.02, NOTICE_M * 0.7));
     h.frame(s.clock.ms, true);
@@ -66,7 +68,8 @@ describe('handing the lantern back (P1)', () => {
   });
 
   test('let go anywhere close: the lantern is taken at once, flares, and the relief beat plays', () => {
-    const s = playTo(stage(), 15_000);
+    const s = playUntil(stage(), 'lantern-drop');
+    playTo(s, s.clock.ms + 4000);
     const h = hands(s);
     carry(s, h, 'lantern', grip(s).add(new Vector3(0.02, 0.01, GIVE_M * 0.6)));
     expect(s.runtime.scheduler.current().beatId).toBe('lantern-back');
@@ -79,7 +82,8 @@ describe('handing the lantern back (P1)', () => {
   });
 
   test('let go far from anyone: it settles straight down, never hanging in the air', () => {
-    const s = playTo(stage(), 15_000);
+    const s = playUntil(stage(), 'lantern-drop');
+    playTo(s, s.clock.ms + 4000);
     const h = hands(s);
     const over = s.view.root.localToWorld(new Vector3(0.6, 0.25, 0.1));
     carry(s, h, 'lantern', over);
@@ -91,9 +95,10 @@ describe('handing the lantern back (P1)', () => {
   });
 
   test('left on your table, the lantern still comes back when nobody helps', () => {
-    const s = playTo(stage(), 15_000);
+    const s = playUntil(stage(), 'lantern-drop');
+    playTo(s, s.clock.ms + 4000);
     carry(s, hands(s), 'lantern', s.view.root.localToWorld(new Vector3(0.5, 0.2, 0.2)));
-    playUntil(s, 'shore-walk');
+    playUntil(s, 'wick-gone');
     expect(s.objects.get('lantern')!.home).toEqual({ kind: 'carried', cast: 'pip' });
   });
 });
@@ -121,13 +126,13 @@ describe('where things come to rest', () => {
 });
 
 describe('the gap and the drawer', () => {
-  test('the ask opens the drawer, and a kite carries the traveller across', () => {
+  test('the ask opens the drawer, and a ladder carries the traveller across', () => {
     const s = playUntil(stage(), 'gap-ask');
     for (let i = 0; i < 400; i++) s.frame(16);
     expect(s.runtime.drawerAmount).toBeCloseTo(1, 2);
     const h = hands(s);
-    carry(s, h, 'kite', grip(s).add(new Vector3(0, 0.01, 0.04)));
-    expect(s.runtime.scheduler.current().beatId).toBe('cross-kite');
+    carry(s, h, 'ladder', grip(s).add(new Vector3(0, 0.01, 0.04)));
+    expect(s.runtime.scheduler.current().beatId).toBe('cross-ladder');
     playUntil(s, 'far-side');
     const far = s.actors.get('pip')!.position.x;
     expect(far).toBeLessThan(-0.05);
@@ -139,7 +144,7 @@ describe('the gap and the drawer', () => {
     const h = hands(s);
     h.frame(s.clock.ms, true);
     const ids = h.targets().map((t) => t.proxy.id);
-    for (const id of ['ladder', 'kite', 'odd-sock', 'spool', 'brass-key']) expect(ids).toContain(`object:${id}`);
+    for (const id of ['ladder', 'odd-sock', 'brass-key']) expect(ids).toContain(`object:${id}`);
   });
 });
 
@@ -164,11 +169,7 @@ describe('when the book shuts, nothing is left in the air', () => {
 });
 
 describe('after a crossing, what it used has settled for good', () => {
-  test.each([
-    ['kite', 'cross-kite'],
-    ['ladder', 'cross-ladder'],
-    ['spool', 'cross-thread'],
-  ])('%s', (object) => {
+  test.each([['ladder', 'cross-ladder']])('%s', (object) => {
     const s = playUntil(stage(), 'gap-ask');
     for (let i = 0; i < 400; i++) s.frame(16);
     const h = hands(s);

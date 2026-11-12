@@ -42,3 +42,5 @@ done wick-then-come-on-lad-that-lamp-won-t-light-i: 5.6s, 1 credits
 done narrator-up-they-went-a-hundred-and-twelve-steps: 6s, 1 credits
 done wick-in-it-goes-steady-now: 11.8s, 1 credits
 done wick-can-t-see-well-enough-to-light-it-lad-no: 6.5s, 1 credits
+done pip-that-s-all-right-i-ve-still-got-my-light: 3.8s, 1 credits
+round voice ended: committed 42 of cap 80

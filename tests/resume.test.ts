@@ -39,9 +39,9 @@ function resumeFrom(store: ReturnType<typeof storage>) {
 describe('resume from a checkpoint', () => {
   test.each([
     ['as the cards rise', (s: Harness) => playTo(s, 3200)],
-    ['just after the light dies', (s: Harness) => playTo(s, 9500)],
-    ['while the lantern lies at the edge', (s: Harness) => playTo(s, 20_000)],
-    ['on the shore walk, after the lantern came back by courage', (s: Harness) => playUntil(s, 'shore-walk')],
+    ['just after the light dies', (s: Harness) => playUntil(s, 'lantern-drop')],
+    ['while the lantern lies at the edge', (s: Harness) => playTo(playUntil(s, 'lantern-drop'), s.clock.ms + 6000)],
+    ['on the shore, after the lantern came back by courage', (s: Harness) => playUntil(s, 'the-shore')],
   ])('%s: the same beat, clock, book, light and lantern, with nothing replayed', (_label, play) => {
     const before = play(stage());
     const after = resumeFrom(save(before));
@@ -51,7 +51,8 @@ describe('resume from a checkpoint', () => {
   });
 
   test('straight after a gift preempted a beat: the gift beat carries on, not the cut one', () => {
-    const before = playTo(stage(), 20_000);
+    const before = playUntil(stage(), 'lantern-drop');
+    playTo(before, before.clock.ms + 6000);
     before.objects.send('lantern', { kind: 'hand', side: 'right' }, 0);
     expect(before.runtime.gift('lantern', 'pip')?.outcome.kind).toBe('rule');
     before.frame(16);
@@ -75,6 +76,6 @@ describe('resume from a checkpoint', () => {
 
   test('the light really changes between those moments, so the check means something', () => {
     expect(look(playTo(stage(), 2000)).lanternOut).toBe(false);
-    expect(look(playTo(stage(), 9500)).lanternOut).toBe(true);
+    expect(look(playUntil(stage(), 'lantern-drop')).lanternOut).toBe(true);
   });
 });

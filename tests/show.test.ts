@@ -144,7 +144,7 @@ describe('stageAt, the stage as a function of show time', () => {
   test('the light goes out before the look, and the mood reaches night', () => {
     const state = stageAt(opening, opening.totalMs + 5000, moods);
     expect(state.cues.has('lantern-out')).toBe(true);
-    const actor = [...state.acting.values()][0]!;
+    const actor = state.acting.get('pip')!;
     expect(actor.acting).toBe('look');
     expect(actor.target).toBe('reader');
     state.moodRgb.forEach((v, i) => expect(v).toBeCloseTo(moods.night[i]!, 5));
@@ -160,10 +160,11 @@ describe('stageAt, the stage as a function of show time', () => {
 
   test('the gust lands before the final look, and nothing speaks over the end', () => {
     const at = (cue: string) => opening.items.find((i) => i.action.do === 'cue' && i.action.cue === cue)!.startMs;
-    const narrate = opening.items.find((i) => i.action.do === 'narrate')!;
-    expect(narrate.endMs).toBeLessThanOrEqual(at('gust'));
+    const lines = opening.items.filter((i) => i.action.do === 'narrate' || i.action.do === 'speak');
+    for (const line of lines) expect(line.endMs).toBeLessThanOrEqual(at('gust'));
     expect(at('gust')).toBeLessThan(at('lantern-out'));
-    expect(opening.totalMs).toBeLessThan(12_000);
+    // Chapter 1 now opens on the lit lamp and its beam before the storm.
+    expect(opening.totalMs).toBeLessThan(45_000);
   });
 
   test('Pip looks up soon after the light dies, as in the approved proof', () => {
