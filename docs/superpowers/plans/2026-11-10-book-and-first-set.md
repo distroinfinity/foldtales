@@ -1,5 +1,7 @@
 # Book and First Set Implementation Plan
 
+**Status:** ✅ Done. Run 004 closed and merged in PR #1. Approved on the Mac by the owner on Nov 11, 2026. The final approval waits for ticket 1 to show the pieces in the headset.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Paint, cut out, register and name every piece M1 needs (the book, the shore path set, Pip's look up, the unlit lantern), close run 004, and show the result on the Mac.
@@ -59,7 +61,7 @@
 - `checks.value_margin(backdrop_rgb, coat_rgb) -> float`: difference in mean L* (backdrop minus coat).
 - `budget.price(ratio) -> int`, `budget.pending_jobs(plan, run_dir) -> list`, `budget.queue_cost(jobs) -> int`, `budget.safe_cap(spent, total=120, largest=9) -> int`, `budget.assert_queue_fits(jobs, spent, total=120)`, `budget.attempted_cost(log_text, plan) -> int`, `budget.reconcile(listed, observed_delta) -> dict` with `listed`, `observed`, `unexplained`.
 
-- [ ] **Step 1: Write failing tests in `test_tools.py` using `unittest` and synthetic images**
+- [x] **Step 1: Write failing tests in `test_tools.py` using `unittest` and synthetic images**
 
 ```python
 def test_full_bleed_sheet_is_rejected(self):
@@ -149,25 +151,25 @@ def test_reconcile_shows_unexplained_spend(self):
 
 Helpers (`two_blocks`, `block_with_specks`, `ragged_bottom_block`, `off_center_block`, `tall_block`, `head_shape`, `lantern_shape`, `wider_lantern_shape`, `block_on_paper`, `painted_width`, `bbox_center_x`) are small numpy shape builders in the test file. `halo` measures paper-colored pixels in the 3 px band inside the alpha edge, and needs a paper color from `check_cut(..., paper_rgb=None)`.
 
-- [ ] **Step 2: Run the tests and confirm they fail**
+- [x] **Step 2: Run the tests and confirm they fail**
 
 Run: `python3 art/runs/004-book-and-first-set/test_tools.py`
 Expected: FAIL with an import error for `finish`.
 
-- [ ] **Step 3: Implement `finish.py`, `checks.py` and `budget.py` to the interfaces above**
+- [x] **Step 3: Implement `finish.py`, `checks.py` and `budget.py` to the interfaces above**
 
 Use `scipy.ndimage` for components and hole filling. L* comes from the standard sRGB conversion.
 
-- [ ] **Step 4: Run the tests and confirm they pass**
+- [x] **Step 4: Run the tests and confirm they pass**
 
 Run: `python3 art/runs/004-book-and-first-set/test_tools.py`
 Expected: `OK`
 
-- [ ] **Step 5: Clean the lit lantern and verify**
+- [x] **Step 5: Clean the lit lantern and verify**
 
 Apply `remove_specks` to `art/cast/pip/parts/lantern.png` and save in place. Check: size is still 138 x 286, `check_cut` reports no specks and one piece, and no pixel changes outside the removed specks.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add art/runs/004-book-and-first-set art/cast/pip/parts/lantern.png
@@ -186,7 +188,7 @@ git commit -m "Add run 004 finishing tools and clean the lantern"
 - Consumes: `budget.assert_queue_fits`, `budget.safe_cap`, `budget.reconcile`, `checks.border_is_paper`, `finish.*` from Task 1.
 - Produces: the chosen key path, and the paper word `{PAPER}` used by every Phase B prompt.
 
-- [ ] **Step 1: Write `plan.json`**
+- [x] **Step 1: Write `plan.json`**
 
 Top-level fields: `id`, `question` ("Can seedream5_pro paint a book and layered paper set that sit in the same book as Pip, and cut out cleanly?"), `why`, `decideBy`, `learnEvenIfRejected`, `reusableOutput`, `capCredits`, `jobs`. All jobs use `seedream5_pro`. `capCredits` is `budget.safe_cap(0)` = 111, and `assert_queue_fits` bounds the queue at 15.
 
@@ -200,33 +202,33 @@ Jobs, each with ratio `1376:768`:
 | `key-lost-things` | same | Same prompt, with this inserted before `A pale, soft dusk-blue sky`: `Washed up among the dunes are three large lost household things, big as boulders: a brass button half sunk in the sand, a silver thimble, and a teaspoon standing upright like a post.` |
 | `paper-test` | same | `A single die-cut paper stage piece, flat-on, in exactly the painting style of Figure 1: a low pale sand dune with tufts of sage-green reeds and a thin strip of pale blue sea along its top. Its silhouette has a clean hard edge traced with a fine pencil line, and a perfectly straight flat bottom edge. Leave a wide margin of empty paper on all four sides, with nothing touching the edge of the image. {STYLE} On plain flat solid vivid magenta paper, one even color. No text.` |
 
-- [ ] **Step 2: Confirm the queue fits**
+- [x] **Step 2: Confirm the queue fits**
 
 Run a one-liner calling `budget.assert_queue_fits(budget.pending_jobs(plan, run_dir), spent=0)`.
 Expected: no error, queue cost 15, and three jobs listed.
 
-- [ ] **Step 3: Ask the owner by question card**
+- [x] **Step 3: Ask the owner by question card**
 
 The card states: the whole plan in one line, Phase A 15 credits, planned total 83, cap 120, and what stops it. It asks for approval and confirmation that the other workspace will stay quiet for about 6 minutes. Stop until answered.
 
-- [ ] **Step 4: Run Phase A in the background, teeing to `log-a.txt`**
+- [x] **Step 4: Run Phase A in the background, teeing to `log-a.txt`**
 
 Run: `node --env-file=.env.local art/tools/generate.mjs art/runs/004-book-and-first-set 2>&1 | tee art/runs/004-book-and-first-set/log-a.txt`
 Expected: three `done` lines, no `FAILED`.
 
-- [ ] **Step 5: Reconcile**
+- [x] **Step 5: Reconcile**
 
 Compute `attempted_cost` from the log and compare with this invocation's `total spent` using `budget.reconcile`, then start the ledger in `notes-phase-a.md`. Expected: `unexplained` 0. If it's not 0, stop and tell the owner before anything else is queued.
 
-- [ ] **Step 6: Test the paper**
+- [x] **Step 6: Test the paper**
 
 Run `checks.border_is_paper` on `paper-test.png`, then `python3 art/tools/cutout.py --seal=3 <paper-test> <scratchpad>`. Open the cut on navy and on cream. Pass means one piece, the pale sand and blue sea both survive, and no pink fringe that `despill` can't remove. If it fails, choose per-layer papers against each layer's palette and write them in `notes-phase-a.md`.
 
-- [ ] **Step 7: Ask the owner to pick a key by question card, showing the two images**
+- [x] **Step 7: Ask the owner to pick a key by question card, showing the two images**
 
 Open both keys for the owner by path, with the plain shore and lost-things versions named. Stop until answered. Record the choice and copy the chosen file to `key.png`.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add art/runs/004-book-and-first-set
@@ -245,7 +247,7 @@ git commit -m "Paint run 004 keys and test the cutting paper"
 - Consumes: `key.png`, `{PAPER}` from Task 2.
 - Produces: the eight files above.
 
-- [ ] **Step 1: Add the jobs to `plan.json`, keeping the Phase A jobs**
+- [x] **Step 1: Add the jobs to `plan.json`, keeping the Phase A jobs**
 
 Set `capCredits` to `budget.safe_cap(spent_so_far)`. Jobs (all `seedream5_pro`):
 
@@ -265,23 +267,23 @@ Set `capCredits` to `budget.safe_cap(spent_so_far)`. Jobs (all `seedream5_pro`):
 | `trims-sheet` | `2048:2048` | `pip-master-v2.png` | `A paper-doll parts sheet, in exactly the painting style of Figure 1, of separate pieces for a storybook, with wide empty space between them, none touching: a rust-red cloth ribbon bookmark with a notched end, hanging straight; a gold cloth tab with a rounded end; a sage-green cloth tab with a rounded end; a small brown leather drawer pull with a brass handle; a long thin horizontal strip of stacked cream page edges with fine pencil lines; one opaque pale grey die-cut curl of paper smoke with a pencil outline; two small brown autumn leaves. Leave a wide margin of empty paper on all four sides. Each piece is complete, with a clean hard edge. {STYLE} On plain flat solid vivid {PAPER} paper, one even color. No scenery, no text.` |
 | `pip-sheet` | `1024:1024` | `art/runs/003-cast-puppets/pip-heads-sheet.png`, `art/runs/002-pip-puppet-and-live-painter/pip-parts-sheet.png` | `A sheet for the fox character and lantern in Figures 1 and 2, in exactly the same painting style. Three separate pieces with wide empty space between them, none touching. First, the fox's head with ears, chin lifted, looking up toward someone far above with big frightened eyes. Second, the same head and angle, chin lifted, looking up with a small hopeful pleading look. Both heads exactly the same size as the heads in Figure 1, ending cleanly at the chin ruff. Third, the same brass lantern as in Figure 2, exactly the same shape and size, but its flame has gone out: dark clear glass, a burnt wick and no glow. Leave a wide margin of empty paper on all four sides. {STYLE} Natural animal anatomy, gentle and dignified, not a cartoon. On plain white paper. No scenery, no ground, no text.` |
 
-- [ ] **Step 2: Confirm the queue fits and the cap is set**
+- [x] **Step 2: Confirm the queue fits and the cap is set**
 
 Assert `budget.assert_queue_fits` against `budget.pending_jobs` and the ledger's spend so far, and print the exact job list. Expected queue cost 68, eight jobs.
 
-- [ ] **Step 3: Ask the owner by question card to confirm the exclusive window**
+- [x] **Step 3: Ask the owner by question card to confirm the exclusive window**
 
 States Phase B: 68 credits, about 16 minutes, how much remains under the cap. Stop until answered.
 
-- [ ] **Step 4: Run in the background, teeing to `log-b.txt`, and reconcile**
+- [x] **Step 4: Run in the background, teeing to `log-b.txt`, and reconcile**
 
 Same command as Task 2. Expected eight `done` lines, then reconcile this invocation only, from `log-b.txt`, and add it to the ledger. Expected `unexplained` 0. If a job failed, stop and work out from the balance whether it was charged before queuing anything.
 
-- [ ] **Step 5: Look at every painting against Pip and the mockup**
+- [x] **Step 5: Look at every painting against Pip and the mockup**
 
 Reject anything with text, a lit lamp, a picture of a book, or a frame around the whole image. The cover's gold ornament is wanted. A repaint is a new job id such as `layer-3-dunes-v2`, changes one thing, removes any failed job it replaces from `plan.json`, and needs the budget check, the exact queue shown to the owner, and an exclusive window again. Repaints beyond the three budgeted go to the owner.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add art/runs/004-book-and-first-set
@@ -300,29 +302,29 @@ git commit -m "Paint run 004 layers, book and Pip's additions"
 - Consumes: Task 1 functions, Task 3 images.
 - Produces: `art/book/`, `art/sets/shore-path/`, `art/fx/`, `art/cast/pip/heads/up.png`, `art/cast/pip/parts/lantern-out.png`, and the metadata for Task 5.
 
-- [ ] **Step 1: Write `make_pieces.py`, reproducible from the run folder**
+- [x] **Step 1: Write `make_pieces.py`, reproducible from the run folder**
 
 Before anything is finished, assert piece counts from `cutout.py`: one output for each layer, eight for trims and effects (ribbon, gold tab, sage tab, drawer pull, page edge, smoke, two leaves), three for Pip's sheet. For each layer: `checks.border_is_paper`, then `cutout.py --seal=3`, then `despill`, `clear_enclosed`, `remove_specks`, `trim_base`, `center_on_canvas(…, 2720)`. Ground: `calibrate_paper`. Spine: a 48 px strip from the cover's left edge, without any border ornament. Trims: cutout with the piece names from the prompt in the tool's reading order, verified by eye.
 
 Pip's sheet is on white paper, matching run 003's heads: `checks.border_is_paper`, `cutout.py --seal=3`, `clear_enclosed` on the lantern's handle, and a look at the pale fur. Choose the better of the two up heads by eye (the choice is mine, and the owner can overrule it in the proof), then `register_head` against `heads/forward.png`, saved with its aspect kept. Render a composite of `up` on Pip's real coat using the rig, and only write `up` to `rig.json`'s `head.offsets` once it seats in the collar. Save `lantern-out` through `fit_lantern`. If `outline_error` is over 5, paste its glass region inside the lit lantern's frame instead.
 
-- [ ] **Step 2: Run it and check every piece**
+- [x] **Step 2: Run it and check every piece**
 
 Expected: `check_cut` and `check_layer` return no problems for all pieces. Hinges and heights use `px_per_mm = 2720/420`.
 
-- [ ] **Step 3: Write `book.json` and `set.json`**
+- [x] **Step 3: Write `book.json` and `set.json`**
 
 Follow the spec's list of required fields. Measure the lighthouse lamp position by eye on the finished `layer-2-headland`. Add to `rig.json`: `"parts.lantern.variants": { "out": "parts/lantern-out.png" }`, same placement and pivot as the lantern.
 
-- [ ] **Step 4: Write and run a check that names and files agree**
+- [x] **Step 4: Write and run a check that names and files agree**
 
 `checks.check_manifest(book_json, set_json, root)` returns missing or unreferenced PNGs. Expected: `[]`. Add a test first in `test_tools.py`: a manifest that names a missing file returns that name, and an unreferenced PNG is reported.
 
-- [ ] **Step 5: Run the value check**
+- [x] **Step 5: Run the value check**
 
 Project the reference eye (y −500, z 420) through Pip at his mark onto the finished layers to get the actual backdrop behind his body, his head and the unlit lantern. Apply each of `checks.MOODS` to the backdrop and to Pip's coat, and to the lantern's glass. Expected `checks.value_margin` at least 25 under dusk and gold, at least 12 under night.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add art/runs/004-book-and-first-set art/book art/sets art/fx art/cast/pip
@@ -339,19 +341,19 @@ git commit -m "Cut out and register the book, shore path and Pip's additions"
 **Interfaces:**
 - Consumes: pieces and JSON from Task 4, `art/cast/pip/rig.json`.
 
-- [ ] **Step 1: Write the single-file page, with no imports from anywhere else**
+- [x] **Step 1: Write the single-file page, with no imports from anywhere else**
 
 Uses CSS 3D with real sizes at a fixed px-per-mm, and reads `book.json`, `set.json` and `rig.json` with `fetch`. Holds three motions only: the book unfolding (cover, then halves rise back to front with a small overshoot), the room dim, and the lantern moment (swap to `lantern-out`, smoke and leaves, head swap to `up`). The two halves of a layer are one image with two background positions. Mouse movement moves the perspective origin. Controls: `Open the book`, `Replay`, mood `dusk / night / gold`, hide sky. Header comment says it's reference only, in the style of `book-mockup.html`. Title set in Fraunces, printed on the blank cover panel.
 
-- [ ] **Step 2: Serve it and verify**
+- [x] **Step 2: Serve it and verify**
 
 Serve from `art/` with `set -a; . ../.env.ports; set +a; python3 -m http.server "$CLIENT_PORT"`. Open with the `superset:browser` skill, or headless Chrome if that's unavailable. Screenshot closed, mid-unfold, open, lantern out with Pip looking up, and two mouse extremes. Confirm no console errors, no missing images, and that the layers visibly shift against each other.
 
-- [ ] **Step 3: Compare with the look bar and fix art faults**
+- [x] **Step 3: Compare with the look bar and fix art faults**
 
 Anything that fails by eye goes back to Task 3 Step 5 or Task 4. No debug text on screen other than the controls.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add art/m1-proof.html
@@ -366,26 +368,26 @@ git commit -m "Add the M1 reference proof page"
 - Create: `art/runs/004-book-and-first-set/results.md`
 - Modify: `art/README.md`
 
-- [ ] **Step 1: Write `results.md`**
+- [x] **Step 1: Write `results.md`**
 
 Same shape as run 003: what it cost per job (observed and list, shown separately), the ledger across invocations, answers to the question, what we learned, still unproven, and reuse.
 
-- [ ] **Step 2: Add durable learnings to `art/README.md`**
+- [x] **Step 2: Add durable learnings to `art/README.md`**
 
 Paper margin on all four sides because the tool reads paper from the border. Which paper worked for multi-colored scenery. Register new heads against the puppet, not the sheet. How to stay inside a cap on a shared account. Add `art/book/`, `art/sets/` and `art/fx/` to the Layout section.
 
-- [ ] **Step 3: Verify the whole delivery**
+- [x] **Step 3: Verify the whole delivery**
 
 Run: `python3 art/runs/004-book-and-first-set/test_tools.py` and the Task 4 checks again.
 Expected: all pass, and spend is at or below 120 credits.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add art/runs/004-book-and-first-set art/README.md
 git commit -m "Close run 004"
 ```
 
-- [ ] **Step 5: Ask the owner to approve the result on the Mac by question card**
+- [x] **Step 5: Ask the owner to approve the result on the Mac by question card**
 
 Give the proof page URL and what to look at. State what was verified and how, and what still needs the headset: does the book hold up as card from the side, is the parallax worth it, is Pip legible against the dunes in real room light, does the dim plus the unlit lantern read as "the light went out", and does the spine seam show.

@@ -2,6 +2,54 @@
 
 **Frozen v1.** Comes out of `technical-design.md` and `design-language.md`. Later ideas go in `v2-ideas.md`, not in these tickets. Submission deadline: **Nov 18, 2026**. Work is split so many Claude Code and Codex sessions, each in its own Superset workspace, can own a ticket with little coordination. Spike code in `spikes/` is reference only, and nothing gets copied in without being rewritten for the product.
 
+## Progress
+
+*Last updated Nov 12, 2026. A workstream is ticked when it's merged to main, and a milestone when the owner signs it off in the headset. ⏸ means held by the owner's choice. **Next up: ticket 1.***
+
+### Milestones
+
+- [x] **M0, Pip on your table.** Signed off on the Quest 3 on Nov 12, from a local build over USB (hosting is held).
+- [ ] **M1, the first 30 seconds.** ← next
+- [ ] **M2, first five minutes.**
+- [ ] **M3, a story that bends and remembers.**
+- [ ] **M4, voices and Talk.**
+- [ ] **M5, Story Circle.**
+- [ ] **M6, ready to submit.**
+
+### Tickets
+
+- [x] **0. Foundations** (PR #3). Plan: `docs/plans/2026-11-11-ticket-0-foundations.md`
+  - [x] Repo and contracts. Plan: `docs/superpowers/plans/2026-11-09-repo-and-contracts.md`
+  - [x] Pip on the table
+  - [x] Deploy and backend: CI, device tokens, caps, memory, telemetry and the report
+  - [ ] ⏸ Hosting: Cloudflare previews per branch, the live Railway backend, and the live cap test. Workflow and config are committed, and deploys stay off until `BACKEND_URL` is set
+- [ ] **1. First 30 seconds.** ← next up, not started
+  - [ ] Painted Stage Kit
+  - [ ] Stage and room
+  - [ ] Found-surface moment, from M0 playtest notes (needs a design pass first)
+  - [ ] Room dim, from M0 playtest notes
+- [ ] **2. First five minutes**
+  - [ ] Hands and objects
+  - [ ] Show and flagship
+- [ ] **3. A story that bends and remembers**
+  - [ ] Director
+  - [ ] Memory and satchel
+  - [ ] Tonight's lost thing
+- [ ] **4. Voices and Talk**
+  - [x] Voice audition (run 005): full cast chosen from measurements, since the owner delegated it. Not yet compared by ear. Plan: `docs/superpowers/plans/2026-11-09-voice-audition.md`
+  - [ ] Rest of voice and music: voice chain in the product, line pre-render, foley, music
+  - [ ] Talk
+- [ ] **5. Story Circle**
+  - [ ] Two-headset proof (can start once ticket 1 places a stage)
+  - [ ] Shared show
+- [ ] **6. Ship**
+- **Art library** (runs throughout)
+  - [x] Book and first set for M1 (run 004, PR #1). Approved on the Mac
+  - [x] Drawer objects for M2 (run 006, PR #2). Approved on the Mac and in Quest Browser
+  - [x] Gap set, drawer, satchel and Wick's rope for M2 (run 007, PR #4). Approved on the Mac
+  - [ ] Headset approval of the above, once tickets 1 and 2 can show them
+  - [ ] Prepared visitors, remaining cast actions, rest of the object library
+
 ## Where to start
 
 Ticket 0 comes first. The Art library and the voice audition don't need it, so they can start in their own workspaces at the same time. When ticket 0 scaffolds IWSDK, keep the skills already in `.claude/skills/` and `.agents/skills/`, and don't let the scaffold duplicate them inside `client`.
@@ -157,10 +205,10 @@ Don't push on. Pull in the fallback from the risk table in `technical-design.md`
 **Already done:** `adb`, Meta VR CLI with skills and MCP, Runway key in `.env.local`, Runway MCP added (run `/mcp` to sign in, though the art tools don't need it), and the [private GitHub repo](https://github.com/distroinfinity/tabletop-theatre). `.env.local` is never committed, and every new workspace links to the main checkout's copy.
 
 **Before ticket 0 starts**
-- [ ] Confirm the reset Quest is signed in with your developer account, and Developer Mode is on in the Horizon phone app.
-- [ ] Next time the USB prompt appears, tick **Always allow from this computer**.
-- [ ] Create or connect: Railway project (backend), Cloudflare account (static client, free tier).
-- [ ] Anthropic API key for the backend only, with a spending limit set in the console.
+- [x] Confirm the reset Quest is signed in with your developer account, and Developer Mode is on in the Horizon phone app. *(M0 ran on it over USB.)*
+- [ ] Next time the USB prompt appears, tick **Always allow from this computer**. *(Not confirmed.)*
+- [ ] ⏸ Create or connect: Railway project (backend), Cloudflare account (static client, free tier). *(Held with hosting.)*
+- [ ] Anthropic API key for the backend only, with a spending limit set in the console. *(Not needed until ticket 3.)*
 
 **When tickets ask, with an estimate first**
 - [ ] Speech to text and possibly fast live voice: ElevenLabs or your OpenAI key (ticket 4).

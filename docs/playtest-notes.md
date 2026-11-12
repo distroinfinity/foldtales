@@ -2,6 +2,16 @@
 
 What the owner noticed in the headset, in plain words. These come before new features.
 
+## Open items
+
+- [x] Pixelated on the Quest. Sharper on Nov 12 after the 1.4× render resolution and blended edges.
+- [x] Floating and following the head. Caused by the test mode, and gone with real tracking.
+- [x] Pip floating, not on the table. Fixed by aiming the rays lower, and confirmed in the headset.
+- [x] Pip appearing in the air and then jumping. Fixed by starting the 5 s clock once the rays exist.
+- [ ] Show the surface when it's found, with a hint to look at the table while searching. Ticket 1, needs a design pass first.
+- [ ] Room dim, so Pip doesn't compete with a bright room. Ticket 1.
+- [ ] ⏸ Hosted preview link, so testing needs no USB. Held with ticket 0's Task 7.
+
 ## Nov 11, 2026: first look at Pip on a Quest 3 (M0, not signed off)
 
 Run from the Mac over USB, in a room with a desk.
