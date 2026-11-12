@@ -670,10 +670,20 @@
               "withPrev": true,
               "what": "cast:pip",
               "at": "shore-in"
-            },
+            }
+          ],
+          "next": "the-shore",
+          "replaces": null
+        },
+        {
+          "id": "the-shore",
+          "source": "authored",
+          "sceneId": "the-shore",
+          "estSeconds": 55,
+          "actions": [
             {
               "do": "place",
-              "withPrev": true,
+              "withPrev": false,
               "what": "object:lamp-wick",
               "at": "reeds-wick"
             },
@@ -688,17 +698,7 @@
               "withPrev": true,
               "what": "object:spool",
               "at": "spool-sand"
-            }
-          ],
-          "next": "the-shore",
-          "replaces": null
-        },
-        {
-          "id": "the-shore",
-          "source": "authored",
-          "sceneId": "the-shore",
-          "estSeconds": 55,
-          "actions": [
+            },
             {
               "do": "move",
               "withPrev": false,

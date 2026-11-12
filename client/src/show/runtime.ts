@@ -118,6 +118,25 @@ const POP_MS = 450;
 const TAKE_FLIGHT_MS = 180;
 const DRAWER_MS = 1700;
 const PAGE = { foldEnd: 800, leafEnd: 1800, riseEnd: 2600 };
+/** About two printed lines on the caption band. */
+const PAGE_CHARS = 78;
+
+/** A line split into pages that each fit the band, breaking after a sentence or comma where it can. */
+export function captionPages(text: string): string[] {
+  if (text.length <= PAGE_CHARS) return [text];
+  const pages: string[] = [];
+  let rest = text;
+  while (rest.length > PAGE_CHARS) {
+    const window = rest.slice(0, PAGE_CHARS + 1);
+    const soft = Math.max(window.lastIndexOf('. '), window.lastIndexOf('? '), window.lastIndexOf('! '), window.lastIndexOf(', '));
+    const cut = soft > PAGE_CHARS * 0.4 ? soft + 1 : window.lastIndexOf(' ');
+    pages.push(rest.slice(0, cut).trim());
+    rest = rest.slice(cut).trim();
+  }
+  if (rest) pages.push(rest);
+  return pages;
+}
+
 const closed = (cards: number): Unfold => ({ dim: 0, cover: 0, layers: Array.from({ length: cards }, () => 0) });
 const clamp01 = (v: number): number => Math.max(0, Math.min(1, v));
 const ease = (t: number): number => t * t * (3 - 2 * t);
@@ -803,8 +822,26 @@ export function createShowRuntime({ manifest, spine, defs, moods, views, clock }
       const caption = state.caption;
       const end = endedAtMs !== null && ms >= endedAtMs;
       if (caption) {
-        const fade = Math.min(1, caption.localMs / CAPTION_FADE_MS, (caption.durationMs - caption.localMs) / CAPTION_FADE_MS + 0.0001);
-        views.caption.show(caption.text, Math.max(0, fade));
+        // A long line pages through the band two printed lines at a time, each page for its share of the voice.
+        const pages = captionPages(caption.text);
+        const total = pages.reduce((n, p) => n + p.length, 0);
+        let start = 0;
+        let page = pages[0]!;
+        let pageStart = 0;
+        let pageEnd = caption.durationMs;
+        for (const p of pages) {
+          const end = start + (caption.durationMs * p.length) / total;
+          if (caption.localMs < end || p === pages[pages.length - 1]) {
+            page = p;
+            pageStart = start;
+            pageEnd = end;
+            break;
+          }
+          start = end;
+        }
+        const local = caption.localMs - pageStart;
+        const fade = Math.min(1, local / CAPTION_FADE_MS, (pageEnd - pageStart - local) / CAPTION_FADE_MS + 0.0001);
+        views.caption.show(page, Math.max(0, fade));
       } else if (inviting && invite) {
         // A first-timer's hint, printed on the page like the rest: it fades in once the edge has lifted.
         views.caption.show('Turn the page', clamp01((invite.localMs - 700) / 500) * 0.85);
