@@ -29,7 +29,7 @@ Generated art is a product asset, not a temp file. Credits are only spent on pla
 - `tools/generate.mjs`: runs a plan. Use `node --env-file=.env.local art/tools/generate.mjs art/runs/<id>` from the repo root. Needs `RUNWAYML_API_SECRET` in `.env.local`.
 - `tools/cutout.py`: cuts painted pieces off plain paper, for no credits. Needs Python with `numpy` and `Pillow`.
 - `tools/generate-sound.mjs`: runs a planned sound round (sound effects and prepared lines) with the voice tool's ledger and cap. Dry run by default.
-- `sound/<scene>/`: finished, levelled clips the show plays. Product assets.
+- `sound/<scene>/`: finished, levelled clips the show plays. Product assets. `sound/m2/` holds episode 1's lines and the M2 foley (run 010).
 - `room/`: the painted reading room for no-passthrough mode (flats, tabletop, `room.json`), from run 008.
 
 ## What we've learned
@@ -69,5 +69,7 @@ Generated art is a product asset, not a temp file. Credits are only spent on pla
 - **Toy-theater flats paint cleanly one per image at 2:3 on magenta,** and finish with run 006's recipe (shadow eaten inward, despill, magenta cleared). "Unlit" lamps still come back faintly lit (run 008).
 - **Sound effects cost a credit per requested second** and come back at exactly that length, but their levels vary by more than 20 dB. Every sound run needs a finishing pass (run 009).
 - **Time beats from the rendered voice.** A short line ran 27% longer than its caption estimate (run 009).
+- **Real lines run about 1.3× the caption estimate** across a whole episode (run 010, 83 lines). Write episodes against that, and re-time from the rendered voice.
+- **Quiet foley prompts come back near -30 dB** and need up to +19 dB in finishing (run 010).
 - **In CSS 3D proofs, keep puppet cards narrow** (0.7 of their height, as `m1-proof.html`). A wider card let Chrome draw the layer behind in front of the puppet (run 007).
 

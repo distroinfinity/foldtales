@@ -14,7 +14,8 @@
     "fx",
     "objects",
     "sound/m1",
-    "room"
+    "room",
+    "sound/m2"
   ],
   "book": "book/book.json",
   "room": "room/room.json",
@@ -392,12 +393,429 @@
       "files": [
         "sound/m1/wash-bloom.mp3"
       ]
+    },
+    "clink": {
+      "files": [
+        "sound/m2/lantern-clink.mp3"
+      ]
+    },
+    "flare": {
+      "files": [
+        "sound/m2/lantern-flare.mp3"
+      ]
+    },
+    "setdown": {
+      "files": [
+        "sound/m2/object-set-down.mp3"
+      ]
+    },
+    "page": {
+      "files": [
+        "sound/m2/page-turn.mp3"
+      ]
+    },
+    "whoosh": {
+      "files": [
+        "sound/m2/kite-whoosh.mp3"
+      ]
+    },
+    "creak": {
+      "files": [
+        "sound/m2/ladder-creak.mp3"
+      ]
+    },
+    "pluck": {
+      "files": [
+        "sound/m2/thread-pluck.mp3"
+      ]
+    },
+    "rope": {
+      "files": [
+        "sound/m2/rope-throw.mp3"
+      ]
+    },
+    "spark": {
+      "files": [
+        "sound/m2/spark-rise.mp3"
+      ]
+    },
+    "lamp": {
+      "files": [
+        "sound/m2/lamp-light.mp3"
+      ]
+    },
+    "satchel": {
+      "files": [
+        "sound/m2/satchel-in.mp3"
+      ]
+    },
+    "drawer": {
+      "files": [
+        "sound/m2/drawer-slide.mp3"
+      ]
+    },
+    "grab": {
+      "files": [
+        "sound/m2/pick-up.mp3"
+      ]
+    },
+    "pleased": {
+      "files": [
+        "sound/m2/give-pleased.mp3"
+      ]
+    },
+    "puzzled": {
+      "files": [
+        "sound/m2/give-puzzled.mp3"
+      ]
+    },
+    "reeds": {
+      "files": [
+        "sound/m2/rustle-dark.mp3"
+      ]
+    },
+    "hop": {
+      "files": [
+        "sound/m2/hop-land.mp3"
+      ]
     }
   },
   "voiceLines": {
     "line_9cnsuy7crj": {
       "url": "sound/m1/narrator-opening.mp3",
       "durationMs": 5040
+    },
+    "line_1h4l796j5x5": {
+      "url": "sound/m2/pip-no-no-no.mp3",
+      "durationMs": 1920
+    },
+    "line_1wxmzd9qrw0": {
+      "url": "sound/m2/pip-it-rolled-right-to-the-edge-and-it-s-so.mp3",
+      "durationMs": 4560
+    },
+    "line_5rtjsyk9jt": {
+      "url": "sound/m2/pip-could-you-reach-it-for-me.mp3",
+      "durationMs": 1600
+    },
+    "line_27580zaun15": {
+      "url": "sound/m2/pip-it-s-lit-it-was-cold-and-then-you-held-i.mp3",
+      "durationMs": 6240
+    },
+    "line_15zbbzxjhyj": {
+      "url": "sound/m2/pip-thank-you-i-m-not-scared-now-well-a-bit.mp3",
+      "durationMs": 4640
+    },
+    "line_1a0phe5s1no": {
+      "url": "sound/m2/pip-it-s-warmer-than-it-s-ever-been-like-it.mp3",
+      "durationMs": 4640
+    },
+    "line_c9mlehrwmn": {
+      "url": "sound/m2/narrator-it-had-never-burned-so-brightly-it-was-a.mp3",
+      "durationMs": 7520
+    },
+    "line_1n3f0up85qp": {
+      "url": "sound/m2/pip-oh-that-s-kind-of-you.mp3",
+      "durationMs": 2000
+    },
+    "line_4qpdmnesup": {
+      "url": "sound/m2/pip-but-my-lantern-s-still-over-there-in-the.mp3",
+      "durationMs": 3360
+    },
+    "line_1x23nm9kppq": {
+      "url": "sound/m2/narrator-nobody-came-so-the-little-fox-took-a-dee.mp3",
+      "durationMs": 6320
+    },
+    "line_1hng397vj32": {
+      "url": "sound/m2/narrator-and-when-he-held-it-close-brave-in-the-d.mp3",
+      "durationMs": 5200
+    },
+    "line_18cttmsoq1f": {
+      "url": "sound/m2/pip-i-did-it-i-really-did-it.mp3",
+      "durationMs": 2800
+    },
+    "line_1b3ef44flo1": {
+      "url": "sound/m2/pip-wick-will-be-lighting-the-lamp-soon-i-m.mp3",
+      "durationMs": 3440
+    },
+    "line_1ryt2mlmnr4": {
+      "url": "sound/m2/narrator-down-where-the-house-ends-everything-los.mp3",
+      "durationMs": 9760
+    },
+    "line_1ip0q9g6i75": {
+      "url": "sound/m2/pip-somebody-s-missing-a-very-big-button.mp3",
+      "durationMs": 2880
+    },
+    "line_vmscndn9qo": {
+      "url": "sound/m2/pip-i-hope-they-re-not-cold-without-it.mp3",
+      "durationMs": 2160
+    },
+    "line_evlvj9qvkz": {
+      "url": "sound/m2/pip-what-was-that-who-s-there.mp3",
+      "durationMs": 2080
+    },
+    "line_2et7te7klvy": {
+      "url": "sound/m2/narrator-only-a-moth-moths-are-never-lost-only-di.mp3",
+      "durationMs": 4400
+    },
+    "line_1cujzhq3ydp": {
+      "url": "sound/m2/pip-moth-you-frightened-me-and-mind-your-fee.mp3",
+      "durationMs": 4720
+    },
+    "line_13yabr1o5c2": {
+      "url": "sound/m2/pip-no-moth-it-isn-t-for-eating-it-s-for-see.mp3",
+      "durationMs": 4080
+    },
+    "line_2bnnqlb4ix4": {
+      "url": "sound/m2/pip-see-out-there-it-s-only-sand-dark-sand-n.mp3",
+      "durationMs": 5840
+    },
+    "line_18gxj8os3k1": {
+      "url": "sound/m2/pip-mostly-nothing.mp3",
+      "durationMs": 1840
+    },
+    "line_2919wj19e2y": {
+      "url": "sound/m2/pip-wick-says-the-lighthouse-calls-every-los.mp3",
+      "durationMs": 6640
+    },
+    "line_achesvepi3": {
+      "url": "sound/m2/pip-he-says-one-day-it-might-be-my-job.mp3",
+      "durationMs": 2800
+    },
+    "line_j92ii5cqbz": {
+      "url": "sound/m2/pip-i-d-have-to-stop-being-scared-of-the-dar.mp3",
+      "durationMs": 2880
+    },
+    "line_out3e9itt6": {
+      "url": "sound/m2/narrator-the-dark-didn-t-say-anything-it-never-do.mp3",
+      "durationMs": 8560
+    },
+    "line_tlghpzb4iv": {
+      "url": "sound/m2/pip-come-on-moth-it-s-this-way-stay-close.mp3",
+      "durationMs": 2960
+    },
+    "line_2dsj8cf2fh3": {
+      "url": "sound/m2/narrator-the-path-went-on-and-on-and-then-it-simp.mp3",
+      "durationMs": 4560
+    },
+    "line_pe6cbli60p": {
+      "url": "sound/m2/pip-oh-the-lighthouse-is-right-there-i-can-s.mp3",
+      "durationMs": 4160
+    },
+    "line_1csy81my09v": {
+      "url": "sound/m2/pip-wick-wick-he-can-t-hear-me-from-all-the.mp3",
+      "durationMs": 4480
+    },
+    "line_dx50sl4mf1": {
+      "url": "sound/m2/pip-maybe-if-i-take-a-run-at-it.mp3",
+      "durationMs": 2080
+    },
+    "line_2erkqqvtieb": {
+      "url": "sound/m2/pip-no-no-no-much-too-far.mp3",
+      "durationMs": 3040
+    },
+    "line_1svsnjo5bj9": {
+      "url": "sound/m2/pip-it-s-easy-for-you-moth-you-ve-got-wings.mp3",
+      "durationMs": 3200
+    },
+    "line_1aho2022otz": {
+      "url": "sound/m2/narrator-lost-things-had-been-falling-into-that-g.mp3",
+      "durationMs": 6640
+    },
+    "line_1t653hianvm": {
+      "url": "sound/m2/pip-if-only-we-could-cross-is-there-anything.mp3",
+      "durationMs": 4080
+    },
+    "line_29pim0nib37": {
+      "url": "sound/m2/pip-a-kite-in-this-wind.mp3",
+      "durationMs": 2320
+    },
+    "line_r7e5viep9x": {
+      "url": "sound/m2/pip-i-m-flying-i-m-really-actually-flying.mp3",
+      "durationMs": 4080
+    },
+    "line_2gagbgcbtq3": {
+      "url": "sound/m2/pip-thread-if-only-someone-could-carry-the-e.mp3",
+      "durationMs": 4160
+    },
+    "line_o7vuvbbv2n": {
+      "url": "sound/m2/narrator-the-moth-only-wanted-to-be-near-the-ligh.mp3",
+      "durationMs": 5200
+    },
+    "line_yhre7meo1o": {
+      "url": "sound/m2/pip-a-ladder-if-i-lay-it-down-flat-it-s-a-br.mp3",
+      "durationMs": 3840
+    },
+    "line_13gbgjj0qa5": {
+      "url": "sound/m2/pip-don-t-look-down-don-t-look-down-don-t-lo.mp3",
+      "durationMs": 4240
+    },
+    "line_20caj1rapqp": {
+      "url": "sound/m2/pip-a-sock-it-s-far-too-short-to-reach-acros.mp3",
+      "durationMs": 3520
+    },
+    "line_13a1038whr1": {
+      "url": "sound/m2/pip-but-it-is-very-warm-thank-you.mp3",
+      "durationMs": 2800
+    },
+    "line_p6h41yr9hf": {
+      "url": "sound/m2/pip-something-longer-maybe-or-something-that.mp3",
+      "durationMs": 4240
+    },
+    "line_8doz1z1jsy": {
+      "url": "sound/m2/pip-a-key-maybe-the-gap-is-locked.mp3",
+      "durationMs": 4000
+    },
+    "line_1zb50v0kjfc": {
+      "url": "sound/m2/pip-moth-it-s-not-a-light-it-s-a-key.mp3",
+      "durationMs": 3200
+    },
+    "line_3tqj8gxlgg": {
+      "url": "sound/m2/pip-i-don-t-think-gaps-have-keyholes-is-ther.mp3",
+      "durationMs": 4480
+    },
+    "line_16eg1ir98sr": {
+      "url": "sound/m2/pip-hmm-i-don-t-think-this-will-get-me-acros.mp3",
+      "durationMs": 3360
+    },
+    "line_w0andppp0u": {
+      "url": "sound/m2/pip-is-there-something-longer-or-something-t.mp3",
+      "durationMs": 3920
+    },
+    "line_t3aairc8ak": {
+      "url": "sound/m2/wick-what-s-all-this-shouting-about-who-s-the.mp3",
+      "durationMs": 2720
+    },
+    "line_1vevb0dlcpm": {
+      "url": "sound/m2/pip-wick-it-s-me-i-can-t-get-across.mp3",
+      "durationMs": 3520
+    },
+    "line_22634h6wzai": {
+      "url": "sound/m2/wick-hmph-hold-still-lad-and-catch.mp3",
+      "durationMs": 3440
+    },
+    "line_2axfkyrsj20": {
+      "url": "sound/m2/pip-hand-over-paw-hand-over-paw.mp3",
+      "durationMs": 2960
+    },
+    "line_cw69862r1z": {
+      "url": "sound/m2/wick-you-re-shaking-like-a-leaf-lad.mp3",
+      "durationMs": 2400
+    },
+    "line_1yq91kl5eim": {
+      "url": "sound/m2/pip-i-m-fine-i-m-fine-is-it-always-this-dark.mp3",
+      "durationMs": 4560
+    },
+    "line_23vlyysfzrf": {
+      "url": "sound/m2/wick-every-night-that-s-rather-the-point-of-u.mp3",
+      "durationMs": 3440
+    },
+    "line_14uc99rfrcf": {
+      "url": "sound/m2/wick-and-what-do-you-think-you-re-doing-cross.mp3",
+      "durationMs": 3920
+    },
+    "line_qvqo4fduav": {
+      "url": "sound/m2/pip-someone-helped-me-someone-very-big.mp3",
+      "durationMs": 3760
+    },
+    "line_l7ar9vmx1z": {
+      "url": "sound/m2/wick-someone-very-big-up-there.mp3",
+      "durationMs": 2720
+    },
+    "line_1huuo2u6ifa": {
+      "url": "sound/m2/pip-they-opened-the-drawer-they-just-reached.mp3",
+      "durationMs": 4000
+    },
+    "line_x9282rk9vk": {
+      "url": "sound/m2/wick-hmph-well-thank-you-kindly-whoever-you-a.mp3",
+      "durationMs": 4080
+    },
+    "line_25212mwer7n": {
+      "url": "sound/m2/pip-you-should-have-seen-it-wick-i-wasn-t-ev.mp3",
+      "durationMs": 5680
+    },
+    "line_1bi30xnz12i": {
+      "url": "sound/m2/wick-not-very-eh-we-ll-see-about-that.mp3",
+      "durationMs": 2880
+    },
+    "line_nax3miq7lv": {
+      "url": "sound/m2/wick-come-on-then-lad-that-lamp-won-t-light-i.mp3",
+      "durationMs": 3120
+    },
+    "line_20x7whgphg9": {
+      "url": "sound/m2/narrator-they-walked-the-last-of-the-path-togethe.mp3",
+      "durationMs": 6480
+    },
+    "line_1y1nz2snam6": {
+      "url": "sound/m2/wick-forty-years-i-ve-lit-that-lamp-every-sin.mp3",
+      "durationMs": 4560
+    },
+    "line_1097tg38ypj": {
+      "url": "sound/m2/pip-even-when-it-stormed.mp3",
+      "durationMs": 1520
+    },
+    "line_2y3tuourx4": {
+      "url": "sound/m2/wick-especially-when-it-stormed.mp3",
+      "durationMs": 2080
+    },
+    "line_j5auylya3l": {
+      "url": "sound/m2/narrator-but-tonight-the-lighthouse-stood-dark-on.mp3",
+      "durationMs": 6240
+    },
+    "line_2d8c2y19jj6": {
+      "url": "sound/m2/wick-can-t-see-the-wick-to-light-it-not-like.mp3",
+      "durationMs": 3760
+    },
+    "line_2brbx14oiiz": {
+      "url": "sound/m2/wick-don-t-you-go-telling-anyone.mp3",
+      "durationMs": 1840
+    },
+    "line_1nacyweuwrf": {
+      "url": "sound/m2/pip-i-won-t-but-i-ve-still-got-my-light.mp3",
+      "durationMs": 3200
+    },
+    "line_fcmbclwr4s": {
+      "url": "sound/m2/narrator-so-up-they-went-a-hundred-and-twelve-ste.mp3",
+      "durationMs": 6480
+    },
+    "line_lakzclleu5": {
+      "url": "sound/m2/narrator-and-the-little-light-became-the-big-one.mp3",
+      "durationMs": 5600
+    },
+    "line_2ah4d6ipksb": {
+      "url": "sound/m2/wick-not-bad-keeper.mp3",
+      "durationMs": 1680
+    },
+    "line_1sv8p1h62k": {
+      "url": "sound/m2/pip-keeper.mp3",
+      "durationMs": 800
+    },
+    "line_7b0fgvr6z7": {
+      "url": "sound/m2/wick-every-keeper-has-a-first-night-don-t-let.mp3",
+      "durationMs": 4080
+    },
+    "line_79yatosyuy": {
+      "url": "sound/m2/pip-look-it-reaches-all-the-way-out-to-you.mp3",
+      "durationMs": 2800
+    },
+    "line_2sk5765pd7": {
+      "url": "sound/m2/wick-same-time-tomorrow-keeper.mp3",
+      "durationMs": 1920
+    },
+    "line_9pwqasdqjz": {
+      "url": "sound/m2/pip-same-time-tomorrow.mp3",
+      "durationMs": 1440
+    },
+    "line_20r61s4ivwg": {
+      "url": "sound/m2/narrator-far-out-in-the-dark-something-lost-turne.mp3",
+      "durationMs": 5600
+    },
+    "line_1yh6deyxvuh": {
+      "url": "sound/m2/narrator-and-whatever-the-reader-gave-that-night.mp3",
+      "durationMs": 4880
+    },
+    "line_1tuyoy7p8sy": {
+      "url": "sound/m2/narrator-because-lost-things-as-you-ll-find-have.mp3",
+      "durationMs": 4080
     }
   },
   "sets": [
@@ -492,7 +910,7 @@
           "label": "the near edge of the gap",
           "position": [
             0.0759,
-            0.0,
+            0,
             -0.0175
           ]
         },
@@ -501,7 +919,7 @@
           "label": "the far side of the gap",
           "position": [
             -0.0751,
-            0.0,
+            0,
             -0.0175
           ]
         },
@@ -509,8 +927,8 @@
           "id": "gap-middle",
           "label": "over the middle of the gap",
           "position": [
-            0.0,
-            0.0,
+            0,
+            0,
             -0.0175
           ]
         },
@@ -519,7 +937,7 @@
           "label": "the path on the far side",
           "position": [
             -0.13,
-            0.0,
+            0,
             -0.0175
           ]
         },
@@ -528,7 +946,7 @@
           "label": "the way to the lighthouse",
           "position": [
             -0.19,
-            0.0,
+            0,
             -0.0175
           ]
         },
@@ -536,7 +954,7 @@
           "id": "moth-hover",
           "label": "in the air above the gap",
           "position": [
-            0.0,
+            0,
             0.09,
             -0.0175
           ]
