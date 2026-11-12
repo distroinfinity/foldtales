@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Beat, CastMember, Cue, Id, LineId, Mark, NARRATOR, TAG_VOCABULARY, VoiceAsset, lineIdOf, type StageLibrary } from '@tabletop/contracts';
+import { CastMember, Cue, Id, LineId, Mark, NARRATOR, ObjectDef, TAG_VOCABULARY, VoiceAsset, lineIdOf, type StageLibrary } from '@tabletop/contracts';
 
 const Px2 = z.tuple([z.number(), z.number()]);
 
@@ -18,11 +18,34 @@ export const CastEntry = z.strictObject({
 });
 export type CastEntry = z.infer<typeof CastEntry>;
 
-export const CueKind = z.enum(['unfold', 'gust', 'light-out', 'beam']);
+export const CueKind = z.enum([
+  'unfold',
+  'gust',
+  'light-out',
+  'beam',
+  'drop-held',
+  'relight',
+  'set-down',
+  'wear',
+  'page-invite',
+  'page-turn',
+  'cross-kite',
+  'cross-thread',
+  'cross-ladder',
+  'cross-rope',
+  'spark',
+  'lamp-lit',
+  'keep',
+  'chapter-end',
+  'sound',
+]);
 export type CueKind = z.infer<typeof CueKind>;
 
+export const SetEntry = z.strictObject({ id: Id, name: z.string().min(1), description: z.string().min(1), file: z.string().min(1), marks: z.array(Mark).min(1) });
+export type SetEntry = z.infer<typeof SetEntry>;
+
 export const ShowManifest = z.strictObject({
-  v: z.literal(1),
+  v: z.literal(2),
   libraryVersion: z.string().min(1),
   title: z.string().min(1),
   /** The only art folders the client may load. The art plugin serves exactly these. */
@@ -30,27 +53,34 @@ export const ShowManifest = z.strictObject({
   book: z.string().min(1),
   /** The painted reading room for no-passthrough mode, if there is one. */
   room: z.string().min(1).optional(),
-  set: z.strictObject({ id: Id, name: z.string().min(1), description: z.string().min(1), file: z.string().min(1), marks: z.array(Mark).min(1) }),
+  /** Every set the episode visits, in the order its scenes use them. Marks are the show's own. */
+  sets: z.array(SetEntry).min(1),
   cast: z.array(CastEntry).min(1),
   /** Who stands where when the book opens. */
   onStage: z.array(z.strictObject({ cast: Id, mark: Id })),
+  /** The object library: `object.json` files the art wrote, plus defs that live with other art. */
+  objectFiles: z.array(z.string().min(1)),
+  extraObjects: z.array(ObjectDef),
+  drawer: z.string().min(1),
+  satchel: z.string().min(1),
+  /** The episode's spine. */
+  episode: z.string().min(1),
   cues: z.array(Cue.extend({ kind: CueKind })),
   narrator: z.strictObject({ voice: z.string().min(1) }),
   /** Finished clips for every sound the show makes. Several files are variations, picked in turn. */
   sounds: z.record(z.string().min(1), z.strictObject({ files: z.array(z.string().min(1)).min(1), voice: z.boolean().optional(), loop: z.boolean().optional() })),
   /** Prepared lines, keyed by the contract's line id, so a beat is timed by its real voice. */
   voiceLines: z.record(LineId, VoiceAsset),
-  opening: Beat,
 });
 export type ShowManifest = z.infer<typeof ShowManifest>;
 
 /** The library the director and the beat checks see. Nothing outside it can be named. */
-export function libraryOf(manifest: ShowManifest): StageLibrary {
+export function libraryOf(manifest: ShowManifest, objects: ObjectDef[]): StageLibrary {
   return {
     version: manifest.libraryVersion,
     cast: manifest.cast.map((entry) => entry.member),
-    objects: [],
-    sets: [{ id: manifest.set.id, name: manifest.set.name, description: manifest.set.description, marks: manifest.set.marks }],
+    objects,
+    sets: manifest.sets.map(({ id, name, description, marks }) => ({ id, name, description, marks })),
     cues: manifest.cues.map(({ id, summary, nominalMs }) => ({ id, summary, nominalMs })),
     tags: TAG_VOCABULARY,
   };
@@ -59,4 +89,10 @@ export function libraryOf(manifest: ShowManifest): StageLibrary {
 /** How long a prepared line really is, or null to time it from its caption. */
 export function voiceMsOf(manifest: ShowManifest): (speaker: string, text: string) => number | null {
   return (speaker, text) => manifest.voiceLines[lineIdOf(speaker === NARRATOR ? NARRATOR : speaker, text)]?.durationMs ?? null;
+}
+
+/** A mark's position on a set, in stage metres. */
+export function markOf(manifest: ShowManifest, setId: string, markId: string): [number, number, number] | null {
+  const mark = manifest.sets.find((s) => s.id === setId)?.marks.find((m) => m.id === markId);
+  return mark ? [mark.position[0], mark.position[1], mark.position[2]] : null;
 }

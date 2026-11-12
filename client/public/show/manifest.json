@@ -1,5 +1,5 @@
 {
-  "v": 1,
+  "v": 2,
   "libraryVersion": "flagship-1",
   "title": "The Lighthouse at the Edge of the Table",
   "artFolders": [
@@ -7,30 +7,18 @@
     "cast/wick",
     "cast/moth",
     "book",
+    "book/drawer",
+    "satchel",
     "sets/shore-path",
+    "sets/the-gap",
     "fx",
+    "objects",
     "sound/m1",
+    "sound/m2",
     "room"
   ],
   "book": "book/book.json",
   "room": "room/room.json",
-  "set": {
-    "id": "shore-path",
-    "name": "The shore path",
-    "description": "A sandy path along the shore below the lighthouse, at dusk.",
-    "file": "sets/shore-path/set.json",
-    "marks": [
-      {
-        "id": "pip",
-        "label": "Pip's mark",
-        "position": [
-          0.046,
-          0,
-          -0.0175
-        ]
-      }
-    ]
-  },
   "cast": [
     {
       "member": {
@@ -220,6 +208,96 @@
       "summary": "the lighthouse beam sweeps the room",
       "nominalMs": 6000,
       "kind": "beam"
+    },
+    {
+      "id": "drop-held",
+      "summary": "a frightened character lets go of what it carries, and it rolls away",
+      "nominalMs": 1800,
+      "kind": "drop-held"
+    },
+    {
+      "id": "relight",
+      "summary": "a carried light flares back to life",
+      "nominalMs": 1200,
+      "kind": "relight"
+    },
+    {
+      "id": "set-down",
+      "summary": "a character sets down what it holds at its feet",
+      "nominalMs": 800,
+      "kind": "set-down"
+    },
+    {
+      "id": "wear",
+      "summary": "a character puts on what it holds, such as a scarf",
+      "nominalMs": 1200,
+      "kind": "wear"
+    },
+    {
+      "id": "page-invite",
+      "summary": "the page's corner lifts, inviting the reader to turn it",
+      "nominalMs": 6000,
+      "kind": "page-invite"
+    },
+    {
+      "id": "page-turn",
+      "summary": "the pop-ups fold flat, the page turns and the next spread rises",
+      "nominalMs": 2600,
+      "kind": "page-turn"
+    },
+    {
+      "id": "cross-kite",
+      "summary": "a kite lifts its holder over the gap",
+      "nominalMs": 6500,
+      "kind": "cross-kite"
+    },
+    {
+      "id": "cross-thread",
+      "summary": "the moth carries a thread across and its holder hauls over",
+      "nominalMs": 7000,
+      "kind": "cross-thread"
+    },
+    {
+      "id": "cross-ladder",
+      "summary": "a ladder is laid across the gap and crawled over",
+      "nominalMs": 7500,
+      "kind": "cross-ladder"
+    },
+    {
+      "id": "cross-rope",
+      "summary": "a rope is thrown across the gap and climbed over",
+      "nominalMs": 6500,
+      "kind": "cross-rope"
+    },
+    {
+      "id": "spark",
+      "summary": "a spark rises from a carried light to the lighthouse lamp",
+      "nominalMs": 2600,
+      "kind": "spark"
+    },
+    {
+      "id": "lamp-lit",
+      "summary": "the lighthouse lamp lights",
+      "nominalMs": 0,
+      "kind": "lamp-lit"
+    },
+    {
+      "id": "keep",
+      "summary": "what the reader gave goes into the satchel",
+      "nominalMs": 1800,
+      "kind": "keep"
+    },
+    {
+      "id": "chapter-end",
+      "summary": "the end of the chapter is printed on the page",
+      "nominalMs": 0,
+      "kind": "chapter-end"
+    },
+    {
+      "id": "rustle",
+      "summary": "a rustle in the dark",
+      "nominalMs": 0,
+      "kind": "sound"
     }
   ],
   "narrator": {
@@ -302,58 +380,227 @@
       "durationMs": 5040
     }
   },
-  "opening": {
-    "id": "opening",
-    "source": "authored",
-    "sceneId": null,
-    "estSeconds": 10,
-    "actions": [
-      {
-        "do": "cue",
-        "withPrev": false,
-        "cue": "open-book",
-        "target": null
+  "sets": [
+    {
+      "id": "shore-path",
+      "name": "The shore path",
+      "description": "A sandy path along the shore below the lighthouse, at dusk.",
+      "file": "sets/shore-path/set.json",
+      "marks": [
+        {
+          "id": "pip",
+          "label": "Pip's mark",
+          "position": [
+            0.046,
+            0,
+            -0.0175
+          ]
+        },
+        {
+          "id": "lantern-edge",
+          "label": "the near edge of the page",
+          "position": [
+            0.028,
+            0,
+            0.094
+          ]
+        },
+        {
+          "id": "edge-step",
+          "label": "a step from the edge",
+          "position": [
+            0.03,
+            0,
+            0.072
+          ]
+        },
+        {
+          "id": "path-mid",
+          "label": "along the path",
+          "position": [
+            -0.02,
+            0,
+            -0.0175
+          ]
+        },
+        {
+          "id": "path-left",
+          "label": "where the path leaves the page",
+          "position": [
+            -0.11,
+            0,
+            -0.0175
+          ]
+        },
+        {
+          "id": "moth-in",
+          "label": "out of the dark, right",
+          "position": [
+            0.13,
+            0.11,
+            -0.035
+          ]
+        },
+        {
+          "id": "moth-near",
+          "label": "close by, in the air",
+          "position": [
+            0.085,
+            0.12,
+            -0.012
+          ]
+        },
+        {
+          "id": "moth-follow",
+          "label": "in the air, following",
+          "position": [
+            -0.065,
+            0.125,
+            -0.012
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the-gap",
+      "name": "The gap",
+      "description": "The sandy path ends at a narrow chasm in the dunes, with the lighthouse waiting on the far side.",
+      "file": "sets/the-gap/set.json",
+      "marks": [
+        {
+          "id": "near-edge",
+          "label": "the near edge of the gap",
+          "position": [
+            0.0759,
+            0.0,
+            -0.0175
+          ]
+        },
+        {
+          "id": "far-side",
+          "label": "the far side of the gap",
+          "position": [
+            -0.0751,
+            0.0,
+            -0.0175
+          ]
+        },
+        {
+          "id": "gap-middle",
+          "label": "over the middle of the gap",
+          "position": [
+            0.0,
+            0.0,
+            -0.0175
+          ]
+        },
+        {
+          "id": "wick-arrives",
+          "label": "the path on the far side",
+          "position": [
+            -0.13,
+            0.0,
+            -0.0175
+          ]
+        },
+        {
+          "id": "lighthouse-way",
+          "label": "the way to the lighthouse",
+          "position": [
+            -0.19,
+            0.0,
+            -0.0175
+          ]
+        },
+        {
+          "id": "moth-hover",
+          "label": "in the air above the gap",
+          "position": [
+            0.0,
+            0.09,
+            -0.0175
+          ]
+        },
+        {
+          "id": "gap-start",
+          "label": "where the path comes in",
+          "position": [
+            0.155,
+            0,
+            -0.0175
+          ]
+        },
+        {
+          "id": "moth-gap",
+          "label": "in the air over the path",
+          "position": [
+            0.14,
+            0.12,
+            -0.03
+          ]
+        },
+        {
+          "id": "lamp-pip",
+          "label": "below the lighthouse, near",
+          "position": [
+            -0.085,
+            0,
+            -0.0175
+          ]
+        },
+        {
+          "id": "lamp-wick",
+          "label": "below the lighthouse, far",
+          "position": [
+            -0.15,
+            0,
+            -0.022
+          ]
+        },
+        {
+          "id": "moth-lamp",
+          "label": "circling the lamp",
+          "position": [
+            -0.1,
+            0.15,
+            -0.07
+          ]
+        }
+      ]
+    }
+  ],
+  "objectFiles": [
+    "objects/ladder/object.json",
+    "objects/kite/object.json",
+    "objects/odd-sock/object.json",
+    "objects/spool/object.json",
+    "objects/brass-key/object.json",
+    "objects/rope-coil/object.json"
+  ],
+  "extraObjects": [
+    {
+      "id": "lantern",
+      "name": "brass lantern",
+      "description": "A small brass storm lantern, its glass smudged with soot.",
+      "tags": [
+        "glows",
+        "carries"
+      ],
+      "art": {
+        "kind": "asset",
+        "path": "cast/pip/parts/lantern-out.png"
       },
-      {
-        "do": "narrate",
-        "withPrev": false,
-        "text": "Down where lost things wash ashore, a small fox kept a small light.",
-        "mood": "warm"
+      "size": {
+        "heightM": 0.0537
       },
-      {
-        "do": "cue",
-        "withPrev": false,
-        "cue": "gust",
-        "target": "cast:pip"
-      },
-      {
-        "do": "cue",
-        "withPrev": false,
-        "cue": "lantern-out",
-        "target": "cast:pip"
-      },
-      {
-        "do": "light",
-        "withPrev": true,
-        "mood": "night",
-        "seconds": 1.2
-      },
-      {
-        "do": "emote",
-        "withPrev": true,
-        "who": "pip",
-        "acting": "scared",
-        "target": null
-      },
-      {
-        "do": "emote",
-        "withPrev": false,
-        "who": "pip",
-        "acting": "look",
-        "target": "reader"
-      }
-    ],
-    "next": null,
-    "replaces": null
-  }
+      "pivot": [
+        50,
+        4
+      ],
+      "provenance": "library"
+    }
+  ],
+  "drawer": "book/drawer/drawer.json",
+  "satchel": "satchel/satchel.json",
+  "episode": "show/episode-1.json"
 }
