@@ -1,5 +1,7 @@
 import { TextureLoader, type Texture, type WebGLRenderer } from '@iwsdk/core';
-import { Rig } from '@tabletop/contracts';
+import { ObjectDef, Rig, Spine } from '@tabletop/contracts';
+import { DrawerSpec } from '../book/drawer-view.ts';
+import { SatchelSpec } from '../book/satchel-view.ts';
 import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader.js';
 import { artJoin, bookFiles } from '../book/book-view.ts';
 import { BookSpec, SetSpec } from '../book/spec.ts';
@@ -10,7 +12,14 @@ import { wholeRef, type TexRef } from './texref.ts';
 
 export interface StageAssets {
   book: BookSpec;
+  /** The first set: the opening's, whose moods the show uses. */
   set: SetSpec;
+  /** Every set, in the manifest's order, with the folder its files are in. */
+  sets: Array<{ id: string; spec: SetSpec; base: string }>;
+  objects: ObjectDef[];
+  drawer: DrawerSpec;
+  satchel: SatchelSpec;
+  spine: Spine;
   rigs: Map<string, Rig>;
   /** Keyed by art path, such as `cast/<who>/parts/<part>.png`. */
   textures: Map<string, TexRef>;
@@ -55,10 +64,14 @@ export async function loadStageAssets(
   renderer: WebGLRenderer,
   options: { allowKtx2: boolean; onProgress?: (done: number, total: number) => void },
 ): Promise<StageAssets> {
-  const [bookRaw, setRaw, ...rigRaws] = await Promise.all([
+  const [bookRaw, drawerRaw, satchelRaw, spineRaw, setRaws, objectRaws, rigRaws] = await Promise.all([
     json(`${artBase}/${manifest.book}`),
-    json(`${artBase}/${manifest.set.file}`),
-    ...manifest.cast.map((entry) => json(`${artBase}/${entry.member.rig}/rig.json`)),
+    json(`${artBase}/${manifest.drawer}`),
+    json(`${artBase}/${manifest.satchel}`),
+    json(`./${manifest.episode}`),
+    Promise.all(manifest.sets.map((set) => json(`${artBase}/${set.file}`))),
+    Promise.all(manifest.objectFiles.map((file) => json(`${artBase}/${file}`))),
+    Promise.all(manifest.cast.map((entry) => json(`${artBase}/${entry.member.rig}/rig.json`))),
   ]);
   // The painted room is optional: if its art can't load, the book still opens on your table.
   let roomSpec: RoomSpec | null = null;
@@ -70,11 +83,24 @@ export async function loadStageAssets(
     }
   }
   const book = BookSpec.parse(bookRaw);
-  const set = SetSpec.parse(setRaw);
+  const drawer = DrawerSpec.parse(drawerRaw);
+  const satchel = SatchelSpec.parse(satchelRaw);
+  const spine = Spine.parse(spineRaw);
+  const sets = manifest.sets.map((entry, i) => ({ id: entry.id, spec: SetSpec.parse(setRaws[i]), base: dirOf(entry.file) }));
+  const set = sets[0]!.spec;
+  const objects = [...objectRaws.map((raw) => ObjectDef.parse(raw)), ...manifest.extraObjects];
   const rigs = new Map(manifest.cast.map((entry, i) => [entry.member.id, Rig.parse(rigRaws[i])]));
-  const files = new Set(bookFiles(book, dirOf(manifest.book), set, dirOf(manifest.set.file)));
+  const files = new Set<string>();
+  for (const each of sets) {
+    for (const file of bookFiles(book, dirOf(manifest.book), each.spec, each.base)) files.add(file);
+    for (const effect of Object.values(each.spec.effects)) files.add(artJoin(each.base, effect.file));
+  }
   for (const entry of manifest.cast) for (const file of puppetFiles(entry, rigs.get(entry.member.id)!)) files.add(`${entry.member.rig}/${file}`);
-  for (const effect of Object.values(set.effects)) files.add(artJoin(dirOf(manifest.set.file), effect.file));
+  for (const object of objects) if (object.art.kind === 'asset') files.add(object.art.path);
+  const drawerBase = dirOf(manifest.drawer);
+  for (const part of [drawer.tray, drawer.front, drawer.side]) files.add(`${drawerBase}/${part.file}`);
+  const satchelBase = dirOf(manifest.satchel);
+  for (const part of Object.values(satchel.parts)) files.add(`${satchelBase}/${part.file}`);
   const roomFiles = roomSpec && manifest.room ? [...roomSpec.flats.map((f) => f.file), roomSpec.tabletop.file].map((file) => `${dirOf(manifest.room!)}/${file}`) : [];
 
   const index = options.allowKtx2 ? await artIndex(artBase) : null;
@@ -131,7 +157,7 @@ export async function loadStageAssets(
   const roomRefs = await Promise.allSettled(roomFiles.map(async (file) => [file, await load(file)] as const));
   const roomLoaded = roomRefs.every((r) => r.status === 'fulfilled');
   if (roomLoaded) for (const r of roomRefs) if (r.status === 'fulfilled') textures.set(r.value[0], r.value[1]);
-  return { book, set, rigs, textures, format: index ? 'ktx2' : 'png', room: roomSpec && roomLoaded && manifest.room ? { spec: roomSpec, base: dirOf(manifest.room) } : null };
+  return { book, set, sets, objects, drawer, satchel, spine, rigs, textures, format: index ? 'ktx2' : 'png', room: roomSpec && roomLoaded && manifest.room ? { spec: roomSpec, base: dirOf(manifest.room) } : null };
 }
 
 /** Uploads every texture now, so the first frame that shows one doesn't stall to decode it. */

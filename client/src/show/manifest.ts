@@ -10,7 +10,15 @@ export const CastEntry = z.strictObject({
   variants: z.record(z.string().min(1), z.record(z.string().min(1), z.string().min(1))),
   /** A light the character carries. Points are rig pixels, like the rig itself. */
   light: z
-    .strictObject({ part: z.string().min(1), glowAt: Px2, glowSizePx: z.number().positive(), smokeFrom: Px2, outVariant: z.string().min(1) })
+    .strictObject({
+      part: z.string().min(1),
+      glowAt: Px2,
+      glowSizePx: z.number().positive(),
+      smokeFrom: Px2,
+      outVariant: z.string().min(1),
+      /** The object this light becomes when it leaves the paw, so it can be dropped and handed back. */
+      object: Id.optional(),
+    })
     .nullable(),
   shadow: z.strictObject({ widthM: z.number().positive(), depthM: z.number().positive() }),
   /** Mirror the art, so the character turns toward the other side. */
@@ -65,7 +73,15 @@ export const ShowManifest = z.strictObject({
   satchel: z.string().min(1),
   /** The episode's spine. */
   episode: z.string().min(1),
-  cues: z.array(Cue.extend({ kind: CueKind })),
+  cues: z.array(
+    Cue.extend({
+      kind: CueKind,
+      /** A crossing carries this character to this mark. */
+      travels: z.strictObject({ who: Id, to: Id }).optional(),
+      /** Where a dropped thing comes to rest. */
+      at: Id.optional(),
+    }),
+  ),
   narrator: z.strictObject({ voice: z.string().min(1) }),
   /** Finished clips for every sound the show makes. Several files are variations, picked in turn. */
   sounds: z.record(z.string().min(1), z.strictObject({ files: z.array(z.string().min(1)).min(1), voice: z.boolean().optional(), loop: z.boolean().optional() })),

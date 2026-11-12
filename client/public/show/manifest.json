@@ -14,7 +14,6 @@
     "fx",
     "objects",
     "sound/m1",
-    "sound/m2",
     "room"
   ],
   "book": "book/book.json",
@@ -67,6 +66,9 @@
       "variants": {
         "lantern": {
           "out": "parts/lantern-out.png"
+        },
+        "legs": {
+          "walk": "parts/legs-alt.png"
         }
       },
       "light": {
@@ -80,7 +82,8 @@
           96,
           -350
         ],
-        "outVariant": "out"
+        "outVariant": "out",
+        "object": "lantern"
       },
       "shadow": {
         "widthM": 0.085,
@@ -213,7 +216,8 @@
       "id": "drop-held",
       "summary": "a frightened character lets go of what it carries, and it rolls away",
       "nominalMs": 1800,
-      "kind": "drop-held"
+      "kind": "drop-held",
+      "at": "lantern-edge"
     },
     {
       "id": "relight",
@@ -249,25 +253,41 @@
       "id": "cross-kite",
       "summary": "a kite lifts its holder over the gap",
       "nominalMs": 6500,
-      "kind": "cross-kite"
+      "kind": "cross-kite",
+      "travels": {
+        "who": "pip",
+        "to": "far-side"
+      }
     },
     {
       "id": "cross-thread",
       "summary": "the moth carries a thread across and its holder hauls over",
       "nominalMs": 7000,
-      "kind": "cross-thread"
+      "kind": "cross-thread",
+      "travels": {
+        "who": "pip",
+        "to": "far-side"
+      }
     },
     {
       "id": "cross-ladder",
       "summary": "a ladder is laid across the gap and crawled over",
       "nominalMs": 7500,
-      "kind": "cross-ladder"
+      "kind": "cross-ladder",
+      "travels": {
+        "who": "pip",
+        "to": "far-side"
+      }
     },
     {
       "id": "cross-rope",
       "summary": "a rope is thrown across the gap and climbed over",
       "nominalMs": 6500,
-      "kind": "cross-rope"
+      "kind": "cross-rope",
+      "travels": {
+        "who": "pip",
+        "to": "far-side"
+      }
     },
     {
       "id": "spark",

@@ -1678,6 +1678,39 @@
               "seconds": 0.6
             },
             {
+              "do": "wait",
+              "withPrev": false,
+              "seconds": 0.8
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "You should have seen it, Wick. I wasn't even scared. Well. Not very.",
+              "mood": "relief",
+              "to": "cast:wick"
+            },
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "wick",
+              "acting": "grumble",
+              "target": null
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "wick",
+              "text": "Not very, eh? We'll see about that.",
+              "mood": "warm",
+              "to": "cast:pip"
+            },
+            {
+              "do": "wait",
+              "withPrev": false,
+              "seconds": 0.6
+            },
+            {
               "do": "speak",
               "withPrev": false,
               "who": "wick",

@@ -1,3 +1,4 @@
+import { Mesh, MeshBasicMaterial, Object3D, PlaneGeometry } from '@iwsdk/core';
 import { Text, preloadFont } from 'troika-three-text';
 import titleFont from '@fontsource/fraunces/files/fraunces-latin-500-normal.woff?url';
 import captionFont from '@fontsource/atkinson-hyperlegible-next/files/atkinson-hyperlegible-next-latin-500-normal.woff?url';
@@ -70,6 +71,69 @@ export function captionText(widthM: number): CaptionView {
       }
       text.visible = next.length > 0 && opacity > 0.01;
       text.fillOpacity = opacity;
+    },
+  };
+}
+
+export interface EndPageView {
+  root: Object3D;
+  /** Where "Read it again" is, for the hand. */
+  readAgain: Object3D;
+  show(on: boolean, opacity: number): void;
+  /** A hand is near "Read it again": its gold rule brightens. */
+  setNear(near: boolean): void;
+  setSize(sizeM: number): void;
+}
+
+/**
+ * The chapter's last page, printed on the caption band: its title line on the left, and
+ * "Read it again" on the right with a gold rule under it, pinched like any of the book's controls.
+ */
+export function endPageText(widthM: number): EndPageView {
+  const root = new Object3D();
+  root.name = 'end-page';
+  const make = (text: string, font: string, color: string, anchorX: 'left' | 'right') => {
+    const t = new Text();
+    t.text = text;
+    t.font = font;
+    t.fontSize = 0.012;
+    t.color = color;
+    t.anchorX = anchorX;
+    t.anchorY = 'middle';
+    t.depthOffset = -1;
+    t.sync();
+    return t;
+  };
+  const end = make('The end of chapter one', titleFont, NAVY, 'left');
+  end.position.x = -widthM / 2;
+  const again = make('Read it again', captionFont, INK, 'right');
+  again.position.x = widthM / 2;
+  const rule = new Mesh(new PlaneGeometry(0.068, 0.0016), new MeshBasicMaterial({ color: '#D4A23E', transparent: true, toneMapped: false }));
+  rule.position.set(widthM / 2 - 0.034, -0.009, 0);
+  const anchor = new Object3D();
+  anchor.position.set(widthM / 2 - 0.034, 0, 0);
+  root.add(end, again, rule, anchor);
+  root.visible = false;
+  let near = false;
+  return {
+    root,
+    readAgain: anchor,
+    show(on, opacity) {
+      root.visible = on && opacity > 0.01;
+      end.fillOpacity = opacity;
+      again.fillOpacity = opacity;
+      (rule.material as MeshBasicMaterial).opacity = opacity * (near ? 1 : 0.7);
+    },
+    setNear(value) {
+      near = value;
+      rule.scale.y = value ? 1.6 : 1;
+    },
+    setSize(sizeM) {
+      for (const t of [end, again]) {
+        if (Math.abs(t.fontSize - sizeM) < 1e-5) continue;
+        t.fontSize = sizeM;
+        t.sync();
+      }
     },
   };
 }

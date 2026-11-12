@@ -36,10 +36,11 @@ const asked = (id: string, afterMs = 1500) => (v: { problem: { id: string; since
 const during = (beat: string, afterMs = 0) => (v: { beatId: string; nowMs: number; scheduler: { current(): { startMs: number } } }) => v.beatId === beat && v.nowMs - v.scheduler.current().startMs >= afterMs;
 
 const nothing: Reader = () => [];
+// As fast as hands can go: the lantern has to land first (1.8 s), and the drawer has to open (1.7 s) before you can reach in.
 const eager = reader([
-  { when: asked(LANTERN, 1200), then: [gift('lantern')] },
+  { when: asked(LANTERN, 2500), then: [gift('lantern')] },
   { when: during('page-corner', 800), then: [{ do: 'skip' }] },
-  { when: asked(GAP, 1500), then: [gift('kite')] },
+  { when: asked(GAP, 3500), then: [gift('kite')] },
 ]);
 const firstGift = (object: string) =>
   reader([

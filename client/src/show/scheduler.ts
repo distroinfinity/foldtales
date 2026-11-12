@@ -146,9 +146,10 @@ export function createScheduler(spine: Spine, durationOf: (action: StageAction) 
     const e = current();
     const ask = askOf(lookup(e.beatId).beat, e.scene);
     if (!ask || problems.some((p) => p.id === ask.problem.id)) return [];
-    const item = schedOf(e).items[ask.index]!;
-    const at = e.startMs + item.startMs;
-    if (at > nowMs || (e.cutMs !== null && at >= e.cutMs)) return [];
+    // A problem opens as its asking beat begins: whatever leads up to the ask is already about it,
+    // so a reader who helps before the words are out is answering it.
+    const at = e.startMs;
+    if (at > nowMs) return [];
     problems.push({ id: ask.problem.id, scene: e.scene, openedAtMs: at, graceMs: 0, tried: [], status: 'open', closedAtMs: null });
     return [{ type: 'problem.opened', problemId: ask.problem.id, atMs: at, opensDrawer: ask.action.opensDrawer }];
   };
@@ -242,14 +243,14 @@ export function createScheduler(spine: Spine, durationOf: (action: StageAction) 
       const key = history.map((e) => `${e.beatId}:${e.startMs}:${e.cutMs}:${e.holdMs}`).join('|');
       if (cache?.key === key) return cache.items;
       const items: Timed[] = [];
-      for (const e of history) {
+      history.forEach((e, n) => {
         for (const item of schedOf(e).items) {
           const startMs = e.startMs + item.startMs;
           if (e.cutMs !== null && startMs >= e.cutMs) continue;
           const endMs = e.startMs + item.endMs;
-          items.push({ index: items.length, action: item.action, startMs, endMs: e.cutMs !== null ? Math.min(endMs, e.cutMs) : endMs });
+          items.push({ index: items.length, action: item.action, startMs, endMs: e.cutMs !== null ? Math.min(endMs, e.cutMs) : endMs, key: `${n}:${item.index}` });
         }
-      }
+      });
       cache = { key, items };
       return items;
     },

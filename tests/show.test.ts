@@ -82,15 +82,19 @@ describe('scheduleBeat, by the contract timing rules', () => {
 
 import { readFileSync, existsSync } from 'node:fs';
 import { CastMember, checkBeat, checkCastRig, Rig } from '../contracts/src/index.ts';
-import { ShowManifest, libraryOf } from '../client/src/show/manifest.ts';
+import { CueKind, ShowManifest, libraryOf } from '../client/src/show/manifest.ts';
 import { stageAt } from '../client/src/show/state.ts';
 import { unfoldAt, gustAt, lightOutAt } from '../client/src/show/cues.ts';
 
 const art = (path: string) => new URL(`../art/${path}`, import.meta.url);
 const manifest = ShowManifest.parse(JSON.parse(readFileSync(new URL('../client/public/show/manifest.json', import.meta.url), 'utf8')));
-const library = libraryOf(manifest);
+import { ObjectDef, Spine as SpineSchema } from '../contracts/src/index.ts';
+const objectDefs = [...manifest.objectFiles.map((f) => ObjectDef.parse(JSON.parse(readFileSync(art(f), 'utf8')))), ...manifest.extraObjects];
+const library = libraryOf(manifest, objectDefs);
+const spineData = SpineSchema.parse(JSON.parse(readFileSync(new URL('../client/public/show/episode-1.json', import.meta.url), 'utf8')));
+const openingBeat = spineData.scenes[0]!.beats[0]!;
 const moods = { dusk: [0.86, 0.9, 1] as [number, number, number], night: [0.45, 0.55, 0.7] as [number, number, number], gold: [1, 0.88, 0.66] as [number, number, number] };
-const opening = scheduleBeat(manifest.opening, actionDuration({ cueMs: Object.fromEntries(manifest.cues.map((c) => [c.id, c.nominalMs])) }));
+const opening = scheduleBeat(openingBeat, actionDuration({ cueMs: Object.fromEntries(manifest.cues.map((c) => [c.id, c.nominalMs])) }));
 
 describe('the show manifest', () => {
   test('every cast member is a valid CastMember whose anatomy and heads exist in its rig', () => {
@@ -107,11 +111,11 @@ describe('the show manifest', () => {
   });
 
   test('the opening is a valid authored beat against the library', () => {
-    expect(checkBeat(manifest.opening, library, [], null)).toEqual([]);
+    expect(checkBeat(openingBeat, library, [], spineData.scenes[0]!)).toEqual([]);
   });
 
   test('every art file the manifest names is inside a served folder', () => {
-    const files = [manifest.book, manifest.set.file, ...(manifest.room ? [manifest.room] : []), ...manifest.cast.map((c) => `${c.member.rig}/rig.json`)];
+    const files = [manifest.book, manifest.drawer, manifest.satchel, ...manifest.objectFiles, ...manifest.sets.map((s) => s.file), ...(manifest.room ? [manifest.room] : []), ...manifest.cast.map((c) => `${c.member.rig}/rig.json`)];
     for (const file of files) {
       expect(existsSync(art(file)), file).toBe(true);
       expect(manifest.artFolders.some((folder) => file.startsWith(`${folder}/`)), file).toBe(true);
@@ -119,7 +123,7 @@ describe('the show manifest', () => {
   });
 
   test('every cue has an implementation kind', () => {
-    for (const cue of manifest.cues) expect(['unfold', 'gust', 'light-out', 'beam']).toContain(cue.kind);
+    for (const cue of manifest.cues) expect(CueKind.options).toContain(cue.kind);
   });
 });
 

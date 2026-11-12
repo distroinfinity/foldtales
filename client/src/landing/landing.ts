@@ -6,7 +6,7 @@ import { askForMicrophone } from './microphone.ts';
 
 export type LandingState =
   | { kind: 'loading'; share: number }
-  | { kind: 'ready'; open: () => void; openRoom: (() => void) | null }
+  | { kind: 'ready'; open: () => void; openRoom: (() => void) | null; label?: string; restart?: { label: string; run: () => void } | null }
   | { kind: 'opening' }
   | { kind: 'inside' }
   | { kind: 'failed' };
@@ -30,7 +30,17 @@ export function setLandingState(state: LandingState): void {
       break;
     case 'ready':
       button.disabled = false;
-      label.textContent = 'Open the book';
+      label.textContent = state.label ?? 'Open the book';
+      const restart = root.querySelector<HTMLButtonElement>('#restart');
+      if (restart) {
+        restart.hidden = !state.restart;
+        restart.textContent = state.restart?.label ?? '';
+        restart.onclick = () => {
+          // XR has to start inside this tap too.
+          root.dataset.state = 'opening';
+          state.restart?.run();
+        };
+      }
       button.onclick = () => {
         // XR has to start inside this tap, so nothing awaits before it.
         root.dataset.state = 'opening';

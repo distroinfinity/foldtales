@@ -5,6 +5,8 @@ export interface Timed {
   action: StageAction;
   startMs: number;
   endMs: number;
+  /** Which execution and action this is, so a once-only effect is applied exactly once. */
+  key?: string;
 }
 
 export interface Schedule {

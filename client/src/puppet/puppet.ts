@@ -33,8 +33,14 @@ export interface PuppetView {
   body: Object3D;
   apply(pose: Pose, state: PuppetState): void;
   setVariant(part: string, state: string): void;
+  /** Shows or hides a part and everything on it, such as a carried light that has been dropped. */
+  setPartVisible(part: string, visible: boolean): void;
   /** Where a carried light's glow is, in world space. Null without a light. */
   lightWorldPosition(target: Vector3): Vector3 | null;
+  /** The point the paw holds things at, moving with the arm. Null for a character that can't hold. */
+  grip: Object3D | null;
+  /** A small lift for the whole card, such as a flier's height or a kite's pull. Metres. */
+  lift: Object3D;
 }
 
 export interface PuppetDeps {
@@ -87,7 +93,10 @@ export function buildPuppet(entry: CastEntry, rig: Rig, textures: Map<string, Te
   const body = new Object3D();
   body.name = 'puppet-body';
   if (entry.flip) body.scale.x = -1;
-  root.add(fold);
+  const lift = new Object3D();
+  lift.name = 'lift';
+  root.add(lift);
+  lift.add(fold);
   fold.add(yaw);
   yaw.add(body);
 
@@ -189,6 +198,20 @@ export function buildPuppet(entry: CastEntry, rig: Rig, textures: Map<string, Te
     }
   }
 
+  let grip: Object3D | null = null;
+  const gripSpec = member.anatomy.grip;
+  if (gripSpec) {
+    const gripPivot = pivots.get(gripSpec.part)?.[0];
+    const card = layouts.get(gripSpec.part);
+    if (gripPivot && card) {
+      grip = new Object3D();
+      grip.name = 'grip';
+      const [w, h] = card.size;
+      grip.position.set(card.anchor[0] - w / 2 + (w * gripSpec.at[0]) / 100, card.anchor[1] + h / 2 - (h * gripSpec.at[1]) / 100, 0.003);
+      gripPivot.add(grip);
+    }
+  }
+
   const heads = rig.head ? Object.keys(rig.head.offsets) : [];
   const headPivots = heads.map((face) => pivots.get(`head:${face}`)?.[0]).filter((p): p is Object3D => !!p);
   const headRest = new Map(headPivots.map((p) => [p, p.position.clone()]));
@@ -237,6 +260,11 @@ export function buildPuppet(entry: CastEntry, rig: Rig, textures: Map<string, Te
       if (!variants) return;
       const chosen = variants.has(wanted) ? wanted : 'base';
       for (const [state, mesh] of variants) mesh.visible = state === chosen;
+    },
+    grip,
+    lift,
+    setPartVisible(part, visible) {
+      for (const pivot of pivots.get(part) ?? []) pivot.visible = visible;
     },
     lightWorldPosition(target) {
       if (!glow) return null;

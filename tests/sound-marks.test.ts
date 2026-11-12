@@ -5,8 +5,11 @@ import { actionDuration, scheduleBeat } from '../client/src/show/schedule.ts';
 import { crossed, soundMarks } from '../client/src/show/sound-marks.ts';
 
 const manifest = ShowManifest.parse(JSON.parse(readFileSync(new URL('../client/public/show/manifest.json', import.meta.url), 'utf8')));
+
+import { Spine as SpineSchema } from '../contracts/src/index.ts';
+const opening = SpineSchema.parse(JSON.parse(readFileSync(new URL('../client/public/show/episode-1.json', import.meta.url), 'utf8'))).scenes[0]!.beats[0]!;
 const kinds = new Map(manifest.cues.map((c) => [c.id, c.kind]));
-const schedule = scheduleBeat(manifest.opening, actionDuration({ cueMs: Object.fromEntries(manifest.cues.map((c) => [c.id, c.nominalMs])) }));
+const schedule = scheduleBeat(opening, actionDuration({ cueMs: Object.fromEntries(manifest.cues.map((c) => [c.id, c.nominalMs])) }));
 const marks = soundMarks(schedule, kinds, 5);
 
 describe('sound marks: every action has a sound', () => {
