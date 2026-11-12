@@ -69,6 +69,8 @@ Next time: "Previously on…", and what you gave is back, now with problems of i
 
 **Returning evening:** open the book → "Previously on…" (about 20 s) → the kite you gave is tangled on the lighthouse, and its owner has come looking → you help → you close the book mid-scene for a call → reopening resumes at the same moment.
 
+**Arriving and moving around** (owner, Nov 13): the landing page knows you. New: "Open the book". Back mid-chapter: "Continue chapter 1", or start from the beginning. After a finished chapter: read it again, and later continue to the next. Inside, the book is the menu: the end-of-chapter page offers "Read it again", and the sage tab opens the contents page with every chapter. Without a headset, the page explains what this is and how to open it on a Quest.
+
 **Story Circle:** the host invites a friend → the friend's surface shows the same book → both of you hand things over and talk while the director makes sure each of you changes the scene → the page appears in both books.
 
 ## 8. Interaction design

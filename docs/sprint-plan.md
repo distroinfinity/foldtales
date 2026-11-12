@@ -28,9 +28,10 @@
   - [x] Stage and room
   - [x] Found-surface moment, from M0 playtest notes ("ember and wash")
   - [x] Room dim, from M0 playtest notes
-- [ ] **2. First five minutes** ← next
+- [ ] **2. First five minutes** ← next. Plan: `docs/plans/2026-11-13-ticket-2-first-five-minutes.md`
   - [ ] Hands and objects
   - [ ] Show and flagship
+  - [ ] First-session journey (added by the owner, Nov 13)
 - [ ] **3. A story that bends and remembers**
   - [ ] Director
   - [ ] Memory and satchel
@@ -39,7 +40,7 @@
   - [x] Voice audition (run 005): full cast chosen from measurements, since the owner delegated it. Not yet compared by ear. Plan: `docs/superpowers/plans/2026-11-09-voice-audition.md`
   - [ ] Rest of voice and music: voice chain in the product, line pre-render, foley, music
   - [ ] Talk
-- [ ] **5. Story Circle**
+- [ ] ⏸ **5. Story Circle.** Held by the owner (Nov 13) until the single-player product is done or at a good standard, then picked up if time is left.
   - [ ] Two-headset proof (can start once ticket 1 places a stage)
   - [ ] Shared show
 - [ ] **6. Ship**
@@ -132,10 +133,11 @@ Ends at **M2**, the first complete product, and the first time someone else play
 |---|---|
 | **Hands and objects** | **P1 first:** grab a small object and hand it to Pip, with snap distances tuned. Then pick up, move, shelter, place, the drawer and pull, the satchel, keeping, and every feedback state with sound. Characters look at your real head and reach for objects |
 | **Show and flagship** | Scheduler, event log, beat format, authored beats and branches, scene problems with tag rules, narrator bridges, reactions. The complete first episode with no AI, plus the doing-nothing path, ending on the beam. A headless simulator, which can start from contracts alone |
+| **First-session journey** | The landing page knows you: "Open the book" the first time, "Continue chapter 1" with "Start from the beginning" under it when you come back mid-chapter, and "Read chapter 1 again" once it's finished. Progress survives closing the browser, not only a crash. The end-of-chapter page: "The end of chapter one" and "Read it again" printed on the page, pinched like any book control. Closing the book there leaves a finished chapter, so the landing reflects it |
 
 - **Blocked by:** 1. **Blocks:** 3, 4, and 5's full show.
-- **Agent verifies:** emulator hand-pose flows, `iwsdk-glasses-test` for gaze and FOV, no controller paths. Offline simulator: both paths and every tag branch finish in 5–7 minutes, with no stalls.
-- **You verify:** P1, with you and at least one other person. Is the zero-input episode satisfying? Payoff by minute 1? Does the beam land?
+- **Agent verifies:** emulator hand-pose flows, `iwsdk-glasses-test` for gaze and FOV, no controller paths. Offline simulator: both paths and every tag branch finish in 5–7 minutes, with no stalls. Landing states for a first visit, mid-chapter return and finished chapter, checked on the Mac.
+- **You verify:** P1, with you and at least one other person. Is the zero-input episode satisfying? Payoff by minute 1? Does the beam land? Does someone new know how to start, and what to do at the end?
 
 ### 3. A story that bends and remembers
 
@@ -144,8 +146,8 @@ The AI layer. Director and memory are clubbed because you can only judge them to
 | Workstream | What it does |
 |---|---|
 | **Director** | Beat planner, object reactions, validator with pacing guardrails, library-only staging, lookahead queue, repetition ledger, spine use, resolution logic. Story rubric |
-| **Memory and satchel** | Canon from the event log, satchel persistence, object history, "Previously on…", undo, returning objects, deletion, the page composed from episode art |
-| **Tonight's lost thing** | Pick a lost object to start a new story, a generated spine with fallback beats, moderation of spoken premises |
+| **Memory and satchel** | Canon from the event log, satchel persistence, object history, "Previously on…", undo, returning objects, deletion, the page composed from episode art. The contents page behind the sage tab: every chapter's page, to reread or play again, and the landing's "Continue chapter 2" |
+| **Tonight's lost thing** | Pick a lost object to start a new story, a generated spine with fallback beats, moderation of spoken premises. Offered on the end-of-chapter page and the contents page |
 
 - **Blocked by:** 2. **Blocks:** 5's full show, 6.
 - **Agent verifies:** P4: hundreds of simulated shows with injected slowness and failure, no stall, no repeat, time-box met, and every gift acknowledged. P2's rubric across the library. Next episode differs with and without each consequence, undo reverses it, and data survives reload.
@@ -179,7 +181,7 @@ Stays its own ticket, because it needs two headsets and can fail independently. 
 
 ### 6. Ship
 
-Ends at **M6**. Cold start budget, PWA and offline cache, final device pass, accessibility (captions, one-handed), VR Glasses view pass, the open items in playtest notes, licenses and credits including Runway's terms, privacy text, demo video, submission form.
+Ends at **M6**. Cold start budget, PWA and offline cache, final device pass, accessibility (captions, one-handed), VR Glasses view pass, the open items in playtest notes, licenses and credits including Runway's terms, privacy text, demo video, submission form. The no-headset page: a desktop or phone visitor sees what this is, a short look at it, and how to open the link on a Quest, never a dead button. About and credits, reached from a quiet link on the landing page.
 
 - **Blocked by:** everything else. **Blocks:** submission.
 - **Agent verifies:** cold start on a throttled network, the Must-pass list against automated checks, form copy lengths, license list complete.

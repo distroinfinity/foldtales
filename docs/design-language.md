@@ -68,14 +68,24 @@ Color is never the only signal. Story Circle players are told apart by their sat
 
 ## The book is the only UI
 
-No floating panels, no chat, no settings window. The first frame is the 2D landing page, and it follows these rules too: the book, one button that says "Open the book", and the cloud-voice disclosure and mic request in plain words.
+No floating panels, no chat, no settings window. The first frame is the 2D landing page, and it follows these rules too: the book, one button, and the cloud-voice disclosure and mic request in plain words. It stays one tap, and it knows you (owner, Nov 13):
+
+| You are | The button says | Under it |
+|---|---|---|
+| New | Open the book | — |
+| Back mid-chapter | Continue chapter 1 | Start from the beginning |
+| Back after a finished chapter | Read chapter 1 again (later: Continue chapter 2) | — |
+| Without a headset | (no dead button) What this is, a short look at it, and how to open it on a Quest | — |
+
+A quiet "About" link sits at the foot of the page, for credits. Inside XR, menus are pages of the book, never panels: choices are printed on a page and pinched like any book control.
 
 | Control | Does |
 |---|---|
 | **Closing the book** | Pauses, and opening it resumes |
 | **Ribbon** | Pauses without closing (my default, confirm in the headset) |
 | **Top tab, gold** | Opens your satchel |
-| **Lower tab, sage** | Goes back to earlier chapters |
+| **Lower tab, sage** | Opens the contents page: every chapter's page, to reread or play again, and Tonight's lost thing (ticket 3) |
+| **End-of-chapter page** | "The end of chapter one" and "Read it again", printed on the page. Close the book to stop |
 | **Drawer pull** | Opens the Lost and Found. It also slides open when a character asks for something |
 | **Spine** | Moves the book |
 | **Paper ear** | Appears on a character while it's listening |
