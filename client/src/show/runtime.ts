@@ -788,6 +788,9 @@ export function createShowRuntime({ manifest, spine, defs, moods, views, clock }
       if (caption) {
         const fade = Math.min(1, caption.localMs / CAPTION_FADE_MS, (caption.durationMs - caption.localMs) / CAPTION_FADE_MS + 0.0001);
         views.caption.show(caption.text, Math.max(0, fade));
+      } else if (inviting && invite) {
+        // A first-timer's hint, printed on the page like the rest: it fades in once the edge has lifted.
+        views.caption.show('Turn the page', clamp01((invite.localMs - 700) / 500) * 0.85);
       } else views.caption.show(null, 0);
       views.endPage.show(end && !caption && bookOpen, end ? clamp01((ms - endedAtMs!) / 900) : 0);
 

@@ -368,7 +368,7 @@ export function buildBook({ book, sets, textures, bookBase, soft, castOnStage }:
 
   // The page's outer edge, lifting to invite a turn: a half-round lip curling up about a line
   // just inside the edge, with a soft gold glow. Mid-edge, clear of the ribbon at the near corner.
-  const LIP_M = 0.034;
+  const LIP_M = 0.044;
   const cornerPivot = new Object3D();
   cornerPivot.name = 'page-lip';
   cornerPivot.position.set(W - LIP_M, pageY + LIFT_M * 5, 0.03);
@@ -491,8 +491,8 @@ export function buildBook({ book, sets, textures, bookBase, soft, castOnStage }:
     },
     setCorner(lift, glow) {
       cornerPivot.visible = lift > 0.001 || glow > 0.001;
-      cornerHinge.rotation.z = lift * 0.75;
-      (cornerGlow.material as MeshBasicMaterial).opacity = 0.55 * glow;
+      cornerHinge.rotation.z = lift * 1.05;
+      (cornerGlow.material as MeshBasicMaterial).opacity = 0.8 * glow;
     },
     cornerWorld(target) {
       return lipTip.getWorldPosition(target);

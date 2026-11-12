@@ -1,6 +1,6 @@
 # Ticket 2: First five minutes (ends at M2)
 
-**Status:** Plan, not yet approved. Codex reviews it once before it goes to the owner.
+**Status:** Built end to end, Nov 13; waiting for the first headset session. Approved by the owner on Nov 13 ("build it end to end, then ask me to test"). Checked so far: the offline simulator (18 paths, 5:08 to 6:01, nothing quiet over 3 s, no line repeated), headless stage tests, and the emulator with emulated hands and the glasses profile. Owner, Nov 13: no more new tests; the emulator and the headset are the checks from here.
 
 **Goal.** M1's last moment, Pip looking up at you with a dark lantern, becomes a complete 5–7 minute authored episode. You hand the lantern back and it relights. The drawer slides open at the gap, you hand Pip anything, and that decides how he crosses. The lamp is relit and its beam sweeps your room. Doing nothing also makes a satisfying episode. This is the first build someone else plays, so handing things over has to feel good with no instructions.
 
@@ -84,25 +84,25 @@ Engine code knows no character names (the repo test enforces this). Everything n
 Each phase ends playable, and is checked in the emulator against the look bar before the headset.
 
 ### Phase 1: P1, handing back the lantern (the thinnest playable)
-- [ ] Scheduler with cursor, history, asks, preemption and ignored timers. Episode data holding only scene 1.
-- [ ] The lantern as an object: it drops and rolls to the edge, gets picked up, glows in your hand, is noticed, handed over and flares. It settles if released elsewhere, and the ignored path plays.
-- [ ] Feedback states with temporary sound. Emulator flows with hand poses: give it, drop it on the table, ignore it.
+- [x] Scheduler with cursor, history, asks, preemption and ignored timers. The whole episode's data, not only scene 1.
+- [x] The lantern as an object: it drops and rolls to the edge, gets picked up, glows in your hand, is noticed, handed over and flares. It settles if released elsewhere, and the ignored path plays. Checked in the emulator with an emulated hand.
+- [x] Feedback states with sound. Emulator flows with hand poses: give it, drop it on the table, ignore it.
 - [ ] **Headset session 1:** does handing it back feel good? Tune the noticing and snap distances live.
 
 ### Phase 2: The whole episode, every branch
-- [ ] Shore-path walk, Moth, the page turn with the corner, and the gap set.
-- [ ] The drawer (beat and pull), all five objects, the three crossings, two funny failures, and Wick's rope.
-- [ ] Lighthouse scene, the spark, the lamp, the beam ending, the satchel and keeping.
-- [ ] Simulator: every path and branch.
+- [x] Shore-path walk, Moth, the page turn (the page's outer edge lifts; pinch it), and the gap set.
+- [x] The drawer (beat and pull), all five objects, the three crossings, two funny failures, and Wick's rope. Crossings leave what they used settled on the page.
+- [x] Lighthouse scene, the spark, the lamp, the beam ending, the satchel and keeping.
+- [x] Simulator: every path and branch.
 - [ ] **Headset session 2:** the whole episode, both ways.
 
 ### Phase 3: Depth and polish
 - [ ] Run 010: plan, your window, generate, check, close. Lines replace captions-only timing, through the speaker-aware playback.
-- [ ] Picking up, moving and setting down characters, with emulator flows.
-- [ ] Gaze and pinch (`iwsdk-glasses-test`), and the glasses' field of view for the key action and captions.
-- [ ] Checkpoint v2 and crash recovery mid-episode. The book-shut sweep in every scene.
-- [ ] Telemetry: gift timings (release to reaction, release to consequence), moments named by scene.
-- [ ] The landing that knows you, and the end-of-chapter page with "Read it again". Landing states checked on the Mac (new, mid-chapter, finished), and "Read it again" checked in the emulator.
+- [x] Picking up, moving and setting down characters: the show holds while you have them, and they hop back to their place.
+- [x] Gaze and pinch (`iwsdk-glasses-test`): look at an object and pinch, look at a character and pinch. Checked in the glasses emulator. The glasses' field of view is still to check.
+- [x] Checkpoint v2 and recovery mid-episode ("Continue chapter 1"). The book-shut sweep in every scene.
+- [x] Telemetry: frames and hitches are named by the beat playing. (Gift timings need a contract change, so they wait.)
+- [x] The landing that knows you, and the end-of-chapter page with "Read it again". Landing states checked on the Mac (new, mid-chapter, finished).
 - [ ] **Headset sessions, then someone else plays,** from the landing page, with no instructions while you watch: do they know how to start, and what to do at the end? Iterate until you sign M2 off.
 
 ## How it's checked

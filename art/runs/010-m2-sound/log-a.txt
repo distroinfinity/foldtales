@@ -33,3 +33,6 @@ done pip-i-did-it-i-really-did-it: 6s, 1 credits
 done pip-wick-will-be-lighting-the-lamp-soon-i-m: 11.8s, 1 credits
 done narrator-down-where-the-house-ends-everything-los: 6.8s, 1 credits
 done pip-somebody-s-missing-a-very-big-button: 6s, 1 credits
+done pip-i-hope-they-re-not-cold-without-it: 127.4s, 1 credits
+done pip-what-was-that-who-s-there: 6.3s, 1 credits
+done narrator-only-a-moth-moths-are-never-lost-only-di: 6.2s, 1 credits
