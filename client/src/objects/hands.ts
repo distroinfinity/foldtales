@@ -153,6 +153,8 @@ export function createObjectHands(deps: HandsDeps) {
           proxy: { id: `object:${t.id}`, position: { x: t.centre.x, y: t.centre.y, z: t.centre.z }, radiusM: Math.max(TARGET_M, t.radius), reachUpM: REACH_UP_M },
           onGrab: (hand, point) => {
             held[hand] = t.id;
+            const st = deps.objects.get(t.id);
+            if (st) st.touched = true;
             lastPoint[hand] = point.clone();
             deps.objects.send(t.id, { kind: 'hand', side: hand }, nowMs, 90);
             deps.runtime.setHolding(true);

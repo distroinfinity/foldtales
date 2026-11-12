@@ -24,6 +24,10 @@ export type Home =
   /** Back as the character's own carried light: the card hides and the puppet's part shows. */
   | { kind: 'carried'; cast: string }
   | { kind: 'satchel' }
+  /** Tucked into a character's coat: carried, not shown. */
+  | { kind: 'pocket'; cast: string }
+  /** Left behind on another spread, or not yet on this one: not shown, not taken. */
+  | { kind: 'away' }
   /** Placed by a crossing or a cue, which poses it every frame. */
   | { kind: 'posed' };
 
@@ -34,6 +38,8 @@ export interface ObjectState {
   given: boolean;
   /** Could be picked up. */
   grabbable: boolean;
+  /** You've had it in your hand at least once: it comes with you when the page turns. */
+  touched?: boolean;
 }
 
 /** Where something should ease from, when its home changes with a little flight. */
@@ -184,6 +190,9 @@ export function createObjects(initial: ObjectState[], deps: ObjectsDeps): Object
         return receivers.get(home.cast)?.body ?? null;
       case 'satchel':
         return deps.satchelPocket;
+      case 'pocket':
+      case 'away':
+        return deps.loose;
       case 'page':
       case 'posed':
         return (home.kind === 'page' ? home.at[2] : (poses.get(state.id)?.at[2] ?? 0)) > deps.frontZ ? deps.front : deps.behind;
@@ -248,7 +257,7 @@ export function createObjects(initial: ObjectState[], deps: ObjectsDeps): Object
         const v = views.get(state.id)!;
         const home = state.home;
         const parent = parentFor(state, receivers);
-        const show = !hidden.has(state.id) && parent !== null && home.kind !== 'carried';
+        const show = !hidden.has(state.id) && parent !== null && home.kind !== 'carried' && home.kind !== 'pocket' && home.kind !== 'away';
         v.holder.visible = show && (pageShown || home.kind === 'table' || home.kind === 'hand' || home.kind === 'satchel');
         v.shadow.visible = false;
         if (!parent) continue;

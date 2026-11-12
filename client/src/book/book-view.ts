@@ -405,7 +405,9 @@ export function buildBook({ book, sets, textures, bookBase, soft, castOnStage }:
   root.add(captionAnchor);
 
   // The beam's cone, pivoting on the lighthouse lamp the art painted.
-  const lampAnchor = set.anchors.lighthouseLamp?.position ?? null;
+  // Each set may have its own lighthouse lamp: the opening's up close, the gap's far off. The beam
+  // pivots on whichever lamp the showing set has.
+  const lamps = new Map<string, { anchor: [number, number, number] | null; lit: Mesh | null }>();
   const beamPivot = new Group();
   beamPivot.name = 'beam';
   beamPivot.renderOrder = OVER_STACK;
@@ -426,29 +428,33 @@ export function buildBook({ book, sets, textures, bookBase, soft, castOnStage }:
   cone.renderOrder = 80;
   beamPivot.add(cone);
   beamPivot.visible = false;
-  if (lampAnchor) {
-    beamPivot.position.set(lampAnchor[0], pageY + lampAnchor[1], lampAnchor[2]);
-    root.add(beamPivot);
-  }
-  const lampSet = sets.find((each) => each.spec.effects['lamp-lit']) ?? sets[0]!;
-  const lampLitSpec = lampSet.spec.effects['lamp-lit'] as { file: string; px?: [number, number]; sizeM?: [number, number]; layer?: string } | undefined;
-  let lampLit: Mesh | null = null;
-  if (lampLitSpec?.px && lampLitSpec.sizeM && lampLitSpec.layer) {
-    const layer = lampSet.spec.layers.find((l) => l.id === lampLitSpec.layer);
-    const card = allCards.find((c) => c.id === lampLitSpec.layer);
-    const ref = textures.get(artJoin(lampSet.base, lampLitSpec.file));
-    if (layer && card && ref) {
-      const [w, h] = lampLitSpec.sizeM;
-      const x = lampLitSpec.px[0] / set.pxPerM - layer.sizeM[0] / 2 + w / 2;
-      const y = layer.sizeM[1] - lampLitSpec.px[1] / set.pxPerM - h / 2;
-      lampLit = new Mesh(sheet(ref, w, h), cardMaterial(ref.texture, { baked: ref.baked, pool: false }));
-      void layer.sizeM;
-      lampLit.name = 'lamp-lit';
-      lampLit.position.set(x, y, 0.0005);
-      lampLit.visible = false;
-      (x < 0 ? card.hinges[0]! : card.hinges[1]!).add(lampLit);
+  root.add(beamPivot);
+  for (const each of sets) {
+    const anchor = (each.spec.anchors.lighthouseLamp?.position as [number, number, number] | undefined) ?? null;
+    const spec = each.spec.effects['lamp-lit'] as { file: string; px?: [number, number]; sizeM?: [number, number]; layer?: string } | undefined;
+    let lit: Mesh | null = null;
+    if (spec?.px && spec.sizeM && spec.layer) {
+      const layer = each.spec.layers.find((l) => l.id === spec.layer);
+      const card = cardsBySet.get(each.id)!.find((c) => c.id === spec.layer);
+      const ref = textures.get(artJoin(each.base, spec.file));
+      if (layer && card && ref) {
+        const [w, h] = spec.sizeM;
+        const x = spec.px[0] / each.spec.pxPerM - layer.sizeM[0] / 2 + w / 2;
+        const y = layer.sizeM[1] - spec.px[1] / each.spec.pxPerM - h / 2;
+        lit = new Mesh(sheet(ref, w, h), cardMaterial(ref.texture, { baked: ref.baked, pool: false }));
+        lit.name = `lamp-lit:${each.id}`;
+        lit.position.set(x, y, 0.0005);
+        lit.visible = false;
+        (x < 0 ? card.hinges[0]! : card.hinges[1]!).add(lit);
+      }
     }
+    lamps.set(each.id, { anchor, lit });
   }
+  const placeBeam = (setId: string) => {
+    const a = lamps.get(setId)?.anchor;
+    if (a) beamPivot.position.set(a[0], pageY + a[1], a[2]);
+  };
+  placeBeam(sets[0]!.id);
 
   const stands = new Map<string, number>();
   const flatOffset = set.stack.flatOffsetM;
@@ -472,6 +478,8 @@ export function buildBook({ book, sets, textures, bookBase, soft, castOnStage }:
     setStack(next) {
       if (!cardsBySet.has(next) || next === stackSet) return;
       stackSet = next;
+      placeBeam(next);
+      for (const [id, lamp] of lamps) if (lamp.lit && id !== next) lamp.lit.visible = false;
       cards = cardsBySet.get(next)!;
       const showing = new Set(cards);
       for (const c of allCards) if (!showing.has(c)) for (const g of c.groups) if (g !== actorLayer) g.visible = false;
@@ -499,7 +507,8 @@ export function buildBook({ book, sets, textures, bookBase, soft, castOnStage }:
     },
     setLamp(lit) {
       lampOn = lit;
-      if (lampLit) lampLit.visible = lit;
+      const lamp = lamps.get(stackSet)?.lit;
+      if (lamp) lamp.visible = lit;
     },
     titleAnchor,
     captionAnchor,
@@ -518,10 +527,11 @@ export function buildBook({ book, sets, textures, bookBase, soft, castOnStage }:
       beamPivot.visible = strength > 0.001;
       beamPivot.rotation.y = azimuth;
       beamMaterial.uniforms.uStrength!.value = strength;
-      if (lampLit) lampLit.visible = lampOn || strength > 0.001;
+      const lamp = lamps.get(stackSet)?.lit;
+      if (lamp) lamp.visible = lampOn || strength > 0.001;
     },
     lampWorld(target) {
-      if (!lampAnchor) return null;
+      if (!lamps.get(stackSet)?.anchor) return null;
       return beamPivot.getWorldPosition(target);
     },
     setRibbon(lift) {

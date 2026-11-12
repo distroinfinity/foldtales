@@ -43,6 +43,8 @@ export const CueKind = z.enum([
   'cross-rope',
   'spark',
   'lamp-lit',
+  'lamp-out',
+  'pocket',
   'keep',
   'chapter-end',
   'sound',

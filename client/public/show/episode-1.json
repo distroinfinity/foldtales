@@ -1,8 +1,8 @@
 {
   "v": 1,
   "id": "chapter-1",
-  "title": "The little light",
-  "premise": "A gust blows out Pip's lantern on the way to the lighthouse. The path ends at a gap, and Wick can't see to light the lamp.",
+  "title": "The night the light went out",
+  "premise": "A storm blows out the lighthouse lamp and carries its wick down to the shore. Pip goes down with the only light left to bring it home.",
   "source": "authored",
   "targetSeconds": {
     "min": 300,
@@ -10,9 +10,9 @@
   },
   "scenes": [
     {
-      "id": "shore-path",
-      "setId": "shore-path",
-      "summary": "Pip's lantern blows out on the shore path",
+      "id": "the-lamp",
+      "setId": "the-lamp",
+      "summary": "The lamp goes dark in a storm",
       "objects": [
         {
           "id": "lantern",
@@ -22,7 +22,7 @@
       ],
       "problem": {
         "id": "lantern-lost",
-        "summary": "The lantern has rolled to the dark edge of the page",
+        "summary": "The lantern has rolled to the edge of the gallery",
         "rules": [
           {
             "id": "bring-it-back",
@@ -38,7 +38,7 @@
         },
         "ignored": {
           "beat": "lantern-fetch",
-          "afterSeconds": 20
+          "afterSeconds": 16
         }
       },
       "entry": "opening",
@@ -46,8 +46,8 @@
         {
           "id": "opening",
           "source": "authored",
-          "sceneId": "shore-path",
-          "estSeconds": 10,
+          "sceneId": "the-lamp",
+          "estSeconds": 40,
           "actions": [
             {
               "do": "cue",
@@ -56,16 +56,97 @@
               "target": null
             },
             {
+              "do": "cue",
+              "withPrev": true,
+              "cue": "lamp-lit",
+              "target": null
+            },
+            {
+              "do": "light",
+              "withPrev": true,
+              "mood": "gold",
+              "seconds": 2.0
+            },
+            {
+              "do": "cue",
+              "withPrev": true,
+              "cue": "beam",
+              "target": null
+            },
+            {
+              "do": "wait",
+              "withPrev": false,
+              "seconds": 1.0
+            },
+            {
               "do": "narrate",
               "withPrev": false,
-              "text": "Down where lost things wash ashore, a small fox kept a small light.",
-              "mood": "warm"
+              "text": "Every night, the lighthouse at the edge of the table sent its light out over the house, and every lost thing followed it home.",
+              "mood": "wonder"
+            },
+            {
+              "do": "wait",
+              "withPrev": false,
+              "seconds": 2.5
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "wick",
+              "text": "Forty years, and she's never once gone dark.",
+              "mood": "warm",
+              "to": null
+            },
+            {
+              "do": "wait",
+              "withPrev": false,
+              "seconds": 0.6
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "Can I trim the wick tonight, Wick? Please?",
+              "mood": "wonder",
+              "to": "cast:wick"
+            },
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "wick",
+              "acting": "grumble",
+              "target": null
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "wick",
+              "text": "When you're bigger, lad.",
+              "mood": "neutral",
+              "to": "cast:pip"
+            },
+            {
+              "do": "wait",
+              "withPrev": false,
+              "seconds": 0.8
+            },
+            {
+              "do": "narrate",
+              "withPrev": false,
+              "text": "And that was when the wind came.",
+              "mood": "tense"
             },
             {
               "do": "cue",
               "withPrev": false,
               "cue": "gust",
               "target": "cast:pip"
+            },
+            {
+              "do": "cue",
+              "withPrev": true,
+              "cue": "lamp-out",
+              "target": null
             },
             {
               "do": "cue",
@@ -88,6 +169,13 @@
             },
             {
               "do": "emote",
+              "withPrev": true,
+              "who": "wick",
+              "acting": "turn",
+              "target": "mark:lamp"
+            },
+            {
+              "do": "emote",
               "withPrev": false,
               "who": "pip",
               "acting": "look",
@@ -100,7 +188,7 @@
         {
           "id": "lantern-drop",
           "source": "authored",
-          "sceneId": "shore-path",
+          "sceneId": "the-lamp",
           "estSeconds": 30,
           "actions": [
             {
@@ -140,7 +228,7 @@
               "do": "speak",
               "withPrev": false,
               "who": "pip",
-              "text": "It rolled right to the edge. And it's so dark over there.",
+              "text": "It rolled right to the edge. And it's such a long way down.",
               "mood": "tense",
               "to": null
             },
@@ -160,7 +248,7 @@
               "text": "Could you reach it for me?",
               "mood": "tense",
               "opensDrawer": false,
-              "waitSeconds": 20
+              "waitSeconds": 16
             }
           ],
           "next": null,
@@ -169,8 +257,8 @@
         {
           "id": "lantern-back",
           "source": "authored",
-          "sceneId": "shore-path",
-          "estSeconds": 18,
+          "sceneId": "the-lamp",
+          "estSeconds": 16,
           "actions": [
             {
               "do": "emote",
@@ -227,52 +315,22 @@
               "do": "speak",
               "withPrev": false,
               "who": "pip",
-              "text": "Thank you. I'm not scared now. Well. A bit less.",
+              "text": "Thank you. It's the only light left now.",
               "mood": "relief",
               "to": "reader"
             },
             {
               "do": "wait",
               "withPrev": false,
-              "seconds": 1.0
-            },
-            {
-              "do": "emote",
-              "withPrev": false,
-              "who": "pip",
-              "acting": "examine",
-              "target": null
+              "seconds": 0.6
             },
             {
               "do": "speak",
               "withPrev": false,
               "who": "pip",
-              "text": "It's warmer than it's ever been. Like it remembers your hand.",
-              "mood": "wonder",
-              "to": null
-            },
-            {
-              "do": "wait",
-              "withPrev": false,
-              "seconds": 1.0
-            },
-            {
-              "do": "emote",
-              "withPrev": false,
-              "who": "pip",
-              "acting": "raise",
-              "target": null
-            },
-            {
-              "do": "narrate",
-              "withPrev": true,
-              "text": "It had never burned so brightly. It was, after all, the first light anyone had ever handed back to him.",
-              "mood": "warm"
-            },
-            {
-              "do": "wait",
-              "withPrev": false,
-              "seconds": 1.0
+              "text": "I'll keep it close. Promise.",
+              "mood": "warm",
+              "to": "reader"
             },
             {
               "do": "resolve",
@@ -281,13 +339,13 @@
               "outcome": "the Reader carried the lantern back, glowing"
             }
           ],
-          "next": "shore-walk",
+          "next": "wick-gone",
           "replaces": null
         },
         {
           "id": "lantern-puzzled",
           "source": "authored",
-          "sceneId": "shore-path",
+          "sceneId": "the-lamp",
           "estSeconds": 20,
           "actions": [
             {
@@ -327,7 +385,7 @@
               "do": "speak",
               "withPrev": false,
               "who": "pip",
-              "text": "But my lantern's still over there, in the dark.",
+              "text": "But my lantern's still over there, right at the edge.",
               "mood": "tense",
               "to": null
             },
@@ -341,7 +399,7 @@
             {
               "do": "wait",
               "withPrev": false,
-              "seconds": 12
+              "seconds": 11
             }
           ],
           "next": "lantern-fetch",
@@ -350,7 +408,7 @@
         {
           "id": "lantern-fetch",
           "source": "authored",
-          "sceneId": "shore-path",
+          "sceneId": "the-lamp",
           "estSeconds": 22,
           "actions": [
             {
@@ -438,64 +496,225 @@
               "outcome": "brave in the dark, he fetched it himself"
             }
           ],
-          "next": "shore-walk",
+          "next": "wick-gone",
           "replaces": null
         },
         {
-          "id": "shore-walk",
+          "id": "wick-gone",
           "source": "authored",
-          "sceneId": "shore-path",
-          "estSeconds": 70,
+          "sceneId": "the-lamp",
+          "estSeconds": 30,
           "actions": [
             {
               "do": "wait",
               "withPrev": false,
-              "seconds": 1.2
+              "seconds": 0.6
             },
             {
               "do": "speak",
               "withPrev": false,
               "who": "pip",
-              "text": "Wick will be lighting the lamp soon. I'm meant to help him.",
-              "mood": "warm",
-              "to": "reader"
+              "text": "Wick! I'll light the lamp from mine!",
+              "mood": "wonder",
+              "to": "cast:wick"
             },
             {
               "do": "emote",
               "withPrev": false,
               "who": "pip",
-              "acting": "turn",
-              "target": "mark:path-mid"
+              "acting": "raise",
+              "target": null
             },
             {
-              "do": "move",
+              "do": "emote",
               "withPrev": false,
-              "who": "pip",
-              "to": "mark:path-mid"
+              "who": "wick",
+              "acting": "examine",
+              "target": "mark:lamp"
             },
             {
-              "do": "wait",
+              "do": "speak",
               "withPrev": false,
-              "seconds": 1.0
-            },
-            {
-              "do": "narrate",
-              "withPrev": false,
-              "text": "Down where the house ends, everything lost drifts home in the end. Buttons. Spoons. Odd socks. And once, a whole umbrella.",
-              "mood": "wonder"
-            },
-            {
-              "do": "wait",
-              "withPrev": false,
-              "seconds": 1.2
+              "who": "wick",
+              "text": "Hold on, lad. The wick's gone. Blown clean out of the lamp.",
+              "mood": "sad",
+              "to": "cast:pip"
             },
             {
               "do": "speak",
               "withPrev": false,
               "who": "pip",
-              "text": "Somebody's missing a very big button.",
-              "mood": "silly",
-              "to": null
+              "text": "Gone? Gone where?",
+              "mood": "tense",
+              "to": "cast:wick"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "wick",
+              "text": "Down on the shore, with every lost thing. And my eyes aren't what they were.",
+              "mood": "sad",
+              "to": "cast:pip"
+            },
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "pip",
+              "acting": "look",
+              "target": "reader"
+            },
+            {
+              "do": "wait",
+              "withPrev": false,
+              "seconds": 0.6
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "Then... will you come with me?",
+              "mood": "tense",
+              "to": "reader"
+            },
+            {
+              "do": "wait",
+              "withPrev": false,
+              "seconds": 0.8
+            },
+            {
+              "do": "narrate",
+              "withPrev": false,
+              "text": "So down went the little fox, a hundred and twelve steps, carrying the only light left.",
+              "mood": "warm"
+            }
+          ],
+          "next": "page-one",
+          "replaces": null
+        },
+        {
+          "id": "page-one",
+          "source": "authored",
+          "sceneId": "the-lamp",
+          "estSeconds": 6,
+          "actions": [
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "page-invite",
+              "target": null
+            }
+          ],
+          "next": null,
+          "replaces": null
+        }
+      ]
+    },
+    {
+      "id": "the-shore",
+      "setId": "shore-path",
+      "summary": "The lamp's wick is lost in the reeds on the shore",
+      "objects": [
+        {
+          "id": "lamp-wick",
+          "defId": "lamp-wick",
+          "origin": "set"
+        },
+        {
+          "id": "kite",
+          "defId": "kite",
+          "origin": "set"
+        },
+        {
+          "id": "spool",
+          "defId": "spool",
+          "origin": "set"
+        }
+      ],
+      "problem": {
+        "id": "the-wick",
+        "summary": "The lamp's wick has blown down into the reeds, where the little fox can't reach",
+        "rules": [
+          {
+            "id": "fetch-wick",
+            "anyTags": [
+              "bends"
+            ],
+            "beat": "wick-back",
+            "outcome": "solved"
+          }
+        ],
+        "fallback": {
+          "beat": "wick-puzzled"
+        },
+        "ignored": {
+          "beat": "wick-moth",
+          "afterSeconds": 18
+        }
+      },
+      "entry": "page-turn-shore",
+      "beats": [
+        {
+          "id": "page-turn-shore",
+          "source": "authored",
+          "sceneId": "the-shore",
+          "estSeconds": 3,
+          "actions": [
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "page-turn",
+              "target": null
+            },
+            {
+              "do": "place",
+              "withPrev": true,
+              "what": "cast:pip",
+              "at": "shore-in"
+            },
+            {
+              "do": "place",
+              "withPrev": true,
+              "what": "object:lamp-wick",
+              "at": "reeds-wick"
+            },
+            {
+              "do": "place",
+              "withPrev": true,
+              "what": "object:kite",
+              "at": "kite-sand"
+            },
+            {
+              "do": "place",
+              "withPrev": true,
+              "what": "object:spool",
+              "at": "spool-sand"
+            }
+          ],
+          "next": "the-shore",
+          "replaces": null
+        },
+        {
+          "id": "the-shore",
+          "source": "authored",
+          "sceneId": "the-shore",
+          "estSeconds": 55,
+          "actions": [
+            {
+              "do": "move",
+              "withPrev": false,
+              "who": "pip",
+              "to": "mark:pip"
+            },
+            {
+              "do": "wait",
+              "withPrev": false,
+              "seconds": 0.8
+            },
+            {
+              "do": "narrate",
+              "withPrev": false,
+              "text": "Down on the shore, the lost things lay wherever the tide had left them.",
+              "mood": "wonder"
             },
             {
               "do": "wait",
@@ -506,14 +725,27 @@
               "do": "speak",
               "withPrev": false,
               "who": "pip",
-              "text": "I hope they're not cold without it.",
-              "mood": "warm",
+              "text": "A kite. A spool. Somebody's whole sewing basket washes up down here.",
+              "mood": "wonder",
               "to": null
             },
             {
               "do": "wait",
               "withPrev": false,
-              "seconds": 1.2
+              "seconds": 0.6
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "Wick? Where are you, wick?",
+              "mood": "silly",
+              "to": null
+            },
+            {
+              "do": "wait",
+              "withPrev": false,
+              "seconds": 1.0
             },
             {
               "do": "cue",
@@ -576,8 +808,8 @@
               "do": "speak",
               "withPrev": false,
               "who": "pip",
-              "text": "Moth! You frightened me. And mind your feelers, it's hot!",
-              "mood": "silly",
+              "text": "Moth! Have you seen a lamp wick? All white and curly?",
+              "mood": "wonder",
               "to": "cast:moth"
             },
             {
@@ -591,103 +823,27 @@
               "do": "move",
               "withPrev": true,
               "who": "moth",
-              "to": "mark:moth-near"
+              "to": "mark:moth-reeds"
             },
             {
               "do": "wait",
               "withPrev": false,
-              "seconds": 1.0
-            },
-            {
-              "do": "emote",
-              "withPrev": false,
-              "who": "moth",
-              "acting": "seek_light",
-              "target": "cast:pip"
-            },
-            {
-              "do": "speak",
-              "withPrev": true,
-              "who": "pip",
-              "text": "No, Moth. It isn't for eating. It's for seeing.",
-              "mood": "silly",
-              "to": "cast:moth"
-            },
-            {
-              "do": "wait",
-              "withPrev": false,
-              "seconds": 1.2
+              "seconds": 0.8
             },
             {
               "do": "emote",
               "withPrev": false,
               "who": "pip",
-              "acting": "raise",
-              "target": null
+              "acting": "look",
+              "target": "mark:reeds-wick"
             },
             {
               "do": "speak",
               "withPrev": false,
               "who": "pip",
-              "text": "See? Out there it's only sand. Dark sand. Nothing to be scared of.",
-              "mood": "warm",
+              "text": "There! In the reeds! But they're too thick, I can't get through.",
+              "mood": "tense",
               "to": null
-            },
-            {
-              "do": "wait",
-              "withPrev": false,
-              "seconds": 0.8
-            },
-            {
-              "do": "emote",
-              "withPrev": false,
-              "who": "pip",
-              "acting": "scared",
-              "target": null
-            },
-            {
-              "do": "speak",
-              "withPrev": false,
-              "who": "pip",
-              "text": "Mostly nothing.",
-              "mood": "silly",
-              "to": "reader"
-            }
-          ],
-          "next": "the-dark-bit",
-          "replaces": null
-        },
-        {
-          "id": "the-dark-bit",
-          "source": "authored",
-          "sceneId": "shore-path",
-          "estSeconds": 40,
-          "actions": [
-            {
-              "do": "wait",
-              "withPrev": false,
-              "seconds": 1.2
-            },
-            {
-              "do": "speak",
-              "withPrev": false,
-              "who": "pip",
-              "text": "Wick says the lighthouse calls every lost thing home. Every night, round and round.",
-              "mood": "wonder",
-              "to": "reader"
-            },
-            {
-              "do": "wait",
-              "withPrev": false,
-              "seconds": 0.8
-            },
-            {
-              "do": "speak",
-              "withPrev": false,
-              "who": "pip",
-              "text": "He says one day it might be my job.",
-              "mood": "warm",
-              "to": "reader"
             },
             {
               "do": "emote",
@@ -697,15 +853,279 @@
               "target": "reader"
             },
             {
-              "do": "wait",
+              "do": "ask_reader",
               "withPrev": false,
-              "seconds": 1.2
+              "who": "pip",
+              "player": null,
+              "problem": "the-wick",
+              "text": "Could you reach in and get it for me?",
+              "mood": "tense",
+              "opensDrawer": false,
+              "waitSeconds": 18
+            }
+          ],
+          "next": null,
+          "replaces": null
+        },
+        {
+          "id": "wick-back",
+          "source": "authored",
+          "sceneId": "the-shore",
+          "estSeconds": 10,
+          "actions": [
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "pip",
+              "acting": "take",
+              "target": "object:$offered"
             },
             {
               "do": "speak",
               "withPrev": false,
               "who": "pip",
-              "text": "I'd have to stop being scared of the dark first.",
+              "text": "That's it! That's the lamp's wick!",
+              "mood": "wonder",
+              "to": null
+            },
+            {
+              "do": "emote",
+              "withPrev": true,
+              "who": "pip",
+              "acting": "examine",
+              "target": "object:$offered"
+            },
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "pocket",
+              "target": "object:$offered"
+            },
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "pip",
+              "acting": "hop",
+              "target": null
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "Safe in my coat. Thank you!",
+              "mood": "relief",
+              "to": "reader"
+            },
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "moth",
+              "acting": "flutter",
+              "target": null
+            },
+            {
+              "do": "wait",
+              "withPrev": false,
+              "seconds": 0.6
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "Moth, did you see? They reached right into the reeds!",
+              "mood": "wonder",
+              "to": "cast:moth"
+            },
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "moth",
+              "acting": "seek_light",
+              "target": "cast:pip"
+            },
+            {
+              "do": "wait",
+              "withPrev": false,
+              "seconds": 0.6
+            },
+            {
+              "do": "narrate",
+              "withPrev": false,
+              "text": "The moth was more interested in the lantern. Moths usually are.",
+              "mood": "silly"
+            },
+            {
+              "do": "wait",
+              "withPrev": false,
+              "seconds": 0.6
+            },
+            {
+              "do": "resolve",
+              "withPrev": false,
+              "problem": "the-wick",
+              "outcome": "the Reader reached into the reeds for it"
+            }
+          ],
+          "next": "along-the-shore",
+          "replaces": null
+        },
+        {
+          "id": "wick-puzzled",
+          "source": "authored",
+          "sceneId": "the-shore",
+          "estSeconds": 20,
+          "actions": [
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "pip",
+              "acting": "take",
+              "target": "object:$offered"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "Oh, that's a good find. But it isn't the wick.",
+              "mood": "silly",
+              "to": "reader"
+            },
+            {
+              "do": "emote",
+              "withPrev": true,
+              "who": "pip",
+              "acting": "examine",
+              "target": "object:$offered"
+            },
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "set-down",
+              "target": "object:$offered"
+            },
+            {
+              "do": "wait",
+              "withPrev": false,
+              "seconds": 0.6
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "The wick's still in the reeds, all white and curly.",
+              "mood": "tense",
+              "to": "reader"
+            },
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "pip",
+              "acting": "look",
+              "target": "mark:reeds-wick"
+            },
+            {
+              "do": "wait",
+              "withPrev": false,
+              "seconds": 11
+            }
+          ],
+          "next": "wick-moth",
+          "replaces": null
+        },
+        {
+          "id": "wick-moth",
+          "source": "authored",
+          "sceneId": "the-shore",
+          "estSeconds": 14,
+          "actions": [
+            {
+              "do": "narrate",
+              "withPrev": false,
+              "text": "But moths, it turns out, are very good at reeds.",
+              "mood": "silly"
+            },
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "moth",
+              "acting": "seek_light",
+              "target": "cast:pip"
+            },
+            {
+              "do": "use",
+              "withPrev": false,
+              "who": "pip",
+              "object": "lamp-wick",
+              "on": null,
+              "problem": "the-wick"
+            },
+            {
+              "do": "emote",
+              "withPrev": true,
+              "who": "pip",
+              "acting": "take",
+              "target": "object:lamp-wick"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "Moth! You found it! You're the best moth in the whole house.",
+              "mood": "relief",
+              "to": "cast:moth"
+            },
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "pocket",
+              "target": "object:lamp-wick"
+            },
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "pip",
+              "acting": "hop",
+              "target": null
+            },
+            {
+              "do": "resolve",
+              "withPrev": false,
+              "problem": "the-wick",
+              "outcome": "the moth fetched it out of the reeds"
+            }
+          ],
+          "next": "along-the-shore",
+          "replaces": null
+        },
+        {
+          "id": "along-the-shore",
+          "source": "authored",
+          "sceneId": "the-shore",
+          "estSeconds": 20,
+          "actions": [
+            {
+              "do": "wait",
+              "withPrev": false,
+              "seconds": 0.8
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "Wick says the lighthouse calls every lost thing home. Tonight it's our turn to bring something back.",
+              "mood": "warm",
+              "to": "reader"
+            },
+            {
+              "do": "wait",
+              "withPrev": false,
+              "seconds": 0.8
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "I'm still scared of the dark. But less, with you here.",
               "mood": "sad",
               "to": "reader"
             },
@@ -713,17 +1133,6 @@
               "do": "wait",
               "withPrev": false,
               "seconds": 1.0
-            },
-            {
-              "do": "narrate",
-              "withPrev": false,
-              "text": "The dark didn't say anything. It never does. It only waited, the way it always had, for someone brave enough to walk into it.",
-              "mood": "neutral"
-            },
-            {
-              "do": "wait",
-              "withPrev": false,
-              "seconds": 1.2
             },
             {
               "do": "emote",
@@ -748,23 +1157,18 @@
               "do": "speak",
               "withPrev": false,
               "who": "pip",
-              "text": "Come on, Moth. It's this way. Stay close.",
+              "text": "Come on, Moth. Home is this way.",
               "mood": "warm",
               "to": null
-            },
-            {
-              "do": "wait",
-              "withPrev": false,
-              "seconds": 0.6
             }
           ],
-          "next": "page-corner",
+          "next": "page-two",
           "replaces": null
         },
         {
-          "id": "page-corner",
+          "id": "page-two",
           "source": "authored",
-          "sceneId": "shore-path",
+          "sceneId": "the-shore",
           "estSeconds": 6,
           "actions": [
             {
@@ -782,7 +1186,7 @@
     {
       "id": "the-gap",
       "setId": "the-gap",
-      "summary": "The path ends at a gap, and the lighthouse is dark",
+      "summary": "The path home ends at a gap, and the lamp is relit",
       "objects": [
         {
           "id": "ladder",
@@ -790,18 +1194,8 @@
           "origin": "drawer"
         },
         {
-          "id": "kite",
-          "defId": "kite",
-          "origin": "drawer"
-        },
-        {
           "id": "odd-sock",
           "defId": "odd-sock",
-          "origin": "drawer"
-        },
-        {
-          "id": "spool",
-          "defId": "spool",
           "origin": "drawer"
         },
         {
@@ -812,7 +1206,7 @@
       ],
       "problem": {
         "id": "the-gap",
-        "summary": "The path ends at a gap, and the lighthouse is on the other side",
+        "summary": "The path home ends at a gap, and the lighthouse is on the other side",
         "rules": [
           {
             "id": "fly-over",
@@ -862,13 +1256,13 @@
         },
         "ignored": {
           "beat": "wick-rope",
-          "afterSeconds": 30
+          "afterSeconds": 24
         }
       },
-      "entry": "page-turn",
+      "entry": "page-turn-gap",
       "beats": [
         {
-          "id": "page-turn",
+          "id": "page-turn-gap",
           "source": "authored",
           "sceneId": "the-gap",
           "estSeconds": 3,
@@ -899,7 +1293,7 @@
           "id": "to-the-edge",
           "source": "authored",
           "sceneId": "the-gap",
-          "estSeconds": 34,
+          "estSeconds": 30,
           "actions": [
             {
               "do": "move",
@@ -942,26 +1336,6 @@
               "who": "pip",
               "text": "Oh. The lighthouse is right there. I can see the door.",
               "mood": "wonder",
-              "to": null
-            },
-            {
-              "do": "emote",
-              "withPrev": false,
-              "who": "moth",
-              "acting": "flutter",
-              "target": null
-            },
-            {
-              "do": "wait",
-              "withPrev": false,
-              "seconds": 1.0
-            },
-            {
-              "do": "speak",
-              "withPrev": false,
-              "who": "pip",
-              "text": "Wick? Wick! He can't hear me from all the way over here.",
-              "mood": "tense",
               "to": null
             },
             {
@@ -1035,17 +1409,6 @@
               "do": "wait",
               "withPrev": false,
               "seconds": 0.8
-            },
-            {
-              "do": "narrate",
-              "withPrev": false,
-              "text": "Lost things had been falling into that gap for years and years. Far below, the sea kept them.",
-              "mood": "neutral"
-            },
-            {
-              "do": "wait",
-              "withPrev": false,
-              "seconds": 1.2
             }
           ],
           "next": "gap-ask",
@@ -1070,10 +1433,10 @@
               "who": "pip",
               "player": null,
               "problem": "the-gap",
-              "text": "If only we could cross... Is there anything in that drawer?",
+              "text": "If only we could cross... Is there anything in that drawer? Or in your satchel?",
               "mood": "tense",
               "opensDrawer": true,
-              "waitSeconds": 30
+              "waitSeconds": 24
             }
           ],
           "next": null,
@@ -1314,7 +1677,7 @@
             {
               "do": "wait",
               "withPrev": false,
-              "seconds": 16
+              "seconds": 11
             }
           ],
           "next": "wick-rope",
@@ -1399,7 +1762,7 @@
             {
               "do": "wait",
               "withPrev": false,
-              "seconds": 16
+              "seconds": 11
             }
           ],
           "next": "wick-rope",
@@ -1462,7 +1825,7 @@
             {
               "do": "wait",
               "withPrev": false,
-              "seconds": 16
+              "seconds": 11
             }
           ],
           "next": "wick-rope",
@@ -1472,7 +1835,7 @@
           "id": "wick-rope",
           "source": "authored",
           "sceneId": "the-gap",
-          "estSeconds": 20,
+          "estSeconds": 24,
           "actions": [
             {
               "do": "place",
@@ -1504,7 +1867,7 @@
               "do": "speak",
               "withPrev": false,
               "who": "pip",
-              "text": "Wick! It's me! I can't get across!",
+              "text": "Wick! It's me! I found the wick, but I can't get across!",
               "mood": "tense",
               "to": "cast:wick"
             },
@@ -1585,7 +1948,7 @@
           "id": "far-side",
           "source": "authored",
           "sceneId": "the-gap",
-          "estSeconds": 16,
+          "estSeconds": 22,
           "actions": [
             {
               "do": "place",
@@ -1649,19 +2012,6 @@
             {
               "do": "wait",
               "withPrev": false,
-              "seconds": 0.8
-            },
-            {
-              "do": "speak",
-              "withPrev": false,
-              "who": "pip",
-              "text": "They opened the drawer. They just reached in and handed it to me.",
-              "mood": "wonder",
-              "to": "cast:wick"
-            },
-            {
-              "do": "wait",
-              "withPrev": false,
               "seconds": 1.0
             },
             {
@@ -1678,15 +2028,10 @@
               "seconds": 0.6
             },
             {
-              "do": "wait",
-              "withPrev": false,
-              "seconds": 0.8
-            },
-            {
               "do": "speak",
               "withPrev": false,
               "who": "pip",
-              "text": "You should have seen it, Wick. I wasn't even scared. Well. Not very.",
+              "text": "And I found the wick! It's right here in my coat.",
               "mood": "relief",
               "to": "cast:wick"
             },
@@ -1694,14 +2039,14 @@
               "do": "emote",
               "withPrev": false,
               "who": "wick",
-              "acting": "grumble",
-              "target": null
+              "acting": "examine",
+              "target": "cast:pip"
             },
             {
               "do": "speak",
               "withPrev": false,
               "who": "wick",
-              "text": "Not very, eh? We'll see about that.",
+              "text": "Down a hundred and twelve steps, in the dark, and back over a chasm. Hmph.",
               "mood": "warm",
               "to": "cast:pip"
             },
@@ -1714,7 +2059,15 @@
               "do": "speak",
               "withPrev": false,
               "who": "wick",
-              "text": "Come on then, lad. That lamp won't light itself.",
+              "text": "Not bad, lad. Not bad at all.",
+              "mood": "warm",
+              "to": "cast:pip"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "wick",
+              "text": "Then come on, lad. That lamp won't light itself.",
               "mood": "neutral",
               "to": "cast:pip"
             },
@@ -1732,7 +2085,7 @@
           "id": "lighthouse",
           "source": "authored",
           "sceneId": "the-gap",
-          "estSeconds": 60,
+          "estSeconds": 50,
           "actions": [
             {
               "do": "emote",
@@ -1767,48 +2120,8 @@
             {
               "do": "narrate",
               "withPrev": false,
-              "text": "They walked the last of the path together, the old badger and the small fox, toward the dark tower.",
+              "text": "Up they went, a hundred and twelve steps, round and round, to the dark lamp at the very top.",
               "mood": "warm"
-            },
-            {
-              "do": "wait",
-              "withPrev": false,
-              "seconds": 1.0
-            },
-            {
-              "do": "speak",
-              "withPrev": false,
-              "who": "wick",
-              "text": "Forty years I've lit that lamp. Every single night.",
-              "mood": "neutral",
-              "to": "cast:pip"
-            },
-            {
-              "do": "speak",
-              "withPrev": false,
-              "who": "pip",
-              "text": "Even when it stormed?",
-              "mood": "wonder",
-              "to": "cast:wick"
-            },
-            {
-              "do": "speak",
-              "withPrev": false,
-              "who": "wick",
-              "text": "Especially when it stormed.",
-              "mood": "warm",
-              "to": "cast:pip"
-            },
-            {
-              "do": "wait",
-              "withPrev": false,
-              "seconds": 1.2
-            },
-            {
-              "do": "narrate",
-              "withPrev": false,
-              "text": "But tonight the lighthouse stood dark. On a night like this, it had never once been dark.",
-              "mood": "neutral"
             },
             {
               "do": "wait",
@@ -1826,9 +2139,9 @@
               "do": "speak",
               "withPrev": false,
               "who": "wick",
-              "text": "Can't see the wick to light it. Not like I used to.",
-              "mood": "sad",
-              "to": null
+              "text": "In it goes. Steady, now.",
+              "mood": "neutral",
+              "to": "cast:pip"
             },
             {
               "do": "wait",
@@ -1839,14 +2152,14 @@
               "do": "speak",
               "withPrev": false,
               "who": "wick",
-              "text": "Don't you go telling anyone.",
+              "text": "Can't see well enough to light it, lad. Not like I used to.",
               "mood": "sad",
-              "to": "cast:pip"
+              "to": null
             },
             {
               "do": "wait",
               "withPrev": false,
-              "seconds": 0.8
+              "seconds": 0.6
             },
             {
               "do": "emote",
@@ -1859,7 +2172,7 @@
               "do": "speak",
               "withPrev": false,
               "who": "pip",
-              "text": "I won't. But I've still got my light.",
+              "text": "That's all right. I've still got my light.",
               "mood": "warm",
               "to": "cast:wick"
             },
@@ -1869,22 +2182,6 @@
               "who": "pip",
               "acting": "raise",
               "target": null
-            },
-            {
-              "do": "wait",
-              "withPrev": false,
-              "seconds": 0.6
-            },
-            {
-              "do": "narrate",
-              "withPrev": false,
-              "text": "So up they went, a hundred and twelve steps, round and round, to the lamp at the very top.",
-              "mood": "warm"
-            },
-            {
-              "do": "wait",
-              "withPrev": false,
-              "seconds": 0.8
             },
             {
               "do": "cue",

@@ -236,6 +236,10 @@ export function createShowRuntime({ manifest, spine, defs, moods, views, clock }
         const id = objectOf(a.target);
         const s = id ? views.objects.get(id)?.home : null;
         if (id && s?.kind === 'paw') views.objects.send(id, { kind: 'worn', cast: s.cast }, nowMs, 400, 0.01);
+      } else if (kind === 'pocket') {
+        const id = objectOf(a.target);
+        const s = id ? views.objects.get(id)?.home : null;
+        if (id && s?.kind === 'paw') views.objects.send(id, { kind: 'pocket', cast: s.cast }, nowMs, 0);
       } else if (kind === 'keep') {
         satchelOpen = true;
         for (const s of views.objects.states()) {
@@ -260,7 +264,11 @@ export function createShowRuntime({ manifest, spine, defs, moods, views, clock }
 
   function handleEvents(events: SchedulerEvent[]): void {
     for (const e of events) {
-      if (e.type === 'problem.opened' && e.opensDrawer) drawerWanted = true;
+      if (e.type === 'problem.opened' && e.opensDrawer) {
+        drawerWanted = true;
+        // Your finds are help too: the satchel opens with the drawer when there's something in it.
+        if (views.objects.states().some((s) => s.home.kind === 'satchel')) satchelOpen = true;
+      }
       if ((e.type === 'problem.ignored' || e.type === 'episode.ended') && drawerWanted) drawerWanted = false;
       pending.push(e);
     }
@@ -718,8 +726,11 @@ export function createShowRuntime({ manifest, spine, defs, moods, views, clock }
       // A page turn sweeps anything left lying on the old spread into your satchel, so nothing is lost.
       if (turn?.layers !== null && turn) {
         for (const s of views.objects.states()) if (s.home.kind === 'page' && !lightObjects.has(s.id)) {
-          s.given = true;
-          views.objects.send(s.id, { kind: 'satchel' }, ms, 900, 0.07);
+          // What you handled comes with you in your satchel; what you never touched stays on its page.
+          if (s.touched || s.given) {
+            s.given = true;
+            views.objects.send(s.id, { kind: 'satchel' }, ms, 900, 0.07);
+          } else views.objects.send(s.id, { kind: 'away' }, ms, 0);
         }
       }
 
@@ -772,10 +783,14 @@ export function createShowRuntime({ manifest, spine, defs, moods, views, clock }
           views.spark.scale.setScalar(0.03 * worldScale.x * (1 + 0.25 * Math.sin(nowMs / 60)));
         }
       }
-      views.book.setLamp(cueOf(state, 'lamp-lit') !== null);
-
+      // The lamp is lit since its latest lamp-lit cue, unless a lamp-out came after; the beam fades as it dies.
+      const litCue = cueOf(state, 'lamp-lit');
+      const outCue = cueOf(state, 'lamp-out');
+      const lampLit = litCue !== null && (outCue === null || litCue.localMs < outCue.localMs);
+      views.book.setLamp(lampLit);
       const beamCue = cueOf(state, 'beam');
-      const beam = beamCue ? beamAt(beamCue.localMs) : null;
+      let beam = beamCue ? beamAt(beamCue.localMs) : null;
+      if (beam && beamCue && outCue && outCue.localMs < beamCue.localMs) beam = { ...beam, strength: beam.strength * clamp01(1 - outCue.localMs / 700) };
       views.book.setBeam(beam?.azimuth ?? 0, (beam?.strength ?? 0) * (bookOpen ? 1 : 0));
       if (views.dim && head) {
         views.book.root.getWorldPosition(bookCentre);

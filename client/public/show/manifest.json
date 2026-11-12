@@ -15,7 +15,8 @@
     "objects",
     "sound/m1",
     "room",
-    "sound/m2"
+    "sound/m2",
+    "sets/the-lamp"
   ],
   "book": "book/book.json",
   "room": "room/room.json",
@@ -186,6 +187,10 @@
     {
       "cast": "pip",
       "mark": "pip"
+    },
+    {
+      "cast": "wick",
+      "mark": "wick"
     }
   ],
   "cues": [
@@ -319,6 +324,18 @@
       "summary": "a rustle in the dark",
       "nominalMs": 0,
       "kind": "sound"
+    },
+    {
+      "id": "lamp-out",
+      "summary": "the lighthouse lamp goes dark",
+      "nominalMs": 0,
+      "kind": "lamp-out"
+    },
+    {
+      "id": "pocket",
+      "summary": "a character tucks what it holds into its coat",
+      "nominalMs": 400,
+      "kind": "pocket"
     }
   ],
   "narrator": {
@@ -820,6 +837,59 @@
   },
   "sets": [
     {
+      "id": "the-lamp",
+      "name": "The lamp",
+      "description": "The gallery at the top of the lighthouse, around its great lamp, high above the sea.",
+      "file": "sets/the-lamp/set.json",
+      "marks": [
+        {
+          "id": "pip",
+          "label": "Pip's mark",
+          "position": [
+            0.07,
+            0,
+            -0.0175
+          ]
+        },
+        {
+          "id": "wick",
+          "label": "by the lamp",
+          "position": [
+            -0.03,
+            0,
+            -0.022
+          ]
+        },
+        {
+          "id": "lamp",
+          "label": "the great lamp",
+          "position": [
+            -0.14,
+            0.1,
+            -0.0925
+          ]
+        },
+        {
+          "id": "lantern-edge",
+          "label": "the edge of the gallery",
+          "position": [
+            0.04,
+            0,
+            0.094
+          ]
+        },
+        {
+          "id": "edge-step",
+          "label": "a step from the edge",
+          "position": [
+            0.045,
+            0,
+            0.072
+          ]
+        }
+      ]
+    },
+    {
       "id": "shore-path",
       "name": "The shore path",
       "description": "A sandy path along the shore below the lighthouse, at dusk.",
@@ -895,6 +965,51 @@
             -0.065,
             0.125,
             -0.012
+          ]
+        },
+        {
+          "id": "shore-in",
+          "label": "where the steps reach the shore",
+          "position": [
+            0.165,
+            0,
+            -0.0175
+          ]
+        },
+        {
+          "id": "reeds-wick",
+          "label": "in the reeds",
+          "position": [
+            0.15,
+            0,
+            0.074
+          ]
+        },
+        {
+          "id": "kite-sand",
+          "label": "on the sand, left",
+          "position": [
+            -0.035,
+            0,
+            0.08
+          ]
+        },
+        {
+          "id": "spool-sand",
+          "label": "on the sand, far left",
+          "position": [
+            -0.13,
+            0,
+            0.085
+          ]
+        },
+        {
+          "id": "moth-reeds",
+          "label": "over the reeds",
+          "position": [
+            0.14,
+            0.07,
+            0.03
           ]
         }
       ]
@@ -1013,7 +1128,8 @@
     "objects/odd-sock/object.json",
     "objects/spool/object.json",
     "objects/brass-key/object.json",
-    "objects/rope-coil/object.json"
+    "objects/rope-coil/object.json",
+    "objects/lamp-wick/object.json"
   ],
   "extraObjects": [
     {

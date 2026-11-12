@@ -12,9 +12,15 @@ const spine = Spine.parse(read(`../client/public/${manifest.episode}`));
 const objects = [...manifest.objectFiles.map((f) => ObjectDef.parse(read(`../art/${f}`))), ...manifest.extraObjects];
 const library = libraryOf(manifest, objects);
 const tags = (id: string) => objects.find((o) => o.id === id)!.tags;
-const durationOf = actionDuration({ cueMs: Object.fromEntries(manifest.cues.map((c) => [c.id, c.nominalMs])), voiceMs: voiceMsOf(manifest) });
+// TT_VOICED=1 times lines that have no rendered voice yet at 1.3x their caption estimate, as real voices ran in run 010.
+const voiced = voiceMsOf(manifest);
+const durationOf = actionDuration({
+  cueMs: Object.fromEntries(manifest.cues.map((c) => [c.id, c.nominalMs])),
+  voiceMs: (speaker, text) => voiced(speaker, text) ?? (process.env.TT_VOICED ? Math.round(Math.max(800, text.length * 60) * 1.3) : null),
+});
 
 const LANTERN = 'lantern-lost';
+const WICK = 'the-wick';
 const GAP = 'the-gap';
 /** A keepsake from another story, matching no rule at the gap. */
 const STRANGER = { id: 'button', tags: ['rolls', 'heavy'] };
@@ -39,12 +45,15 @@ const nothing: Reader = () => [];
 // As fast as hands can go: the lantern has to land first (1.8 s), and the drawer has to open (1.7 s) before you can reach in.
 const eager = reader([
   { when: asked(LANTERN, 2500), then: [gift('lantern')] },
-  { when: during('page-corner', 800), then: [{ do: 'skip' }] },
-  { when: asked(GAP, 3500), then: [gift('kite')] },
+  { when: during('page-one', 800), then: [{ do: 'skip' }] },
+  { when: asked(WICK, 2500), then: [gift('lamp-wick')] },
+  { when: during('page-two', 800), then: [{ do: 'skip' }] },
+  { when: asked(GAP, 3500), then: [gift('ladder')] },
 ]);
 const firstGift = (object: string) =>
   reader([
     { when: asked(LANTERN, 6000), then: [gift('lantern')] },
+    { when: asked(WICK, 6000), then: [gift('lamp-wick')] },
     { when: asked(GAP, 6000), then: [gift(object)] },
   ]);
 
@@ -74,11 +83,12 @@ const paths: Record<string, Reader> = {
     { when: during('sock-scarf', 9000), then: [gift('odd-sock')] },
   ]),
   'something else during the lantern ask, then it again at the gap': reader([
-    { when: asked(LANTERN, 3000), then: [gift('spool')] },
-    { when: asked(GAP, 3000), then: [gift('spool')] },
+    { when: asked(LANTERN, 3000), then: [gift('odd-sock')] },
+    { when: asked(GAP, 3000), then: [gift('odd-sock')] },
   ]),
   'a keepsake from another story at the gap': firstGift(STRANGER.id),
-  'a gift while nothing is asked': reader([{ when: during('shore-walk', 4000), then: [gift('kite')] }]),
+  'a gift while nothing is asked': reader([{ when: during('wick-gone', 4000), then: [gift('ladder')] }]),
+  'something else in the reeds, then the moth': reader([{ when: asked(WICK, 3000), then: [gift('kite')] }]),
   'holding an object through the whole gap ask': reader([{ when: asked(GAP, 500), then: [{ do: 'hold', on: true }] }]),
   'regrabbing over and over': (() => {
     let on = false;
@@ -157,6 +167,7 @@ describe('every path through episode 1, simulated offline', () => {
 
   test('the dark path relights the lantern by courage, and both lantern paths end alike', () => {
     expect(reports['nothing ever']!.beats).toContain('lantern-fetch');
+    expect(reports['nothing ever']!.beats).toContain('wick-moth');
     expect(reports['eager: lantern, page and kite at once']!.beats).toContain('lantern-back');
     for (const r of Object.values(reports)) expect(r.beats.slice(-3)).toEqual(['lighthouse', 'the-beam', 'chapter-end']);
   });

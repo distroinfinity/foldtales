@@ -103,7 +103,9 @@ export function buildStage(manifest: ShowManifest, assets: StageAssets, soft: So
     for (const o of scene.objects) {
       if (initial.some((s) => s.id === o.id)) continue;
       const carrier = carriers.get(o.id);
-      initial.push({ id: o.id, home: carrier ? { kind: 'carried', cast: carrier } : { kind: 'drawer' }, given: false, grabbable: true });
+      // A carried light starts in its keeper's paw; the drawer's presets in the drawer; a thing on a set waits off the page until a beat places it.
+      const home = carrier ? { kind: 'carried' as const, cast: carrier } : o.origin === 'drawer' ? { kind: 'drawer' as const } : { kind: 'away' as const };
+      initial.push({ id: o.id, home, given: false, grabbable: true });
     }
   }
   // Props a crossing uses that the reader never hands over, like a rope already in a paw.

@@ -60,6 +60,7 @@ const CUE_SOUNDS: Partial<Record<CueKind, SoundName>> = {
   'cross-rope': 'rope',
   spark: 'spark',
   'lamp-lit': 'lamp',
+  'lamp-out': 'puff',
   keep: 'satchel',
   'chapter-end': 'chime',
   sound: 'reeds',

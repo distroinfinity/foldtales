@@ -9,7 +9,7 @@ import { scheduleBeat, type Timed } from './schedule.ts';
  */
 
 /** Holding something defers an "ignored" beat, but only this much in total for each problem. */
-export const HOLD_GRACE_MS = 20_000;
+export const HOLD_GRACE_MS = 12_000;
 /** And for this long after you let go. */
 export const RELEASE_GRACE_MS = 3000;
 
