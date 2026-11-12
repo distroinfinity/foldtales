@@ -6,6 +6,8 @@ type Unstamped = TelemetryEvent extends infer E ? (E extends TelemetryEvent ? Om
 const MAX_QUEUE = 500;
 const WINDOW_MS = 10_000;
 const HITCH_MS = 100;
+/** Longer than this, the frame loop was paused (headset off, page hidden), not slow. */
+const PAUSE_MS = 5_000;
 const MAX_FRAMES = 2048;
 
 export interface Telemetry {
@@ -50,7 +52,7 @@ export function createTelemetry(
   return {
     record,
     frame(deltaMs, render) {
-      if (deltaMs <= 0) return;
+      if (deltaMs <= 0 || deltaMs > PAUSE_MS) return;
       if (deltaMs > HITCH_MS) record({ kind: 'hitch', ms: deltaMs, phase: 'frame' });
       if (frameCount < MAX_FRAMES) frames[frameCount++] = deltaMs;
       windowMs += deltaMs;

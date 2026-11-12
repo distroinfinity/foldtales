@@ -68,6 +68,19 @@ describe('telemetry', () => {
   });
 });
 
+describe('pauses', () => {
+  test('a long gap, like taking the headset off, is a pause: no hitch and not counted in fps', async () => {
+    const batches: TelemetryBatch[] = [];
+    const telemetry = createTelemetry(async (b) => void batches.push(b), clock, ids);
+    telemetry.frame(403_017, { calls: 7, triangles: 40 });
+    for (let i = 0; i < 1000; i++) telemetry.frame(10, { calls: 7, triangles: 40 });
+    await telemetry.flush();
+    const events = batches[0]!.events;
+    expect(events.some((e) => e.kind === 'hitch')).toBe(false);
+    expect(events.find((e) => e.kind === 'frame_summary')).toMatchObject({ medianFps: 100, lowFps: 100 });
+  });
+});
+
 describe('backend access', () => {
   function server() {
     const real = createMockBackend();
