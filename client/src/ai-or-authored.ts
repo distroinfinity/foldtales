@@ -8,9 +8,13 @@ function reasonFor(cause: unknown): FallbackReason {
 }
 
 /** The show never waits on AI: any failure, cap or silence takes the authored path. */
-export async function aiOrAuthored<T>(call: () => Promise<T>, authored: () => T, onFallback: (reason: FallbackReason) => void): Promise<T> {
+export async function aiOrAuthored<T>(call: () => Promise<T | null>, authored: () => T, onFallback: (reason: FallbackReason) => void): Promise<T> {
   try {
-    return await call();
+    const result = await call();
+    if (result !== null) return result;
+    // `withBackend` gives null when it can't get a device token: the backend can't be reached.
+    onFallback('offline');
+    return authored();
   } catch (cause) {
     onFallback(reasonFor(cause));
     return authored();

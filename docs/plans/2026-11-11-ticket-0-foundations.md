@@ -220,3 +220,13 @@ Codex reviewed this plan before any code was written. It found one P0, eleven P1
 15. **P2, the preflight test was too weak.** *Fixed:* a full preflight then the POST, CORS first, and real hostname comparison.
 
 A second Codex pass checked the fixes and accepted the declined item. It found one new P1: the read limit could skip events tied at one `seq`. *Fixed:* a page extends to include every tie, with a regression test. No P0 or P1 remains.
+
+### PR review (Codex, PR #3)
+
+Three P1 and two P2 issues, no P0.
+
+1. **P1, telemetry storage amplification:** a huge `buildId` was repeated on every row. *Fixed:* `buildId` and `sessionId` are cut to 128 characters before storing (contracts unchanged).
+2. **P1, looking down at the table missed it:** both ray rows were steep. *Fixed:* four rows, about 15°, 30°, 42° and 51° below gaze, so the table is found looking ahead or down at it.
+3. **P1, an unreachable backend skipped the authored fallback:** `withBackend` returns null, which `aiOrAuthored` treated as success. *Fixed:* null now takes the authored path with reason `offline`.
+4. **P2, retries hit the event limit:** duplicates counted against it. *Fixed:* only newly inserted events count, and going over rolls the batch back.
+5. **P2, CI doesn't run for fork PRs.** *Declined:* this repo takes no fork PRs, and adding `pull_request` would run CI twice on every PR.

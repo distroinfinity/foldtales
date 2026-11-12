@@ -1,6 +1,7 @@
 import { DatabaseSync } from 'node:sqlite';
 import { BackendError, type ShowEvent } from '@tabletop/contracts';
 
+const MAX_ID_LENGTH = 128;
 const MAX_EVENTS_PER_DEVICE = 20_000;
 const READ_PAGE = 5_000;
 const TELEMETRY_READ_LIMIT = 10_000;
@@ -92,9 +93,11 @@ export function openStore(path: string): Store {
     appendEvents(deviceId, seriesId, events) {
       return transaction(() => {
         const held = Number((deviceEvents.get(deviceId) as { n: number }).n);
-        if (held + events.length > MAX_EVENTS_PER_DEVICE) throw new BackendError('quota_exceeded', 'this device has stored too many events');
-        // A resend keeps the original, so events are identified by id, not seq.
-        for (const event of events) insertEvent.run(deviceId, seriesId, event.id, event.seq, JSON.stringify(event));
+        // A resend keeps the original, so events are identified by id, not seq. Only new ones count against
+        // the limit, so a retry of stored events still succeeds; going over rolls the whole batch back.
+        let added = 0;
+        for (const event of events) added += Number(insertEvent.run(deviceId, seriesId, event.id, event.seq, JSON.stringify(event)).changes);
+        if (held + added > MAX_EVENTS_PER_DEVICE) throw new BackendError('quota_exceeded', 'this device has stored too many events');
         const { last } = lastSeq.get(deviceId, seriesId) as { last: number | null };
         return last;
       });
@@ -114,6 +117,9 @@ export function openStore(path: string): Store {
 
     addTelemetry(deviceId, buildId, sessionId, events, now) {
       const receivedAt = now.toISOString();
+      // Stored on every row, so a huge id would multiply one request many times over.
+      buildId = buildId.slice(0, MAX_ID_LENGTH);
+      sessionId = sessionId.slice(0, MAX_ID_LENGTH);
       transaction(() => {
         for (const event of events) insertTelemetry.run(receivedAt, deviceId, buildId, sessionId, JSON.stringify(event));
         if (now.getTime() - prunedAtMs >= PRUNE_EVERY_MS) {
