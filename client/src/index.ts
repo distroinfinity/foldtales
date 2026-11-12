@@ -358,6 +358,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       else {
         readAgain.requested = false;
         runtime.reset(initialObjects);
+        controls.lowerRibbon();
         clearCheckpoint(localStorage);
         writeProgress(localStorage, { seriesId: series, chapter: 1, state: 'started' });
         log.append('beat.started', { beatId: assets.spine.scenes[0]!.entry, fallback: null });

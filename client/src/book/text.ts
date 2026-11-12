@@ -92,7 +92,7 @@ export interface EndPageView {
 export function endPageText(widthM: number): EndPageView {
   const root = new Object3D();
   root.name = 'end-page';
-  const make = (text: string, font: string, color: string, anchorX: 'left' | 'right') => {
+  const make = (text: string, font: string, color: string, anchorX: 'left' | 'right' | 'center') => {
     const t = new Text();
     t.text = text;
     t.font = font;
@@ -105,13 +105,15 @@ export function endPageText(widthM: number): EndPageView {
     return t;
   };
   const end = make('The end of chapter one', titleFont, NAVY, 'left');
-  end.position.x = -widthM / 2;
-  const again = make('Read it again', captionFont, INK, 'right');
-  again.position.x = widthM / 2;
+  end.position.x = -widthM / 2 + 0.01;
+  // Well clear of the ribbon's tail at the near right corner, so one is never taken for the other.
+  const AGAIN_X = 0.075;
+  const again = make('Read it again', captionFont, INK, 'center');
+  again.position.x = AGAIN_X;
   const rule = new Mesh(new PlaneGeometry(0.068, 0.0016), new MeshBasicMaterial({ color: '#D4A23E', transparent: true, toneMapped: false }));
-  rule.position.set(widthM / 2 - 0.034, -0.009, 0);
+  rule.position.set(AGAIN_X, -0.009, 0);
   const anchor = new Object3D();
-  anchor.position.set(widthM / 2 - 0.034, 0, 0);
+  anchor.position.set(AGAIN_X, 0, 0);
   root.add(end, again, rule, anchor);
   root.visible = false;
   let near = false;

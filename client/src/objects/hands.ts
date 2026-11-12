@@ -8,8 +8,8 @@ import type { ExtraTarget } from '../stage/controls.ts';
 import type { HandSide, Home, ObjectsView } from './objects.ts';
 
 /** A character notices what you hold from this far, and takes it if you let go within the nearer distance. Desk-size metres. */
-export const NOTICE_M = 0.15;
-export const GIVE_M = 0.085;
+export const NOTICE_M = 0.17;
+export const GIVE_M = 0.105;
 /** Fingertips stop on the real table: everything can be taken from up to this far above it. */
 const REACH_UP_M = 0.05;
 const TARGET_M = 0.032;
@@ -100,13 +100,17 @@ export function createObjectHands(deps: HandsDeps) {
   let bookOpen = true;
   let nowMs = 0;
 
-  const nearest = (point: Vector3, maxM: number): string | null => {
+  /** How near a held object is to a paw: the nearer of where you hold it and the middle of the thing itself. */
+  const nearest = (objectId: string, maxM: number): string | null => {
     const scale = deps.stageRoot.scale.x || 1;
+    const held = deps.objects.worldOf(objectId, new Vector3());
+    const body = deps.objects.centreOf(objectId, new Vector3());
     let best: string | null = null;
     let bestD = maxM * scale;
     for (const [id, grip] of deps.grips()) {
       if (!deps.runtime.canReceive(id)) continue;
-      const d = v(grip).distanceTo(point);
+      const g = v(grip);
+      const d = Math.min(g.distanceTo(held), g.distanceTo(body));
       if (d < bestD) {
         best = id;
         bestD = d;
@@ -137,7 +141,7 @@ export function createObjectHands(deps: HandsDeps) {
       for (const side of ['left', 'right'] as const) {
         const id = held[side];
         if (!id) continue;
-        const cast = nearest(deps.objects.worldOf(id, new Vector3()), NOTICE_M);
+        const cast = nearest(id, NOTICE_M);
         if (cast) noticed = { cast, object: id };
       }
       deps.runtime.notice(noticed?.cast ?? null, noticed?.object ?? null);
@@ -164,7 +168,7 @@ export function createObjectHands(deps: HandsDeps) {
             deps.runtime.setHolding(anyHeld());
             if (!id) return;
             lastPoint[hand] = point.clone();
-            const cast = nearest(deps.objects.worldOf(id, new Vector3()), GIVE_M);
+            const cast = nearest(id, GIVE_M);
             if (cast && deps.runtime.gift(id, cast)) return;
             settle(id, hand);
           },

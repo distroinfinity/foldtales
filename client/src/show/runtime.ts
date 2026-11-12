@@ -461,6 +461,8 @@ export function createShowRuntime({ manifest, spine, defs, moods, views, clock }
         const s = views.objects.get(objectId);
         if (s && !light) s.given = true;
       }
+      // Solved: the Lost and Found tucks itself away while the crossing plays.
+      if (outcome.kind === 'rule' && outcome.outcome === 'solved') drawerWanted = false;
       if (outcome.kind === 'aside' || outcome.kind === 'repeat') {
         overlays.push({ who: castId, kind: outcome.kind, objectId, startMs: ms });
         views.sound.play(outcome.kind === 'repeat' ? 'felt' : 'puzzled', at);

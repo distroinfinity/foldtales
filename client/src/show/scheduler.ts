@@ -205,6 +205,13 @@ export function createScheduler(spine: Spine, durationOf: (action: StageAction) 
     },
     gift(nowMs, objectId, tags, receiver) {
       const events = this.tick(nowMs, false);
+      // A reader ahead of the story: this spread's problem hasn't been asked yet, but a gift that answers it counts.
+      const scene = current().scene;
+      const sceneProblem = problemOf(scene);
+      if (sceneProblem && !problems.some((p) => p.id === sceneProblem.id) && sceneProblem.rules.some((r) => r.outcome === 'solved' && r.anyTags.some((t) => tags.includes(t)))) {
+        problems.push({ id: sceneProblem.id, scene, openedAtMs: nowMs, graceMs: 0, tried: [], status: 'open', closedAtMs: null });
+        events.push({ type: 'problem.opened', problemId: sceneProblem.id, atMs: nowMs, opensDrawer: false });
+      }
       const state = this.openProblem(nowMs);
       const problem = state ? problemOf(state.scene) : null;
       if (!state || !problem) return { outcome: { kind: 'aside' }, events };

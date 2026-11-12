@@ -39,6 +39,8 @@ export interface BookControls {
   reopen(): void;
   /** Swings it shut, as if your hand closed it. */
   close(): void;
+  /** Lays the ribbon back down and lets the show go, as when a chapter starts again. */
+  lowerRibbon(): void;
   /** How open your hands have it, 0 to 1. */
   readonly amount: number;
   frame(frame: XRFrame, deltaMs: number, enabled: boolean, head: Vector3): void;
@@ -266,6 +268,10 @@ export function createBookControls({ world, stageRoot, book, sound, pause, glow,
     close() {
       stable = 0;
       target = 0;
+    },
+    lowerRibbon() {
+      ribbon = false;
+      pause.set('ribbon', false);
     },
     get amount() {
       return amount;

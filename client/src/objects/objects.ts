@@ -92,8 +92,10 @@ export interface ObjectsView {
   setPageShown(shown: boolean): void;
   /** For grabbing: each grabbable object's centre in world space and its size. */
   grabTargets(): Array<{ id: string; centre: Vector3; radius: number }>;
-  /** World position of an object. */
+  /** World position of an object (where it's held or stands). */
   worldOf(id: string, target: Vector3): Vector3;
+  /** World position of the middle of the object's painting. */
+  centreOf(id: string, target: Vector3): Vector3;
   snapshot(): ObjectState[];
   restore(states: ObjectState[]): void;
 }
@@ -236,6 +238,9 @@ export function createObjects(initial: ObjectState[], deps: ObjectsDeps): Object
     },
     worldOf(id, target) {
       return views.get(id)?.holder.getWorldPosition(target) ?? target;
+    },
+    centreOf(id, target) {
+      return views.get(id)?.card.getWorldPosition(target) ?? target;
     },
     frame(nowMs, head, receivers, hands, opts) {
       clockMs = nowMs;
