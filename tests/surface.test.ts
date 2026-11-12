@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { createPlacement, type PlacementInput } from '../client/src/stage/placement.ts';
-import { fallbackSpot, horizontalForward, pickSurface, type Hit, type Vec3 } from '../client/src/stage/surface.ts';
+import { fallbackSpot, horizontalForward, pickSurface, placementRays, type Hit, type Vec3 } from '../client/src/stage/surface.ts';
 
 const head: Vec3 = { x: 0, y: 1.2, z: 0 };
 const forward: Vec3 = { x: 0, y: -0.5, z: -0.87 };
@@ -137,5 +137,25 @@ describe('the placement machine', () => {
     first.step(0, nothing);
     first.step(5000, nothing);
     expect(createPlacement().step(5000, nothing).state).toBe('searching');
+  });
+});
+
+describe('placement rays', () => {
+  // Seated at a desk, looking straight ahead: eyes about 45 cm above the table.
+  test.each([0.4, 0.45, 0.5])('from %s m above a table, looking ahead, every ray lands where a hit counts', (drop) => {
+    const head = { x: 0, y: 0.75 + drop, z: 0 };
+    for (const ray of placementRays()) {
+      expect(ray.y).toBeLessThan(0);
+      const t = drop / -ray.y;
+      const hit = { position: { x: ray.x * t, y: 0.75, z: ray.z * t }, normalY: 1 };
+      const along = Math.hypot(hit.position.x, hit.position.z);
+      expect(along).toBeLessThanOrEqual(0.6);
+      expect(Math.hypot(along, drop)).toBeGreaterThanOrEqual(0.5);
+    }
+  });
+
+  test('enough rays to make a group, and not so many the browser refuses them', () => {
+    expect(placementRays().length).toBeGreaterThanOrEqual(6);
+    expect(placementRays().length).toBeLessThanOrEqual(16);
   });
 });

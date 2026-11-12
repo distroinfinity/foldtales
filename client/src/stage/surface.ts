@@ -76,3 +76,14 @@ export function fallbackSpot(head: Vec3, forward: Vec3): Vec3 {
   const flat = horizontalForward(forward, forward);
   return { x: head.x + flat.x * FALLBACK_AHEAD_M, y: head.y - FALLBACK_BELOW_M, z: head.z + flat.z * FALLBACK_AHEAD_M };
 }
+
+/**
+ * Hit-test directions in viewer space (z forward is -1): two rows, about 42° and 51° below your gaze.
+ * Seated at a desk and looking straight ahead, both rows land within reach, so the table counts without
+ * having to look down at it.
+ */
+export function placementRays(): Vec3[] {
+  const near = [-0.15, -0.09, -0.03, 0.03, 0.09, 0.15].map((x) => ({ x, y: -1.25, z: -1 }));
+  const far = [-0.3, -0.18, -0.06, 0.06, 0.18, 0.3].map((x) => ({ x, y: -0.9, z: -1 }));
+  return [...near, ...far];
+}

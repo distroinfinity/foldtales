@@ -1,8 +1,7 @@
 import { Quaternion, Vector3, type Object3D, type World } from '@iwsdk/core';
 import { createPlacement, type PlacementDecision } from './placement.ts';
-import { horizontalForward, type Hit, type Vec3 } from './surface.ts';
+import { horizontalForward, placementRays, type Hit, type Vec3 } from './surface.ts';
 
-const RAYS = 12;
 const orientation = new Quaternion();
 const forwardAxis = new Vector3();
 const upAxis = new Vector3();
@@ -26,9 +25,8 @@ export function startPlacement(world: World, target: Object3D, onPlaced: OnPlace
       sources = [];
     }, { once: true });
     void owned.requestReferenceSpace('viewer').then(async (viewer) => {
-      for (let i = 0; i < RAYS; i++) {
-        const angle = (i / RAYS) * Math.PI * 2;
-        const offsetRay = new XRRay({ x: 0, y: 0, z: 0 }, { x: Math.cos(angle) * 0.25, y: -0.5 + Math.sin(angle) * 0.12, z: -0.8 });
+      for (const direction of placementRays()) {
+        const offsetRay = new XRRay({ x: 0, y: 0, z: 0 }, { ...direction, w: 0 });
         const source = await world.requestHitTestSource({ space: viewer, offsetRay });
         if (!source) continue;
         // The session may have ended while this was pending.
