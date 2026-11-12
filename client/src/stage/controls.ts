@@ -85,6 +85,7 @@ export function createBookControls({ world, stageRoot, book, sound, pause, glow,
   let listening: XRSession | null = null;
   let extraTargets: ExtraTarget[] = [];
   let enabledNow = false;
+  const grabbedThisPinch: Record<HandSide, boolean> = { left: false, right: false };
   const pinch: Record<HandSide, Vector3 | null> = { left: null, right: null };
   const gestures = createGestures();
   let amount = 1;
@@ -180,6 +181,7 @@ export function createBookControls({ world, stageRoot, book, sound, pause, glow,
   }
 
   function handle(event: GestureEvent, head: Vector3): void {
+    if (event.kind === 'grab') grabbedThisPinch[event.hand] = true;
     if (handleExtra(event)) return;
     if (resize && (event.kind === 'release' || event.kind === 'cancel') && (event.id === 'cover' || event.id === 'fore')) {
       resize = null;
@@ -292,8 +294,17 @@ export function createBookControls({ world, stageRoot, book, sound, pause, glow,
       }
       if (listening !== frame.session && onGazeSelect) {
         listening = frame.session;
+        // The pinch arrives on the gaze source, or (in the glasses emulator) on the pinching hand. A hand's
+        // pinch counts only if it didn't take hold of something within reach, so a near grab never also fires at what you look at.
+        frame.session.addEventListener('selectstart', (event) => {
+          const side = event.inputSource.handedness;
+          if (side === 'left' || side === 'right') grabbedThisPinch[side] = false;
+        });
         frame.session.addEventListener('select', (event) => {
-          if (event.inputSource.targetRayMode === 'gaze' && gaze.valid && enabledNow) onGazeSelect(gaze.origin.clone(), gaze.direction.clone());
+          if (!gaze.valid || !enabledNow) return;
+          const side = event.inputSource.handedness;
+          const fromHand = side === 'left' || side === 'right';
+          if (event.inputSource.targetRayMode === 'gaze' || (fromHand && !grabbedThisPinch[side])) onGazeSelect(gaze.origin.clone(), gaze.direction.clone());
         });
       }
       const hands: Record<HandSide, HandFrame | null> = { left: null, right: null };

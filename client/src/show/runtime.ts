@@ -708,7 +708,7 @@ export function createShowRuntime({ manifest, spine, defs, moods, views, clock }
         if (ms - o.startMs >= end && s?.home.kind === 'paw' && s.home.cast === o.who) {
           const [x, , z] = footOf(o.who);
           views.objects.send(o.objectId, { kind: 'page', at: [x + 0.032, 0, Math.min(z + 0.022, views.book.frontHingeZ - 0.006)] }, ms, 420, 0.02);
-          views.sound.play('settle', views.puppets.get(o.who)?.root.getWorldPosition(new Vector3()));
+          views.sound.play('setdown', views.puppets.get(o.who)?.root.getWorldPosition(new Vector3()));
         }
       }
       overlays = overlays.filter((o) => ms - o.startMs < 3200);

@@ -204,6 +204,12 @@ export function createSoundEngine(sources?: SoundSources): SoundEngine {
         noiseBurst(bus, dest, t, 0.3, 'lowpass', 800, 0.7, 0.18, 0.05);
         tonePing(bus, dest, t + 0.25, 1600, 0.25, 0.03, 'triangle');
         break;
+      case 'setdown':
+        noiseBurst(bus, dest, t, 0.12, 'lowpass', 1400, 0.7, 0.12, 0.004);
+        break;
+      case 'reeds':
+        noiseBurst(bus, dest, t, 0.7, 'bandpass', 2400, 0.8, 0.07, 0.15, 1200);
+        break;
       case 'hop':
         noiseBurst(bus, dest, t + 0.5, 0.08, 'lowpass', 1200, 0.7, 0.1, 0.003);
         break;

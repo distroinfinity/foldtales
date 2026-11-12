@@ -119,7 +119,7 @@ export function createObjectHands(deps: HandsDeps) {
     const at = lastPoint[side] ?? deps.objects.worldOf(id, new Vector3());
     const home = restingHome(at, deps, bookOpen);
     deps.objects.send(id, home, nowMs, 260, 0);
-    deps.sound.play(home.kind === 'satchel' ? 'satchel' : 'settle', at);
+    deps.sound.play(home.kind === 'satchel' ? 'satchel' : home.kind === 'page' || home.kind === 'drawer' ? 'setdown' : 'settle', at);
   };
 
   const anyHeld = () => held.left !== null || held.right !== null;

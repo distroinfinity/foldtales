@@ -22,7 +22,9 @@ export type SoundName =
   | 'spark'
   | 'lamp'
   | 'satchel'
-  | 'hop';
+  | 'hop'
+  | 'setdown'
+  | 'reeds';
 
 export interface SoundMark {
   atMs: number;
@@ -49,7 +51,7 @@ const CUE_SOUNDS: Partial<Record<CueKind, SoundName>> = {
   beam: 'chime',
   'drop-held': 'clink',
   relight: 'flare',
-  'set-down': 'settle',
+  'set-down': 'setdown',
   wear: 'rustle',
   'page-turn': 'page',
   'cross-kite': 'whoosh',
@@ -60,7 +62,7 @@ const CUE_SOUNDS: Partial<Record<CueKind, SoundName>> = {
   'lamp-lit': 'lamp',
   keep: 'satchel',
   'chapter-end': 'chime',
-  sound: 'rustle',
+  sound: 'reeds',
 };
 
 /** Every sound the show makes, in time order. Derived from the timeline, so a resume can't replay one. */

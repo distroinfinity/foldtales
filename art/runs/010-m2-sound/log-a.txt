@@ -11,3 +11,25 @@ done spark-rise: 5.7s, 2 credits
 done lamp-light: 5.6s, 2 credits
 done satchel-in: 4.2s, 2 credits
 done drawer-slide: 7.9s, 2 credits
+done pick-up: 9.6s, 1 credits
+done give-pleased: 5.6s, 1 credits
+done give-puzzled: 4.1s, 1 credits
+done rustle-dark: 10.2s, 1 credits
+done hop-land: 6.1s, 1 credits
+round sound ended: committed 26 of cap 120
+round voice: balance 111693, committed 26, cap 120
+done pip-no-no-no: 6.4s, 1 credits
+done pip-it-rolled-right-to-the-edge-and-it-s-so: 6.5s, 1 credits
+done pip-could-you-reach-it-for-me: 6.5s, 1 credits
+done pip-it-s-lit-it-was-cold-and-then-you-held-i: 6.7s, 1 credits
+done pip-thank-you-i-m-not-scared-now-well-a-bit: 5.6s, 1 credits
+done pip-it-s-warmer-than-it-s-ever-been-like-it: 6.4s, 1 credits
+done narrator-it-had-never-burned-so-brightly-it-was-a: 5.7s, 1 credits
+done pip-oh-that-s-kind-of-you: 5.6s, 1 credits
+done pip-but-my-lantern-s-still-over-there-in-the: 8.7s, 1 credits
+done narrator-nobody-came-so-the-little-fox-took-a-dee: 6.1s, 1 credits
+done narrator-and-when-he-held-it-close-brave-in-the-d: 5.6s, 1 credits
+done pip-i-did-it-i-really-did-it: 6s, 1 credits
+done pip-wick-will-be-lighting-the-lamp-soon-i-m: 11.8s, 1 credits
+done narrator-down-where-the-house-ends-everything-los: 6.8s, 1 credits
+done pip-somebody-s-missing-a-very-big-button: 6s, 1 credits
