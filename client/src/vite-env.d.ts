@@ -4,4 +4,5 @@
 interface ImportMetaEnv {
   /** Only TT_PUBLIC_ variables reach the client. Never put a key behind this prefix. */
   readonly TT_PUBLIC_BACKEND_URL?: string;
+  readonly TT_PUBLIC_BUILD_ID?: string;
 }
