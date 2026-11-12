@@ -28,3 +28,8 @@ Plain build over USB (`vite preview`, https), real tracking.
 - **Owner's note: show the surface when it's found.** Right now nothing tells you the theater runs on your table. Before Pip (or the book) appears, show the found surface (for example a painted ring or wash spreading across the table, with a line printed on it like "Your theater will play here") and, while searching, a hint to look at your table. It must follow `design-language.md` (painted, text on a surface, no floating UI). Belongs with the opening in ticket 1 (Painted Stage Kit, M1's "the book unfolds"), and needs a design pass first.
 - **Owner's note: the room dim will help.** Without the planned "theater lights down" dim, Pip competes with a bright room. The dim is in ticket 1.
 - Telemetry: median 90 fps, low about 81–83 fps.
+- **After the ray fix (same session):** Pip found the desk and stood on it, and the owner said the animation looks good: "I think we are good here." Telemetry showed one leftover: the 5 s fallback fired 0.8 s before the table hit, so Pip appeared in the air and jumped. *Fixed:* the 5 s clock now starts once the rays exist (at most 3 s of setup), and the rays are requested together. Also fixed: a 403 s "hitch" that was really the headset being taken off; gaps over 5 s now count as pauses.
+
+## M0 sign-off, Nov 12, 2026
+
+**Signed off by the owner on the Quest 3**, from a local production build over USB rather than a preview link, because the owner chose to hold hosting until later. Pip stands on the real table, static in the room, breathing, with the lantern glowing, at 90 fps. Open for ticket 1: the found-surface moment and the room dim (above), and the hosted preview link (Task 7).
