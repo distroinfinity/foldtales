@@ -81,9 +81,11 @@ Codex reviewed the plan read-only before any credits were spent, over three roun
 
 Approved on the Mac by the owner on Nov 11, 2026, in `art/m2-proof.html`, including the free widening of the chasm. That approval is provisional. Final approval happens in the headset.
 
+**Quest Browser, Nov 12, 2026.** The owner opened the proof in Quest Browser on the Quest 3, over USB (`adb reverse` on `CLIENT_PORT`). Every file loaded, the browser logged no errors, and it looks good so far. It is still a flat page, so it adds nothing beyond the Mac approval. **From now on the headset is used only for XR experiences** (`AGENTS.md`), so the checks below wait for tickets 1 and 2 to render these pieces in IWSDK.
+
 ## Quest test
 
-**Now, in Quest Browser.** Serve `art/` on the Mac (`python3 -m http.server <CLIENT_PORT> --bind 0.0.0.0 -d art` from the repo root, with `CLIENT_PORT` from `.env.ports`). Open `http://<Mac's LAN IP>:<CLIENT_PORT>/m2-proof.html`.
+**Superseded: don't run this flat-page check in the headset.** It is kept for the record. Serve `art/` on the Mac (`python3 -m http.server <CLIENT_PORT> --bind 0.0.0.0 -d art` from the repo root, with `CLIENT_PORT` from `.env.ports`). Open `http://<Mac's LAN IP>:<CLIENT_PORT>/m2-proof.html`.
 
 1. **The gap reads as where the path ends,** from where you sit, within 2 seconds. The widened water and squeezed bluffs don't look stretched.
 2. **Ladder:** it looks like it really spans the gap. The sock looks hopeless.
@@ -91,4 +93,4 @@ Approved on the Mac by the owner on Nov 11, 2026, in `art/m2-proof.html`, includ
 4. **Thread:** can you see the spool's thread across the water? If not, it needs to be thicker.
 5. **Drawer:** the objects tip up and stand clearly, and Night keeps them distinct on the green felt.
 
-**Later, once tickets 1 and 2 render these:** the drawer's reach on a real table, grabbing from it, the satchel flap and an object going in, Wick's rope throw, and the beam in your real room.
+**In the headset, once tickets 1 and 2 render these in IWSDK** (the real test). Items 1 to 5 above, on the immersive stage, plus the drawer's reach on a real table, grabbing from it, the satchel flap and an object going in, Wick's rope throw, and the beam in your real room.
