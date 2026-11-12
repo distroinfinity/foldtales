@@ -1,0 +1,44 @@
+round sound: balance 111366, committed 0, cap 80
+round sound ended: committed 0 of cap 80
+round voice: balance 111366, committed 0, cap 80
+done narrator-every-night-the-lighthouse-at-the-edge-o: 6s, 1 credits
+done wick-forty-years-and-she-s-never-once-gone-da: 4.3s, 1 credits
+done pip-can-i-trim-the-wick-tonight-wick-please: 6.9s, 1 credits
+done wick-when-you-re-bigger-lad: 6s, 1 credits
+done narrator-and-that-was-when-the-wind-came: 4.2s, 1 credits
+done pip-it-rolled-right-to-the-edge-and-it-s-suc: 11.5s, 1 credits
+done pip-thank-you-it-s-the-only-light-left-now: 8.7s, 1 credits
+done pip-i-ll-keep-it-close-promise: 11s, 1 credits
+done pip-but-my-lantern-s-still-over-there-right: 6.1s, 1 credits
+done pip-wick-i-ll-light-the-lamp-from-mine: 6.5s, 1 credits
+done wick-hold-on-lad-the-wick-s-gone-blown-clean: 11.3s, 1 credits
+done pip-gone-gone-where: 6.4s, 1 credits
+done wick-down-on-the-shore-with-every-lost-thing: 5.7s, 1 credits
+done pip-then-will-you-come-with-me: 6.1s, 1 credits
+done narrator-so-down-went-the-little-fox-a-hundred-an: 9.2s, 1 credits
+done narrator-down-on-the-shore-the-lost-things-lay-wh: 7s, 1 credits
+done pip-a-kite-a-spool-somebody-s-whole-sewing-b: 9.1s, 1 credits
+done pip-wick-where-are-you-wick: 8.4s, 1 credits
+done pip-moth-have-you-seen-a-lamp-wick-all-white: 6.9s, 1 credits
+done pip-there-in-the-reeds-but-they-re-too-thick: 6s, 1 credits
+done pip-could-you-reach-in-and-get-it-for-me: 11.4s, 1 credits
+done pip-that-s-it-that-s-the-lamp-s-wick: 6s, 1 credits
+done pip-safe-in-my-coat-thank-you: 6.8s, 1 credits
+done pip-moth-did-you-see-they-reached-right-into: 12.8s, 1 credits
+done narrator-the-moth-was-more-interested-in-the-lant: 6.4s, 1 credits
+done pip-oh-that-s-a-good-find-but-it-isn-t-the-w: 6.9s, 1 credits
+done pip-the-wick-s-still-in-the-reeds-all-white: 6.9s, 1 credits
+done narrator-but-moths-it-turns-out-are-very-good-at: 9.2s, 1 credits
+done pip-moth-you-found-it-you-re-the-best-moth-i: 6.8s, 1 credits
+done pip-wick-says-the-lighthouse-calls-every-los: 9.1s, 1 credits
+done pip-i-m-still-scared-of-the-dark-but-less-wi: 6.5s, 1 credits
+done pip-come-on-moth-home-is-this-way: 6.2s, 1 credits
+done pip-if-only-we-could-cross-is-there-anything: 8.3s, 1 credits
+done pip-wick-it-s-me-i-found-the-wick-but-i-can: 6.9s, 1 credits
+done pip-and-i-found-the-wick-it-s-right-here-in: 6.1s, 1 credits
+done wick-down-a-hundred-and-twelve-steps-in-the-d: 6.4s, 1 credits
+done wick-not-bad-lad-not-bad-at-all: 11.4s, 1 credits
+done wick-then-come-on-lad-that-lamp-won-t-light-i: 5.6s, 1 credits
+done narrator-up-they-went-a-hundred-and-twelve-steps: 6s, 1 credits
+done wick-in-it-goes-steady-now: 11.8s, 1 credits
+done wick-can-t-see-well-enough-to-light-it-lad-no: 6.5s, 1 credits

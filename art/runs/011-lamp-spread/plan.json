@@ -12,7 +12,7 @@
   "reusableOutput": "The lamp spread (sky, lamp room, railings, gallery floor) and its lit lamp, the shore's night sky, and the lamp-wick object.",
   "estimateCredits": 64,
   "capNote": "Owner's cap for art while away: 120 credits. Key 5, six 2K layers 54, wick sheet 5. Contingency for repaints.",
-  "capCredits": 70,
+  "capCredits": 10,
   "jobs": [
     {
       "id": "lamp-key",
@@ -86,7 +86,7 @@
       "ratio": "2720:1530",
       "refs": [
         {
-          "file": "art/runs/004-book-and-first-set/layer-1-sky.png"
+          "file": "art/runs/011-lamp-spread/ref-dusk-sky.png"
         }
       ],
       "prompt": "Figure 1 is a painted paper stage piece of a dusk sky. Paint the same sky later in the evening, as a single die-cut paper stage piece, flat-on, in exactly the same painting style, shape and size: a wide band of deeper but still soft evening blue, with a round pale moon, a few small soft stars, and long thin clouds touched with the last warm light. Its top edge is cut in soft rolling cloud shapes. Its silhouette has a clean hard edge traced with a fine pencil line, and a perfectly straight flat bottom edge. Leave a wide margin of empty paper on all four sides, with nothing touching the edge of the image. Paint the whole piece continuously, including every part that other pieces would normally hide, right down to its straight bottom edge, with no gaps or holes. Mid values, never black. No lighthouse, no beams. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. On plain flat solid vivid magenta paper, one even color. No pink or purple in the painting. No text."

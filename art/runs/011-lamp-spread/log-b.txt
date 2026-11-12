@@ -3,3 +3,9 @@ balance 111425, cap 70
 skip lamp-key, already generated
 done lamp-sky: 138s, 9 credits
 done lamp-room: 137s, 9 credits
+done far-railing: 148s, 9 credits
+done near-ledge: 180s, 9 credits
+done lamp-ground: 156s, 9 credits
+FAILED night-sky: rejected 400: {"error":"Validation of body failed","issues":[{"code":"invalid_union","path":["referenceImages",0,"uri"],"message":"Data URI is too large: 9.1MB exceeds the 5MB limit. Upload the file and pass the returned URI instead.","errors":[[{"origin":"string","code":"invalid_format","format":"starts_with","p
+done wick-sheet: 93s, 5 credits
+finished, total spent 50
