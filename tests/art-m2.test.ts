@@ -36,7 +36,9 @@ describe('the gap set', () => {
     }
   });
 
-  test.each(set.layers.map((l: any) => [l.id, l]))('%s exists at its stated size', (_, layer: any) => {
+  const layers: { id: string; file: string; sizePx: number[] }[] = set.layers;
+
+  test.each(layers)('$id exists at its stated size', (layer) => {
     const file = join(dir, layer.file);
     expect(existsSync(file), layer.file).toBe(true);
     const { width, height } = pngSize(file);
