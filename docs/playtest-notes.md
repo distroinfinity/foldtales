@@ -16,9 +16,9 @@ What the owner noticed in the headset, in plain words. These come before new fea
 - [x] The book sat at or past the table's rim, so it felt sunk in and hard to reach (Nov 13). It now settles fully on the scanned table top; confirmed in the headset ("feels nice").
 - [ ] The two-handed stretch may be too sensitive: in session 2 it jumped between 0.6× and 1.3× within 2 s several times. Watch for it; damp it if the owner finds it twitchy.
 - [ ] ⏸ Hosted preview link, so testing needs no USB. Held with ticket 0's Task 7.
-- [ ] Chapter 1 runs too long before the first page turn, and the spreads look the same (session 1, ticket 2).
-- [ ] Open with the lit lamp and its beam, then it goes out and the journey is to relight it (owner's story idea, session 1).
-- [ ] The reader's help doesn't feel needed; it plays like a fixed play (session 1).
+- [ ] Chapter 1 runs too long before the first page turn, and the spreads look the same (session 1, ticket 2). Re-cut: three spreads and two turns, a new lamp spread, and the shore's own night sky. To check in session 2.
+- [ ] Open with the lit lamp and its beam, then it goes out and the journey is to relight it (owner's story idea, session 1). Built: the chapter opens on the lit lamp. To check in session 2.
+- [ ] The reader's help doesn't feel needed; it plays like a fixed play (session 1). Partly addressed: a hand moment on every spread, and what you find on the shore is what you have at the gap. The real fix is ticket 3's director.
 
 ## Ticket 2, headset session 1, Nov 13, 2026 (review build over USB, seated at a table)
 

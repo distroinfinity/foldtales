@@ -1093,9 +1093,9 @@
           "id": "moth-hover",
           "label": "in the air above the gap",
           "position": [
-            0,
-            0.09,
-            -0.0175
+            -0.025,
+            0.14,
+            -0.035
           ]
         },
         {

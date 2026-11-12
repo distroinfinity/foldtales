@@ -4,7 +4,7 @@
 
 ## Progress
 
-*Last updated Nov 13, 2026. A workstream is ticked when it's merged to main, and a milestone when the owner signs it off in the headset. ⏸ means held by the owner's choice. **Next: ticket 2.***
+*Last updated Nov 13, 2026. A workstream is ticked when it's merged to main, and a milestone when the owner signs it off in the headset. ⏸ means held by the owner's choice. **Now: ticket 2, chapter 1 re-cut after headset session 1, waiting for headset session 2 and a stranger's play.***
 
 ### Milestones
 
@@ -50,6 +50,8 @@
   - [x] Gap set, drawer, satchel and Wick's rope for M2 (run 007, PR #4). Approved on the Mac
   - [x] Painted reading room (run 008) and M1 sound (run 009), PR #6. Approved in the headset at the M1 sign-off
   - [ ] Headset approval of the above, once tickets 1 and 2 can show them
+  - [ ] M2 sound (run 010) and chapter 1's re-cut voices (run 012), on ticket 2's branch
+  - [ ] The lamp spread, the shore's night sky and the lamp wick (run 011), on ticket 2's branch
   - [ ] Prepared visitors, remaining cast actions, rest of the object library
 
 ## Where to start

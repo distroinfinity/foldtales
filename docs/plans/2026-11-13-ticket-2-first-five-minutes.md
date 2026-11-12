@@ -17,7 +17,18 @@
 - **Ticket 5 is held** until single player is done.
 - **A first-session journey, not a one-off demo.** The landing page knows whether you're new, back mid-chapter or finished. The end of the chapter is a page in the book with "Read it again". Menus are always pages of the book, never panels. The contents page (sage tab) and Tonight's lost thing are ticket 3's, and the no-headset page and About are ticket 6's.
 
-## The episode, beat by beat
+## Re-cut after headset session 1 (owner, Nov 13)
+
+The owner played the first version through and asked for: a shorter run before the first page turn, at least two page turns, spreads that don't feel static, and the lamp's beam as the opening wow, with the chapter as the journey to relight it. Rebuilt the same day, with the owner's go-ahead and a 200-credit cap while away (spent 106: run 011's art 64, run 012's voices 42).
+
+**Chapter 1, "The night the light went out": three spreads, two turns.**
+1. **The lamp** (new spread, run 011: the top of the lighthouse up close). The book opens on the lit lamp and the beam sweeps your room. The storm: the lamp goes dark, Pip's lantern blows out and rolls to the gallery's edge; you hand it back and it rekindles in your hand (or he fetches it, brave). The lamp's wick has blown away; Wick can't see well, so Pip goes down to the shore. **Turn the page.**
+2. **The shore** (now with its own night sky). Moth turns up. The lamp's wick lies in the reeds where Pip can't reach: you reach in for it (or Moth fetches it). A kite and a spool lie on the sand; whatever you pick up comes with you in your satchel, and what you leave stays on the shore. **Turn the page.**
+3. **The gap.** The drawer and your satchel open together. The crossings, Wick's rope if nobody helps, the climb, the new wick, Pip's flame to the lamp, and the beam returns. "The end of chapter one", "Read it again".
+
+Your hands have a moment on every spread (the lantern, the wick, the gap), and what you find on the way is what you have at the end. Every path runs 5:02 to 6:47 with real voices. Captions page long lines two printed lines at a time.
+
+## The first version, beat by beat (superseded by the re-cut above)
 
 Times are from the book opening, along the zero-input path unless marked. Every ask has an "ignored" beat, so the show never waits on you.
 

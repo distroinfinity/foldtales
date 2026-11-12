@@ -69,7 +69,10 @@ function nearestOnPolygon(x: number, z: number, polygon: Array<{ x: number; z: n
  */
 export function restingHome(world: Vector3, deps: Pick<HandsDeps, 'book' | 'drawer' | 'satchel' | 'stageRoot' | 'table'>, bookOpen: boolean): Home {
   const scale = deps.stageRoot.scale.x || 1;
-  if (v(deps.satchel.mouth).distanceTo(world) < 0.07 * scale) return { kind: 'satchel' };
+  // Anywhere over the satchel drops in: its mouth is small, and a hand shouldn't have to aim for it.
+  const overSatchel = deps.satchel.root.worldToLocal(world.clone());
+  if (Math.abs(overSatchel.x) < 0.075 && Math.abs(overSatchel.z - 0.006) < 0.06 && overSatchel.y > -0.01 && overSatchel.y < 0.25) return { kind: 'satchel' };
+  if (v(deps.satchel.mouth).distanceTo(world) < 0.1 * scale) return { kind: 'satchel' };
   if (deps.drawer.over(world)) return { kind: 'drawer' };
   const local = deps.book.root.worldToLocal(world.clone());
   if (bookOpen && Math.abs(local.x) <= 0.2 && Math.abs(local.z) <= 0.15) return { kind: 'page', at: [local.x, 0, local.z] };
