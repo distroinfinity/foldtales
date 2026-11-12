@@ -258,10 +258,12 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
     for (; t < 600_000 && s.current().beatId !== jump && !s.ended; t += 100) s.tick(t, false);
     if (s.current().beatId === jump) {
       // A moment before the beat, so its own first actions still happen.
-      runtime.restore({ v: 2, scheduler: s.snapshot(), objects: initialObjects, overlays: [], drawerWanted: false, satchelOpen: false }, Math.max(0, s.current().startMs - 1));
+      const open = s.openProblem(t);
+      const asksDrawer = !!open && assets.spine.scenes.some((sc) => sc.beats.some((b) => b.actions.some((a) => a.do === 'ask_reader' && a.problem === open.id && a.opensDrawer)));
+      runtime.restore({ v: 2, scheduler: s.snapshot(), objects: initialObjects, overlays: [], drawerWanted: asksDrawer, satchelOpen: false }, Math.max(0, s.current().startMs - 1));
       // Like a resume: it waits, shut, until the book has arrived and opened.
       controls.shut();
-    }
+    } else runtime.reset(initialObjects);
   }
 
   const checkpoint = (): void => {

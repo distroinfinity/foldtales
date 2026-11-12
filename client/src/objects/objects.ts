@@ -15,7 +15,8 @@ export type HandSide = 'left' | 'right';
 
 export type Home =
   | { kind: 'drawer' }
-  | { kind: 'page'; at: V3 }
+  /** On the page: standing, or lying flat turned by `lie` radians (a ladder laid across the gap). */
+  | { kind: 'page'; at: V3; lie?: number }
   | { kind: 'table'; at: V3 }
   | { kind: 'hand'; side: HandSide }
   | { kind: 'paw'; cast: string }
@@ -78,7 +79,7 @@ export interface ObjectsDeps {
 export interface ObjectsView {
   states(): ObjectState[];
   get(id: string): ObjectState | undefined;
-  /** Moves an object to a new home, easing there over `durMs` (0 jumps). */
+  /** Moves an object to a new home, easing there over `durMs` (0 jumps). Timed on the object system's own frame clock. */
   send(id: string, home: Home, nowMs: number, durMs?: number, arc?: number, from?: Vector3): void;
   /** Called every frame. `receivers` are the characters that can take things. */
   frame(nowMs: number, head: Vector3, receivers: Map<string, Receiver>, hands: Record<HandSide, Vector3 | null>, opts: { bookOpen: boolean; table: (book: Vector3) => Vector3; drawerOpen: boolean }): void;
@@ -108,6 +109,8 @@ export function createObjects(initial: ObjectState[], deps: ObjectsDeps): Object
   const glows = new Map<string, number>();
   const hidden = new Set<string>();
   let pageShown = true;
+  /** The object system's own clock: the last frame's time. Every flight is timed on it, whoever starts it. */
+  let clockMs = 0;
   const tmp = new Vector3();
   const tmp2 = new Vector3();
   const quat = new Quaternion();
@@ -196,14 +199,14 @@ export function createObjects(initial: ObjectState[], deps: ObjectsDeps): Object
   const view: ObjectsView = {
     states: () => [...states.values()],
     get: (id) => states.get(id),
-    send(id, home, nowMs, durMs = 0, arc = 0, from) {
+    send(id, home, _nowMs, durMs = 0, arc = 0, from) {
       const state = states.get(id);
       const v = views.get(id);
       if (!state || !v) return;
       const wasShown = !!v.holder.parent && state.home.kind !== 'carried';
       state.home = home;
       if (durMs > 0 && (from || wasShown)) {
-        flights.set(id, { from: from?.clone() ?? v.holder.getWorldPosition(new Vector3()), fromQuat: v.holder.getWorldQuaternion(new Quaternion()), startMs: nowMs, durMs, arc });
+        flights.set(id, { from: from?.clone() ?? v.holder.getWorldPosition(new Vector3()), fromQuat: v.holder.getWorldQuaternion(new Quaternion()), startMs: clockMs, durMs, arc });
       } else flights.delete(id);
     },
     pose(id, at, rotZ, lying, scale = 1) {
@@ -235,6 +238,7 @@ export function createObjects(initial: ObjectState[], deps: ObjectsDeps): Object
       return views.get(id)?.holder.getWorldPosition(target) ?? target;
     },
     frame(nowMs, head, receivers, hands, opts) {
+      clockMs = nowMs;
       for (const state of states.values()) {
         const v = views.get(state.id)!;
         const home = state.home;
@@ -270,8 +274,14 @@ export function createObjects(initial: ObjectState[], deps: ObjectsDeps): Object
             break;
           }
           case 'page':
-            mount(state.id, 'base');
-            v.holder.position.set(home.at[0], deps.pageY + 0.0006, home.at[2]);
+            if (home.lie !== undefined) {
+              mount(state.id, 'centre');
+              v.holder.position.set(home.at[0], deps.pageY + 0.003, home.at[2]);
+              v.card.rotation.set(-Math.PI / 2, 0, home.lie);
+            } else {
+              mount(state.id, 'base');
+              v.holder.position.set(home.at[0], deps.pageY + 0.0006, home.at[2]);
+            }
             surfaceY = deps.pageY;
             break;
           case 'table':
@@ -309,7 +319,7 @@ export function createObjects(initial: ObjectState[], deps: ObjectsDeps): Object
             break;
         }
         // Standing things turn to face you, as the characters do. Things in a paw turn with the paw.
-        if (home.kind === 'page' || home.kind === 'table' || home.kind === 'hand' || (home.kind === 'posed' && !poses.get(state.id)?.lying)) {
+        if ((home.kind === 'page' && home.lie === undefined) || home.kind === 'table' || home.kind === 'hand' || (home.kind === 'posed' && !poses.get(state.id)?.lying)) {
           v.holder.getWorldPosition(tmp);
           const dx = head.x - tmp.x;
           const dz = head.z - tmp.z;
@@ -321,7 +331,7 @@ export function createObjects(initial: ObjectState[], deps: ObjectsDeps): Object
         // A flight eases from where it was to its new home, in world space, then hands over to the home.
         const flight = flights.get(state.id);
         if (flight) {
-          const t = Math.min(1, (nowMs - flight.startMs) / flight.durMs);
+          const t = Math.max(0, Math.min(1, (nowMs - flight.startMs) / flight.durMs));
           if (t >= 1) flights.delete(state.id);
           else {
             const e = t * t * (3 - 2 * t);

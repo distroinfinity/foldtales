@@ -518,7 +518,28 @@ export function createShowRuntime({ manifest, spine, defs, moods, views, clock }
       // During a page turn the cast of the old spread folds with it; the new one pops up once the leaf has passed.
       lastPlaces = turn && !turn.stackNew ? lastPlaces : places;
       for (const span of views.spans.values()) span.visible = false;
-      // A crossing that's finished leaves its line strung across the gap.
+      // A crossing that's finished leaves its line strung across the gap, and what it used settles for good:
+      // the ladder lying across, the spool on the near rim, the kite laid down beside the traveller.
+      for (const item of timeline) {
+        if (item.startMs > ms || item.action.do !== 'cue') continue;
+        const kind = kinds.get(item.action.cue);
+        if (!kind?.startsWith('cross-')) continue;
+        const doneKey = `${item.key}:settled`;
+        if (applied.has(doneKey) || ms - item.startMs < (cueMs[item.action.cue] ?? 0)) continue;
+        applied.add(doneKey);
+        const id = objectOf(item.action.target);
+        const near = markOf(manifest, nowSet, 'near-edge');
+        const far = markOf(manifest, nowSet, cueDef.get(item.action.cue)?.travels?.to ?? 'far-side');
+        if (!id || !near || !far || views.objects.get(id)?.home.kind !== 'posed') continue;
+        const mid = (near[0] + far[0]) / 2;
+        const home =
+          kind === 'cross-ladder'
+            ? { kind: 'page' as const, at: [mid, 0, near[2] + 0.004] as V3, lie: Math.PI / 2 }
+            : kind === 'cross-thread'
+              ? { kind: 'page' as const, at: [near[0] + 0.022, 0, near[2] + 0.012] as V3 }
+              : { kind: 'page' as const, at: [far[0] + 0.035, 0, Math.min(far[2] + 0.02, views.book.frontHingeZ - 0.006)] as V3, lie: 0.4 };
+        views.objects.send(id, home, ms, kind === 'cross-kite' ? 600 : 0, 0.02);
+      }
       for (const item of timeline) {
         if (item.startMs < sceneStart || item.startMs > ms || item.action.do !== 'cue') continue;
         const kind = kinds.get(item.action.cue);

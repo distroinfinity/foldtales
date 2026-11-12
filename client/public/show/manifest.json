@@ -563,7 +563,7 @@
           "id": "lamp-pip",
           "label": "below the lighthouse, near",
           "position": [
-            -0.085,
+            -0.065,
             0,
             -0.0175
           ]
@@ -572,7 +572,7 @@
           "id": "lamp-wick",
           "label": "below the lighthouse, far",
           "position": [
-            -0.15,
+            -0.16,
             0,
             -0.022
           ]
@@ -581,9 +581,9 @@
           "id": "moth-lamp",
           "label": "circling the lamp",
           "position": [
-            -0.1,
-            0.15,
-            -0.07
+            -0.035,
+            0.205,
+            -0.075
           ]
         }
       ]

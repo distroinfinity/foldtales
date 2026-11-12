@@ -162,3 +162,24 @@ describe('when the book shuts, nothing is left in the air', () => {
     expect(floating).toEqual([]);
   });
 });
+
+describe('after a crossing, what it used has settled for good', () => {
+  test.each([
+    ['kite', 'cross-kite'],
+    ['ladder', 'cross-ladder'],
+    ['spool', 'cross-thread'],
+  ])('%s', (object) => {
+    const s = playUntil(stage(), 'gap-ask');
+    for (let i = 0; i < 400; i++) s.frame(16);
+    const h = hands(s);
+    carry(s, h, object, grip(s).add(new Vector3(0, 0.01, 0.04)));
+    playUntil(s, 'lighthouse');
+    const home = s.objects.get(object)!.home;
+    expect(home.kind).toBe('page');
+    // And it is really on the page, not in the air.
+    s.frame(16);
+    const p = s.root.getObjectByName(`object:${object}`)!.getWorldPosition(new Vector3());
+    const page = s.view.root.localToWorld(new Vector3(0, s.view.pageY, 0)).y;
+    expect(p.y - page).toBeLessThan(0.01);
+  });
+});

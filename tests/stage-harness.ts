@@ -138,7 +138,8 @@ export function stage() {
     clock,
   });
   const initialObjects = objects.snapshot();
-  let wall = 0;
+  // Wall time far from show time, as in the headset, so a mixed-up clock shows.
+  let wall = 5_000_000;
   const handPoints = { left: null as Vector3 | null, right: null as Vector3 | null };
   /** One frame of `ms`, with your hands holding the book this open. */
   const frame = (ms: number, open = 1) => {
