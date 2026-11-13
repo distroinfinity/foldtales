@@ -11,6 +11,12 @@ import type { TexRef } from '../paint/texref.ts';
  */
 
 export type V3 = [number, number, number];
+
+/** Shown only if it and everything it hangs from is shown (a closed drawer hides its whole tray). */
+function shownInWorld(o: Object3D): boolean {
+  for (let a: Object3D | null = o; a; a = a.parent) if (!a.visible) return false;
+  return true;
+}
 export type HandSide = 'left' | 'right';
 
 export type Home =
@@ -237,7 +243,7 @@ export function createObjects(initial: ObjectState[], deps: ObjectsDeps): Object
       const out: Array<{ id: string; centre: Vector3; radius: number }> = [];
       for (const state of states.values()) {
         const v = views.get(state.id)!;
-        if (!state.grabbable || !v.holder.visible || flights.has(state.id)) continue;
+        if (!state.grabbable || !shownInWorld(v.holder) || flights.has(state.id)) continue;
         if (!['drawer', 'page', 'table', 'satchel'].includes(state.home.kind)) continue;
         const centre = v.card.getWorldPosition(new Vector3());
         v.card.getWorldScale(tmp);
@@ -378,7 +384,16 @@ export function createObjects(initial: ObjectState[], deps: ObjectsDeps): Object
     },
     snapshot: () => [...states.values()].map((s) => structuredClone(s)),
     restore(list) {
-      for (const s of list) if (states.has(s.id)) states.set(s.id, structuredClone(s));
+      for (const s of list) {
+        if (!states.has(s.id)) continue;
+        const copy = structuredClone(s);
+        // A hand isn't held across a reload: what you were holding waits in your satchel.
+        if (copy.home.kind === 'hand') {
+          copy.home = { kind: 'satchel' };
+          copy.touched = true;
+        }
+        states.set(s.id, copy);
+      }
       flights.clear();
     },
   };

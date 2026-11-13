@@ -110,7 +110,7 @@ Each phase ends playable, and is checked in the emulator against the look bar be
 ### Phase 3: Depth and polish
 - [ ] Run 010: plan, your window, generate, check, close. Lines replace captions-only timing, through the speaker-aware playback.
 - [x] Picking up, moving and setting down characters: the show holds while you have them, and they hop back to their place.
-- [x] Gaze and pinch (`iwsdk-glasses-test`): look at an object and pinch, look at a character and pinch. Checked in the glasses emulator. The glasses' field of view is still to check.
+- [x] Gaze and pinch (`iwsdk-glasses-test`): look at an object and pinch, look at a character and pinch. Checked in the glasses emulator. Field of view checked on the re-cut chapter, Nov 13: seated at the book, the spread, caption, satchel, ribbon, gold tab, the open drawer at the gap and the end page all sit inside 37° across, 25° up and 43° down (the widest is the open drawer, 25° right and 29° down). Gaze and a right-hand pinch on "Read it again" restarts the chapter, and gaze and a left-hand pinch lifts the lantern.
 - [x] Checkpoint v2 and recovery mid-episode ("Continue chapter 1"). The book-shut sweep in every scene.
 - [x] Telemetry: frames and hitches are named by the beat playing. (Gift timings need a contract change, so they wait.)
 - [x] The landing that knows you, and the end-of-chapter page with "Read it again". Landing states checked on the Mac (new, mid-chapter, finished).
@@ -157,3 +157,16 @@ Codex reviewed the plan once on Nov 13, read-only and against the code: no P0, s
 6. **P1. The drawer and satchel can overhang a fitted table.** *Fixed:* the fit covers the whole arrangement, the satchel takes the side with room, the scale steps down if needed, and drawer travel is never shortened.
 7. **P1. Rendered lines wouldn't play:** sound marks and lookups handle only the narrator, and nothing stops a preempted line. *Fixed:* a speaker-aware speech unit, ask captions and a 150 ms fade on preemption.
 8. **P2. Picking up characters was missing,** though ticket 2 and the PRD ask for it. *Fixed:* pick up, move and set down, with rules for page turns, crossings and lost tracking.
+
+Codex reviewed PR #7 once on Nov 13, read-only, against `origin/main`: nine findings, one high and eight medium. Eight are fixed; one is left as it is.
+
+1. **High. Something held in a hand can't be let go after a reload.** *Fixed:* a hand isn't kept across a reload, so a restored object that was in a hand waits in the satchel, counted as handled.
+2. **Medium. Helping early on the shore skips Moth's entrance,** so Pip thanks a Moth who isn't there. *Fixed:* a character's entrance is never cut. Helped early, they arrive as the help lands. Checked in the emulator.
+3. **Medium. Giving the lantern to Wick solves Pip's problem.** *Left as is:* the lantern flies from Wick's paws to Pip's, which reads as Wick passing it on. Making only the one who asked able to take it would stall the story when a hand lands a little wide, between two characters standing side by side.
+4. **Medium. The wick or lantern dropped into the drawer vanishes.** *Fixed:* only the drawer's own things go into it. Anything else dropped there lands on the table.
+5. **Medium. The things in a closed drawer can still be picked up,** unseen and through the book. *Fixed:* something can be taken only if it and everything it hangs from is shown.
+6. **Medium. When a character fetches something you're still holding, the hand thinks it still has it,** and letting go pulls it back out of their paws. *Fixed:* the hand lets go of whatever the story takes.
+7. **Medium. Something picked up by looking and pinching doesn't count as handled,** so it's left behind at the page turn. *Fixed:* it counts, the same as a grab by hand.
+8. **Medium. "Start from the beginning" does nothing after the first visit,** and the landing page still offers what it offered at load. *Fixed:* once the chapter has run, the landing page shows where it is now ("Continue chapter 1" with "Start from the beginning", or "Read chapter 1 again"), and starting again resets it the way "Read it again" does. Checked in the emulator.
+9. **Medium. Picking up a character freezes the story but not their voice.** *Fixed:* their speech pauses with the story and carries on when you set them down. The gasp and hop play on the interface bus, so you still hear them.
+

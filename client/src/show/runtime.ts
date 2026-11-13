@@ -175,6 +175,8 @@ export function createShowRuntime({ manifest, spine, defs, moods, views, clock }
   let satchelFlap = 0;
   let holding = false;
   let heldCast: string | null = null;
+  /** Whether the show sound is held still because you have a character in your hand. */
+  let soundHeld = false;
   let noticing: { cast: string; object: string; sinceMs: number } | null = null;
   /** A character in your hand, and where your pinch is. */
   let carried: { cast: string; point: Vector3 } | null = null;
@@ -452,7 +454,7 @@ export function createShowRuntime({ manifest, spine, defs, moods, views, clock }
       if (!carried || carried.cast !== id) {
         heldCast = id;
         hopping.delete(id);
-        views.sound.play('gasp', views.puppets.get(id)?.root.getWorldPosition(new Vector3()));
+        views.sound.play('gasp', views.puppets.get(id)?.root.getWorldPosition(new Vector3()), undefined, 'ui');
       }
       carried = { cast: id, point: (point ?? carried?.point ?? new Vector3()).clone() };
     },
@@ -460,7 +462,7 @@ export function createShowRuntime({ manifest, spine, defs, moods, views, clock }
       if (!carried) return;
       const actor = views.actors.get(carried.cast);
       if (actor) hopping.set(carried.cast, { from: [actor.position.x, actor.position.y - views.book.pageY, actor.position.z], startMs: wallMs });
-      views.sound.play('hop', actor?.getWorldPosition(new Vector3()));
+      views.sound.play('hop', actor?.getWorldPosition(new Vector3()), undefined, 'ui');
       carried = null;
       heldCast = null;
     },
@@ -511,6 +513,12 @@ export function createShowRuntime({ manifest, spine, defs, moods, views, clock }
     frame(deltaMs, nowMs, head, hands, handPoints) {
       wallMs = nowMs;
       if (started && !heldCast) clock.advance(deltaMs);
+      // Picked up mid-line, a character stops talking with the story, and picks up the line where it left off.
+      if ((heldCast !== null) !== soundHeld) {
+        soundHeld = heldCast !== null;
+        if (soundHeld) views.sound.suspend();
+        else if (!clock.paused) views.sound.resume();
+      }
       const ms = started ? clock.ms : -1;
       if (started) handleEvents(scheduler.tick(ms, holding));
       const timeline = scheduler.timeline();

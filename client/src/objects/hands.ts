@@ -67,13 +67,14 @@ function nearestOnPolygon(x: number, z: number, polygon: Array<{ x: number; z: n
  * on the page if it's over the open book, otherwise straight down onto your table, and never past
  * its edge. Nothing is ever left hanging in the air.
  */
-export function restingHome(world: Vector3, deps: Pick<HandsDeps, 'book' | 'drawer' | 'satchel' | 'stageRoot' | 'table'>, bookOpen: boolean): Home {
+export function restingHome(world: Vector3, deps: Pick<HandsDeps, 'book' | 'drawer' | 'satchel' | 'stageRoot' | 'table'>, bookOpen: boolean, objectId?: string): Home {
   const scale = deps.stageRoot.scale.x || 1;
   // Anywhere over the satchel drops in: its mouth is small, and a hand shouldn't have to aim for it.
   const overSatchel = deps.satchel.root.worldToLocal(world.clone());
   if (Math.abs(overSatchel.x) < 0.075 && Math.abs(overSatchel.z - 0.006) < 0.06 && overSatchel.y > -0.01 && overSatchel.y < 0.25) return { kind: 'satchel' };
   if (v(deps.satchel.mouth).distanceTo(world) < 0.1 * scale) return { kind: 'satchel' };
-  if (deps.drawer.over(world)) return { kind: 'drawer' };
+  // Only the drawer's own things have a place in it; anything else dropped there lands on the table instead.
+  if (deps.drawer.over(world) && (objectId === undefined || deps.drawer.anchor(objectId))) return { kind: 'drawer' };
   const local = deps.book.root.worldToLocal(world.clone());
   if (bookOpen && Math.abs(local.x) <= 0.2 && Math.abs(local.z) <= 0.15) return { kind: 'page', at: [local.x, 0, local.z] };
   const outline = deps.table();
@@ -124,7 +125,7 @@ export function createObjectHands(deps: HandsDeps) {
 
   const settle = (id: string, side: HandSide): void => {
     const at = lastPoint[side] ?? deps.objects.worldOf(id, new Vector3());
-    const home = restingHome(at, deps, bookOpen);
+    const home = restingHome(at, deps, bookOpen, id);
     deps.objects.send(id, home, nowMs, 260, 0);
     deps.sound.play(home.kind === 'satchel' ? 'satchel' : home.kind === 'page' || home.kind === 'drawer' ? 'setdown' : 'settle', at);
   };
@@ -139,6 +140,15 @@ export function createObjectHands(deps: HandsDeps) {
     frame(now: number, open: boolean): void {
       nowMs = now;
       bookOpen = open;
+      // The story took it out of your hand (nobody helped in time, and a character fetched it): you're not holding it any more.
+      for (const side of ['left', 'right'] as const) {
+        const id = held[side];
+        const home = id ? deps.objects.get(id)?.home : null;
+        if (id && (home?.kind !== 'hand' || home.side !== side)) {
+          held[side] = null;
+          deps.runtime.setHolding(anyHeld());
+        }
+      }
       // While you hold something, the nearest character notices it, before you let go.
       let noticed: { cast: string; object: string } | null = null;
       for (const side of ['left', 'right'] as const) {
@@ -254,6 +264,9 @@ export function createObjectHands(deps: HandsDeps) {
         const objectId = id.slice('object:'.length);
         chosen = objectId;
         chosenFrom = deps.objects.get(objectId)?.home ?? null;
+        // Looked at and pinched counts as handled, as a hand's grab does: it comes with you when the page turns.
+        const st = deps.objects.get(objectId);
+        if (st) st.touched = true;
         // Lifted a little above where it was, so you can see it's chosen.
         const at = deps.objects.worldOf(objectId, new Vector3()).add(new Vector3(0, 0.05 * (deps.stageRoot.scale.x || 1), 0));
         const local = deps.book.root.worldToLocal(at);

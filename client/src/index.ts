@@ -502,7 +502,11 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, world
       // You choose on the landing page: continue where you were, or start from the beginning.
       let ran = false;
       const begin = (resume: boolean) => {
-        if (ran) return;
+        if (ran) {
+          // Back from the landing page with the chapter already open: starting again resets it as "Read it again" does.
+          if (!resume) show.readAgain.requested = true;
+          return;
+        }
         ran = true;
         if (!resume) clearCheckpoint(localStorage);
         run(world, show, resume ? saved : null);
@@ -513,7 +517,7 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, world
       }
       const enterRoom = show.room
         ? () => {
-            begin(choice.resume);
+            begin(ran ? !show.runtime.ended : choice.resume);
             show.sound.unlock();
             world.launchXR({ sessionMode: SessionMode.ImmersiveVR });
           }
@@ -529,8 +533,18 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, world
         show.sound.unlock();
         world.launchXR();
       };
-      const restart = choice.restartLabel ? { label: choice.restartLabel, run: () => enter(false) } : null;
-      const ready = (): LandingState => ({ kind: 'ready', open: () => enter(), openRoom: arSupported ? enterRoom : null, label: choice.label, restart });
+      // Once the chapter has run, the landing page speaks for where it is now, not where it was at load.
+      const current = () => (ran ? (show.runtime.ended ? { label: 'Read chapter 1 again', restartLabel: null, resume: false } : { label: 'Continue chapter 1', restartLabel: 'Start from the beginning', resume: true }) : choice);
+      const ready = (): LandingState => {
+        const now = current();
+        return {
+          kind: 'ready',
+          open: () => enter(now.resume),
+          openRoom: arSupported ? enterRoom : null,
+          label: now.label,
+          restart: now.restartLabel ? { label: now.restartLabel, run: () => enter(false) } : null,
+        };
+      };
       void navigator.xr
         ?.isSessionSupported('immersive-ar')
         .then((supported) => {
@@ -541,7 +555,7 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, world
       setLandingState(ready());
       world.visibilityState.subscribe((state) => {
         // An XR session started some other way (the browser's own prompt, the emulator) takes the button's default.
-        if (state !== VisibilityState.NonImmersive) begin(choice.resume);
+        if (state !== VisibilityState.NonImmersive && !ran) begin(choice.resume);
         setLandingState(state === VisibilityState.NonImmersive ? ready() : { kind: 'inside' });
       });
     })

@@ -253,7 +253,12 @@ export function createScheduler(spine: Spine, durationOf: (action: StageAction) 
       history.forEach((e, n) => {
         for (const item of schedOf(e).items) {
           const startMs = e.startMs + item.startMs;
-          if (e.cutMs !== null && startMs >= e.cutMs) continue;
+          if (e.cutMs !== null && startMs >= e.cutMs) {
+            // A character's entrance is never skipped: helped early, they arrive as the help lands, so the lines after can speak to them.
+            const a = item.action;
+            if (a.do === 'place' && a.what.startsWith('cast:')) items.push({ index: items.length, action: a, startMs: e.cutMs, endMs: e.cutMs, key: `${n}:${item.index}` });
+            continue;
+          }
           const endMs = e.startMs + item.endMs;
           items.push({ index: items.length, action: item.action, startMs, endMs: e.cutMs !== null ? Math.min(endMs, e.cutMs) : endMs, key: `${n}:${item.index}` });
         }
