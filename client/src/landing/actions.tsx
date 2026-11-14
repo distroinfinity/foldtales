@@ -60,6 +60,7 @@ export function OpenTheBook({ state, library, onSignIn, signedIn }: { state: Pag
         disabled={!ready}
         gleam={state.kind === 'ready'}
         onClick={() => ready && openingTap(ready.open)}
+        data-action="open"
         aria-describedby="open-detail"
       >
         {label}

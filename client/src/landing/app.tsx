@@ -2,7 +2,7 @@ import { useEffect, useState, useSyncExternalStore } from 'react';
 import { currentReader } from './account-ui.ts';
 import { OpenTheBook, PaintedRoomLink, SendToQuest } from './actions.tsx';
 import type { Device } from './device.ts';
-import { landingSnapshot, subscribeLanding } from './landing.ts';
+import { landingSnapshot, openingTap, subscribeLanding } from './landing.ts';
 import { BOOK_TITLE, libraryStateShim, type LibraryState } from './library.ts';
 import { Bookplate, ChaptersSheet } from './sheets.tsx';
 import { Story } from './story.tsx';
@@ -59,7 +59,14 @@ export function App({ device }: { device: Device }) {
 
       <main>
         <Story hero={hero} />
-        <Storyteller device={device} library={library} signedIn={reader} onSignIn={() => setSheet('plate')} enterStoryteller={null} />
+        <Storyteller
+          device={device}
+          library={library}
+          signedIn={reader}
+          onSignIn={() => setSheet('plate')}
+          enterStoryteller={state.kind === 'ready' && state.storyteller ? () => openingTap(state.storyteller!.run) : null}
+          storytellerLabel={state.kind === 'ready' ? (state.storyteller?.label ?? null) : null}
+        />
 
         <section className="px-4 pb-16 pt-[10vh] text-center md:px-10" aria-labelledby="end-title">
           <h2 id="end-title" className="display m-0 text-[clamp(30px,3.6vw,48px)] leading-tight">

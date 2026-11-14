@@ -72,9 +72,11 @@ type DoorProps = {
   signedIn: string | null;
   onSignIn: () => void;
   enterStoryteller: (() => void) | null;
+  /** "Back to the AI Storyteller" when you've just been in it. */
+  storytellerLabel?: string | null;
 };
 
-function Door({ device, library, signedIn, onSignIn, enterStoryteller }: DoorProps) {
+function Door({ device, library, signedIn, onSignIn, enterStoryteller, storytellerLabel }: DoorProps) {
   const [mic, setMic] = useState<'unknown' | 'granted' | 'denied'>('unknown');
   if (device !== 'headset') return <SendToQuest compact />;
   const secondary = 'inline-flex min-h-14 items-center rounded-[10px] border border-sage/70 bg-sage/15 px-7 text-[19px] text-page hover:bg-sage/25 cursor-pointer';
@@ -105,7 +107,7 @@ function Door({ device, library, signedIn, onSignIn, enterStoryteller }: DoorPro
         </>
       ) : (
         <button type="button" className={secondary} onClick={enterStoryteller}>
-          Start the AI Storyteller
+          {storytellerLabel?.startsWith('Back') ? storytellerLabel : 'Start the AI Storyteller'}
         </button>
       )}
     </div>

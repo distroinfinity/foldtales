@@ -68,16 +68,25 @@ Color is never the only signal. Story Circle players are told apart by their sat
 
 ## The book is the only UI
 
-No floating panels, no chat, no settings window. The first frame is the 2D landing page, and it follows these rules too: the book, one button, and the cloud-voice disclosure and mic request in plain words. It stays one tap, and it knows you (owner, Nov 13):
+No floating panels, no chat, no settings window.
+
+**The 2D page** (owner, Nov 14) is the cover of the same book, at night. It follows these rules too, and the plan is `docs/plans/2026-11-14-product-front-door.md`.
+
+- **One page for every device:**
+  - the hero: the closed cover in the lamp's pool, *Tales from the Table's Edge*, the tagline, and **one rust button**;
+  - then a pinned stage your scroll scrubs, built from the real painted pieces: the book opens, the shore stands up, Pip's lantern goes out and comes back, the page turns, and the lamp's beam sweeps the page.
+- **Spend the boldness on the beam,** the page's one moment of spectacle. Everything else moves only because you scroll or open something.
+- **Colours and type** are this document's. Paper (`#F6EFE2` on ink) is for things you open: the bookplate and the contents sheet. Sea sage is the AI Storyteller's door.
+- **Sign-in is a bookplate:** "Put your name in the book", and once signed in, "This book belongs to …".
 
 | You are | The button says | Under it |
 |---|---|---|
-| New | Open the book | — |
+| New | Open the book | Chapter 1 · about 6 minutes · just your hands. "No account needed. Sign in to keep your book." |
 | Back mid-chapter | Continue chapter 1 | Start from the beginning |
-| Back after a finished chapter | Read chapter 1 again (later: Continue chapter 2) | — |
-| Without a headset | (no dead button) What this is, a short look at it, and how to open it on a Quest | — |
+| Back after a finished chapter | Read chapter 1 again (later: Continue to chapter 2) | More chapters on the way. The AI Storyteller at equal weight |
+| Without a headset | Send to your Quest | Copy the link · Share the link (no dead button, no 3D download) |
 
-A quiet "About" link sits at the foot of the page, for credits. Inside XR, menus are pages of the book, never panels: choices are printed on a page and pinched like any book control.
+The foot holds Chapters, "No table? Read in the painted room", About and Privacy.
 
 | Control | Does |
 |---|---|

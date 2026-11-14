@@ -1,10 +1,21 @@
 # Tabletop Theater — PRD
 
-**One-liner:** An AI-directed pop-up storybook that unfolds on your table: cozy, serialized stories you can watch, reach into, talk to, and hand things to, alone or with friends.
+**One-liner (tagline, Nov 14):** A living storybook on your table. Reach in and help the characters through each chapter, or make up a new story with the AI Storyteller.
 
 Track: Entertainment · Division: New Experience · Status: Frozen v1 · 2026-11-02
 
 ---
+
+## 0. Positioning and the shape of the product (owner, Nov 14)
+
+- **What it is:** an **interactive storybook** for winding down in the evening. It isn't a game: there's no score and no losing. Chapters take about six minutes, and you need only your hands.
+- **Who it's for:** teens and adults who unwind with stories.
+- **Tabletop Theater** is the product. Its first book is ***Tales from the Table's Edge***, with Pip, Wick and Moth in the Lost and Found. The old title, "The Lighthouse at the Edge of the Table", read like a chapter.
+- **There are two ways in:**
+  - **Chapters:** written, theatrical stories, read in order, with no account needed. Only chapter 1 is in v1, plus "More chapters on the way."
+  - **The AI Storyteller:** talk to Pip, Wick and Moth, hand them anything, and the AI makes up the story as you go, voiced live. It needs sign-in. Since ticket 3's first headset session, the AI no longer edits the written chapters; it has its own mode.
+- **Your book:** an account keeps your place and finished chapters on any headset, and opens the AI Storyteller. Sign-in is offered on the first visit, but never before the story: one quiet line under the button.
+- **The page:** one short page for every device. A hero gives the one action, then a scroll opens the real pop-up book, in the manner of Apple's product pages. Plan: `docs/plans/2026-11-14-product-front-door.md`.
 
 ## 1. Why this exists
 
@@ -69,7 +80,12 @@ Next time: "Previously on…", and what you gave is back, now with problems of i
 
 **Returning evening:** open the book → "Previously on…" (about 20 s) → the kite you gave is tangled on the lighthouse, and its owner has come looking → you help → you close the book mid-scene for a call → reopening resumes at the same moment.
 
-**Arriving and moving around** (owner, Nov 13): the landing page knows you. New: "Open the book". Back mid-chapter: "Continue chapter 1", or start from the beginning. After a finished chapter: read it again, and later continue to the next. Inside, the book is the menu: the end-of-chapter page offers "Read it again", and the sage tab opens the contents page with every chapter. Without a headset, the page explains what this is and how to open it on a Quest.
+**Arriving and moving around** (owner, Nov 13; reshaped Nov 14): the page knows you, and its one button says where you are:
+- New: "Open the book".
+- Back mid-chapter: "Continue chapter 1", or start from the beginning.
+- After a finished chapter: "Read chapter 1 again" (later, "Continue to chapter 2"). The AI Storyteller sits beside it at equal weight.
+
+A curious visitor scrolls and sees the book open, Pip's lantern come back, and the beam sweep, then the AI Storyteller. Sign-in is a bookplate ("Put your name in the book"): a short code you finish on your phone, or Google. Inside, the book is the menu: the end-of-chapter page offers "Read it again". On a desktop or phone, the same page says "Send to your Quest" (Meta's own link), and the 3D book is never downloaded.
 
 **Story Circle:** the host invites a friend → the friend's surface shows the same book → both of you hand things over and talk while the director makes sure each of you changes the scene → the page appears in both books.
 
@@ -183,4 +199,4 @@ Next time: "Previously on…", and what you gave is back, now with problems of i
 ## 16. Open questions
 
 - What does the remote Story Circle avatar look like at the book's edge?
-- Business model after launch (series packs vs. subscription). Needed for the "future plans" field.
+- ~~Business model~~ Decided Nov 14: **free during the competition**; decided after it.

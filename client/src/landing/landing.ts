@@ -4,7 +4,15 @@
  */
 export type LandingState =
   | { kind: 'loading'; share: number }
-  | { kind: 'ready'; open: () => void; openRoom: (() => void) | null; label?: string; restart?: { label: string; run: () => void } | null }
+  | {
+      kind: 'ready';
+      open: () => void;
+      openRoom: (() => void) | null;
+      label?: string;
+      restart?: { label: string; run: () => void } | null;
+      /** The second way in: the AI Storyteller (ticket 3 wires it in index.ts). The page's door gates it on sign-in and the microphone. */
+      storyteller?: { label: string; run: () => void } | null;
+    }
   | { kind: 'opening' }
   | { kind: 'inside' }
   | { kind: 'failed' };
