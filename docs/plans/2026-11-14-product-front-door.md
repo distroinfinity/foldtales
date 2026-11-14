@@ -445,3 +445,27 @@ On PR #11 at `7c37528`, with in-memory probes: no P0, six P1, five P2. I checked
 - **Client: `TT_PUBLIC_ACCOUNTS=on`** shows the Sign in button, the bookplate, the line under the main button and the phone's page, syncs the book, and gates the AI Storyteller on sign-in. When it's off: none of that appears, the Storyteller door goes straight to the microphone, and `/link/` says sign-in isn't switched on.
 - **Backend: `TT_ACCOUNTS=on`** makes AI routes require a signed-in reader. When it's off, guests use them, capped per device as before accounts. The auth routes stay mounted either way.
 - Turn both on together, at deploy time, once Google and Resend are set up.
+
+## Hosting on foldtales.xyz (owner, Nov 15)
+
+Decided with the owner:
+- **Site:** Cloudflare Pages, through ticket 0's CI deploy, which is already committed. Every branch gets a preview link, and main is live on **foldtales.xyz**.
+- **Backend:** Railway, at **api.foldtales.xyz**.
+- **The domain:** bought at GoDaddy. Its nameservers move to Cloudflare, so both names live in one DNS.
+- **AI off in production for now:** the chapters play fully, because they're authored. The Storyteller door says "opens here soon".
+- **Cost:** Railway about $5–7 a month; Cloudflare and GitHub free.
+
+| Step | Who | What |
+|---|---|---|
+| 1 | Owner | A Cloudflare account (free). Add `foldtales.xyz` on the Free plan. In GoDaddy (My Products → foldtales.xyz → DNS → Nameservers → Change → "I'll use my own"), enter Cloudflare's two nameservers. It goes active within minutes to a few hours, and Cloudflare emails you. |
+| 2 | Owner | A Railway account on the Hobby plan. |
+| 3 | Owner | Two tokens, typed straight into GitHub, never through an agent: a Cloudflare API token with Cloudflare Pages: Edit, plus the account ID, and a Railway project token. `! gh secret set CLOUDFLARE_API_TOKEN`, `! gh secret set CLOUDFLARE_ACCOUNT_ID`, `! gh secret set RAILWAY_TOKEN`. |
+| 4 | Owner | Log the two CLIs in on this Mac: `! npx wrangler login` and `! npx @railway/cli login`. |
+| 5 | Agent | Create the Pages project `foldtales`, and set the GitHub variables `PAGES_PROJECT=foldtales` and `TT_PUBLIC_STORYTELLER=off`. |
+| 6 | Agent | Create the Railway service `backend` in the US region, with a volume at `/data`. Set its variables: `DATA_DIR=/data`, `TT_CLIENT_HOST=foldtales.xyz`, `TT_PREVIEW_HOST=foldtales.pages.dev`, `BETTER_AUTH_URL=https://api.foldtales.xyz`. Also `TT_TOKEN_SECRET`, `TT_ADMIN_TOKEN` and `BETTER_AUTH_SECRET`, generated with `openssl rand` and never displayed. No AI keys, and `TT_ACCOUNTS` stays off. |
+| 7 | Agent | The bootstrap deploy from this branch (`railway up`), then `/healthz`. Then the custom domain `api.foldtales.xyz` on Railway, with its CNAME in Cloudflare. |
+| 8 | Agent | Set `BACKEND_URL=https://api.foldtales.xyz` as a GitHub variable, which switches the CI deploys on. Then attach `foldtales.xyz` (and `www`) to the Pages project. |
+| 9 | Agent | Push: the branch preview builds against the live backend. Check it on the Mac (the page, `/healthz`, telemetry, a refused request with no token), then on the Quest from the real link, with no USB. |
+| 10 | Owner | The production site on foldtales.xyz follows main, so it shows the new page once this PR is signed off and merged. |
+
+**Later (sprint plan):** the AI keys on Railway, and `TT_PUBLIC_STORYTELLER` unset, to turn the Storyteller on. Sign-in (Resend and Google) goes on `foldtales.xyz`.

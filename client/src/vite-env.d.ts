@@ -7,4 +7,6 @@ interface ImportMetaEnv {
   readonly TT_PUBLIC_BUILD_ID?: string;
   /** 'on' shows sign-in (the bookplate, the phone page) and gates the AI Storyteller on it. Off by default. */
   readonly TT_PUBLIC_ACCOUNTS?: string;
+  /** 'off' keeps the AI Storyteller's door closed ("coming soon"). On by default. */
+  readonly TT_PUBLIC_STORYTELLER?: string;
 }

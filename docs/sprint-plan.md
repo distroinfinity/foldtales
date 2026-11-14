@@ -61,7 +61,7 @@ Why: AI lines spliced into the written chapter didn't land ("If a story is alrea
   - [ ] The page: the hero and the scroll that opens the book, on every device
   - [ ] Your book on any headset
   - [ ] **Later, once the product is nearly done: turn sign-in on and test it.** Built and tested on the Mac, switched off for now (owner, Nov 14). Set up Resend (needs a domain and its DNS records), a Google sign-in client, and the server's sign-in secrets (`BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `TT_CLIENT_HOST`). Then turn on `TT_ACCOUNTS=on` (server) and `TT_PUBLIC_ACCOUNTS=on` (site) together. Test on the Quest: Google in Quest Browser, the phone code, and a second headset.
-  - [ ] **Later: deploy.** The site on Vercel or Cloudflare Pages: a default `*.vercel.app` or `*.pages.dev` address is fine. The backend on Railway (`*.up.railway.app`), because it needs a long-running Node server with its SQLite file, which serverless functions can't keep. The site goes on `foldtales.xyz` (bought), and the API on `api.foldtales.xyz`, which is also Resend's sending domain.
+  - [ ] **Host it on foldtales.xyz** (owner, Nov 15): the site on Cloudflare Pages through the existing CI, and the backend on Railway at api.foldtales.xyz. The AI stays off in production for now. Steps in the plan's "Hosting on foldtales.xyz"; this also releases ticket 0's held hosting task.
 - **Art library** (runs throughout)
   - [x] Book and first set for M1 (run 004, PR #1). Approved on the Mac
   - [x] Drawer objects for M2 (run 006, PR #2). Approved on the Mac and in Quest Browser

@@ -8,7 +8,7 @@ import { useRef, useState } from 'react';
 import type { Device } from './device.ts';
 import type { LibraryState } from './library.ts';
 import { askForMicrophone } from './microphone.ts';
-import { ACCOUNTS_ON } from './flags.ts';
+import { ACCOUNTS_ON, STORYTELLER_ON } from './flags.ts';
 import content from './page-content.json';
 import { art } from './preload.ts';
 import { TextAnimate } from './ui/text-animate.tsx';
@@ -78,6 +78,7 @@ function Door({ device, library, signedIn, onSignIn, enterStoryteller, storytell
   const [mic, setMic] = useState<'unknown' | 'granted' | 'denied'>('unknown');
   // Elsewhere, the page's own "Send to your Quest" sits just below; one is enough.
   if (device !== 'headset') return null;
+  if (!STORYTELLER_ON) return <p className="m-0 max-w-[40ch] text-[16px] leading-relaxed text-page/70">The AI Storyteller opens here soon. The chapters are ready now.</p>;
   if (ACCOUNTS_ON && !signedIn)
     return (
       <div className="flex flex-col items-center gap-3">
