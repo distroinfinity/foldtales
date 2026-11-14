@@ -1,17 +1,18 @@
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { motion, useReducedMotion } from 'motion/react';
+import { useEffect, useState, useSyncExternalStore, type ReactNode } from 'react';
 import { currentReader } from './account-ui.ts';
 import { OpenTheBook, PaintedRoomLink, SendToQuest } from './actions.tsx';
 import type { Device } from './device.ts';
 import { landingSnapshot, openingTap, subscribeLanding } from './landing.ts';
 import { BOOK_TITLE, libraryStateShim, type LibraryState } from './library.ts';
+import { preloadArt } from './preload.ts';
 import { Bookplate, ChaptersSheet } from './sheets.tsx';
 import { Story } from './story.tsx';
 import { Storyteller } from './storyteller.tsx';
-import { BlurFade } from './ui/blur-fade.tsx';
 
 export const TAGLINE = 'A living storybook on your table. Reach in and help the characters through each chapter, or make up a new story with the AI Storyteller.';
 
-const footLink = 'text-page/70 underline decoration-page/30 underline-offset-[5px] hover:text-page cursor-pointer bg-transparent border-0 p-0 font-[inherit] text-[16px]';
+const footLink = 'cursor-pointer border-0 bg-transparent p-0 font-[inherit] text-[15px] text-page/60 no-underline hover:text-page';
 
 function useLibrary(): LibraryState {
   const state = useSyncExternalStore(subscribeLanding, landingSnapshot);
@@ -21,41 +22,59 @@ function useLibrary(): LibraryState {
   return library;
 }
 
+/** The page's one orchestrated entrance: the room is dark, the lamp comes up, then the words. */
+function Reveal({ ready, delay, children, className }: { ready: boolean; delay: number; children: ReactNode; className?: string }) {
+  const still = useReducedMotion();
+  return (
+    <motion.div className={className} initial={still ? false : { opacity: 0, y: 10, filter: 'blur(8px)' }} animate={ready ? { opacity: 1, y: 0, filter: 'blur(0px)' } : undefined} transition={{ delay, duration: 0.9, ease: [0.2, 0.7, 0.2, 1] }}>
+      {children}
+    </motion.div>
+  );
+}
+
 export function App({ device }: { device: Device }) {
   const state = useSyncExternalStore(subscribeLanding, landingSnapshot);
   const library = useLibrary();
   const [reader, setReader] = useState<string | null>(null);
   const [sheet, setSheet] = useState<'plate' | 'chapters' | null>(null);
+  const [artReady, setArtReady] = useState(false);
   useEffect(() => {
     void currentReader().then((r) => setReader(r?.name ?? null));
+    void preloadArt().then(() => setArtReady(true));
   }, []);
 
+  const action = (compact: boolean) =>
+    device === 'headset' ? <OpenTheBook state={state} library={library} signedIn={reader} onSignIn={() => setSheet('plate')} compact={compact} /> : <SendToQuest compact={compact} />;
+
   const hero = (
-    <div className="pt-16 md:pt-0">
-      <BlurFade delay={0.15}>
-        <h1 className="display m-0 max-w-[13ch] text-[clamp(40px,5.4vw,76px)] leading-[0.98] text-page">{BOOK_TITLE}</h1>
-      </BlurFade>
-      <BlurFade delay={0.35}>
-        <p className="m-0 mt-5 max-w-[38ch] text-[clamp(18px,1.55vw,21px)] leading-relaxed text-page/80">{TAGLINE}</p>
-      </BlurFade>
-      <BlurFade delay={0.55} className="mt-8">
-        {device === 'headset' ? <OpenTheBook state={state} library={library} signedIn={reader} onSignIn={() => setSheet('plate')} /> : <SendToQuest />}
-      </BlurFade>
-    </div>
+    <>
+      <Reveal ready={artReady} delay={0.5}>
+        <h1 className="display m-0 text-[clamp(44px,6.2vw,96px)] font-semibold italic leading-[0.95] text-page">{BOOK_TITLE}</h1>
+      </Reveal>
+      <Reveal ready={artReady} delay={0.75}>
+        <p className="m-0 mx-auto mt-4 max-w-[44ch] text-[clamp(17px,1.5vw,20px)] leading-relaxed text-page/80">{TAGLINE}</p>
+      </Reveal>
+      <Reveal ready={artReady} delay={1} className="mt-7">
+        {device === 'headset' ? action(false) : <SendToQuest compact />}
+      </Reveal>
+    </>
   );
 
   return (
     <>
-      <header className="pointer-events-none fixed inset-x-0 top-0 z-20 flex items-center justify-between bg-gradient-to-b from-deep via-deep/70 to-transparent px-4 pb-6 pt-4 md:px-10">
-        <a href="./" className="display pointer-events-auto text-[21px] text-page no-underline">
+      <header className="pointer-events-none fixed inset-x-0 top-0 z-20 flex items-center justify-between bg-gradient-to-b from-room via-room/70 to-transparent px-5 pb-7 pt-4 md:px-10">
+        <a href="./" className="display pointer-events-auto text-[22px] font-medium tracking-[0.005em] text-page no-underline">
           Tabletop Theater
         </a>
         {device === 'headset' && (
-          <button type="button" className="pointer-events-auto min-h-12 cursor-pointer rounded-full border border-page/20 bg-night/60 px-5 text-[16px] text-page backdrop-blur-sm hover:border-page/40" onClick={() => setSheet('plate')}>
+          <button type="button" className="pointer-events-auto min-h-12 cursor-pointer rounded-full border border-page/15 bg-room/50 px-5 text-[15px] text-page/85 backdrop-blur-md hover:border-page/35" onClick={() => setSheet('plate')}>
             {reader ? `${reader}’s book` : 'Sign in'}
           </button>
         )}
       </header>
+
+      {/* Until the pictures are ready, the room is dark; then the lamp comes up. */}
+      <motion.div aria-hidden className="pointer-events-none fixed inset-0 z-10 bg-room" initial={{ opacity: 1 }} animate={{ opacity: artReady ? 0 : 1 }} transition={{ duration: 1.1, ease: 'easeOut' }} />
 
       <main>
         <Story hero={hero} />
@@ -68,23 +87,23 @@ export function App({ device }: { device: Device }) {
           storytellerLabel={state.kind === 'ready' ? (state.storyteller?.label ?? null) : null}
         />
 
-        <section className="px-4 pb-16 pt-[10vh] text-center md:px-10" aria-labelledby="end-title">
-          <h2 id="end-title" className="display m-0 text-[clamp(30px,3.6vw,48px)] leading-tight">
+        <section className="px-5 pb-20 pt-[16vh] text-center" aria-labelledby="end-title">
+          <h2 id="end-title" className="display m-0 text-[clamp(36px,4.6vw,64px)] leading-[1.02]">
             {device === 'headset' ? 'Your table is ready.' : 'Open it on your Quest.'}
           </h2>
-          <div className="mt-8 flex justify-center">{device === 'headset' ? <OpenTheBook state={state} library={library} signedIn={reader} onSignIn={() => setSheet('plate')} /> : <SendToQuest />}</div>
-          <p className="mx-auto m-0 mt-12 max-w-[56ch] text-[16px] leading-relaxed text-page/60">
-            What you need: a Meta Quest 3 or 3S, a table (or the painted room), about 6 minutes, and just your hands.
+          <p className="m-0 mx-auto mt-4 max-w-[44ch] text-[18px] leading-relaxed text-page/65">
+            You’ll need a Meta Quest 3 or 3S and about six minutes. A table helps, but the painted room works anywhere.
           </p>
+          <div className="mt-8 flex justify-center">{device === 'headset' ? action(true) : <SendToQuest />}</div>
         </section>
       </main>
 
-      <footer className="border-t border-page/10 px-4 py-8 md:px-10">
-        <nav className="mx-auto flex max-w-[1400px] flex-wrap items-center gap-x-8 gap-y-4" aria-label="More">
+      <footer className="border-t border-page/10 px-5 py-7 md:px-10">
+        <nav className="mx-auto flex max-w-[1200px] flex-wrap items-center gap-x-8 gap-y-3" aria-label="More">
           <button type="button" className={footLink} onClick={() => setSheet('chapters')}>
             Chapters
           </button>
-          <PaintedRoomLink state={state} device={device} />
+          <PaintedRoomLink state={state} device={device} className={footLink} />
           <a className={footLink} href="./about/">
             About
           </a>
@@ -96,7 +115,7 @@ export function App({ device }: { device: Device }) {
               Open it here anyway
             </a>
           )}
-          <span className="ml-auto text-[14px] text-page/40">Made for the Meta VR Start Developer Competition, 2026</span>
+          <span className="text-[14px] text-page/35 md:ml-auto">Made for the Meta VR Start Developer Competition, 2026</span>
         </nav>
       </footer>
 

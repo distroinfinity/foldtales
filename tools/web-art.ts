@@ -101,6 +101,11 @@ for (const f of ['ground.png', 'lamp-sky.png', 'lamp-room.png', 'lamp-lit.png', 
   await resized(`sets/the-lamp/${f}`, `lamp-${f.replace('.png', '.webp')}`, f === 'lamp-lit.png' ? 520 : 1600);
 }
 await resized('fx/smoke.png', 'smoke.webp', 200);
+// The painted reading room the page is set in (run 008).
+await resized('room/tabletop.png', 'room-tabletop.webp', 1800, 80);
+await resized('room/flat-window.png', 'room-flat-window.webp', 700, 80);
+await resized('room/flat-lamp.png', 'room-flat-lamp.webp', 800, 80);
+await resized('room/flat-shelves.png', 'room-flat-shelves.webp', 800, 80);
 for (const o of ['kite', 'spool', 'brass-key']) await resized(`objects/${o}/${o}.png`, `object-${o}.webp`, 360);
 
 // The cast, composed from their rigs at rest.

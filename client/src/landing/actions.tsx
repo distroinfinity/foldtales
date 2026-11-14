@@ -14,7 +14,7 @@ export function sendToQuestUrl(): string {
   return `https://www.oculus.com/open_url/?url=${encodeURIComponent(pageLink())}`;
 }
 
-const quiet = 'text-gold underline decoration-1 underline-offset-[5px] hover:text-[#e6b85a] cursor-pointer bg-transparent border-0 p-0 font-[inherit]';
+const quiet = 'text-page/80 underline decoration-page/30 decoration-1 underline-offset-[5px] hover:text-page hover:decoration-page/60 cursor-pointer bg-transparent border-0 p-0 font-[inherit]';
 
 export function SendToQuest({ compact = false }: { compact?: boolean }) {
   const [copied, setCopied] = useState(false);
@@ -29,11 +29,11 @@ export function SendToQuest({ compact = false }: { compact?: boolean }) {
     }
   };
   return (
-    <div className="flex flex-col items-start gap-4">
-      <a href={sendToQuestUrl()} target="_blank" rel="noopener">
-        <ShimmerButton tabIndex={-1}>Send to your Quest</ShimmerButton>
+    <div className="flex flex-col items-center gap-4">
+      <a href={sendToQuestUrl()} target="_blank" rel="noopener" className="rounded-[12px]">
+        <ShimmerButton tabIndex={-1} gleam={false}>Send to your Quest</ShimmerButton>
       </a>
-      <p className="m-0 flex flex-wrap items-center gap-x-5 gap-y-2 text-[17px]">
+      <p className="m-0 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[16px]">
         <button type="button" className={quiet} onClick={copy}>
           {copied ? 'Link copied' : 'Copy the link'}
         </button>
@@ -43,22 +43,22 @@ export function SendToQuest({ compact = false }: { compact?: boolean }) {
           </button>
         )}
       </p>
-      {!compact && <p className="m-0 max-w-[38ch] text-[16px] leading-relaxed text-page/70">Opens in your Meta Quest’s browser. Just your hands, about 6 minutes.</p>}
+      {!compact && <p className="m-0 max-w-[40ch] text-[15px] leading-relaxed text-page/55">It opens in your Meta Quest’s browser.</p>}
     </div>
   );
 }
 
-export function OpenTheBook({ state, library, onSignIn, signedIn }: { state: PageState; library: LibraryState; onSignIn: () => void; signedIn: string | null }) {
+export function OpenTheBook({ state, library, onSignIn, signedIn, compact = false }: { state: PageState; library: LibraryState; onSignIn: () => void; signedIn: string | null; compact?: boolean }) {
   const choice = primaryLabel(library);
   const ready = state.kind === 'ready' ? state : state.kind === 'refused' ? state.last : null;
   const label =
     state.kind === 'loading' ? 'Getting the book ready' : state.kind === 'opening' ? 'Opening the book…' : state.kind === 'failed' ? 'The book didn’t load' : (ready?.label ?? choice.label);
   return (
-    <div className="flex flex-col items-start gap-3.5">
+    <div className="flex flex-col items-center gap-3">
       <ShimmerButton
         type="button"
         disabled={!ready}
-        gleam={state.kind === 'ready'}
+        gleam={false}
         onClick={() => ready && openingTap(ready.open)}
         data-action="open"
         aria-describedby="open-detail"
@@ -78,16 +78,16 @@ export function OpenTheBook({ state, library, onSignIn, signedIn }: { state: Pag
           .
         </p>
       ) : (
-        <p id="open-detail" className="m-0 text-[17px] text-page/75">
+        <p id="open-detail" className="m-0 text-[15px] text-page/55">
           {choice.detail}
         </p>
       )}
       {ready?.restart && (
-        <button type="button" className={`${quiet} text-[17px]`} onClick={() => openingTap(ready.restart!.run)}>
+        <button type="button" className={`${quiet} text-[16px]`} onClick={() => openingTap(ready.restart!.run)}>
           {ready.restart.label}
         </button>
       )}
-      <p className="m-0 mt-1 text-[16px] text-page/65">
+      {!compact && (<p className="m-0 mt-1 text-[15px] text-page/55">
         {signedIn ? (
           <>
             This book belongs to {signedIn}.{' '}
@@ -104,16 +104,16 @@ export function OpenTheBook({ state, library, onSignIn, signedIn }: { state: Pag
             .
           </>
         )}
-      </p>
+      </p>)}
     </div>
   );
 }
 
-export function PaintedRoomLink({ state, device }: { state: PageState; device: Device }) {
+export function PaintedRoomLink({ state, device, className }: { state: PageState; device: Device; className?: string }) {
   const ready = state.kind === 'ready' ? state : null;
   if (device !== 'headset' || !ready?.openRoom) return null;
   return (
-    <button type="button" className={quiet} onClick={() => openingTap(ready.openRoom!)}>
+    <button type="button" className={className ?? quiet} onClick={() => openingTap(ready.openRoom!)}>
       No table? Read in the painted room
     </button>
   );

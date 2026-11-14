@@ -1,5 +1,7 @@
 /** The 2D pages that never load the book: About, Privacy, the phone's sign-in, and Google's return. */
-import '@fontsource-variable/fraunces/full.css';
+import '@fontsource/cormorant-garamond/500.css';
+import '@fontsource/cormorant-garamond/600.css';
+import '@fontsource/cormorant-garamond/600-italic.css';
 import '@fontsource/atkinson-hyperlegible-next/400.css';
 import '@fontsource/atkinson-hyperlegible-next/500.css';
 import '../landing/page.css';

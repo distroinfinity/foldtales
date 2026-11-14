@@ -38,8 +38,8 @@ export function libraryStateShim(store: Store, canResume: (n: number) => boolean
 export function primaryLabel(library: LibraryState): { label: string; detail: string; secondary: string | null; target: EnterTarget } {
   const chapter = library.chapters.find((c) => c.n === library.next.n)!;
   if (chapter.state === 'started' && chapter.canResume)
-    return { label: `Continue chapter ${chapter.n}`, detail: `Chapter ${chapter.n} · ${chapter.title.toLowerCase()}`, secondary: `Start chapter ${chapter.n} again`, target: { kind: 'chapter', n: chapter.n, from: 'resume' } };
-  if (chapter.state === 'started') return { label: `Start chapter ${chapter.n} again`, detail: 'About 6 minutes · just your hands', secondary: null, target: { kind: 'chapter', n: chapter.n, from: 'start' } };
+    return { label: `Continue chapter ${chapter.n}`, detail: `You stopped partway through “${chapter.title}”.`, secondary: `Start chapter ${chapter.n} again`, target: { kind: 'chapter', n: chapter.n, from: 'resume' } };
+  if (chapter.state === 'started') return { label: `Start chapter ${chapter.n} again`, detail: 'About six minutes. You only need your hands.', secondary: null, target: { kind: 'chapter', n: chapter.n, from: 'start' } };
   if (chapter.state === 'finished') return { label: `Read chapter ${chapter.n} again`, detail: 'More chapters on the way.', secondary: null, target: { kind: 'chapter', n: chapter.n, from: 'start' } };
-  return { label: 'Open the book', detail: `Chapter ${chapter.n} · about 6 minutes · just your hands`, secondary: null, target: { kind: 'chapter', n: chapter.n, from: 'start' } };
+  return { label: 'Open the book', detail: `Chapter ${chapter.n} takes about six minutes. You only need your hands.`, secondary: null, target: { kind: 'chapter', n: chapter.n, from: 'start' } };
 }

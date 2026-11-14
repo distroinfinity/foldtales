@@ -2,6 +2,8 @@
 
 /* The design language's colours and type (docs/design-language.md). */
 @theme {
+  --color-room: #15110e;
+  --color-lamplight: #e9b864;
   --color-navy: #1f2a44;
   --color-night: #151c2e;
   --color-deep: #0e1424;
@@ -11,7 +13,7 @@
   --color-rust: #b5502e;
   --color-rust-deep: #96401f;
   --color-sage: #76917d;
-  --font-display: 'Fraunces Variable', Georgia, serif;
+  --font-display: 'Cormorant Garamond', 'Iowan Old Style', Georgia, serif;
   --font-sans: 'Atkinson Hyperlegible Next', system-ui, sans-serif;
   --animate-shimmer-slide: shimmer-slide var(--speed) ease-in-out infinite alternate;
   --animate-spin-around: spin-around calc(var(--speed) * 2) infinite linear;
@@ -28,11 +30,11 @@
 }
 
 @layer base {
-  html { background: var(--color-deep); color-scheme: dark; }
+  html { background: var(--color-room); color-scheme: dark; }
   body {
     margin: 0;
     min-height: 100vh;
-    background: var(--color-deep);
+    background: var(--color-room);
     color: var(--color-page);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
@@ -41,8 +43,8 @@
   ::selection { background: color-mix(in srgb, var(--color-gold) 40%, transparent); }
 }
 
-/* Titles: Fraunces at its largest optical size, soft and warm. */
-.display { font-family: var(--font-display); font-variation-settings: 'opsz' 144, 'SOFT' 50; font-weight: 500; letter-spacing: -0.01em; }
+/* Titles: a classic book face. The book's own title is always italic, as titles are in print. */
+.display { font-family: var(--font-display); font-weight: 600; letter-spacing: -0.012em; font-feature-settings: 'kern', 'liga', 'onum'; }
 
 /* Paper: the bookplate and the contents sheet are printed pages. */
 .paper {
