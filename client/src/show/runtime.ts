@@ -97,6 +97,8 @@ export interface ShowRuntime {
   frame(deltaMs: number, nowMs: number, head: Vector3 | null, hands: { fold: Unfold; ribbon: number }, handPoints: Record<HandSide, Vector3 | null>): { state: StageState; unfold: Unfold; room: RoomNow };
   setOverride(override: ActingOverride | null): void;
   addCue(id: string, atMs: number): void;
+  /** Review builds: forget the room effects added with `addRoom`. */
+  clearReviewRoom(): void;
   /** Review builds: a room effect at a show time, outside the story's timeline. */
   addRoom(action: Extract<import('@tabletop/contracts').StageAction, { do: 'room' }>, atMs: number): void;
   /** The reader let go of an object near a character. */
@@ -517,6 +519,9 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
     snapshot: () => ({ v: 2, scheduler: scheduler.snapshot(), objects: views.objects.snapshot(), overlays: structuredClone(overlays), drawerWanted, satchelOpen }),
     addCue(id, atMs) {
       extraCues.push({ id, atMs });
+    },
+    clearReviewRoom() {
+      extraRoom.length = 0;
     },
     addRoom(action, atMs) {
       extraRoom.push({ action, startMs: atMs, key: `room-review-${extraRoom.length}` });

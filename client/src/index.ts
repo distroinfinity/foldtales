@@ -309,17 +309,29 @@ async function prepare(world: World) {
   // Review builds only: `?cue=beam` plays the lighthouse beam once the opening has finished, for P5.
   const devCue = reviewQuery('cue');
   if (devCue && manifest.cues.some((c) => c.id === devCue)) runtime.addCue(devCue, 11_500);
-  // Review builds only: `?room=shadows,fireflies` plays each room effect in turn once the opening has
-  // finished, 35 s each and 40 s apart, so they can be checked in one sitting. `hunt` hides the kite on your couch.
+  // Review builds only: `?room=shadows,fireflies` plays each room effect in turn, starting a few
+  // seconds after the show does (fresh or resumed), 35 s each and 40 s apart, so they can be checked
+  // in one sitting. `hunt` hides the kite on your couch. Scheduled again after "Start from the beginning".
   const devRoom = (reviewQuery('room') ?? '').split(',').filter(Boolean);
-  devRoom.forEach((effect, i) => {
-    const at = 11_500 + i * 40_000;
-    if (effect === 'hunt') runtime.addRoom({ do: 'room', withPrev: false, effect: 'hunt', what: 'object:kite', at: 'room:couch' }, at);
-    else if (effect === 'shadows' || effect === 'fireflies') {
-      runtime.addRoom({ do: 'room', withPrev: false, effect, what: null, at: null }, at);
-      runtime.addRoom({ do: 'room', withPrev: false, effect: `${effect}-off`, what: null, at: null }, at + 35_000);
-    }
-  });
+  const devRoomState = { scheduled: false, lastMs: 0 };
+  const scheduleDevRoom = (fromMs: number): void => {
+    runtime.clearReviewRoom();
+    devRoom.forEach((effect, i) => {
+      const at = Math.max(11_500, fromMs + 6_000) + i * 40_000;
+      if (effect === 'hunt') runtime.addRoom({ do: 'room', withPrev: false, effect: 'hunt', what: 'object:kite', at: 'room:couch' }, at);
+      else if (effect === 'shadows' || effect === 'fireflies') {
+        runtime.addRoom({ do: 'room', withPrev: false, effect, what: null, at: null }, at);
+        runtime.addRoom({ do: 'room', withPrev: false, effect: `${effect}-off`, what: null, at: null }, at + 35_000);
+      }
+    });
+    devRoomState.scheduled = true;
+  };
+  /** Each frame: schedule once the show starts, and again whenever its clock goes back to the start. */
+  const devRoomTick = (): void => {
+    if (!devRoom.length || !runtime.started) return;
+    if (!devRoomState.scheduled || clock.ms < devRoomState.lastMs - 1000) scheduleDevRoom(clock.ms);
+    devRoomState.lastMs = clock.ms;
+  };
   const wrist = createWristMenu({
     parent: world.scene,
     sound,
@@ -330,11 +342,11 @@ async function prepare(world: World) {
       else away.requested = true;
     },
   });
-  return { manifest, assets, stage, dim, sound, clock, runtime, roomMap, shadowPlay, fireflies, wash, ember, log, pause, controls, soft, review, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, directorOn, storyConfig, moreTargets };
+  return { manifest, assets, stage, dim, sound, clock, runtime, roomMap, shadowPlay, fireflies, devRoomTick, wash, ember, log, pause, controls, soft, review, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, directorOn, storyConfig, moreTargets };
 }
 
 function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom: Checkpoint | null, target: EnterTarget | null = null): void {
-  const { manifest, assets, stage, sound, clock, runtime, roomMap, shadowPlay, fireflies, wash, ember, log, pause, controls, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, storyConfig, moreTargets } = show;
+  const { manifest, assets, stage, sound, clock, runtime, roomMap, shadowPlay, fireflies, devRoomTick, wash, ember, log, pause, controls, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, storyConfig, moreTargets } = show;
   // The AI Storyteller, when that's the door the reader chose on the landing page.
   const storyMode = target?.kind === 'storyteller' && storyConfig !== null;
   let story: StorySession | null = null;
@@ -715,6 +727,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       }
     }
     const { unfold, room: roomNow } = runtime.frame(deltaMs * speed, nowMs, head, { fold: controls.fold(), ribbon: controls.ribbonLift() }, { left: controls.pinchPoint('left'), right: controls.pinchPoint('right') });
+    devRoomTick();
     shadowPlay.frame({
       renderer: world.renderer,
       scene: world.scene,
