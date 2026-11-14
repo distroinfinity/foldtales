@@ -10,6 +10,7 @@ import { createBackendAccess, withDeadline } from './backend.ts';
 import { OVER_STACK } from './book/book-view.ts';
 import { preloadFonts } from './book/text.ts';
 import { setLandingState, type LandingState } from './landing/landing.ts';
+import { askForMicrophone } from './landing/microphone.ts';
 import { buildDim } from './light/dim.ts';
 import { loadStageAssets, uploadAll } from './paint/assets.ts';
 import { makeSoftPieces } from './paint/soft.ts';
@@ -819,6 +820,39 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, world
       };
       // Once the chapter has run, the landing page speaks for where it is now, not where it was at load.
       const current = () => (ranMode === 'chapter' ? (show.runtime.ended ? { label: 'Read chapter 1 again', restartLabel: null, resume: false } : { label: 'Continue chapter 1', restartLabel: 'Start from the beginning', resume: true }) : choice);
+      /**
+       * The AI Storyteller needs your voice, so its door asks for the microphone first, on this page (a first
+       * prompt inside VR has ended the session). Entering VR needs a fresh tap, so once you've allowed it the
+       * door says so and opens on the next tap.
+       */
+      let micState: PermissionState | 'unknown' = 'unknown';
+      void navigator.permissions?.query({ name: 'microphone' as PermissionName }).then((p) => {
+        micState = p.state;
+        p.onchange = () => {
+          micState = p.state;
+          if (world.visibilityState.value === VisibilityState.NonImmersive) setLandingState(ready());
+        };
+        if (world.visibilityState.value === VisibilityState.NonImmersive) setLandingState(ready());
+      }).catch(() => undefined);
+      const storyDoorLabel = () =>
+        ranMode === 'story'
+          ? 'Back to the AI Storyteller'
+          : micState === 'granted'
+            ? 'Or make up a story with the AI Storyteller'
+            : micState === 'denied'
+              ? 'The AI Storyteller needs your voice: allow the microphone in the browser’s site settings'
+              : 'Or make up a story with the AI Storyteller (it will ask for your microphone)';
+      const openStoryteller = () => {
+        if (micState === 'granted') {
+          enter(false, 'story');
+          return;
+        }
+        void askForMicrophone(navigator.mediaDevices?.getUserMedia?.bind(navigator.mediaDevices)).then((answer) => {
+          micState = answer === 'granted' ? 'granted' : 'denied';
+          const state = ready();
+          setLandingState(answer === 'granted' && state.kind === 'ready' && state.storyteller ? { ...state, storyteller: { ...state.storyteller, label: 'Thank you. Now open the AI Storyteller' } } : state);
+        });
+      };
       const ready = (): LandingState => {
         const now = current();
         return {
@@ -827,7 +861,7 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, world
           openRoom: arSupported && enterRoom ? () => enterRoom() : null,
           label: now.label,
           restart: now.restartLabel ? { label: now.restartLabel, run: () => enter(false) } : null,
-          storyteller: STORYTELLER_AVAILABLE ? { label: ranMode === 'story' ? 'Back to the AI Storyteller' : 'Or make up a story with the AI Storyteller', run: () => enter(false, 'story') } : null,
+          storyteller: STORYTELLER_AVAILABLE ? { label: storyDoorLabel(), run: openStoryteller } : null,
         };
       };
       void navigator.xr

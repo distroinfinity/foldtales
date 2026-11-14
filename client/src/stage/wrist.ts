@@ -64,6 +64,29 @@ export function createWristMenu(deps: WristDeps) {
   const tag = new Mesh(new PlaneGeometry(0.034, 0.019), new MeshBasicMaterial({ map: gold, transparent: true, side: DoubleSide, toneMapped: false, depthTest: true }));
   tag.name = 'wrist-tag';
   root.add(tag);
+  // Until you've used it once on this headset, the tag says what it's for, printed beside it.
+  const HINT_KEY = 'tt.wrist-used';
+  let used = false;
+  try {
+    used = localStorage.getItem(HINT_KEY) === '1';
+  } catch {
+    used = false;
+  }
+  const hint = new Text();
+  hint.text = 'Pinch me: pause, start again, leave';
+  hint.font = captionFont;
+  hint.fontSize = 0.0075;
+  hint.color = INK;
+  hint.anchorX = 'center';
+  hint.anchorY = 'middle';
+  hint.position.z = 0.0005;
+  hint.sync();
+  // Printed on a scrap of the same painted paper, never straight over the room.
+  const hintPaper = new Mesh(new PlaneGeometry(0.092, 0.016), new MeshBasicMaterial({ map: paper, transparent: true, side: DoubleSide, toneMapped: false }));
+  hintPaper.add(hint);
+  hintPaper.position.set(0, -0.021, 0);
+  hintPaper.visible = !used;
+  root.add(hintPaper);
 
   const fan = new Group();
   fan.visible = false;
@@ -127,6 +150,15 @@ export function createWristMenu(deps: WristDeps) {
       }
     }
     deps.sound.play(on ? 'page' : 'fold', at, undefined, 'ui');
+    if (on && !used) {
+      used = true;
+      hintPaper.visible = false;
+      try {
+        localStorage.setItem(HINT_KEY, '1');
+      } catch {
+        // The hint simply shows again next time.
+      }
+    }
   }
 
   return {
