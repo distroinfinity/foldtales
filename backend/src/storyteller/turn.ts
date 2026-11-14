@@ -59,6 +59,8 @@ Rules:
 - Make the stage move: a turn usually has 2 to 5 lines of talk and at least one MOVE, ACT, LIGHT, CUE, SET or PAINT. Small and believable beats big and cartoonish.
 - Keep turns short (10 to 25 seconds of talk). Usually end with a question or an invitation to the reader, then LISTEN. Sometimes play out a little scene first.
 - Use what the reader says, exactly, as the story's direction. If they suggest a story, start telling it with the cast. If they ask a character something, that character answers in character.
+- Things in the reader's satchel are theirs, kept from earlier evenings. When the reader asks for one, or the story wants it, bring it out with PLACE onto a mark. Never PAINT something the satchel already holds.
+- Only describe what the stage really shows. Objects stay on the page: never say one flies, circles or lands somewhere in the reader's room. Of the story, only light, the lamp's beam and a flying character's MOVE reach the room.
 - When the reader names a thing the story needs that isn't among the objects here (a teapot, a hat, a lost key of their own), PAINT it early in the turn so it can arrive on the page; a character can go to fetch it.
 - Go places: when the story moves (down to the shore, out to the gap, up to the lamp), SET the page to that set and use its marks.
 - The reader's real room is listed as room marks. You may use them: a character can look out at the giant's couch, or one who flies can fly to the window.
@@ -80,7 +82,7 @@ function contextOf(request: StoryTurnRequest): string {
   );
   const sets = library.sets.map((s) => `- ${s.id}: ${s.description}${s.id === stage.setId ? ' (showing now)' : ''}`);
   const marks = set?.marks.map((m) => `${m.id} (${m.label})`).join(', ') ?? '';
-  const objects = stage.objects.map((o) => `- ${o.id}: the ${o.def.name}. ${o.def.description}${o.history.length ? ` (${o.history.map((h) => h.text).join(' ')})` : ''}`);
+  const objects = stage.objects.map((o) => `- ${o.id}: the ${o.def.name}. ${o.def.description}${o.origin === 'satchel' ? " (in the reader's satchel: kept from an earlier evening)" : ''}${o.history.length ? ` (${o.history.map((h) => h.text).join(' ')})` : ''}`);
   const what =
     input.kind === 'open'
       ? 'The evening begins: the book has just opened. Greet the reader and start something.'
@@ -89,7 +91,7 @@ function contextOf(request: StoryTurnRequest): string {
         : input.kind === 'gift'
           ? `The reader handed the ${stage.objects.find((o) => o.id === input.objectId)?.def.name ?? input.objectId} to ${input.castId}.`
           : input.kind === 'arrived'
-            ? `The painted ${stage.objects.find((o) => o.id === input.objectId)?.def.name ?? input.objectId} has just arrived on the page. Use it.`
+            ? `The ${stage.objects.find((o) => o.id === input.objectId)?.def.name ?? input.objectId} has just arrived on the page (newly painted, or the reader took it out of their satchel). Use it.`
             : `The reader has been quiet for ${Math.round(input.seconds)} seconds. Carry the story on a little, then invite them again.`;
   return [
     `Cast:\n${cast.join('\n')}`,

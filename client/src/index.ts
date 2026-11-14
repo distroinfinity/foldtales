@@ -40,6 +40,7 @@ import { createLiveScheduler } from './storyteller/live.ts';
 import { createStorySession, type StorySession } from './storyteller/session.ts';
 import { createEars } from './storyteller/ears.ts';
 import { createTalkTab } from './stage/talk.ts';
+import { createKeepsakes } from './storyteller/keepsakes.ts';
 import type { ExtraTarget } from './stage/controls.ts';
 import { presentCast } from './director/director.ts';
 import { minTextSizeM, settleOnTable } from './stage/sizing.ts';
@@ -307,7 +308,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
   const library = libraryOf(manifest, assets.objects);
   const onStage = manifest.onStage.map((o) => o.cast);
   /** Begins an evening: a fresh live stage and a fresh session, the book opening on the first set. */
-  const beginStory = () => {
+  const startStorySession = () => {
     const cfg = storyConfig!;
     const live = createLiveScheduler({
       durationOf: runtime.durationOf,
@@ -341,7 +342,13 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       live,
       sound,
       library,
-      objects: showObjects,
+      // What's in your satchel is marked so; the pictures stay here (the story only needs their names).
+      objects: () =>
+        showObjects().map((o) => ({
+          ...o,
+          origin: stage.objects.get(o.id)?.home.kind === 'satchel' ? ('satchel' as const) : o.origin,
+          def: o.def.art.kind === 'url' ? { ...o.def, art: { kind: 'asset' as const, path: `live/${o.def.id}.png` } } : o.def,
+        })),
       cast: () => {
         const ms = clock.ms;
         const present = presentCast(live, onStage, ms);
@@ -405,10 +412,35 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       stage.objects.add(def, ref, { kind: 'page', at: [0.035, 0, 0.055] });
       world.renderer.initTexture(texture);
       sound.play('chime', stage.book.root.getWorldPosition(new Vector3()), undefined, 'ui');
+      // Everything painted for you is yours to keep: it goes in your satchel for every evening after.
+      void keepsakes.keep(def);
       session?.arrived(def.id);
       return;
     }
   }
+  /** A new evening: a fresh session, and what you kept from earlier evenings back in your satchel. */
+  function beginStory(): void {
+    startStorySession();
+    satchelSeen.clear();
+    fromSatchel.clear();
+    void bringKeepsakes(story);
+  }
+  async function bringKeepsakes(session: StorySession | null): Promise<void> {
+    for (const k of await keepsakes.list()) {
+      if (story !== session) return;
+      if (stage.objects.get(k.def.id) || k.def.art.kind !== 'url') continue;
+      const texture = await new TextureLoader().loadAsync(k.def.art.url).catch(() => null);
+      if (!texture || story !== session || stage.objects.get(k.def.id)) continue;
+      texture.colorSpace = SRGBColorSpace;
+      defs.set(k.def.id, k.def);
+      stage.objects.add(k.def, wholeRef(texture), { kind: 'satchel' });
+      world.renderer.initTexture(texture);
+    }
+  }
+  const keepsakes = createKeepsakes();
+  /** Where each thing was last frame, to notice one taken out of the satchel by hand. */
+  const satchelSeen = new Map<string, string>();
+  const fromSatchel = new Set<string>();
   /** What the caption band says between lines: whose turn it is, and your words as they're heard. */
   const storyHint: { base: string | null; heard: string | null; listening: boolean; blocked: string | null } = { base: null, heard: null, listening: false, blocked: null };
   if (storyMode) beginStory();
@@ -634,6 +666,17 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
     for (const a of answers.splice(0)) director.receive(runtime.scheduler, clock.ms, a.id, a.ready);
     if (show.directorOn && runtime.started && !runtime.ended) director.frame(runtime.scheduler, clock.ms);
     story?.frame();
+    if (story) {
+      for (const o of stage.objects.states()) {
+        const was = satchelSeen.get(o.id);
+        const now = o.home.kind;
+        if (was === now) continue;
+        satchelSeen.set(o.id, now);
+        if (was === 'satchel') void keepsakes.used(o.id);
+        if (was === 'satchel' && now === 'hand') fromSatchel.add(o.id);
+        else if (was === 'hand' && now !== 'hand' && fromSatchel.delete(o.id) && now === 'page') story.arrived(o.id);
+      }
+    }
     // The tab is there while the Storyteller's book is open and playing; a pause lets the microphone go.
     const canTalk = story !== null && runtime.started && !clock.paused && controls.amount > 0.98;
     if (story) talk.frame({ left: controls.fingertip('left'), right: controls.fingertip('right') });
