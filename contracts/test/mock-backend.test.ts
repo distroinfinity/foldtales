@@ -44,6 +44,14 @@ const callers: Record<RouteName, (api: BackendApi) => Promise<unknown>> = {
   replyAsCharacter: (api) => collect(api.replyAsCharacter(replyReq)),
   speakLine: (api) => api.speakLine({ speaker: 'bramble', text: 'Hi', mood: 'warm' }),
   speechToken: (api) => api.speechToken({}),
+  storyTurn: async (api) => {
+    const events: unknown[] = [];
+    for await (const event of api.storyTurn({ sessionId: 's', library: fixtureLibrary(), stage: { setId: fixtureLibrary().sets[0]!.id, cast: [], objects: [], light: 'dusk', lampLit: false }, room: [], input: { kind: 'open' }, history: [], canon: [] })) events.push(event);
+    return events;
+  },
+  paintProp: (api) => api.paintProp({ sessionId: 's', description: 'a teapot', image: null }),
+  paintResult: (api) => api.paintResult({ jobId: 'mock-paint-1' }),
+  soundEffect: (api) => api.soundEffect({ sessionId: 's', description: 'a broken whistle', seconds: 1 }),
   memoryAppend: (api) => api.memoryAppend({ seriesId: 's', events: [] }),
   memoryRead: (api) => api.memoryRead({ seriesId: 's', afterSeq: null }),
   memoryDelete: (api) => api.memoryDelete({ seriesId: 's' }),
@@ -130,7 +138,7 @@ describe.each(ROUTE_NAMES)('%s', (route) => {
 
   test('honours quota_exceeded', async () => {
     const api = createMockBackend({ failure: { [route]: 'quota_exceeded' } });
-    const stream = route === 'reactToObject' || route === 'replyAsCharacter';
+    const stream = route === 'reactToObject' || route === 'replyAsCharacter' || route === 'storyTurn';
     if (stream) {
       const chunks = (await callers[route](api)) as ReplyChunk[];
       expect(chunks).toEqual([expect.objectContaining({ kind: 'error', code: 'quota_exceeded' })]);

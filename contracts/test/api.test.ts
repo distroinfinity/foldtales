@@ -157,7 +157,7 @@ test('every route path is unique and starts with /v1/', () => {
   for (const path of paths) expect(path.startsWith('/v1/')).toBe(true);
 });
 
-test('exactly the two reply routes stream', () => {
+test('exactly the two reply routes and the storyteller turn stream', () => {
   const streaming = Object.entries(routes).filter(([, r]) => 'stream' in r).map(([name]) => name);
-  expect(streaming.sort()).toEqual(['reactToObject', 'replyAsCharacter']);
+  expect(streaming.sort()).toEqual(['reactToObject', 'replyAsCharacter', 'storyTurn']);
 });

@@ -1,4 +1,5 @@
 import { BackendError, type BackendApi, type BeatRequest, type ReplyChunk, type SpineRequest } from '../api.ts';
+import type { StoryTurnRequest, TurnEvent } from '../storyteller.ts';
 import { estimateSpeechMs, linesOf, lineIdOf, type Beat, type ReadyBeat, type Spine } from '../beats.ts';
 import type { ShowEvent } from '../events.ts';
 import type { CastMember, StageLibrary } from '../library.ts';
@@ -175,6 +176,31 @@ export function createMockBackend(options: MockOptions = {}): BackendApi {
     yield { kind: 'final', line: { who, text, mood: 'warm' }, voice: { url: null, durationMs: estimateSpeechMs(text) }, changesScene: false };
   }
 
+  /** One voiced beat from someone on the spread, then the cast turns to listen. */
+  async function* turn(request: StoryTurnRequest): AsyncGenerator<TurnEvent> {
+    await latency('storyTurn');
+    const failure = failureOf('storyTurn');
+    if (failure === 'moderated') {
+      const text = 'The narrator turned the page, rather quickly.';
+      yield { kind: 'redirect', text, voice: { url: null, durationMs: estimateSpeechMs(text) } };
+      return;
+    }
+    if (failure) {
+      yield { kind: 'error', code: failure, message: `mock ${failure} on storyTurn` };
+      return;
+    }
+    const used = new Set(request.history.map((h) => lineIdOf(h.who, h.text)));
+    const here = new Set(request.stage.cast.map((c) => c.id));
+    const speaker = request.library.cast.find((c) => c.voice !== null && here.has(c.id)) ?? voiced(request.library);
+    const actions: StageAction[] = speaker
+      ? [{ do: 'speak', withPrev: false, who: speaker.id, text: freshLine(speaker.id, speaker.name, used), mood: 'warm', to: 'reader' }]
+      : [{ do: 'narrate', withPrev: false, text: freshLine('narrator', 'The narrator', used), mood: 'neutral' }];
+    counter += 1;
+    yield { kind: 'beat', ready: ready({ id: `mock-turn-${counter}`, source: 'director', sceneId: null, estSeconds: 4, actions, next: null, replaces: null }) };
+    yield { kind: 'listen', who: speaker?.id ?? null };
+  }
+  const jobs = new Map<string, string>();
+
   const nameOf = (library: StageLibrary, id: string) => library.cast.find((c) => c.id === id)?.name ?? id;
   const inAnHour = () => new Date(Date.now() + 3_600_000).toISOString();
 
@@ -198,6 +224,17 @@ export function createMockBackend(options: MockOptions = {}): BackendApi {
     reactToObject: (request) => reply('reactToObject', request.castId, nameOf(request.library, request.castId)),
     replyAsCharacter: (request) => reply('replyAsCharacter', request.castId, nameOf(request.library, request.castId)),
     speakLine: (request) => run('speakLine', () => ({ url: null, durationMs: estimateSpeechMs(request.text) })),
+    storyTurn: (request) => turn(request),
+    paintProp: (request) =>
+      run('paintProp', () => {
+        counter += 1;
+        const jobId = `mock-paint-${counter}`;
+        jobs.set(jobId, request.description);
+        return { jobId };
+      }),
+    // A mock painting never finishes: the client's "couldn't find it" path is what it exercises.
+    paintResult: (request) => run('paintResult', () => (jobs.has(request.jobId) ? { status: 'failed' as const, reason: 'the mock does not paint' } : { status: 'failed' as const, reason: 'no such job' })),
+    soundEffect: (request) => run('soundEffect', () => ({ url: null, durationMs: request.seconds * 1000 })),
     speechToken: () => run('speechToken', () => ({ provider: 'mock', token: 'mock-speech-token', expiresAt: inAnHour() })),
     memoryAppend: (request) =>
       run('memoryAppend', () => {

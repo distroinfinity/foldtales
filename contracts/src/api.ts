@@ -4,6 +4,7 @@ import { CanonEntry, ShowEvent } from './events.ts';
 import { StageLibrary } from './library.ts';
 import { ShowObject } from './objects.ts';
 import { ErrorCode, Id, Mood, type RouteName } from './primitives.ts';
+import { PaintRequest, PaintResult, StoryTurnRequest, TurnEvent, isTurnEnd } from './storyteller.ts';
 import { TelemetryBatch } from './telemetry.ts';
 import { CONTRACT_VERSION } from './version.ts';
 
@@ -112,8 +113,16 @@ export const routes = {
   },
   planBeat: { path: '/v1/director/beat', request: BeatRequest, response: ReadyBeat },
   planSpine: { path: '/v1/director/spine', request: SpineRequest, response: Spine },
-  reactToObject: { path: '/v1/objects/react', request: ObjectReactRequest, stream: true },
-  replyAsCharacter: { path: '/v1/characters/reply', request: CharacterReplyRequest, stream: true },
+  reactToObject: { path: '/v1/objects/react', request: ObjectReactRequest, stream: ReplyChunk },
+  replyAsCharacter: { path: '/v1/characters/reply', request: CharacterReplyRequest, stream: ReplyChunk },
+  storyTurn: { path: '/v1/storyteller/turn', request: StoryTurnRequest, stream: TurnEvent },
+  paintProp: { path: '/v1/storyteller/paint', request: PaintRequest, response: z.strictObject({ jobId: Id }) },
+  paintResult: { path: '/v1/storyteller/paint/result', request: z.strictObject({ jobId: Id }), response: PaintResult },
+  soundEffect: {
+    path: '/v1/storyteller/sound',
+    request: z.strictObject({ sessionId: Id, description: z.string().min(1).max(200), seconds: z.number().min(0.5).max(6) }),
+    response: VoiceAsset,
+  },
   speakLine: {
     path: '/v1/voice/line',
     request: z.strictObject({ speaker: Id, text: z.string().min(1), mood: Mood }),
@@ -145,13 +154,13 @@ export const routes = {
     request: TelemetryBatch,
     response: z.strictObject({ accepted: z.number().int().nonnegative() }),
   },
-} as const satisfies Record<RouteName, { path: string; request: z.ZodType } & ({ response: z.ZodType } | { stream: true })>;
+} as const satisfies Record<RouteName, { path: string; request: z.ZodType } & ({ response: z.ZodType } | { stream: typeof ReplyChunk | typeof TurnEvent })>;
 
 type Routes = typeof routes;
 
 export type BackendApi = {
-  [K in RouteName]: Routes[K] extends { stream: true }
-    ? (request: z.input<Routes[K]['request']>) => AsyncIterable<ReplyChunk>
+  [K in RouteName]: Routes[K] extends { stream: z.ZodType }
+    ? (request: z.input<Routes[K]['request']>) => AsyncIterable<z.output<Routes[K]['stream']>>
     : Routes[K] extends { response: z.ZodType }
       ? (request: z.input<Routes[K]['request']>) => Promise<z.output<Routes[K]['response']>>
       : never;
@@ -227,21 +236,23 @@ export function createHttpBackend(options: HttpBackendOptions): BackendApi {
     return parsed.data;
   }
 
-  async function* stream(path: string, body: unknown): AsyncGenerator<ReplyChunk> {
+  /** Both stream types end in the same error shape. */
+  async function* stream<C extends { kind: string }>(path: string, body: unknown, schema: z.ZodType<C>, ends: (chunk: C) => boolean): AsyncGenerator<C> {
+    const fail = (code: ErrorCode, message: string): C => errorChunk(code, message) as unknown as C;
     let response: Response;
     try {
       response = await post(path, body, 'text/event-stream');
     } catch (cause) {
-      yield errorChunk('upstream_failed', `network failure: ${String(cause)}`);
+      yield fail('upstream_failed', `network failure: ${String(cause)}`);
       return;
     }
     if (!response.ok) {
       const error = await errorFrom(response);
-      yield errorChunk(error.code, error.message);
+      yield fail(error.code, error.message);
       return;
     }
     if (!response.body) {
-      yield errorChunk('upstream_failed', `${path} sent no body`);
+      yield fail('upstream_failed', `${path} sent no body`);
       return;
     }
     const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
@@ -260,29 +271,34 @@ export function createHttpBackend(options: HttpBackendOptions): BackendApi {
             .map((line) => line.slice(5).trimStart())
             .join('\n');
           if (data === '') continue;
-          let chunk: ReplyChunk;
+          let chunk: C;
           try {
-            chunk = ReplyChunk.parse(JSON.parse(data));
+            chunk = schema.parse(JSON.parse(data));
           } catch {
-            yield errorChunk('invalid_output', `${path} sent a bad chunk`);
+            yield fail('invalid_output', `${path} sent a bad chunk`);
             return;
           }
           yield chunk;
-          if (isTerminal(chunk)) return;
+          if (ends(chunk)) return;
         }
       }
     } catch (cause) {
-      yield errorChunk('upstream_failed', `stream broke: ${String(cause)}`);
+      yield fail('upstream_failed', `stream broke: ${String(cause)}`);
       return;
     } finally {
       reader.cancel().catch(() => {});
     }
-    yield errorChunk('upstream_failed', `${path} closed without a final chunk`);
+    yield fail('upstream_failed', `${path} closed without a final chunk`);
   }
 
   const api: Record<string, unknown> = {};
   for (const [name, route] of Object.entries(routes)) {
-    api[name] = 'stream' in route ? (body: unknown) => stream(route.path, body) : (body: unknown) => call(route, body);
+    api[name] =
+      'stream' in route
+        ? route.stream === TurnEvent
+          ? (body: unknown) => stream(route.path, body, TurnEvent, isTurnEnd)
+          : (body: unknown) => stream(route.path, body, ReplyChunk, isTerminal)
+        : (body: unknown) => call(route, body);
   }
   return api as BackendApi;
 }
