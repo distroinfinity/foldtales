@@ -410,7 +410,8 @@ export function createObjects(initial: ObjectState[], deps: ObjectsDeps): Object
     add(def, ref, home) {
       if (views.has(def.id)) return;
       live.add(def.id);
-      states.set(def.id, { id: def.id, home, given: false, grabbable: true });
+      // Painted for you: yours, so a page turn carries it along to your satchel rather than leaving it behind.
+      states.set(def.id, { id: def.id, home, given: false, grabbable: true, touched: true });
       build(def.id, def, ref);
     },
     removeLive() {

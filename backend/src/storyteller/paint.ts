@@ -81,7 +81,8 @@ export function createPainter(deps: PainterDeps) {
     });
   }
 
-  async function paint(thing: string): Promise<Buffer> {
+  /** `job.charged` turns true once Runway has accepted the job (its credits are really spent then). */
+  async function paint(thing: string, job: { charged: boolean }): Promise<Buffer> {
     const r = await fetch(`${API}/text_to_image`, {
       method: 'POST',
       headers: headers(),
@@ -89,7 +90,7 @@ export function createPainter(deps: PainterDeps) {
     });
     const made = (await r.json()) as { id?: string };
     if (!r.ok || !made.id) throw new Error(`runway refused (${r.status})`);
-    spent += CREDITS_PER_PAINTING;
+    job.charged = true;
     for (let i = 0; i < 30; i++) {
       await new Promise((resolve) => setTimeout(resolve, 2500));
       const task = (await fetch(`${API}/tasks/${made.id}`, { headers: headers() }).then((x) => x.json()).catch(() => ({ status: 'UNKNOWN' }))) as { status: string; output?: string[] };
@@ -101,10 +102,11 @@ export function createPainter(deps: PainterDeps) {
 
   async function run(jobId: string, request: PaintRequest, objectId: string | null): Promise<void> {
     const started = Date.now();
+    const job = { charged: false };
     try {
       const named = await name(request);
       if (!named.fit) throw new Error('not for this book');
-      const image = await paint(named.paint);
+      const image = await paint(named.paint, job);
       const cut = await cutOut(image);
       if (!cut.ok) throw new Error(cut.reason);
       const id = objectId ?? `live-${jobId.slice(-8)}`;
@@ -122,6 +124,8 @@ export function createPainter(deps: PainterDeps) {
       jobs.set(jobId, { result: { status: 'done', object: def }, at: Date.now() });
       deps.log?.(`painted "${named.name}" in ${Date.now() - started} ms (${spent} credits so far)`);
     } catch (cause) {
+      // Never reached Runway (or it refused): the reserved credits go back.
+      if (!job.charged) spent -= CREDITS_PER_PAINTING;
       deps.log?.(`painting failed after ${Date.now() - started} ms: ${String(cause)}`);
       jobs.set(jobId, { result: { status: 'failed', reason: String(cause).slice(0, 120) }, at: Date.now() });
     }
@@ -142,6 +146,8 @@ export function createPainter(deps: PainterDeps) {
       else if (count >= PER_EVENING) jobs.set(jobId, { result: { status: 'failed', reason: 'enough painting for one evening' }, at: Date.now() });
       else if (spent + CREDITS_PER_PAINTING > deps.creditCap) jobs.set(jobId, { result: { status: 'failed', reason: 'the painting budget is spent' }, at: Date.now() });
       else {
+        // Reserved now, before the job starts, so paintings started together can't pass the cap.
+        spent += CREDITS_PER_PAINTING;
         perEvening.set(request.sessionId, count + 1);
         jobs.set(jobId, { result: { status: 'pending' }, at: Date.now() });
         void run(jobId, request, objectId);

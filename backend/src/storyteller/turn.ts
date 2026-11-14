@@ -304,11 +304,18 @@ export async function* storyTurn(request: StoryTurnRequest, deps: TurnDeps): Asy
       if (paints >= MAX_PAINTS) return;
       paints += 1;
       if (!deps.paint) return;
-      const jobId = deps.paint(request.sessionId, step.description, step.objectId);
-      enqueue(Promise.resolve({ kind: 'paint', jobId, objectId: step.objectId, description: step.description }));
+      const paint = deps.paint;
+      // Painting costs credits: it only starts once moderation has passed the turn.
+      enqueue(fit.then((ok) => (ok ? { kind: 'paint' as const, jobId: paint(request.sessionId, step.description, step.objectId), objectId: step.objectId, description: step.description } : null)));
     } else listened = step.who;
   };
 
+  let unfit = false;
+  const redirect = async (): Promise<TurnEvent> => {
+    const text = 'And just then, the page turned all by itself, to somewhere cozier.';
+    const voice = (await deps.voices.speak(NARRATOR, text).catch(() => null)) ?? { url: null, durationMs: estimateSpeechMs(text) };
+    return { kind: 'redirect', text, voice };
+  };
   try {
     let i = 0;
     for await (const event of stream) {
@@ -320,6 +327,11 @@ export async function* storyTurn(request: StoryTurnRequest, deps: TurnDeps): Asy
         const step = parseStep(raw, request, setId);
         if (step && steps < MAX_STEPS && listened === undefined) take(step);
       }
+      // Nothing is said until moderation has passed the turn (it runs alongside, so it rarely waits).
+      if (i < queue.length && queue[i]!.done && !(await fit)) {
+        unfit = true;
+        break;
+      }
       // Hand on whatever is voiced, in order, while the rest is written.
       while (i < queue.length && queue[i]!.done) {
         const e = queue[i++]!.value;
@@ -329,6 +341,10 @@ export async function* storyTurn(request: StoryTurnRequest, deps: TurnDeps): Asy
         }
       }
     }
+    if (unfit) {
+      yield await redirect();
+      return;
+    }
     if (buffer.trim()) {
       const step = parseStep(buffer, request, setId);
       if (step && listened === undefined) take(step);
@@ -337,9 +353,7 @@ export async function* storyTurn(request: StoryTurnRequest, deps: TurnDeps): Asy
     const final = await stream.finalMessage();
     if (final.stop_reason === 'refusal') throw Object.assign(new Error('refused'), { refused: true });
     if (!(await fit)) {
-      const text = 'And just then, the page turned all by itself, to somewhere cozier.';
-      const voice = (await deps.voices.speak(NARRATOR, text).catch(() => null)) ?? { url: null, durationMs: estimateSpeechMs(text) };
-      yield { kind: 'redirect', text, voice };
+      yield await redirect();
       return;
     }
     for (; i < queue.length; i++) {

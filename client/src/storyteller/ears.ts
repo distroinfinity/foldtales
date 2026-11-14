@@ -95,7 +95,12 @@ export function createEars(deps: EarsDeps) {
           if (text) words = words ? `${words} ${text}` : text;
           if (state === 'sending') finish(mine);
         });
-        c.on(RealtimeEvents.ERROR, (error: unknown) => deps.log?.(`ears: ${String((error as { error?: string })?.error ?? error)}`));
+        c.on(RealtimeEvents.ERROR, (error: unknown) => {
+          deps.log?.(`ears: ${String((error as { error?: string })?.error ?? error)}`);
+          lost(mine);
+        });
+        // The connection dropped (network, server, token): don't leave the button saying "Listening".
+        c.on(RealtimeEvents.CLOSE, () => lost(mine));
       } catch (cause) {
         deps.log?.(`ears could not open: ${String(cause)}`);
         set('off');
@@ -116,6 +121,8 @@ export function createEars(deps: EarsDeps) {
       set('sending');
       try {
         connection?.commit();
+        // Nothing said after letting go is sent: the microphone stops here, the last words come back.
+        connection?.mute();
       } catch {
         // Nothing to commit.
       }
@@ -128,6 +135,19 @@ export function createEars(deps: EarsDeps) {
       if (state !== 'off') set('off');
     },
   };
+
+  /** The connection is gone: send what was heard if you'd let go, otherwise just stop listening. */
+  function lost(mine: number): void {
+    if (mine !== generation || state === 'off') return;
+    if (state === 'sending') {
+      finish(mine);
+      return;
+    }
+    generation += 1;
+    connection = null;
+    set('off');
+    prefetch();
+  }
 
   function finish(mine: number): void {
     if (mine !== generation || state !== 'sending') return;

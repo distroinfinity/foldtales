@@ -318,7 +318,9 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
     stage.objects.removeLive();
     runtime.useScheduler(live, live.spine, initialObjects);
     sound.clearLines();
-    story = createStorySession({
+    // The last evening, if any, is over: nothing it was still writing may play into this one.
+    story?.dispose();
+    const session: StorySession = createStorySession({
       withBackend: (call) => storyAccess.withBackend(call),
       stream: (request) =>
         (async function* () {
@@ -379,7 +381,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
         if (state !== 'thinking') storyHint.heard = null;
         runtime.setHint(storyHint.base);
       },
-      onPaint: (job) => void collectPainting(job, story),
+      onPaint: (job) => void collectPainting(job, session),
       onAcknowledge: (who) => sound.play('interested', stage.puppets.get(who)?.root.getWorldPosition(new Vector3())),
       // A guest can't use the AI Storyteller: said plainly, printed on the page, never as an error.
       onError: (code, message) => {
@@ -389,6 +391,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
         runtime.setHint(storyHint.blocked);
       },
     });
+    story = session;
   };
   /** A painting the story asked for: wait for it, upload it out of sight, then it appears on the page and the story is told. */
   async function collectPainting(job: { jobId: string; objectId: string }, session: StorySession | null): Promise<void> {
@@ -473,6 +476,20 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
     },
     log: (m) => console.info(m),
   });
+  // The microphone never outlives the moment: leaving the page, the headset's view or XR stops it at
+  // once, without waiting for another frame (frames stop when XR does).
+  const stopEars = () => ears.stop();
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) stopEars();
+  });
+  window.addEventListener('pagehide', stopEars);
+  world.renderer.xr.addEventListener('sessionstart', () => {
+    const xr = world.renderer.xr.getSession();
+    xr?.addEventListener('visibilitychange', () => {
+      if (xr.visibilityState !== 'visible') stopEars();
+    });
+  });
+  world.renderer.xr.addEventListener('sessionend', stopEars);
   const talk = createTalkTab({
     bookRoot: stage.book.root,
     pageY: stage.book.pageY,

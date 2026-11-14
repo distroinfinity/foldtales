@@ -58,16 +58,26 @@ export function createKeepsakes() {
       if (!d) return [];
       return (await all(d)).sort((a, b) => b.usedAt - a.usedAt);
     },
-    /** Keep a painted thing (or mark it used again). */
+    /** Keep a painted thing (or mark it used again). One transaction, so two at once can't pass the cap. */
     async keep(def: ObjectDef): Promise<void> {
       const d = await db;
       if (!d) return;
-      const now = Date.now();
-      const kept = await all(d);
-      const before = kept.find((k) => k.def.id === def.id);
-      const others = kept.filter((k) => k.def.id !== def.id).sort((a, b) => b.usedAt - a.usedAt);
-      const over = others.slice(KEEPSAKE_CAP - 1).map((k) => k.def.id);
-      await write(d, [{ def, savedAt: before?.savedAt ?? now, usedAt: now }], over);
+      await new Promise<void>((resolve) => {
+        const tx = d.transaction(STORE, 'readwrite');
+        const store = tx.objectStore(STORE);
+        const request = store.getAll();
+        request.onsuccess = () => {
+          const now = Date.now();
+          const kept = request.result as Keepsake[];
+          const before = kept.find((k) => k.def.id === def.id);
+          const others = kept.filter((k) => k.def.id !== def.id).sort((a, b) => b.usedAt - a.usedAt);
+          for (const k of others.slice(KEEPSAKE_CAP - 1)) store.delete(k.def.id);
+          store.put({ def, savedAt: before?.savedAt ?? now, usedAt: now });
+        };
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => resolve();
+        tx.onabort = () => resolve();
+      });
     },
     async used(id: string): Promise<void> {
       const d = await db;

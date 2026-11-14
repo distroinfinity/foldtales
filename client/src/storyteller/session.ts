@@ -50,7 +50,9 @@ export function createStorySession(deps: SessionDeps) {
   let quietTurns = 0;
   const history: StoryTurnRequest['history'] = [];
 
+  let disposed = false;
   const setState = (next: StoryState, who: string | null = listener) => {
+    if (disposed) return;
     state = next;
     deps.onState?.(next, who);
   };
@@ -71,7 +73,10 @@ export function createStorySession(deps: SessionDeps) {
   };
 
   async function turn(input: TurnInput): Promise<void> {
+    if (disposed) return;
     const mine = ++generation;
+    // A listen left over from the last turn mustn't end this one.
+    pendingListen = false;
     if (input.kind === 'heard') {
       history.push({ who: 'reader', text: input.text });
       quietTurns = 0;
@@ -176,8 +181,8 @@ export function createStorySession(deps: SessionDeps) {
       if (state !== 'listening') deps.live.interrupt(deps.nowMs());
       void turn({ kind: 'heard', text: t.slice(0, 600), to });
     },
+    /** You handed something over: it becomes the turn, even if they were mid-thought. */
     gift(objectId: string, castId: string): void {
-      if (state === 'thinking') return;
       void turn({ kind: 'gift', objectId, castId });
     },
     /** Something painted has arrived: told as soon as they're listening, never over a scene. */
@@ -191,7 +196,13 @@ export function createStorySession(deps: SessionDeps) {
       deps.live.interrupt(deps.nowMs());
       toListening(listener);
     },
+    /** This evening is over (started again, or left): nothing from it plays or answers any more. */
+    dispose(): void {
+      disposed = true;
+      generation += 1;
+    },
     frame(): void {
+      if (disposed) return;
       const now = deps.nowMs();
       if (pendingListen && state === 'performing' && deps.live.idle) {
         setState('listening', listener);
