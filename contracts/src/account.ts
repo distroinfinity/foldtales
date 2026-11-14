@@ -7,6 +7,12 @@ import { z } from 'zod';
  */
 export const SESSION_HEADER = 'x-tabletop-session';
 
+/**
+ * The 401 message for an AI route called without a valid session. A client must not renew its
+ * device token for this one: the token is fine, the reader just isn't signed in.
+ */
+export const SIGN_IN_REQUIRED = 'sign in to use the AI Storyteller';
+
 /** Better Auth's own routes live under this path, outside the contract header check. */
 export const AUTH_BASE_PATH = '/v1/auth';
 
