@@ -3,33 +3,18 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#151c2e" />
+    <meta name="theme-color" content="#0e1424" />
+    <meta name="description" content="A living storybook on your table. Reach in and help the characters through each chapter, or make up a new story with the AI Storyteller." />
     <link rel="icon" href="data:," />
     <title>Tabletop Theater</title>
+    <style>
+      /* Before the page's styles arrive: the night, not a white flash. */
+      html, body { margin: 0; background: #0e1424; }
+    </style>
   </head>
   <body>
-    <main id="landing" class="landing" data-state="loading">
-      <div class="book" aria-hidden="true">
-        <div class="cover">
-          <img class="cloth" src="./art/book/cover-front.png" alt="" />
-          <p class="title">The Lighthouse at the Edge of the Table</p>
-        </div>
-        <div class="pages"></div>
-      </div>
-      <h1 class="sr-only">The Lighthouse at the Edge of the Table</h1>
-      <button id="open" class="open" type="button" disabled>
-        <span class="open-label">Getting the book ready</span>
-        <span class="open-progress" aria-hidden="true"></span>
-      </button>
-      <button id="restart" class="room restart" type="button" hidden></button>
-      <p class="hint">Sit at a table, and look down at it once you’re in.</p>
-      <button id="room" class="room" type="button" hidden>No table nearby? Read in the painted room.</button>
-      <p class="voice">
-        <span class="voice-text">Characters can hear you when you pinch them and speak. Your voice goes to a cloud service to be understood, and isn’t kept.</span>
-        <button id="mic" class="mic" type="button">Let them hear you</button>
-      </p>
-    </main>
+    <div id="landing"></div>
     <div id="scene-container"></div>
-    <script type="module" src="/src/index.ts"></script>
+    <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
