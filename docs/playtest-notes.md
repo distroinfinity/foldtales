@@ -20,7 +20,8 @@ What the owner noticed in the headset, in plain words. These come before new fea
 - [x] Open with the lit lamp and its beam, then it goes out and the journey is to relight it (owner's story idea, session 1). Session 2: "Opening beam landed on the hook."
 - [ ] The reader's help doesn't feel needed; it plays like a fixed play (session 1). Partly addressed: a hand moment on every spread, and what you find on the shore is what you have at the gap. Session 2: "very immersive and engaging". The real fix is ticket 3's director.
 - [x] The page turned on its own as soon as a hand came near its corner; the owner wanted to hold the page and turn it (session 2). Now the leaf follows your pinch round the spine: let go past the tipping point and it turns, short of it and it falls back, and the story waits while you hold it. Looking at the corner and pinching still turns it in one go. Checked in the emulator; to feel in the headset next session.
-- [ ] A first play by someone who has never seen it (M2's second check). Not done yet.
+- [x] A first play by someone who has never seen it (M2's second check). Done on Nov 14: "they were amazed. The wow factor is really nice."
+- [ ] Polish the product around the book: the web page and the whole journey into and out of it (owner, Nov 14, after the first new player). Later, with ticket 6's landing work.
 
 ## Ticket 2, headset session 2, Nov 14, 2026 (review build over USB, the re-cut chapter): M2 signed off
 

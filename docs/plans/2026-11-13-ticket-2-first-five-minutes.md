@@ -1,6 +1,6 @@
 # Ticket 2: First five minutes (ends at M2)
 
-**Status:** Done. M2 signed off by the owner in the headset on Nov 14 (session 2, the re-cut chapter in 5:59), with one fix after: the page now turns by hand. A first play by someone new is still to do. Built end to end on Nov 13, re-cut after headset session 1, and reviewed once by Codex (PR #7).
+**Status:** Done. M2 signed off by the owner in the headset on Nov 14 (session 2, the re-cut chapter in 5:59), with one fix after: the page now turns by hand. Someone new played it on Nov 14 and was amazed. Built end to end on Nov 13, re-cut after headset session 1, and reviewed once by Codex (PR #7).
 
 **Goal.** M1's last moment, Pip looking up at you with a dark lantern, becomes a complete 5–7 minute authored episode. You hand the lantern back and it relights. The drawer slides open at the gap, you hand Pip anything, and that decides how he crosses. The lamp is relit and its beam sweeps your room. Doing nothing also makes a satisfying episode. This is the first build someone else plays, so handing things over has to feel good with no instructions.
 
