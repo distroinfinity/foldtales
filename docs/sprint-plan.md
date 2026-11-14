@@ -62,44 +62,51 @@ Why: AI lines spliced into the written chapter didn't land ("If a story is alrea
   - [ ] Your book on any headset
   - [ ] **Later, once the product is nearly done: turn sign-in on and test it.** Built and tested on the Mac, switched off for now (owner, Nov 14). Set up Resend (needs a domain and its DNS records), a Google sign-in client, and the server's sign-in secrets (`BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `TT_CLIENT_HOST`). Then turn on `TT_ACCOUNTS=on` (server) and `TT_PUBLIC_ACCOUNTS=on` (site) together. Test on the Quest: Google in Quest Browser, the phone code, and a second headset.
   - [ ] **Host it on foldtales.xyz** (owner, Nov 15): the site on Cloudflare Pages through the existing CI, and the backend on Railway at api.foldtales.xyz. The AI stays off in production for now. Steps in the plan's "Hosting on foldtales.xyz"; this also releases ticket 0's held hosting task.
-  - [ ] **Product flows and user journeys: an overhaul, planned end to end** (owner, Nov 15). For a fresh session: **plan first, the owner approves before any code**.
-    - **Why:** the owner says the flows don't hang together: "The overhaul of user journeys and product journeys needs to be planned well and executed." Two examples:
+  - [ ] **Foldtales as a complete product: every surface, flow and journey, planned end to end** (owner, Nov 15). For a fresh session: **plan first, the owner approves before any code**.
+    - **Why:** the owner says the product doesn't yet feel like a finished whole. "The overhaul of user journeys and product journeys needs to be planned well and executed." The surfaces should be "presented well as a finished product to the customer". Examples:
       - The wrist quit menu is "very absurd right now".
-      - A first attempt at the landing (PR #16, closed) bolted a second section onto a polished page instead of asking the real questions.
-    - **Scope: every moment a person moves between things, on the web page and in the headset, as one product:**
-      1. **Arriving.**
-         - A first visit on a Quest.
-         - A judge opening the link cold.
-         - A visitor on a desktop or phone.
-         - Returning mid-chapter, after a chapter, and after an AI story.
-      2. **Choosing what to do.**
-         - A written story or the AI Storyteller. **First question: does that choice live on the web page or inside the book in XR?**
-         - The shelf of stories, as more chapters come.
-      3. **Getting ready.**
-         - The microphone: it must be granted on the page before XR, because a first prompt inside XR ended the session, twice.
-         - A table, or the painted room.
-         - Finding the surface.
-      4. **Inside: the controls a reader uses.** Today they're scattered and inconsistent:
-         - pause on the ribbon;
-         - the contents on the sage tab;
-         - pause, start again and leave on the wrist tag;
-         - no clear way to switch between a story and the Storyteller.
-         
-         One coherent model: what's on the book, what's on you, and what the system's own menu does. Meta reserves the palm pinch.
-      5. **Endings:** the end of a chapter, the end of an AI story, and what comes next.
-      6. **Leaving and coming back:** putting the book away, the page you return to, and continuing the next evening.
-      7. **When things go wrong:** no internet, the AI slow or failing, the microphone refused, XR refused.
+      - A first try at the landing (PR #16, closed) bolted a second section onto a polished page instead of asking the real questions.
+      - Things people collect, and ticket 4's room effects, have nowhere to live.
+    - **The bar: Beat Saber.** Every mode, menu and journey is thought out:
+      - a home you always return to;
+      - clear play modes;
+      - a library with packs;
+      - a pause menu that's always the same;
+      - a results screen;
+      - settings;
+      - a tutorial.
+
+      Study it, and Moss, on the Quest, and borrow the structure, not the look.
+    - **First, the inventory: what Foldtales is made of, and what to build.** Plan where each surface lives, on the page, on the book, on you, or in the system menu, and whether it's needed for Nov 18:
+      1. **Home:** where you start and come back to. The first question: does choosing between a written story and the AI Storyteller happen on the web page or inside the book?
+      2. **The library:** books and chapters as a shelf, with progress, "read again", and what's coming. More chapters are on the way from the owner.
+      3. **The AI Storyteller:** start a new story, continue the last one, and your past stories.
+      4. **Your collection** (the "catalog" of what you've gathered):
+         - keepsakes in your satchel from the chapters;
+         - everything painted for you in the Storyteller;
+         - the storybook pages that record each chapter and story.
+
+         How you browse it, and bring things back into a story.
+      5. **Room effects** (ticket 4, in parallel, `docs/plans/2026-11-15-room-comes-alive.md`): seven effects that work from a chapter or the Storyteller. Weather, shadow play, a treasure hunt, the night sky, the sea on your floor, things that leave the page, your window. How a reader discovers them, asks for them, and sees which ones their room has seen.
+      6. **The controls inside:** pause, start again, leave, switch between a story and the Storyteller, open the contents and the satchel. Today they're scattered across the ribbon, the sage tab and the wrist tag. One model, always in the same place. Meta reserves the palm pinch for its own menu.
+      7. **Endings:** the end of a chapter and the end of an AI story, like a results screen. What lasts, and what's next.
+      8. **Settings:** captions, voice and mute, microphone, book size, the room dim's strength, a table or the painted room, volume, starting the book over, and privacy and delete.
+      9. **First time:** how a newcomer learns to reach in, pinch, hand things over and talk, with no instructions screen.
+      10. **Leaving and coming back:** putting the book away, the page you land on, and the next evening.
+      11. **When things go wrong:** no internet, the AI slow or failing, the microphone refused, XR refused.
+      12. **The page around it all:** first visit, a judge cold, a desktop or phone, and returning. About and privacy. Later, sign-in (built and off).
     - **How to plan it:**
-      - Walk today's journeys on the Quest and write down each step as it really is.
-      - Mark the load at each step: choices, words, reaches, waits.
-      - Look at how the best Quest titles handle menus, pause and leaving: Moss, Meta's hand and system-menu guidance.
-      - Propose one model with a shared vocabulary, with mockups.
+      - Walk today's product on the Quest and write down every surface and step as it really is, with its load: choices, words, reaches, waits.
+      - Propose one structure: a map of the surfaces, a shared vocabulary, and the flows between them, with mockups.
       - Settle the open questions with the owner on cards.
+      - Agree what ships by Nov 18 and what's later.
       - Build in phases, each checked in the headset.
+      - Coordinate with ticket 4 (the effects) and the owner's chapters, so their work lands in this structure.
     - **Keep:**
       - the book as the only UI inside XR (`docs/design-language.md`);
       - hands only, and completable silently;
       - a judge one tap from something wonderful;
+      - the microphone granted on the page before XR (a first prompt inside XR ended the session, twice);
       - today's polished page (PR #11) as the baseline, changed only by the approved plan;
       - the deadline, Nov 18.
     - **Context:**
