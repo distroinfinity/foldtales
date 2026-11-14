@@ -126,3 +126,18 @@ Plain build over USB (`vite preview`, https), real tracking.
 ## M1 sign-off, Nov 13, 2026
 
 Signed off by the owner in the headset after a fresh run of the opening, the beam and the painted room: "this looks good … good to clean up, merge changes and move forward."
+
+## Ticket 3, AI Storyteller, headset session 2, Nov 14, 2026 (review build over USB, evening)
+
+- **Mic not allowed:** the first try ("What all can you do?") wasn't heard, with no feedback. *Fixed:* the Storyteller door asks for the microphone first and opens straight after Allow; a plain line on the page says when the mic isn't allowed.
+- **Two doors:** "think more like a product". *Built:* chapter 1 stays the main button; the AI Storyteller is a second door under it.
+- **Wrist menu not discoverable.** *Built:* the wrist tag says "Pinch me: pause, start again, leave" until first used.
+- **Hold to talk:** "I am not able to press this button … the label can be on top of the button itself." *Changed:* one paper button with a gold rim and the words on it. A capture showed the owner pressing it with a fingertip (it only took a pinch) and the button covering the "Your turn" line. *Fixed (built, not yet tried):* a fingertip press works too, and the button lies on the table in front of the book.
+- **Pinch on the button:** worked six times in a row. The cast answered in about 7 s each time.
+- **Immersion:** "This time it was nice. I actually felt immersion. They were following my commands." Asking them to light up the room brought the lighthouse beam across the real room: "that lighthouse effect was nice … we are in the right direction."
+- **"Stop doing everything now":** the cast stopped and waited ("Doing nothing is a keeper's oldest skill").
+- **Painting on demand:** "Can you get a kite for me … shaped like [a dragon]". Painted "Emerald Scale Kite" in 25 s for 2 credits; the cast covered the wait; it landed and the owner picked it up. "It is okayish."
+- **Bug, the cast promises room effects that don't exist:** three times the cast said the kite was "flying across your room" / "circling your couch". The owner said they couldn't see it; Pip apologised in character. *To fix:* the storyteller only describes what the stage really shows; better, build real room effects (see below).
+- **Owner direction:** not new characters. More elements like the lamp that act on the real room: "very simple and clever, like a rotating light in my room". Ideas offered: weather in the room, shadow play on the wall, a treasure hunt across the room with the beam, the night sky on the ceiling, the sea on the floor. Owner to choose.
+- **Owner request:** keep everything generated in an inventory to reuse later. *Planned:* `docs/plans/2026-11-14-storyteller-satchel.md`.
+- Runway spent this session: 2 credits (one painting).
