@@ -4,14 +4,14 @@
 
 ## Progress
 
-*Last updated Nov 13, 2026. A workstream is ticked when it's merged to main, and a milestone when the owner signs it off in the headset. ⏸ means held by the owner's choice. **Now: ticket 2, chapter 1 re-cut after headset session 1, waiting for headset session 2 and a stranger's play.***
+*Last updated Nov 14, 2026. A workstream is ticked when it's merged to main, and a milestone when the owner signs it off in the headset. ⏸ means held by the owner's choice. **Now: ticket 3, a story that bends and remembers. M2 signed off by the owner on Nov 14; a stranger's play is still to do.***
 
 ### Milestones
 
 - [x] **M0, Pip on your table.** Signed off on the Quest 3 on Nov 12, from a local build over USB (hosting is held).
 - [x] **M1, the first 30 seconds.** Signed off on the Quest 3 on Nov 13, from a local review build over USB (PR #6).
-- [ ] **M2, first five minutes.** ← next
-- [ ] **M3, a story that bends and remembers.**
+- [x] **M2, first five minutes.** Signed off by the owner on the Quest 3 on Nov 14, from a local review build over USB (PR #7). The first play by someone new is still to do.
+- [ ] **M3, a story that bends and remembers.** ← next
 - [ ] **M4, voices and Talk.**
 - [ ] **M5, Story Circle.**
 - [ ] **M6, ready to submit.**
@@ -28,11 +28,11 @@
   - [x] Stage and room
   - [x] Found-surface moment, from M0 playtest notes ("ember and wash")
   - [x] Room dim, from M0 playtest notes
-- [ ] **2. First five minutes** ← next. Plan: `docs/plans/2026-11-13-ticket-2-first-five-minutes.md`
-  - [ ] Hands and objects
-  - [ ] Show and flagship
-  - [ ] First-session journey (added by the owner, Nov 13)
-- [ ] **3. A story that bends and remembers**
+- [x] **2. First five minutes** (PR #7). Plan: `docs/plans/2026-11-13-ticket-2-first-five-minutes.md`
+  - [x] Hands and objects
+  - [x] Show and flagship
+  - [x] First-session journey (added by the owner, Nov 13)
+- [ ] **3. A story that bends and remembers** ← next
   - [ ] Director
   - [ ] Memory and satchel
   - [ ] Tonight's lost thing
@@ -50,8 +50,8 @@
   - [x] Gap set, drawer, satchel and Wick's rope for M2 (run 007, PR #4). Approved on the Mac
   - [x] Painted reading room (run 008) and M1 sound (run 009), PR #6. Approved in the headset at the M1 sign-off
   - [ ] Headset approval of the above, once tickets 1 and 2 can show them
-  - [ ] M2 sound (run 010) and chapter 1's re-cut voices (run 012), on ticket 2's branch
-  - [ ] The lamp spread, the shore's night sky and the lamp wick (run 011), on ticket 2's branch
+  - [x] M2 sound (run 010) and chapter 1's re-cut voices (run 012), PR #7. Heard in the headset at the M2 sign-off
+  - [x] The lamp spread, the shore's night sky and the lamp wick (run 011), PR #7. Approved in the headset at the M2 sign-off
   - [ ] Prepared visitors, remaining cast actions, rest of the object library
 
 ## Where to start

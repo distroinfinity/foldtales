@@ -214,7 +214,7 @@ export function createObjectHands(deps: HandsDeps) {
       // The page's edge, while it invites a turn. It stands in for the fore-edge's stretch.
       if (deps.runtime.pageInviting) {
         const p = deps.book.cornerWorld(new Vector3());
-        out.push({ proxy: { id: 'page-edge', position: { x: p.x, y: p.y, z: p.z }, radiusM: 0.04, reachUpM: REACH_UP_M }, onGrab: () => deps.runtime.turnPage(), replaces: 'fore', halo: false });
+        out.push({ proxy: { id: 'page-edge', position: { x: p.x, y: p.y, z: p.z }, radiusM: 0.04, reachUpM: REACH_UP_M }, onGrab: (_hand, point) => deps.runtime.holdPage(point), onDrag: (_hand, point) => deps.runtime.holdPage(point), onRelease: () => deps.runtime.releasePage(), onCancel: () => deps.runtime.releasePage(true), replaces: 'fore', halo: false });
       }
       // The gold tab opens your satchel.
       const tab = deps.book.root.getObjectByName('tab-gold');
@@ -276,7 +276,9 @@ export function createObjectHands(deps: HandsDeps) {
         deps.sound.play('grab', at);
       } else if (!id.startsWith('cast:')) {
         const p = new Vector3(best.t.proxy.position.x, best.t.proxy.position.y, best.t.proxy.position.z);
-        if (best.t.onRelease) best.t.onRelease('right', p);
+        // Looked at and pinched, the page turns in one go: there's no hand on it to follow.
+        if (id === 'page-edge') deps.runtime.turnPage();
+        else if (best.t.onRelease) best.t.onRelease('right', p);
         else best.t.onGrab?.('right', p);
       }
     },

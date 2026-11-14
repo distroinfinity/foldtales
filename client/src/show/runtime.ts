@@ -91,6 +91,10 @@ export interface ShowRuntime {
   toggleSatchel(): void;
   /** The reader turned the page early. */
   turnPage(): void;
+  /** Your hand on the page's corner: the leaf follows it round the spine. Null `point` keeps the last. */
+  holdPage(point: Vector3 | null): void;
+  /** Let go of the page: past the tipping point it turns, short of it it falls back. */
+  releasePage(cancel?: boolean): void;
   /** Is the page's edge inviting a turn? */
   readonly pageInviting: boolean;
   /** Something in hand: the show's timeouts wait (within their grace). */
@@ -140,6 +144,23 @@ export function captionPages(text: string): string[] {
 const closed = (cards: number): Unfold => ({ dim: 0, cover: 0, layers: Array.from({ length: cards }, () => 0) });
 const clamp01 = (v: number): number => Math.max(0, Math.min(1, v));
 const ease = (t: number): number => t * t * (3 - 2 * t);
+/** The `t` whose ease is `y` (by halving: it's only needed once per turn). */
+const unease = (y: number): number => {
+  let lo = 0;
+  let hi = 1;
+  for (let i = 0; i < 24; i++) {
+    const mid = (lo + hi) / 2;
+    if (ease(mid) < y) lo = mid;
+    else hi = mid;
+  }
+  return (lo + hi) / 2;
+};
+/** How much of a hand-turned page's travel folds the pop-ups down before the leaf lifts. */
+const DRAG_FOLD = 0.08;
+/** Let go of a page past this and it turns; short of it, it falls back. */
+const PAGE_COMMIT = 0.35;
+const PAGE_FALL_MS = 380;
+type PageTurn = { layers: number | null; leaf: number | null; rightNew: boolean; leftNew: boolean; stackNew: boolean; dragged: boolean };
 const lerp3 = (a: V3, b: V3, t: number): V3 => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
 
 export interface RuntimeDeps {
@@ -175,6 +196,12 @@ export function createShowRuntime({ manifest, spine, defs, moods, views, clock }
   let satchelFlap = 0;
   let holding = false;
   let heldCast: string | null = null;
+  /** The page in your hand: how far round the spine you've lifted it (0 flat on the right, 1 over on the left). */
+  let pageHold: { progress: number } | null = null;
+  /** A page let go of too soon, falling back to where it was. */
+  let pageFall: { from: number; startMs: number } | null = null;
+  /** A turn you started by hand carries on from where you let go, not from the top. */
+  let turnShiftMs = 0;
   /** Whether the show sound is held still because you have a character in your hand. */
   let soundHeld = false;
   let noticing: { cast: string; object: string; sinceMs: number } | null = null;
@@ -264,7 +291,8 @@ export function createShowRuntime({ manifest, spine, defs, moods, views, clock }
       } else if (kind === 'keep') {
         satchelOpen = true;
         for (const s of views.objects.states()) {
-          if (!s.given || lightObjects.has(s.id) || s.home.kind === 'satchel') continue;
+          // Something tucked in a character's coat was theirs to use up in the story: it stays with them.
+          if (!s.given || lightObjects.has(s.id) || s.home.kind === 'satchel' || s.home.kind === 'pocket') continue;
           views.objects.send(s.id, { kind: 'satchel' }, nowMs, 1300, 0.09);
         }
       } else if (kind === 'chapter-end') {
@@ -296,13 +324,27 @@ export function createShowRuntime({ manifest, spine, defs, moods, views, clock }
   }
 
   /** The page turn: fold down, the leaf passes, rise again. Null when no turn is playing. */
-  function pageTurnAt(state: StageState): { layers: number | null; leaf: number | null; rightNew: boolean; leftNew: boolean; stackNew: boolean } | null {
+  function pageTurnAt(state: StageState): PageTurn | null {
     const cue = cueOf(state, 'page-turn');
-    if (!cue || cue.localMs > PAGE.riseEnd) return null;
-    const t = cue.localMs;
+    if (!cue) turnShiftMs = 0;
+    if (!cue || cue.localMs + turnShiftMs > PAGE.riseEnd) return null;
+    const t = cue.localMs + turnShiftMs;
     const fold = t < PAGE.foldEnd ? 1 - ease(t / PAGE.foldEnd) : t < PAGE.leafEnd ? 0 : null;
     const leaf = t >= PAGE.foldEnd && t < PAGE.leafEnd ? ease((t - PAGE.foldEnd) / (PAGE.leafEnd - PAGE.foldEnd)) : null;
-    return { layers: fold, leaf, rightNew: t >= PAGE.foldEnd, leftNew: t >= PAGE.leafEnd, stackNew: t >= PAGE.leafEnd };
+    return { layers: fold, leaf, rightNew: t >= PAGE.foldEnd, leftNew: t >= PAGE.leafEnd, stackNew: t >= PAGE.leafEnd, dragged: false };
+  }
+
+  /** The page while your hand has it (or as it falls back): the first bit of the lift folds the pop-ups flat, then the leaf follows. */
+  function draggedTurn(nowMs: number): PageTurn | null {
+    let p: number | null = pageHold?.progress ?? null;
+    if (p === null && pageFall) {
+      const k = clamp01((nowMs - pageFall.startMs) / PAGE_FALL_MS);
+      p = pageFall.from * (1 - ease(k));
+      if (k >= 1) pageFall = null;
+    }
+    if (p === null || p <= 0) return null;
+    const leaf = p < DRAG_FOLD ? null : (p - DRAG_FOLD) / (1 - DRAG_FOLD);
+    return { layers: p < DRAG_FOLD ? 1 - p / DRAG_FOLD : 0, leaf, rightNew: p >= DRAG_FOLD, leftNew: false, stackNew: false, dragged: true };
   }
 
   /** Where each crossing puts the traveller and its gift, from the cue's progress. */
@@ -388,6 +430,9 @@ export function createShowRuntime({ manifest, spine, defs, moods, views, clock }
       satchelOpen = false;
       endedAtMs = null;
       noticing = null;
+      pageHold = null;
+      pageFall = null;
+      turnShiftMs = 0;
       for (const s of speeches) s.speech.stop(100);
       speeches.length = 0;
       marksKey = '';
@@ -404,6 +449,9 @@ export function createShowRuntime({ manifest, spine, defs, moods, views, clock }
       drawerAmount = drawerWanted ? 1 : 0;
       satchelOpen = snapshot.satchelOpen;
       clock.seek(ms);
+      pageHold = null;
+      pageFall = null;
+      turnShiftMs = 0;
       lastMs = ms;
       started = true;
       // Nothing that already happened happens again: its effects are in the snapshot, and its sounds are over.
@@ -510,12 +558,38 @@ export function createShowRuntime({ manifest, spine, defs, moods, views, clock }
     turnPage() {
       handleEvents(scheduler.skip(clock.ms));
     },
+    holdPage(point) {
+      if (!pageHold) {
+        pageHold = { progress: pageFall ? pageFall.from : 0 };
+        pageFall = null;
+        views.sound.play('page', point ?? undefined, undefined, 'ui');
+      }
+      if (!point) return;
+      // The leaf turns round the spine: it points at your hand.
+      const local = views.book.root.worldToLocal(point.clone());
+      const angle = Math.atan2(local.y - views.book.pageY, local.x);
+      pageHold.progress = clamp01(angle / Math.PI);
+    },
+    releasePage(cancel = false) {
+      if (!pageHold) return;
+      const p = pageHold.progress;
+      pageHold = null;
+      if (cancel || p < PAGE_COMMIT) {
+        pageFall = { from: p, startMs: wallMs };
+        return;
+      }
+      // Over the top: it turns, carrying on from where your hand left the leaf.
+      const leaf = p < DRAG_FOLD ? 0 : (p - DRAG_FOLD) / (1 - DRAG_FOLD);
+      turnShiftMs = PAGE.foldEnd + unease(leaf) * (PAGE.leafEnd - PAGE.foldEnd);
+      handleEvents(scheduler.skip(clock.ms));
+    },
     frame(deltaMs, nowMs, head, hands, handPoints) {
       wallMs = nowMs;
-      if (started && !heldCast) clock.advance(deltaMs);
+      if (started && !heldCast && !pageHold) clock.advance(deltaMs);
       // Picked up mid-line, a character stops talking with the story, and picks up the line where it left off.
-      if ((heldCast !== null) !== soundHeld) {
-        soundHeld = heldCast !== null;
+      const handsHold = heldCast !== null || pageHold !== null;
+      if (handsHold !== soundHeld) {
+        soundHeld = handsHold;
         if (soundHeld) views.sound.suspend();
         else if (!clock.paused) views.sound.resume();
       }
@@ -540,14 +614,16 @@ export function createShowRuntime({ manifest, spine, defs, moods, views, clock }
       // The book: opening, the page turn, and your hands on it.
       const openCue = cueOf(state, 'unfold');
       let showUnfold = openCue ? unfoldAt(openCue.localMs, cards) : closed(cards);
-      const turn = pageTurnAt(state);
+      const playing = pageTurnAt(state);
+      const turn = playing ?? draggedTurn(nowMs);
       const scene = scheduler.scene();
-      const nowSet = setOfScene(scene);
-      const prevSet = setOfScene(Math.max(0, scene - 1));
+      // A turn by hand goes from this spread to the next; one that's playing, from the last spread to this one.
+      const nowSet = setOfScene(playing || !turn ? scene : scene + 1);
+      const prevSet = playing || !turn ? setOfScene(Math.max(0, scene - 1)) : setOfScene(scene);
       if (turn) {
         if (turn.layers !== null) showUnfold = { ...showUnfold, layers: showUnfold.layers.map(() => turn.layers!) };
         else if (turn.leaf === null) {
-          const rise = unfoldAt(2500 + (cueOf(state, 'page-turn')!.localMs - PAGE.leafEnd) * 2.2, cards);
+          const rise = unfoldAt(2500 + (cueOf(state, 'page-turn')!.localMs + turnShiftMs - PAGE.leafEnd) * 2.2, cards);
           showUnfold = { ...showUnfold, layers: rise.layers };
         } else showUnfold = { ...showUnfold, layers: showUnfold.layers.map(() => 0) };
         views.book.setSets(turn.leftNew ? nowSet : prevSet, turn.rightNew ? nowSet : prevSet);
@@ -751,7 +827,7 @@ export function createShowRuntime({ manifest, spine, defs, moods, views, clock }
       overlays = overlays.filter((o) => ms - o.startMs < 3200);
 
       // A page turn sweeps anything left lying on the old spread into your satchel, so nothing is lost.
-      if (turn?.layers !== null && turn) {
+      if (turn?.layers !== null && turn && !turn.dragged) {
         for (const s of views.objects.states()) if (s.home.kind === 'page' && !lightObjects.has(s.id)) {
           // What you handled comes with you in your satchel; what you never touched stays on its page.
           if (s.touched || s.given) {

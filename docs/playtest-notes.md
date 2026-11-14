@@ -16,9 +16,22 @@ What the owner noticed in the headset, in plain words. These come before new fea
 - [x] The book sat at or past the table's rim, so it felt sunk in and hard to reach (Nov 13). It now settles fully on the scanned table top; confirmed in the headset ("feels nice").
 - [ ] The two-handed stretch may be too sensitive: in session 2 it jumped between 0.6× and 1.3× within 2 s several times. Watch for it; damp it if the owner finds it twitchy.
 - [ ] ⏸ Hosted preview link, so testing needs no USB. Held with ticket 0's Task 7.
-- [ ] Chapter 1 runs too long before the first page turn, and the spreads look the same (session 1, ticket 2). Re-cut: three spreads and two turns, a new lamp spread, and the shore's own night sky. To check in session 2.
-- [ ] Open with the lit lamp and its beam, then it goes out and the journey is to relight it (owner's story idea, session 1). Built: the chapter opens on the lit lamp. To check in session 2.
-- [ ] The reader's help doesn't feel needed; it plays like a fixed play (session 1). Partly addressed: a hand moment on every spread, and what you find on the shore is what you have at the gap. The real fix is ticket 3's director.
+- [x] Chapter 1 runs too long before the first page turn, and the spreads look the same (session 1, ticket 2). Re-cut: three spreads and two turns, a new lamp spread, and the shore's own night sky. Session 2: "The start is good", and "the shore felt like a new place".
+- [x] Open with the lit lamp and its beam, then it goes out and the journey is to relight it (owner's story idea, session 1). Session 2: "Opening beam landed on the hook."
+- [ ] The reader's help doesn't feel needed; it plays like a fixed play (session 1). Partly addressed: a hand moment on every spread, and what you find on the shore is what you have at the gap. Session 2: "very immersive and engaging". The real fix is ticket 3's director.
+- [x] The page turned on its own as soon as a hand came near its corner; the owner wanted to hold the page and turn it (session 2). Now the leaf follows your pinch round the spine: let go past the tipping point and it turns, short of it and it falls back, and the story waits while you hold it. Looking at the corner and pinching still turns it in one go. Checked in the emulator; to feel in the headset next session.
+- [ ] A first play by someone who has never seen it (M2's second check). Not done yet.
+
+## Ticket 2, headset session 2, Nov 14, 2026 (review build over USB, the re-cut chapter): M2 signed off
+
+The whole re-cut chapter, start to finish, in 5:59 with no stall.
+
+- **What happened, from the live log:** the lantern was picked up at 0:50 and handed back at 0:52. The first "Turn the page" came at 1:39. On the shore the wick was picked up at 2:10, before Moth's entrance, and handed over at 2:13; Moth was on stage when Pip spoke to her (the fix from the PR review, confirmed on the Quest). The kite and spool were left on the sand. The second turn was by the page's edge at 2:57. At the gap the ladder landed on the page first, then went to Pip on the second try at 3:42 (three tries in session 1). The beam came back at 5:12, and the chapter ended at 5:59.
+- **Fixed straight after:** the lamp's wick went into the satchel at the end, though it had gone into the lamp; what's tucked in a character's coat now stays with them. The page turn now follows your hand (see open items).
+- **Owner:** "Oh this was great. I loved the experience. It was very immersive and engaging and it's too good for the first attempt. Let's lock it and move forward."
+  - "Opening beam landed on the hook. Shore felt like a new place."
+  - "One thing to improve: the turning of the chapter of the book was not smooth. I just brought my hand to the right of the book and it turned on its own. I couldn't attempt that with me holding the page and turning it with my hand. That experience was off."
+  - "Kites, pool things looked around as I took them, and it's not long. It's engaging. The start is good."
 
 ## Ticket 2, headset session 1, Nov 13, 2026 (review build over USB, seated at a table)
 
