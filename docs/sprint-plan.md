@@ -61,7 +61,7 @@ Why: AI lines spliced into the written chapter didn't land ("If a story is alrea
   - [ ] The page: the hero and the scroll that opens the book, on every device
   - [ ] Your book on any headset
   - [ ] **Later, once the product is nearly done: turn sign-in on and test it.** Built and tested on the Mac, switched off for now (owner, Nov 14). Set up Resend (needs a domain and its DNS records), a Google sign-in client, and the server's sign-in secrets (`BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `TT_CLIENT_HOST`). Then turn on `TT_ACCOUNTS=on` (server) and `TT_PUBLIC_ACCOUNTS=on` (site) together. Test on the Quest: Google in Quest Browser, the phone code, and a second headset.
-  - [ ] **Later: deploy.** The site on Vercel or Cloudflare Pages: a default `*.vercel.app` or `*.pages.dev` address is fine. The backend on Railway (`*.up.railway.app`), because it needs a long-running Node server with its SQLite file, which serverless functions can't keep. A domain is optional for the link, but Resend needs one to send email codes.
+  - [ ] **Later: deploy.** The site on Vercel or Cloudflare Pages: a default `*.vercel.app` or `*.pages.dev` address is fine. The backend on Railway (`*.up.railway.app`), because it needs a long-running Node server with its SQLite file, which serverless functions can't keep. The site goes on `foldtales.xyz` (bought), and the API on `api.foldtales.xyz`, which is also Resend's sending domain.
 - **Art library** (runs throughout)
   - [x] Book and first set for M1 (run 004, PR #1). Approved on the Mac
   - [x] Drawer objects for M2 (run 006, PR #2). Approved on the Mac and in Quest Browser
@@ -250,7 +250,7 @@ Don't push on. Pull in the fallback from the risk table in `technical-design.md`
 - [ ] Anthropic API key for the backend only, with a spending limit set in the console. *(Not needed until ticket 3.)*
 
 **When the product is nearly done (ticket 7)**
-- [ ] A domain, about $10 a year, if you want a nicer link than the default and email codes for sign-in. Short ideas that looked unregistered on Nov 15 (confirm at the registrar): `openthebook.app` (my pick: it's the page's one button), `talebook.app`, `tablebook.app`, `talesedge.app`, `tabletheater.app`, `pipandwick.app`. The product keeps the name Tabletop Theater. Taken: `tabletoptheater.com`, `tabletop.theater`, `taletable`, `tabletales`.
+- [x] A domain: **`foldtales.xyz`**, bought by the owner on Nov 15. The product is named **Foldtales**. Point it at the deployed site, and use it as Resend's sending domain.
 - [ ] Resend and a Google sign-in client, then sign-in switched on (ticket 7's to-do above).
 
 **When tickets ask, with an estimate first**

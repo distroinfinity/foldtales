@@ -16,7 +16,7 @@ export function Shell({ title, children, depth = 1, narrow = true }: { title: st
     <>
       <header className="flex items-center justify-between px-4 py-4 md:px-10">
         <a href={homeUrl(depth)} className="display text-[21px] text-page no-underline">
-          Tabletop Theater
+          Foldtales
         </a>
       </header>
       <main className={`mx-auto px-4 pb-20 pt-[6vh] md:px-10 ${narrow ? 'max-w-[720px]' : 'max-w-[1100px]'}`}>

@@ -4,7 +4,7 @@ import { Shell, mount } from './shell.tsx';
 mount(
   <Shell title="About">
     <p>
-      <strong>Tabletop Theater</strong> is a living storybook for Meta Quest. A painted pop-up book opens on your real table. Reach in and help the
+      <strong>Foldtales</strong> is a living storybook for Meta Quest. A painted pop-up book opens on your real table. Reach in and help the
       characters through each chapter, or make up a new story with the AI Storyteller.
     </p>
     <h2>The book</h2>

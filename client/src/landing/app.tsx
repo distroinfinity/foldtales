@@ -4,7 +4,7 @@ import { currentReader, pullBook, pushBook } from './account-ui.ts';
 import { OpenTheBook, PaintedRoomLink, SendToQuest } from './actions.tsx';
 import type { Device } from './device.ts';
 import { landingSnapshot, openingTap, subscribeLanding } from './landing.ts';
-import { BOOK_TITLE, libraryStateShim, type LibraryState } from './library.ts';
+import { BOOK_TITLE, readLibrary, type LibraryState } from './library.ts';
 import { ACCOUNTS_ON } from './flags.ts';
 import { HERO_ART, WEB_ART, preloadArt } from './preload.ts';
 import { Bookplate, ChaptersSheet } from './sheets.tsx';
@@ -18,8 +18,8 @@ const footLink = 'cursor-pointer border-0 bg-transparent p-0 font-[inherit] text
 function useLibrary(): LibraryState {
   const state = useSyncExternalStore(subscribeLanding, landingSnapshot);
   // Re-read whenever the 3D side reports a new state, e.g. after a chapter is finished.
-  const [library, setLibrary] = useState(() => libraryStateShim(localStorage, () => true));
-  useEffect(() => setLibrary(libraryStateShim(localStorage, () => true)), [state.kind]);
+  const [library, setLibrary] = useState(() => readLibrary(localStorage));
+  useEffect(() => setLibrary(readLibrary(localStorage)), [state.kind]);
   return library;
 }
 
@@ -81,7 +81,7 @@ export function App({ device }: { device: Device }) {
     <>
       <header className="pointer-events-none fixed inset-x-0 top-0 z-20 flex items-center justify-between bg-gradient-to-b from-room via-room/70 to-transparent px-5 pb-7 pt-4 md:px-10">
         <a href="./" className="display pointer-events-auto text-[22px] font-medium tracking-[0.005em] text-page no-underline">
-          Tabletop Theater
+          Foldtales
         </a>
         {ACCOUNTS_ON && device === 'headset' && (
           <button type="button" className="pointer-events-auto min-h-12 cursor-pointer rounded-full border border-page/15 bg-room/50 px-5 text-[15px] text-page/85 backdrop-blur-md hover:border-page/35" onClick={() => setSheet('plate')}>

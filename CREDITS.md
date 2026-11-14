@@ -1,6 +1,6 @@
 # Credits
 
-Tabletop Theater, made for the Meta VR Start Developer Competition, 2026. Re-check each licence at release.
+Foldtales, made for the Meta VR Start Developer Competition, 2026. Re-check each licence at release.
 
 ## Art, voices and sound
 

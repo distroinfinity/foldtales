@@ -10,7 +10,7 @@ Track: Entertainment · Division: New Experience · Status: Frozen v1 · 2026-11
 
 - **What it is:** an **interactive storybook** for winding down in the evening. It isn't a game: there's no score and no losing. Chapters take about six minutes, and you need only your hands.
 - **Who it's for:** teens and adults who unwind with stories.
-- **Tabletop Theater** is the product. Its first book is ***Tales from the Table's Edge***, with Pip, Wick and Moth in the Lost and Found. The old title, "The Lighthouse at the Edge of the Table", read like a chapter.
+- **Foldtales** is the product (named by the owner on Nov 15, with the domain `foldtales.xyz`; the repo keeps its working name, Tabletop Theater). Its first book is ***Tales from the Table's Edge***, with Pip, Wick and Moth in the Lost and Found. The old title, "The Lighthouse at the Edge of the Table", read like a chapter.
 - **There are two ways in:**
   - **Chapters:** written, theatrical stories, read in order, with no account needed. Only chapter 1 is in v1, plus "More chapters on the way."
   - **The AI Storyteller:** talk to Pip, Wick and Moth, hand them anything, and the AI makes up the story as you go, voiced live. It needs sign-in. Since ticket 3's first headset session, the AI no longer edits the written chapters; it has its own mode.

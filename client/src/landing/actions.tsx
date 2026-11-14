@@ -39,7 +39,7 @@ export function SendToQuest({ compact = false }: { compact?: boolean }) {
           {copied ? 'Link copied' : 'Copy the link'}
         </button>
         {canShare && (
-          <button type="button" className={quiet} onClick={() => void navigator.share({ title: 'Tabletop Theater', url: pageLink() }).catch(() => undefined)}>
+          <button type="button" className={quiet} onClick={() => void navigator.share({ title: 'Foldtales', url: pageLink() }).catch(() => undefined)}>
             Share the link
           </button>
         )}

@@ -10,6 +10,7 @@
 
 | Question | Decision |
 |---|---|
+| The product's name | **Foldtales** (owner, Nov 15), on `foldtales.xyz`. It replaces "Tabletop Theater" everywhere a reader sees it; the repo keeps that as its working name. |
 | What is it? | **An interactive storybook**, with the AI Storyteller blended in. Not a game: no score, no losing. |
 | Tagline (form and page, ≤140) | "A living storybook on your table. Reach in and help the characters through each chapter, or make up a new story with the AI Storyteller." (136) |
 | The book's name | **Tales from the Table's Edge**. It replaces "The Lighthouse at the Edge of the Table", which read like a chapter. Tabletop Theater stays the product. |
