@@ -127,7 +127,10 @@ export function createWindowView(art: TexRef): WindowView {
   /** Chooses where the window opens: the named place, else a real window, else a wall beside the book. */
   const choose = (room: RoomMap, at: string | null, head: Vector3, forward: Vector3): typeof spot => {
     const named = at ? room.resolve(at, 'face') : null;
-    const glass = named && (named.label === 'window' || named.label === 'door') ? named : !at ? room.places().find((p) => p.label === 'window') ?? null : null;
+    // With no place named, the real window nearest you (a room can have several, some far off).
+    let nearest: ReturnType<RoomMap['places']>[number] | null = null;
+    if (!at) for (const p of room.places()) if (p.label === 'window' && (!nearest || p.centre.distanceTo(head) < nearest.centre.distanceTo(head))) nearest = p;
+    const glass = named && (named.label === 'window' || named.label === 'door') ? named : nearest;
     if (glass) return { centre: glass.centre.clone(), normal: glass.normal.clone(), size: [glass.sizeM[0] * INSET, glass.sizeM[1] * INSET], opening: false };
     // A wall by its own id opens there; "a wall" means the one you face, beside the book.
     const exact = !!at && /-[0-9]+$/.test(at);

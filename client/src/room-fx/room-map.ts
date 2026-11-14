@@ -70,6 +70,43 @@ export function insideOutline(x: number, z: number, outline: Array<{ x: number; 
   return inside;
 }
 
+/** How far a point is from an outline on the floor plan (0 inside it). */
+export function distanceToOutline(x: number, z: number, outline: Array<{ x: number; z: number }>): number {
+  if (outline.length >= 3 && insideOutline(x, z, outline)) return 0;
+  let best = Infinity;
+  for (let i = 0, j = outline.length - 1; i < outline.length; j = i++) {
+    const a = outline[j]!;
+    const b = outline[i]!;
+    const abx = b.x - a.x;
+    const abz = b.z - a.z;
+    const t = Math.max(0, Math.min(1, ((x - a.x) * abx + (z - a.z) * abz) / (abx * abx + abz * abz || 1)));
+    best = Math.min(best, Math.hypot(a.x + abx * t - x, a.z + abz * t - z));
+  }
+  return best;
+}
+
+/** A wall stands on its floor's edge; this much slack allows for Space Setup's drawing. */
+const ON_EDGE_M = 0.4;
+/** With no scanned floor under you, places this near count as this room. */
+const NEAR_M = 5;
+
+/**
+ * Space Setup can hold the whole home: only the room you're in counts (owner, Nov 15: the window
+ * effect went to the bedroom's window). That's the floor under the book (or you), the walls on its
+ * edge, and what stands on or inside it.
+ */
+function inThisRoom(all: Place[], at: { x: number; z: number } | null): Place[] {
+  if (!at) return all;
+  const floor = all.find((p) => p.label === 'floor' && p.outline.length >= 3 && insideOutline(at.x, at.z, p.outline));
+  if (!floor) return all.filter((p) => p.label === 'floor' || Math.hypot(p.centre.x - at.x, p.centre.z - at.z) < NEAR_M);
+  return all.filter((p) => {
+    if (p === floor) return true;
+    if (p.label === 'floor') return false;
+    if (p.label === 'ceiling') return p.outline.length < 3 || insideOutline(at.x, at.z, p.outline);
+    return distanceToOutline(p.centre.x, p.centre.z, floor.outline) <= ON_EDGE_M;
+  });
+}
+
 export interface RoomMap {
   /** Reads Space Setup's planes now and then. Call every XR frame. */
   frame(frame: XRFrame, space: XRReferenceSpace, head: Vector3, forward: Vector3): void;
@@ -93,13 +130,18 @@ export interface RoomMap {
   forStory(stageRoot: Object3D): RoomPlace[];
   /** What the browser called things in this room, for the first headset check. */
   seenLabels(): string[];
+  /** Every place Space Setup has, in any room: for the logs only. */
+  everywhere(): Place[];
 }
 
 export function createRoomMap(): RoomMap {
   /** One id per plane for the session, so a place keeps its name. */
   const ids = new Map<XRPlane, string>();
   const counts = new Map<RoomLabel, number>();
+  /** Places in the room you're in: everything effects and the storyteller use. */
   let found: Place[] = [];
+  /** Every place in Space Setup, whichever room. */
+  let all: Place[] = [];
   const standIns = new Map<string, Place>();
   const seen = new Set<string>();
   let frames = 0;
@@ -154,7 +196,10 @@ export function createRoomMap(): RoomMap {
       const sizeM: [number, number] = xUp ? [maxZ - minZ, maxX - minX] : [maxX - minX, maxZ - minZ];
       next.push({ id, label, raw, centre, normal, sizeM, outline: horizontal ? corners.map((c) => ({ x: c.x, z: c.z })) : [], horizontal, standIn: false });
     }
-    found = next;
+    all = next;
+    // The room the book stands in, or else the one you stand in.
+    const at = book ?? (headKnown ? head : null);
+    found = inThisRoom(next, at ? { x: at.x, z: at.z } : null);
   }
 
   const floorY = (): number => {
@@ -224,6 +269,7 @@ export function createRoomMap(): RoomMap {
       ids.clear();
       counts.clear();
       found = [];
+      all = [];
       standIns.clear();
       frames = 0;
       headKnown = false;
@@ -290,6 +336,7 @@ export function createRoomMap(): RoomMap {
         });
     },
     seenLabels: () => [...seen].sort(),
+    everywhere: () => all,
   };
   return map;
 }
