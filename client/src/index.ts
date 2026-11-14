@@ -14,7 +14,7 @@ import { buildDim } from './light/dim.ts';
 import { loadStageAssets, uploadAll } from './paint/assets.ts';
 import { makeSoftPieces } from './paint/soft.ts';
 import { CHECKPOINT_VERSION, clearCheckpoint, readCheckpoint, writeCheckpoint, type Checkpoint } from './show/checkpoint.ts';
-import { landingChoice, readProgress, writeProgress, type EnterTarget } from './show/progress.ts';
+import { landingChoice, readProgress, STORYTELLER_AVAILABLE, writeProgress, type EnterTarget } from './show/progress.ts';
 import { createObjectHands } from './objects/hands.ts';
 import type { RuntimeSnapshot } from './show/runtime.ts';
 import { createShowClock } from './show/clock.ts';
@@ -296,8 +296,8 @@ async function prepare(world: World) {
 
 function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom: Checkpoint | null, target: EnterTarget | null = null): void {
   const { manifest, assets, stage, sound, clock, runtime, wash, ember, log, pause, controls, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, storyConfig } = show;
-  // The AI Storyteller instead of chapter 1: a review flag until the landing page's door passes it in.
-  const storyMode = (target?.kind === 'storyteller' || reviewQuery('storyteller') === '1') && storyConfig !== null;
+  // The AI Storyteller, when that's the door the reader chose on the landing page.
+  const storyMode = target?.kind === 'storyteller' && storyConfig !== null;
   let story: StorySession | null = null;
   const library = libraryOf(manifest, assets.objects);
   const onStage = manifest.onStage.map((o) => o.cast);
@@ -356,9 +356,15 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       log: (m) => console.info(m),
       onState: (state, who) => {
         console.info(`storyteller: ${state}${who ? ` (${who})` : ''}`);
-        // Printed on the page, like every caption: who is listening, or that they're thinking it over.
+        // Printed on the page, like every caption: whose turn it is, and plainly when they can't hear you.
         const name = (who && manifest.cast.find((c) => c.member.id === who)?.member.name) || 'They';
-        runtime.setHint(state === 'listening' ? `${name} ${name === 'They' ? 'are' : 'is'} listening…` : state === 'thinking' ? '…' : null);
+        storyHint.listening = state === 'listening';
+        if (state === 'listening') {
+          storyHint.base = micAllowed ? `Your turn. ${name} ${name === 'They' ? 'are' : 'is'} listening…` : "They can't hear you yet: allow the microphone on the page outside the book.";
+          if (micAllowed) sound.play('chime', stage.book.root.getWorldPosition(new Vector3()), undefined, 'ui');
+        } else storyHint.base = state === 'thinking' ? (storyHint.heard ? `You: ${storyHint.heard}` : '…') : null;
+        if (state !== 'thinking') storyHint.heard = null;
+        runtime.setHint(storyHint.base);
       },
       onPaint: (job) => void collectPainting(job, story),
       onAcknowledge: (who) => sound.play('interested', stage.puppets.get(who)?.root.getWorldPosition(new Vector3())),
@@ -390,6 +396,8 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       return;
     }
   }
+  /** What the caption band says between lines: whose turn it is, and your words as they're heard. */
+  const storyHint: { base: string | null; heard: string | null; listening: boolean } = { base: null, heard: null, listening: false };
   if (storyMode) beginStory();
   // Listening: only with the microphone already allowed on the landing page (a first prompt inside XR has ended the session).
   let micAllowed = false;
@@ -399,9 +407,14 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
   }).catch(() => undefined);
   const ears = createEars({
     token: () => storyAccess.withBackend((api) => api.speechToken({})).then((t) => (t && t.provider !== 'mock' ? t.token : null)).catch(() => null),
-    heard: (text) => story?.heard(text),
-    // A few clear words while they're speaking: you're cutting in, so they stop and listen.
+    heard: (text) => {
+      storyHint.heard = text.length > 70 ? `${text.slice(0, 67)}…` : text;
+      runtime.setHint(`You: ${storyHint.heard}`);
+      story?.heard(text);
+    },
+    // Your words as they come, on the page; and a few clear words while they're speaking cut in.
     hearing: (text) => {
+      if (storyHint.listening) runtime.setHint(`You: ${text.length > 70 ? `…${text.slice(-67)}` : text}`);
       if (story && (story.state === 'performing' || story.state === 'thinking') && text.trim().split(/\s+/).length >= 4) story.interrupt();
     },
     log: (m) => console.info(m),
@@ -760,50 +773,61 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, world
       const series = show.manifest.libraryVersion;
       const saved = fresh ? null : readCheckpoint(localStorage, Date.now(), { seriesId: series, episodeId: show.assets.spine.id });
       const choice = landingChoice(readProgress(localStorage, series), saved !== null);
-      // You choose on the landing page: continue where you were, or start from the beginning.
-      let ran = false;
-      const begin = (resume: boolean) => {
-        if (ran) {
-          // Back from the landing page with the chapter already open: starting again resets it as "Read it again" does.
-          if (!resume) show.readAgain.requested = true;
-          return;
+      // Two ways in, side by side: the book's chapters, and the AI Storyteller. One page load runs one of them;
+      // choosing the other after playing reloads the page cleanly first.
+      let ranMode: 'chapter' | 'story' | null = null;
+      const begin = (resume: boolean, mode: 'chapter' | 'story' = 'chapter'): boolean => {
+        if (ranMode && ranMode !== mode) {
+          location.reload();
+          return false;
         }
-        ran = true;
-        if (!resume) clearCheckpoint(localStorage);
-        run(world, show, resume ? saved : null);
+        if (ranMode) {
+          // Back from the landing page with the chapter already open: starting again resets it as "Read it again" does.
+          if (mode === 'chapter' && !resume) show.readAgain.requested = true;
+          return true;
+        }
+        ranMode = mode;
+        if (mode === 'story') run(world, show, null, { kind: 'storyteller' });
+        else {
+          if (!resume) clearCheckpoint(localStorage);
+          run(world, show, resume ? saved : null, null);
+        }
+        return true;
       };
+      const ran = () => ranMode !== null;
       if (occlusion) {
         world.registerSystem(DepthSensingSystem);
         world.createTransformEntity(show.stage.root).addComponent(DepthOccludable);
       }
       const enterRoom = show.room
-        ? () => {
-            begin(ran ? !show.runtime.ended : choice.resume);
+        ? (mode: 'chapter' | 'story' = 'chapter') => {
+            if (!begin(mode === 'story' ? false : ranMode === 'chapter' ? !show.runtime.ended : choice.resume, mode)) return;
             show.sound.unlock();
             world.launchXR({ sessionMode: SessionMode.ImmersiveVR });
           }
         : null;
       // Without AR (no passthrough), the book opens in the painted room.
       let arSupported = true;
-      const enter = (resume = choice.resume) => {
-        begin(resume);
+      const enter = (resume = choice.resume, mode: 'chapter' | 'story' = 'chapter') => {
         if (!arSupported && enterRoom) {
-          enterRoom();
+          enterRoom(mode);
           return;
         }
+        if (!begin(resume, mode)) return;
         show.sound.unlock();
         world.launchXR();
       };
       // Once the chapter has run, the landing page speaks for where it is now, not where it was at load.
-      const current = () => (ran ? (show.runtime.ended ? { label: 'Read chapter 1 again', restartLabel: null, resume: false } : { label: 'Continue chapter 1', restartLabel: 'Start from the beginning', resume: true }) : choice);
+      const current = () => (ranMode === 'chapter' ? (show.runtime.ended ? { label: 'Read chapter 1 again', restartLabel: null, resume: false } : { label: 'Continue chapter 1', restartLabel: 'Start from the beginning', resume: true }) : choice);
       const ready = (): LandingState => {
         const now = current();
         return {
           kind: 'ready',
           open: () => enter(now.resume),
-          openRoom: arSupported ? enterRoom : null,
+          openRoom: arSupported && enterRoom ? () => enterRoom() : null,
           label: now.label,
           restart: now.restartLabel ? { label: now.restartLabel, run: () => enter(false) } : null,
+          storyteller: STORYTELLER_AVAILABLE ? { label: ranMode === 'story' ? 'Back to the AI Storyteller' : 'Or make up a story with the AI Storyteller', run: () => enter(false, 'story') } : null,
         };
       };
       void navigator.xr
@@ -816,7 +840,7 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, world
       setLandingState(ready());
       world.visibilityState.subscribe((state) => {
         // An XR session started some other way (the browser's own prompt, the emulator) takes the button's default.
-        if (state !== VisibilityState.NonImmersive && !ran) begin(choice.resume);
+        if (state !== VisibilityState.NonImmersive && !ran()) begin(choice.resume);
         setLandingState(state === VisibilityState.NonImmersive ? ready() : { kind: 'inside' });
       });
     })
