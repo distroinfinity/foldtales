@@ -54,6 +54,8 @@ export interface DimView {
   mesh: Mesh;
   /** Positions on your head each frame, so the room around you dims and the book stays lit. */
   update(head: Vector3, book: Vector3, bookWidthM: number, dim: number, beam?: BeamLight | null, spot?: SpotLight | null): void;
+  /** After `update`: another pool of light (shadow play's lit wall), shown if it's stronger than the one set this frame. */
+  lift(head: Vector3, spot: SpotLight): void;
   /** Review only: adjusts the darkness, the pool's own dimming and the falloff, live. */
   tune(shape: { max?: number; pool?: number; falloff?: number }): void;
 }
@@ -132,6 +134,14 @@ export function buildDim(): DimView {
       if (shape.max !== undefined) material.uniforms.uMax!.value = shape.max;
       if (shape.pool !== undefined) material.uniforms.uPool!.value = shape.pool;
       if (shape.falloff !== undefined) falloff = shape.falloff;
+    },
+    lift(head, spot) {
+      if (spot.strength <= material.uniforms.uSpotStrength!.value) return;
+      const toSpot = spot.at.clone().sub(head);
+      const distance = Math.max(0.3, toSpot.length());
+      material.uniforms.uSpotStrength!.value = spot.strength;
+      material.uniforms.uSpotDir!.value.copy(toSpot.normalize());
+      material.uniforms.uSpotAngle!.value = Math.atan(spot.radiusM / distance);
     },
     update(head, book, bookWidthM, dim, beam, spot) {
       material.uniforms.uBeamStrength!.value = beam?.strength ?? 0;

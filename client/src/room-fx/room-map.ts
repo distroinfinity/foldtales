@@ -134,6 +134,10 @@ export function createRoomMap(): RoomMap {
       const centre = corners.reduce((a, c) => a.add(c), new Vector3()).multiplyScalar(1 / corners.length);
       // A plane's own +Y is its normal.
       const normal = new Vector3(m[4]!, m[5]!, m[6]!).normalize();
+      // Tops face up and the ceiling down; a wall faces into the room, toward you.
+      if (plane.orientation === 'horizontal') {
+        if ((label === 'ceiling') !== (normal.y < 0)) normal.negate();
+      } else if (headKnown && normal.dot(head.clone().sub(centre)) < 0) normal.negate();
       let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
       for (const p of plane.polygon) {
         minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x);

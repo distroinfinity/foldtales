@@ -28,6 +28,8 @@ import { createPauseControl } from './show/pause.ts';
 import { createShowRuntime } from './show/runtime.ts';
 import { createRoomMap } from './room-fx/room-map.ts';
 import { effectsOn } from './room-fx/state.ts';
+import { castShadows, createShadowPlay } from './room-fx/shadows.ts';
+import { createFireflies } from './room-fx/fireflies.ts';
 import { createSoundEngine } from './sound/engine.ts';
 import narratorVoice from '../../art/voice/narrator.json';
 import { arrivalAt, OPEN_AT_MS } from './stage/arrival.ts';
@@ -51,7 +53,7 @@ import { buildEmber, buildWash } from './stage/wash.ts';
 import { createTelemetry } from './telemetry.ts';
 
 /** Room effects this build can show. Each joins as it's built, and the storyteller hears of only these. */
-const ROOM_EFFECTS_BUILT: import('@tabletop/contracts').RoomEffect[] = ['hunt'];
+const ROOM_EFFECTS_BUILT: import('@tabletop/contracts').RoomEffect[] = ['hunt', 'shadows', 'shadows-off', 'fireflies', 'fireflies-off'];
 
 const FLUSH_EVERY_MS = 10_000;
 const FRAMEBUFFER_SCALE = 1.4;
@@ -181,6 +183,13 @@ async function prepare(world: World) {
   // Your real room, from Space Setup, for room effects and the storyteller.
   const roomMap = createRoomMap();
   stage.objects.setRoom((place) => roomMap.byId(place)?.centre.clone() ?? null);
+  // Shadow play: the cast's own cards make their shadows on your wall.
+  const shadowPlay = createShadowPlay();
+  world.scene.add(shadowPlay.mesh);
+  for (const puppet of stage.puppets.values()) castShadows(puppet.root);
+  // Fireflies: the lantern's own glow, off the page and round your hand.
+  const fireflies = createFireflies(soft.glow);
+  world.scene.add(fireflies.mesh);
   const runtime = createShowRuntime({
     manifest,
     spine: assets.spine,
@@ -302,6 +311,10 @@ async function prepare(world: World) {
   if (devCue && manifest.cues.some((c) => c.id === devCue)) runtime.addCue(devCue, 11_500);
   // Review builds only: `?room=hunt` hides the kite in your room once the opening has finished, and the beam finds it.
   if (reviewQuery('room') === 'hunt') runtime.addRoom({ do: 'room', withPrev: false, effect: 'hunt', what: 'object:kite', at: 'room:couch' }, 11_500);
+  // `?room=shadows`: the cast's shadows on your wall, from the end of the opening.
+  if (reviewQuery('room') === 'shadows') runtime.addRoom({ do: 'room', withPrev: false, effect: 'shadows', what: null, at: null }, 11_500);
+  // `?room=fireflies`: fireflies off the page, round your hand.
+  if (reviewQuery('room') === 'fireflies') runtime.addRoom({ do: 'room', withPrev: false, effect: 'fireflies', what: null, at: null }, 11_500);
   const wrist = createWristMenu({
     parent: world.scene,
     sound,
@@ -312,11 +325,11 @@ async function prepare(world: World) {
       else away.requested = true;
     },
   });
-  return { manifest, assets, stage, dim, sound, clock, runtime, roomMap, wash, ember, log, pause, controls, soft, review, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, directorOn, storyConfig, moreTargets };
+  return { manifest, assets, stage, dim, sound, clock, runtime, roomMap, shadowPlay, fireflies, wash, ember, log, pause, controls, soft, review, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, directorOn, storyConfig, moreTargets };
 }
 
 function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom: Checkpoint | null, target: EnterTarget | null = null): void {
-  const { manifest, assets, stage, sound, clock, runtime, roomMap, wash, ember, log, pause, controls, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, storyConfig, moreTargets } = show;
+  const { manifest, assets, stage, sound, clock, runtime, roomMap, shadowPlay, fireflies, wash, ember, log, pause, controls, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, storyConfig, moreTargets } = show;
   // The AI Storyteller, when that's the door the reader chose on the landing page.
   const storyMode = target?.kind === 'storyteller' && storyConfig !== null;
   let story: StorySession | null = null;
@@ -697,6 +710,27 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       }
     }
     const { unfold, room: roomNow } = runtime.frame(deltaMs * speed, nowMs, head, { fold: controls.fold(), ribbon: controls.ribbonLift() }, { left: controls.pinchPoint('left'), right: controls.pinchPoint('right') });
+    shadowPlay.frame({
+      renderer: world.renderer,
+      scene: world.scene,
+      shadows: roomNow.shadows,
+      bookOpen: controls.amount > 0.98,
+      bookRoot: stage.book.root,
+      pageY: stage.book.pageY,
+      cast: [...stage.puppets.values()].map((p) => p.root).filter((r) => { for (let o: import('@iwsdk/core').Object3D | null = r; o; o = o.parent) if (!o.visible) return false; return true; }),
+      room: roomMap,
+      lift: (at, radiusM, strength) => show.dim.lift(head, { at, radiusM, strength }),
+    });
+    fireflies.frame({
+      state: roomNow.fireflies,
+      deltaMs,
+      nowMs,
+      bookOpen: controls.amount > 0.98,
+      bookRoot: stage.book.root,
+      pageY: stage.book.pageY,
+      hands: [controls.fingertip('left'), controls.fingertip('right')],
+      onRise: (at) => sound.play('spark', at),
+    });
     // Which room effects are showing, each time that changes, so frame summaries can be read per effect.
     const fxOn = effectsOn(roomNow);
     const fxKey = fxOn.join(',');
