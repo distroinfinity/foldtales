@@ -1,6 +1,6 @@
 import { motion, useReducedMotion } from 'motion/react';
 import { useEffect, useState, useSyncExternalStore, type ReactNode } from 'react';
-import { currentReader } from './account-ui.ts';
+import { currentReader, pullBook } from './account-ui.ts';
 import { OpenTheBook, PaintedRoomLink, SendToQuest } from './actions.tsx';
 import type { Device } from './device.ts';
 import { landingSnapshot, openingTap, subscribeLanding } from './landing.ts';
@@ -39,7 +39,10 @@ export function App({ device }: { device: Device }) {
   const [sheet, setSheet] = useState<'plate' | 'chapters' | null>(null);
   const [artReady, setArtReady] = useState(false);
   useEffect(() => {
-    void currentReader().then((r) => setReader(r?.name ?? null));
+    void currentReader().then((r) => {
+      setReader(r?.name ?? null);
+      if (r) void pullBook();
+    });
     void preloadArt().then(() => setArtReady(true));
   }, []);
 

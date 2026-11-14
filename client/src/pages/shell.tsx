@@ -28,7 +28,7 @@ export function Shell({ title, children, depth = 1, narrow = true }: { title: st
         .prose-page h2 { font-family: var(--font-display); font-variation-settings: 'opsz' 144; font-weight: 500; color: var(--color-page); font-size: 28px; line-height: 1.15; margin: 2.2em 0 .5em; }
         .prose-page p, .prose-page ul { margin: 0 0 1em; max-width: 62ch; }
         .prose-page li { margin: .3em 0; }
-        .prose-page a { color: var(--color-gold); text-underline-offset: 4px; }
+        .prose-page a:not(.button) { color: var(--color-gold); text-underline-offset: 4px; }
         .prose-page strong { color: var(--color-page); font-weight: 500; }
       `}</style>
     </>

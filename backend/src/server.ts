@@ -28,7 +28,8 @@ const now = () => new Date();
 
 // The dev client's own addresses, so its pages can sign in through the proxy or directly.
 const ports = dev ? readPorts() : null;
-const devOrigins = ports ? [`http://127.0.0.1:${ports.CLIENT_PORT}`, `http://localhost:${ports.CLIENT_PORT}`] : [];
+// The IWSDK dev server serves https (WebXR needs it), and the plain Vite one http.
+const devOrigins = ports ? ['https', 'http'].flatMap((scheme) => [`${scheme}://127.0.0.1:${ports.CLIENT_PORT}`, `${scheme}://localhost:${ports.CLIENT_PORT}`]) : [];
 const origins = clientOrigins(process.env.TT_CLIENT_HOST, devOrigins);
 const accounts = await openAccounts(
   store.db,
