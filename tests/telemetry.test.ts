@@ -183,9 +183,10 @@ describe('aiOrAuthored', () => {
     const store = openStore(':memory:');
     const now = () => new Date('2026-11-11T12:00:00.000Z');
     const app = createApp({ ...createMockBackend(), ...realRoutes(store, 'secret', now) }, () => undefined, {
-      afterContract: [guard(store, { secret: 'secret', caps: { ...readCaps({}), global: 0 }, now })],
+      afterContract: [guard(store, { secret: 'secret', caps: { ...readCaps({}), global: 0 }, now, sessionUser: async () => 'ann' })],
     });
-    const fetcher = ((input: string | URL | Request, init?: RequestInit) => app.request(String(input), init)) as typeof fetch;
+    const fetcher = ((input: string | URL | Request, init?: RequestInit) =>
+      app.request(String(input), { ...init, headers: { ...(init?.headers as Record<string, string>), 'x-tabletop-session': 'signed-in' } })) as typeof fetch;
     const { token } = await createHttpBackend({ baseUrl: '', fetch: fetcher }).issueDevice({});
     const api = createHttpBackend({ baseUrl: '', token, fetch: fetcher });
     const onFallback = vi.fn();
