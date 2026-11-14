@@ -10,4 +10,5 @@ export * from './events.ts';
 export * from './telemetry.ts';
 export * from './relay.ts';
 export * from './storyteller.ts';
+export * from './account.ts';
 export * from './api.ts';
