@@ -361,6 +361,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
         runtime.setHint(state === 'listening' ? `${name} ${name === 'They' ? 'are' : 'is'} listening…` : state === 'thinking' ? '…' : null);
       },
       onPaint: (job) => void collectPainting(job, story),
+      onAcknowledge: (who) => sound.play('interested', stage.puppets.get(who)?.root.getWorldPosition(new Vector3())),
     });
   };
   /** A painting the story asked for: wait for it, upload it out of sight, then it appears on the page and the story is told. */

@@ -1,10 +1,10 @@
 {
-  "note": "Live voices for the AI Storyteller: ElevenLabs library voices chosen to be close to the cast (owner, Nov 14). Placeholders until auditioned with the owner's key.",
+  "note": "Live voices for the AI Storyteller: ElevenLabs library voices chosen to sit close to the authored cast (owner, Nov 14; run 005's picks were Mabel, Arjun, the 'Pip' preset and Wanda on Runway). To be judged by ear in the headset.",
   "model": "eleven_flash_v2_5",
   "voices": {
-    "narrator": { "voiceId": "JBFqnCBsd6RMkjVDRZzb", "stability": 0.5, "similarity": 0.75 },
-    "pip": { "voiceId": "IKne3meq5aSn9XLyUdCD", "stability": 0.45, "similarity": 0.75 },
-    "wick": { "voiceId": "pqHfZKP75CvOlQylNhV4", "stability": 0.5, "similarity": 0.75 },
-    "moth": { "voiceId": "pFZP5JQG7iQjIQuC4Bku", "stability": 0.4, "similarity": 0.75 }
+    "narrator": { "voiceId": "pFZP5JQG7iQjIQuC4Bku", "stability": 0.55, "similarity": 0.75, "speed": 0.95 },
+    "pip": { "voiceId": "cgSgspJ2msm6clMCkdW9", "stability": 0.4, "similarity": 0.75 },
+    "wick": { "voiceId": "pqHfZKP75CvOlQylNhV4", "stability": 0.5, "similarity": 0.75, "speed": 0.95 },
+    "moth": { "voiceId": "FGY2WhTYpPnrIDTdsKH5", "stability": 0.35, "similarity": 0.75, "speed": 1.05 }
   }
 }

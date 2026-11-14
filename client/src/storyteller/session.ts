@@ -33,6 +33,8 @@ export interface SessionDeps {
   log?(message: string): void;
   /** A painting the story asked for. */
   onPaint?(job: { jobId: string; objectId: string; description: string }): void;
+  /** Someone turned to you because you said or gave something: a small sound from them. */
+  onAcknowledge?(who: string): void;
   /** State changes, for the paper ear and the cast's listening acting. */
   onState?(state: StoryState, who: string | null): void;
 }
@@ -74,6 +76,15 @@ export function createStorySession(deps: SessionDeps) {
     }
     if (input.kind !== 'quiet') quietTurns = 0;
     setState('thinking');
+    // At once, before the turn is written: whoever you spoke to turns to you, interested.
+    if (input.kind === 'heard' || input.kind === 'gift') {
+      const present = deps.cast().map((c) => c.id);
+      const who = (input.kind === 'heard' && input.to && present.includes(input.to) ? input.to : null) ?? (listener && present.includes(listener) ? listener : present[0]);
+      if (who) {
+        deps.live.enqueue({ id: `ack-${mine}`, source: 'director', sceneId: null, estSeconds: 1, actions: [{ do: 'emote', withPrev: false, who, acting: 'look', target: 'reader' }], next: null, replaces: null });
+        deps.onAcknowledge?.(who);
+      }
+    }
     const { light, lampLit } = lightNow();
     const request: StoryTurnRequest = {
       sessionId,
@@ -97,7 +108,8 @@ export function createStorySession(deps: SessionDeps) {
         if (event.kind === 'beat') {
           const beat = event.ready.beat;
           // Voiced before it's queued, so the beat is timed by its real audio.
-          await Promise.all(linesOf(beat).map((l) => (event.ready.voice[l.lineId]?.url ? deps.sound.addLine(l.lineId, event.ready.voice[l.lineId]!.url!, event.ready.voice[l.lineId]!.durationMs) : Promise.resolve(false))));
+          const voiced = await Promise.all(linesOf(beat).map((l) => (event.ready.voice[l.lineId]?.url ? deps.sound.addLine(l.lineId, event.ready.voice[l.lineId]!.url!, event.ready.voice[l.lineId]!.durationMs) : Promise.resolve(false))));
+          if (voiced.some((ok) => !ok)) deps.log?.('storyteller: a line has no voice (captions only)');
           if (mine !== generation) return;
           if (first) {
             first = false;

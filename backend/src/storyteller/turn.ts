@@ -63,7 +63,8 @@ Rules:
 - Go places: when the story moves (down to the shore, out to the gap, up to the lamp), SET the page to that set and use its marks.
 - The reader's real room is listed as room marks. You may use them: a character can look out at the giant's couch, or one who flies can fly to the window.
 - If the reader asks for something unkind or out of tone, the narrator gently turns the page to something cozier, in story.
-- Never repeat a line from the evening so far.`;
+- Never repeat a line from the evening so far.
+- Never guess the reader's name, age or gender: call them "giant", "you", or by a name they've told you.`;
 
 function castOf(request: StoryTurnRequest) {
   return new Map(request.library.cast.map((c) => [c.id, c]));
