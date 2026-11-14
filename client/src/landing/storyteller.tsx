@@ -8,13 +8,11 @@ import { useRef, useState } from 'react';
 import type { Device } from './device.ts';
 import type { LibraryState } from './library.ts';
 import { askForMicrophone } from './microphone.ts';
+import content from './page-content.json';
 import { art } from './preload.ts';
 import { TextAnimate } from './ui/text-animate.tsx';
 
-const LINES = [
-  { who: 'Pip', text: 'A key! Wick, the Giant gave us a key. What does it open?' },
-  { who: 'Wick', text: 'Hmph. The old cellar, I’d wager. Nobody’s been down there in years.' },
-];
+const STORY = content.storyteller;
 
 function Shore() {
   const box = useRef<HTMLDivElement>(null);
@@ -31,13 +29,14 @@ function Shore() {
       <motion.img src={art('shore-layer-2-headland.webp')} alt="" className="absolute left-1/2 top-[18%] w-[118%] max-w-none -translate-x-1/2 brightness-[.55] saturate-[.8]" style={{ y: mid }} />
       <motion.img src={art('shore-layer-3-dunes.webp')} alt="" className="absolute left-1/2 top-[50%] w-[118%] max-w-none -translate-x-1/2 brightness-[.55]" style={{ y: mid }} />
       <motion.div className="absolute inset-0" style={{ y: near }}>
-        <img src={art('wick.webp')} alt="Wick the badger, holding his logbook" className="absolute bottom-[10%] left-[33%] h-[50%] brightness-[.78]" />
-        <img src={art('pip-talk.webp')} alt="Pip the fox, talking, with his lantern" className="absolute bottom-[8%] left-[47%] h-[56%]" />
+        {STORY.cast.map((c) => (
+          <img key={c.file} src={art(c.file)} alt={c.alt} className={c.className} />
+        ))}
         <div aria-hidden className="absolute bottom-[26%] left-[53%] size-[30%] -translate-x-1/2 rounded-full mix-blend-screen" style={{ background: 'radial-gradient(circle, rgba(255,214,130,.42), rgba(255,200,110,0) 62%)' }} />
-        <motion.img src={art('moth.webp')} alt="Moth, fluttering" className="absolute left-[64%] top-[24%] h-[17%]" animate={still ? undefined : { y: [0, -7, 0], rotate: [0, -3, 0] }} transition={{ duration: 3.4, repeat: Infinity, ease: 'easeInOut' }} />
+        <motion.img src={art(STORY.flier.file)} alt={STORY.flier.alt} className={STORY.flier.className} animate={still ? undefined : { y: [0, -7, 0], rotate: [0, -3, 0] }} transition={{ duration: 3.4, repeat: Infinity, ease: 'easeInOut' }} />
         <motion.img
-          src={art('object-brass-key.webp')}
-          alt="A brass key"
+          src={art(STORY.gift.file)}
+          alt={STORY.gift.alt}
           className="absolute left-[56%] top-[30%] w-[3.6%] drop-shadow-[0_10px_12px_rgba(4,6,14,.5)]"
           initial={still ? false : { opacity: 0, y: -50, rotate: -20 }}
           animate={inView ? { opacity: 1, y: 0, rotate: 18 } : undefined}
@@ -51,7 +50,7 @@ function Shore() {
       {/* Subtitles, as in a film: the characters' lines, written as they're said. */}
     </div>
       <div className="relative flex flex-col items-center gap-1.5 px-5 pt-3 text-center md:absolute md:inset-x-0 md:bottom-[5%] md:pt-0">
-        {LINES.map((l, i) => (
+        {STORY.lines.map((l, i) => (
           <p key={l.who} className="m-0 max-w-[60ch] text-[clamp(16px,1.5vw,21px)] leading-snug text-page [text-shadow:0_2px_12px_rgba(0,0,0,.8)]">
             <span className="mr-2 text-sage">{l.who}</span>
             <TextAnimate text={l.text} play={inView} delay={0.8 + i * 2.6} stagger={0.028} />
@@ -115,10 +114,10 @@ export function Storyteller(props: DoorProps) {
     <section className="relative pt-[14vh]" aria-labelledby="storyteller-title">
       <div className="px-5 text-center">
         <h2 id="storyteller-title" className="display m-0 text-[clamp(36px,4.6vw,64px)] leading-[1.02]">
-          Or make up a new story, out loud.
+          {STORY.title}
         </h2>
         <p className="m-0 mx-auto mt-4 max-w-[46ch] text-[clamp(17px,1.4vw,20px)] leading-relaxed text-page/70">
-          With the AI Storyteller, you talk to Pip, Wick and Moth, hand them anything, and the story is made up as you go. Every voice is live.
+          {STORY.line}
         </p>
       </div>
       <div className="mt-[6vh]">

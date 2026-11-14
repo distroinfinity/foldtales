@@ -1,11 +1,12 @@
 /**
  * The page's first section, pinned while you scroll, as Apple's product pages are: the hero over a
- * closed book on the table, then the book opening, Pip's lantern, the page turning to the lamp, and
+ * closed book on the table, then the book opening, the lantern going out and coming back, the page turning to the lamp, and
  * its beam sweeping the room. The scroll is smoothed with a spring, so the book glides, not steps.
  */
 import { useMotionValueEvent, useReducedMotion, useScroll, useSpring } from 'motion/react';
 import { useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { BookStage, MARKS, Room, beamHeading, clamp, type StageLight } from './book-stage.tsx';
+import content from './page-content.json';
 
 /** How visible a block of words is: in over `fade` after `from`, out over `fade` before `to`. */
 function shown(p: number, from: number, to: number, fade = 0.028): number {
@@ -16,11 +17,7 @@ function shown(p: number, from: number, to: number, fade = 0.028): number {
 
 type Beat = { from: number; to: number; title: string; line: string };
 
-export const BEATS: Beat[] = [
-  { from: 0.075, to: 0.37, title: 'It opens on your table.', line: 'A painted pop-up book appears on your real table, and the room dims around it.' },
-  { from: 0.39, to: 0.645, title: 'Reach in.', line: 'Pip’s lantern blows out. Pick it up, hand it back, and the light comes home.' },
-  { from: 0.675, to: 1, title: 'The lighthouse lights your room.', line: 'When the lamp is lit again, its beam sweeps across your real walls.' },
-];
+export const BEATS: Beat[] = content.beats;
 
 function Words({ opacity, children }: { opacity: number; children: ReactNode }) {
   return (

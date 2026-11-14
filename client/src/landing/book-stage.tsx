@@ -9,15 +9,16 @@ import { useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode }
 import shore from '../../../art/sets/shore-path/set.json';
 import lamp from '../../../art/sets/the-lamp/set.json';
 import { BOOK_TITLE } from './library.ts';
+import content from './page-content.json';
 import { art } from './preload.ts';
 
 const W = 0.21;
 const D = 0.315;
 const THICK = 0.014;
-const PIP_H = 0.172;
-/** Where Pip's feet sit across the composed image (printed by tools/web-art.ts). */
-const PIP_FEET = 0.406;
-const PIP_ASPECT = 0.64;
+const LEAD_H = 0.172;
+/** Where the lead's feet sit across the composed image (printed by tools/web-art.ts). */
+const LEAD_FEET = 0.406;
+const LEAD_ASPECT = 0.64;
 const LANTERN_H = 0.05;
 /** The painted table around the book, in metres. */
 const TABLE_W = 1.5;
@@ -136,14 +137,17 @@ export function BookStage({ p, className = '', onLamp }: { p: number; className?
   const turn = ease(span(p, ...MARKS.turn));
   const lampAngle = (id: string) => layerAngle(rise(id, ...MARKS.lampRise, lamp.stack.topToBottom));
 
-  // Pip and the lantern.
+  // The lead character and the lantern.
   const gustOut = p >= MARKS.gust;
   const lookedUp = p >= MARKS.lookUp;
   const liftT = ease(span(p, ...MARKS.lift));
   const backT = ease(span(p, ...MARKS.back));
   const relit = p >= MARKS.back[1] - 0.004;
-  const pipFace = !gustOut || relit ? 'pip-lit' : lookedUp ? 'pip-up' : 'pip-scared';
-  const pipW = PIP_H * PIP_ASPECT;
+  const leadFace = !gustOut || relit ? content.lead.lit : lookedUp ? content.lead.up : content.lead.scared;
+  const leadW = LEAD_H * LEAD_ASPECT;
+  // The lead's place in each set's stack, by the set's own mark id.
+  const shoreLead = shore.marks[0]!.id;
+  const lampLead = lamp.marks[0]!.id;
   const shoreMark = shore.marks[0]!.position;
   const lampMark = lamp.marks[0]!.position;
   const smoke = gustOut && !lookedUp ? span(p, MARKS.gust, MARKS.lookUp) : 0;
@@ -224,15 +228,15 @@ export function BookStage({ p, className = '', onLamp }: { p: number; className?
             </Div>
           </Div>
 
-          {/* The shore's pop-ups and Pip. */}
+          {/* The shore's pop-ups and the lead character. */}
           {(shore.layers as Layer[]).map((l) => (
             <Card key={l.id} k={k} x={-W} z={l.hinge[0]![2]!} w={2 * W} h={l.sizeM[1]!} img={art(`shore-${l.file.replace('.png', '.webp')}`)} a={shoreAngle(l.id)} opacity={open > 0.85 && turn < 1 ? shoreSeen(l.id) : 0} filter={l.id.includes('sky') ? undefined : 'brightness(.92)'} />
           ))}
-          <Card k={k} x={shoreMark[0]! - pipW * PIP_FEET} z={shoreMark[2]!} w={pipW} h={PIP_H} img={art(`${pipFace}.webp`)} a={shoreAngle('pip')} opacity={open > 0.85 && turn < 1 ? shoreSeen('pip') : 0}>
-            <div aria-hidden className="absolute rounded-full mix-blend-screen" style={{ left: '38%', top: '47%', width: '96%', aspectRatio: '1', transform: 'translate(-50%,-50%)', opacity: pipFace === 'pip-lit' ? 0.95 : 0, transition: 'opacity .4s', background: 'radial-gradient(circle, rgba(255,214,130,.6), rgba(255,200,110,.18) 45%, rgba(255,190,90,0) 70%)' }} />
+          <Card k={k} x={shoreMark[0]! - leadW * LEAD_FEET} z={shoreMark[2]!} w={leadW} h={LEAD_H} img={art(leadFace)} a={shoreAngle(shoreLead)} opacity={open > 0.85 && turn < 1 ? shoreSeen(shoreLead) : 0}>
+            <div aria-hidden className="absolute rounded-full mix-blend-screen" style={{ left: '38%', top: '47%', width: '96%', aspectRatio: '1', transform: 'translate(-50%,-50%)', opacity: leadFace === content.lead.lit ? 0.95 : 0, transition: 'opacity .4s', background: 'radial-gradient(circle, rgba(255,214,130,.6), rgba(255,200,110,.18) 45%, rgba(255,190,90,0) 70%)' }} />
             <div aria-hidden className="absolute" style={{ left: '42%', bottom: '58%', width: '22%', height: '40%', backgroundImage: `url(${art('smoke.webp')})`, backgroundSize: 'contain', backgroundRepeat: 'no-repeat', opacity: smoke > 0 ? 1 - smoke : 0, transform: `translateY(${-smoke * 40}%) scale(${0.7 + smoke * 0.5})` }} />
           </Card>
-          {/* The lantern in your hand: lifted off the page toward you, then back to Pip. */}
+          {/* The lantern in your hand: lifted off the page toward you, then given back. */}
           <Div className="p3" style={{ left: lx * k - (LANTERN_H * 0.62 * k) / 2, top: ly * k - LANTERN_H * k, width: LANTERN_H * 0.62 * k, height: LANTERN_H * k, transformOrigin: 'bottom center', transform: `translateZ(${lup * k}px) rotateX(-90deg) scale(${lscale})`, ...seen(lanternSeen) }}>
             <Div className="face" style={{ backgroundImage: `url(${art(lanternLit ? 'lantern-lit.webp' : 'lantern-out.webp')})`, backgroundSize: 'contain', backgroundPosition: 'center bottom', filter: 'drop-shadow(0 6px 8px rgba(5,7,16,.5))' }} />
             <div aria-hidden className="absolute -inset-[120%] rounded-full mix-blend-screen transition-opacity duration-300" style={{ opacity: lanternLit ? 1 : 0, background: 'radial-gradient(circle, rgba(255,214,130,.6), rgba(255,200,110,0) 60%)' }} />
@@ -249,7 +253,7 @@ export function BookStage({ p, className = '', onLamp }: { p: number; className?
               )}
             </Card>
           ))}
-          <Card k={k} x={lampMark[0]! - pipW * PIP_FEET} z={lampMark[2]!} w={pipW} h={PIP_H} img={art('pip-lit.webp')} a={lampAngle('pip')} opacity={turn > 0.95 ? standing(lampAngle('pip')) : 0} />
+          <Card k={k} x={lampMark[0]! - leadW * LEAD_FEET} z={lampMark[2]!} w={leadW} h={LEAD_H} img={art(content.lead.lit)} a={lampAngle(lampLead)} opacity={turn > 0.95 ? standing(lampAngle(lampLead)) : 0} />
         </Div>
       </Div>
     </div>
