@@ -1,0 +1,10 @@
+{
+  "note": "Live voices for the AI Storyteller: ElevenLabs library voices chosen to be close to the cast (owner, Nov 14). Placeholders until auditioned with the owner's key.",
+  "model": "eleven_flash_v2_5",
+  "voices": {
+    "narrator": { "voiceId": "JBFqnCBsd6RMkjVDRZzb", "stability": 0.5, "similarity": 0.75 },
+    "pip": { "voiceId": "IKne3meq5aSn9XLyUdCD", "stability": 0.45, "similarity": 0.75 },
+    "wick": { "voiceId": "pqHfZKP75CvOlQylNhV4", "stability": 0.5, "similarity": 0.75 },
+    "moth": { "voiceId": "pFZP5JQG7iQjIQuC4Bku", "stability": 0.4, "similarity": 0.75 }
+  }
+}

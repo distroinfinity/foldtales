@@ -81,7 +81,9 @@ export interface ShowRuntime {
   readonly endedAtMs: number | null;
   start(): void;
   /** Back to the very start of the episode, as if the book had just been opened. */
-  reset(objects: RuntimeSnapshot['objects']): void;
+  reset(objects: RuntimeSnapshot['objects'], keepScheduler?: boolean): void;
+  /** Plays a different show on the same stage: the AI Storyteller's live scheduler and its growing spine. */
+  useScheduler(scheduler: Scheduler, spine: Spine, objects: RuntimeSnapshot['objects']): void;
   /** Rebuilds from a checkpoint, at its show time, without replaying any sound. */
   restore(snapshot: RuntimeSnapshot, ms: number): void;
   snapshot(): RuntimeSnapshot;
@@ -180,7 +182,9 @@ export interface RuntimeDeps {
   clock: ShowClock;
 }
 
-export function createShowRuntime({ manifest, spine, defs, moods, views, clock }: RuntimeDeps): ShowRuntime {
+export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods, views, clock }: RuntimeDeps): ShowRuntime {
+  /** The spine showing: the authored chapter, or a live one whose spreads are added as the story visits them. */
+  let spine = authoredSpine;
   const cueMs = Object.fromEntries(manifest.cues.map((cue) => [cue.id, cue.nominalMs]));
   const kinds = new Map<string, CueKind>(manifest.cues.map((cue) => [cue.id, cue.kind]));
   const cueDef = new Map(manifest.cues.map((cue) => [cue.id, cue]));
@@ -313,6 +317,9 @@ export function createShowRuntime({ manifest, spine, defs, moods, views, clock }
       const id = a.object;
       if (lightObjects.get(id) === a.who) views.objects.send(id, { kind: 'carried', cast: a.who }, nowMs, 600, 0.03);
       else views.objects.send(id, { kind: 'paw', cast: a.who }, nowMs, 600, 0.03);
+    } else if (a.do === 'give') {
+      // One paw to another: it flies across, as a hand-over does.
+      if (views.objects.get(a.object)) views.objects.send(a.object, { kind: 'paw', cast: a.to }, nowMs, 500, 0.03);
     } else if (a.do === 'place' && a.what.startsWith('object:')) {
       const at = markOf(manifest, setOfScene(scheduler.scene()), a.at);
       if (at) views.objects.send(a.what.slice(7), { kind: 'page', at }, nowMs, 400, 0.02);
@@ -430,8 +437,16 @@ export function createShowRuntime({ manifest, spine, defs, moods, views, clock }
       started = true;
       views.sound.roomTone(true);
     },
-    reset(initialObjects) {
-      scheduler = createScheduler(spine, durationOf);
+    useScheduler(next, nextSpine, initialObjects) {
+      spine = nextSpine;
+      scheduler = next;
+      runtime.reset(initialObjects, true);
+    },
+    reset(initialObjects, keepScheduler = false) {
+      if (!keepScheduler) {
+        spine = authoredSpine;
+        scheduler = createScheduler(spine, durationOf);
+      }
       views.objects.restore(initialObjects);
       overlays = [];
       drawerWanted = false;

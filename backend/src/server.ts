@@ -5,8 +5,12 @@ import { serve } from '@hono/node-server';
 import { createMockBackend, MOCK_PROFILES } from '@tabletop/contracts/mocks';
 import { readPorts } from '../../tools/ports.ts';
 import { createApp, resolveListen } from './app.ts';
+import Anthropic from '@anthropic-ai/sdk';
 import { createPlanBeat } from './director/beat.ts';
 import { createClaude } from './director/claude.ts';
+import { createModerator } from './storyteller/moderate.ts';
+import { storyTurn } from './storyteller/turn.ts';
+import { createVoices, readLiveVoices } from './storyteller/voices.ts';
 import { guard, readCaps } from './guard.ts';
 import { realRoutes } from './real-routes.ts';
 import { openStore } from './store.ts';
@@ -29,8 +33,18 @@ const now = () => new Date();
 
 // The director is real once a key is set (backend only, never the client); without one it stays the mock.
 const key = process.env.ANTHROPIC_API_KEY;
-const director = key && profile === 'normal' ? { planBeat: createPlanBeat(createClaude(key)) } : {};
-console.log(director.planBeat ? 'director: claude' : 'director: mock');
+const claude = key ? createClaude(key) : null;
+const voices = createVoices(process.env.ELEVENLABS_API_KEY, readLiveVoices(join(process.cwd(), '..', 'art', 'voice', 'live.json')));
+const anthropic = key ? new Anthropic({ apiKey: key, maxRetries: 0 }) : null;
+const moderate = claude ? createModerator(claude) : undefined;
+const director =
+  claude && anthropic && profile === 'normal'
+    ? {
+        planBeat: createPlanBeat(claude),
+        storyTurn: (request: Parameters<typeof storyTurn>[0]) => storyTurn(request, { anthropic, voices, moderate, log: (m) => console.log(m) }),
+      }
+    : {};
+console.log(claude ? 'director and storyteller: claude' : 'director and storyteller: mock', process.env.ELEVENLABS_API_KEY ? '; voices: elevenlabs' : '; voices: captions only');
 
 const app = createApp(
   { ...createMockBackend(MOCK_PROFILES[profile as keyof typeof MOCK_PROFILES]), ...director, ...realRoutes(store, secret, now) },

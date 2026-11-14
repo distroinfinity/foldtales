@@ -34,6 +34,9 @@ import { createFrameGuard } from './stage/frame-guard.ts';
 import { startPlacement } from './stage/placement-runtime.ts';
 import { createSessionFlow } from './stage/session-flow.ts';
 import { createWristMenu } from './stage/wrist.ts';
+import { createLiveScheduler } from './storyteller/live.ts';
+import { createStorySession, type StorySession } from './storyteller/session.ts';
+import { presentCast } from './director/director.ts';
 import { minTextSizeM, settleOnTable } from './stage/sizing.ts';
 import { warmUp } from './stage/warm-up.ts';
 import { buildEmber, buildWash } from './stage/wash.ts';
@@ -50,6 +53,14 @@ const CHECKPOINT_EVERY_MS = 1000;
 const backendAccess = createBackendAccess({
   baseUrl: import.meta.env.TT_PUBLIC_BACKEND_URL ?? '/api',
   fetch: withDeadline((input, init) => fetch(input, init)),
+  storage: localStorage,
+  now: () => Date.now(),
+});
+
+/** The AI Storyteller's turns stream for several seconds: the same access, with a longer deadline. */
+const storyAccess = createBackendAccess({
+  baseUrl: import.meta.env.TT_PUBLIC_BACKEND_URL ?? '/api',
+  fetch: withDeadline((input, init) => fetch(input, init), 30_000),
   storage: localStorage,
   now: () => Date.now(),
 });
@@ -109,6 +120,9 @@ async function prepare(world: World) {
   const canonData = await fetch(`./${manifest.episode.replace(/\.json$/, '.canon.json')}`)
     .then((r) => (r.ok ? r.json() : null))
     .then((raw) => (raw ? ChapterCanon.parse(raw) : null))
+    .catch(() => null);
+  const storyConfig = await fetch('./show/storyteller.json')
+    .then((r) => (r.ok ? (r.json() as Promise<{ firstSet: string; entrances: Record<string, Record<string, string>> }>) : null))
     .catch(() => null);
   const soft = makeSoftPieces();
   // Review builds only: `?review=cast` stands the whole cast on the open book, cycling every acting.
@@ -275,11 +289,62 @@ async function prepare(world: World) {
       else away.requested = true;
     },
   });
-  return { manifest, assets, stage, dim, sound, clock, runtime, wash, ember, log, pause, controls, soft, review, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, directorOn };
+  return { manifest, assets, stage, dim, sound, clock, runtime, wash, ember, log, pause, controls, soft, review, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, directorOn, storyConfig };
 }
 
 function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom: Checkpoint | null): void {
-  const { manifest, assets, stage, sound, clock, runtime, wash, ember, log, pause, controls, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs } = show;
+  const { manifest, assets, stage, sound, clock, runtime, wash, ember, log, pause, controls, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, storyConfig } = show;
+  // The AI Storyteller instead of chapter 1: a review flag until the landing page's door passes it in.
+  const storyMode = reviewQuery('storyteller') === '1' && storyConfig !== null;
+  let story: StorySession | null = null;
+  const library = libraryOf(manifest, assets.objects);
+  const onStage = manifest.onStage.map((o) => o.cast);
+  /** Begins an evening: a fresh live stage and a fresh session, the book opening on the first set. */
+  const beginStory = () => {
+    const cfg = storyConfig!;
+    const live = createLiveScheduler({
+      durationOf: runtime.durationOf,
+      firstSet: cfg.firstSet,
+      entrances: (setId, cast) => cast.flatMap((c) => (cfg.entrances[setId]?.[c] ? [{ cast: c, mark: cfg.entrances[setId]![c]! }] : [])),
+    });
+    runtime.useScheduler(live, live.spine, initialObjects);
+    sound.clearLines();
+    story = createStorySession({
+      withBackend: (call) => storyAccess.withBackend(call),
+      stream: (request) =>
+        (async function* () {
+          const events = await storyAccess.withBackend(async (api) => api.storyTurn(request)).catch(() => null);
+          if (!events) {
+            yield { kind: 'error' as const, code: 'upstream_failed' as const, message: 'the backend could not be reached' };
+            return;
+          }
+          yield* events;
+        })(),
+      live,
+      sound,
+      library,
+      objects: showObjects,
+      cast: () => {
+        const ms = clock.ms;
+        const present = presentCast(live, onStage, ms);
+        const marks = new Map<string, string | null>(live.scene() === 0 ? manifest.onStage.map((o) => [o.cast, o.mark] as const) : []);
+        const since = live.sceneStartMs();
+        for (const item of live.timeline()) {
+          if (item.startMs < since || item.startMs > ms) continue;
+          const a = item.action;
+          if (a.do === 'place' && a.what.startsWith('cast:')) marks.set(a.what.slice(5), a.at);
+          if (a.do === 'move' && a.to.startsWith('mark:')) marks.set(a.who, a.to.slice(5));
+        }
+        const holding = new Map(stage.objects.states().flatMap((o) => (o.home.kind === 'paw' ? [[o.home.cast, o.id] as const] : [])));
+        return [...present].map((id) => ({ id, mark: marks.get(id) ?? null, holding: holding.get(id) ?? null }));
+      },
+      room: () => [],
+      nowMs: () => clock.ms,
+      log: (m) => console.info(m),
+      onState: (state, who) => console.info(`storyteller: ${state}${who ? ` (${who})` : ''}`),
+    });
+  };
+  if (storyMode) beginStory();
   const startEpisode = () => {
     log.forget();
     director.reset();
@@ -331,7 +396,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
   }
 
   const checkpoint = (): void => {
-    if (!runtime.started) return;
+    if (!runtime.started || storyMode) return;
     writeCheckpoint(localStorage, { v: CHECKPOINT_VERSION, savedAt: new Date().toISOString(), seriesId: series, episodeId: assets.spine.id, showMs: clock.ms, scale: stage.root.scale.x, confirmed: arrival?.confirmed ?? false, runtime: runtime.snapshot() as unknown as Record<string, unknown>, ended: runtime.ended });
   };
 
@@ -430,7 +495,15 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
     // Read it again: the book closes under your hand, then the story opens from the top.
     if (readAgain.requested) {
       if (controls.amount > 0.001) controls.close();
-      else {
+      else if (storyMode) {
+        // Start again, in the Storyteller: a new evening on a fresh stage.
+        readAgain.requested = false;
+        beginStory();
+        runtime.start();
+        controls.lowerRibbon();
+        controls.reopen();
+        story!.open();
+      } else {
         readAgain.requested = false;
         runtime.reset(initialObjects);
         startEpisode();
@@ -450,7 +523,12 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
     // The director's answers become offers; then, at the start of a quiet beat, it may ask for a callback.
     for (const a of answers.splice(0)) director.receive(runtime.scheduler, clock.ms, a.id, a.ready);
     if (show.directorOn && runtime.started && !runtime.ended) director.frame(runtime.scheduler, clock.ms);
+    story?.frame();
     for (const e of runtime.drain()) {
+      if (e.type === 'gift' && story) {
+        story.gift(e.objectId, e.castId);
+        continue;
+      }
       if (e.type === 'gift') {
         log.append('object.handed', { objectId: e.objectId, toCast: e.castId, playerId: 'reader' });
         const o = e.outcome;
@@ -481,7 +559,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       else if (e.type === 'problem.opened' && e.opensDrawer) log.append('drawer.opened', { by: 'beat' });
       lastCheckpointMs = -Infinity;
     }
-    if (runtime.ended && !wasEnded) {
+    if (runtime.ended && !wasEnded && !storyMode) {
       wasEnded = true;
       // What lasts: the facts the next chapter reads, what you keep and its history, and the page.
       if (canonData) {
@@ -547,8 +625,11 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
         sound.roomTone(true);
       } else if (!runtime.started) {
         runtime.start();
-        startEpisode();
-        writeProgress(localStorage, { seriesId: series, chapter: 1, state: 'started' });
+        if (story) story.open();
+        else {
+          startEpisode();
+          writeProgress(localStorage, { seriesId: series, chapter: 1, state: 'started' });
+        }
       }
     }
   });
@@ -588,7 +669,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
   });
   addEventListener('pagehide', checkpoint);
 
-  if (REVIEW_HOOKS) Object.assign(window, { __tt: { world, show, guard } });
+  if (REVIEW_HOOKS) Object.assign(window, { __tt: { world, show, guard, get story() { return story; } } });
 }
 
 // Review builds: `?occlusion=on` requests depth sensing and hides the stage behind real things (P5).
