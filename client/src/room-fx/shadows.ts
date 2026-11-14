@@ -5,8 +5,8 @@ import type { Lasting } from './state.ts';
 
 /**
  * Shadow play on your wall. A light just in front of the book throws the cast's shadows onto the
- * real wall behind it, magnified as a candle's would be: Pip waves, and a huge Pip shadow waves
- * back, because the shadow is drawn from his own cards. In a dimmed room a shadow only reads inside
+ * real wall behind it, magnified as a candle's would be: a character waves, and its huge shadow waves
+ * back, because the shadow is drawn from its own cards. In a dimmed room a shadow only reads inside
  * light, so the wall gets a warm pool too, through the room dim.
  */
 
