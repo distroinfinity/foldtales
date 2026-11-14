@@ -1,27 +1,57 @@
-import { InstancedBufferAttribute, NormalBlending, InstancedMesh, Matrix4, PlaneGeometry, ShaderMaterial, Vector3, type Object3D, type Texture } from '@iwsdk/core';
+import { InstancedBufferAttribute, InstancedMesh, Matrix4, NormalBlending, PlaneGeometry, ShaderMaterial, Vector3, type Object3D } from '@iwsdk/core';
 import type { Lasting } from './state.ts';
 
 /**
- * Fireflies leave the page. Warm glows (the lantern's own) rise off the book, drift about the room
- * near it, and gather round your hand when you hold it out; take it away and they wander again.
- * Called off, they sink back into the page. One draw for all of them.
+ * Fireflies leave the page. Small, and dark most of the time: each glows up slowly, holds, and
+ * fades, on its own rhythm, so only a few are lit at once, like breathing. They wander lazily about
+ * the room near the book at different heights, and drift over to a hand held up near them; take it
+ * away and they wander off again. Called off, they sink back into the page. One draw for all.
+ * (Owner, Nov 15: the first version was too big, too even and always on.)
  */
 
-const COUNT = 24;
+const COUNT = 26;
 const RISE_MS = 3000;
-const SINK_MS = 2000;
-/** How near a hand must come to the swarm for them to notice it. */
+const SINK_MS = 2500;
+/** How near a raised hand must come for them to notice it. */
 const NOTICE_M = 0.9;
+/** On screen size of a glow, metres: small, a point of light with a soft halo. */
+const SIZE_M = 0.024;
 
 interface Fly {
   at: Vector3;
   vel: Vector3;
   /** Where on the page it comes from, in the book's frame. */
   home: Vector3;
-  /** Its own orbit round whatever it's following. */
-  orbit: Vector3;
+  /** Its own spot in the air about the book: angle, distance out, height above the table. */
+  angle: number;
+  out: number;
+  up: number;
+  /** Its own slow wander. */
+  freq: [number, number, number];
   phase: number;
-  speed: number;
+  /** Its breath: seconds per cycle, and where in it it starts. */
+  period: number;
+  offset: number;
+}
+
+/** Deterministic spread, so a firefly is the same one every evening. */
+const hash = (n: number): number => {
+  const x = Math.sin(n * 127.1 + 311.7) * 43758.5453;
+  return x - Math.floor(x);
+};
+
+/** A firefly's breath: dark, a slow glow up, a short hold, a slower fade, dark again. */
+function breath(seconds: number): number {
+  if (seconds < 0.8) {
+    const u = seconds / 0.8;
+    return u * u * (3 - 2 * u);
+  }
+  if (seconds < 1.1) return 1;
+  if (seconds < 2.4) {
+    const u = (seconds - 1.1) / 1.3;
+    return (1 - u) * (1 - u);
+  }
+  return 0;
 }
 
 export interface Fireflies {
@@ -29,9 +59,9 @@ export interface Fireflies {
   frame(opts: { state: Lasting; deltaMs: number; nowMs: number; bookOpen: boolean; bookRoot: Object3D; pageY: number; hands: Array<Vector3 | null>; onRise: (at: Vector3) => void }): void;
 }
 
-export function createFireflies(glow: Texture): Fireflies {
+export function createFireflies(): Fireflies {
   const material = new ShaderMaterial({
-    uniforms: { uMap: { value: glow }, uSize: { value: 0.05 } },
+    uniforms: { uSize: { value: SIZE_M } },
     vertexShader: /* glsl */ `
       attribute float aBright;
       varying vec2 vUv;
@@ -45,15 +75,15 @@ export function createFireflies(glow: Texture): Fireflies {
         gl_Position = projectionMatrix * centre;
       }`,
     fragmentShader: /* glsl */ `
-      uniform sampler2D uMap;
       varying vec2 vUv;
       varying float vBright;
       void main() {
-        vec4 c = texture2D(uMap, vUv);
-        // A hot little core inside the lantern's soft glow.
-        float core = smoothstep(0.18, 0.0, distance(vUv, vec2(0.5)));
+        float d = distance(vUv, vec2(0.5)) * 2.0;
+        // A tiny pale core in a soft yellow-green gold halo.
+        float halo = exp(-d * d * 7.0) * 0.55;
+        float core = smoothstep(0.22, 0.0, d);
+        vec3 light = (vec3(0.78, 0.86, 0.36) * halo + vec3(1.0, 0.97, 0.72) * core) * vBright;
         // Premultiplied, with alpha only where it glows: over passthrough, alpha decides what shows through.
-        vec3 light = (c.rgb * c.a + vec3(1.0, 0.92, 0.7) * core) * vBright;
         float a = clamp(max(light.r, max(light.g, light.b)), 0.0, 1.0);
         if (a < 0.004) discard;
         gl_FragColor = vec4(light, a);
@@ -72,17 +102,18 @@ export function createFireflies(glow: Texture): Fireflies {
   const bright = new Float32Array(COUNT);
   mesh.geometry.setAttribute('aBright', new InstancedBufferAttribute(bright, 1));
 
-  const flies: Fly[] = Array.from({ length: COUNT }, (_, i) => {
-    const a = (i / COUNT) * Math.PI * 2;
-    return {
-      at: new Vector3(),
-      vel: new Vector3(),
-      home: new Vector3(Math.cos(a * 3.1) * 0.15, 0, Math.sin(a * 1.7) * 0.1),
-      orbit: new Vector3(Math.cos(a), Math.sin(a * 2.3) * 0.6, Math.sin(a)).multiplyScalar(0.06 + 0.1 * ((i * 7) % 5) / 5),
-      phase: i * 1.37,
-      speed: 0.8 + ((i * 13) % 7) / 10,
-    };
-  });
+  const flies: Fly[] = Array.from({ length: COUNT }, (_, i) => ({
+    at: new Vector3(),
+    vel: new Vector3(),
+    home: new Vector3((hash(i) - 0.5) * 0.3, 0, (hash(i + 50) - 0.5) * 0.2),
+    angle: hash(i + 100) * Math.PI * 2,
+    out: 0.2 + 0.75 * hash(i + 150),
+    up: 0.08 + 0.6 * hash(i + 200),
+    freq: [0.05 + 0.09 * hash(i + 250), 0.04 + 0.08 * hash(i + 300), 0.06 + 0.1 * hash(i + 350)],
+    phase: hash(i + 400) * 100,
+    period: 3.2 + 3.6 * hash(i + 450),
+    offset: hash(i + 500) * 7,
+  }));
   const matrix = new Matrix4();
   const goal = new Vector3();
   const centre = new Vector3();
@@ -114,38 +145,49 @@ export function createFireflies(glow: Texture): Fireflies {
         return;
       }
       mesh.visible = true;
-      const scale = bookRoot.getWorldScale(tmp).x || 1;
-      material.uniforms.uSize!.value = 0.045 * Math.max(0.8, scale);
       const dt = Math.min(0.05, deltaMs / 1000);
       const t = nowMs / 1000;
 
-      // Above the book they wander; a hand held out near them, they follow.
-      bookRoot.getWorldPosition(centre).add(tmp.set(0, 0.35 + 0.08 * Math.sin(t * 0.3), 0));
-      let follow: Vector3 | null = null;
+      bookRoot.getWorldPosition(centre);
+      const tableY = centre.y;
       // A hand held up, off the table, and near enough: not one resting by the book.
-      const tableY = bookRoot.getWorldPosition(homeWorld).y;
-      for (const h of hands) if (h && h.y > tableY + 0.12 && h.distanceTo(centre) < NOTICE_M && (!follow || h.distanceTo(centre) < follow.distanceTo(centre))) follow = h;
+      let follow: Vector3 | null = null;
+      for (const h of hands) {
+        if (!h || h.y < tableY + 0.12) continue;
+        const d = Math.hypot(h.x - centre.x, h.z - centre.z);
+        if (d < NOTICE_M && (!follow || d < Math.hypot(follow.x - centre.x, follow.z - centre.z))) follow = h;
+      }
 
       flies.forEach((f, i) => {
         homeWorld.copy(f.home).setY(pageY);
         bookRoot.localToWorld(homeWorld);
         if (!state.on) goal.copy(homeWorld);
         else {
-          const swirl = t * 0.6 * f.speed + f.phase;
-          goal.copy(follow ?? centre);
-          const r = follow ? 0.7 : 2.6;
-          goal.x += f.orbit.x * r * Math.cos(swirl) - f.orbit.z * r * Math.sin(swirl);
-          goal.z += f.orbit.x * r * Math.sin(swirl) + f.orbit.z * r * Math.cos(swirl);
-          goal.y += f.orbit.y * r + 0.04 * Math.sin(t * 1.7 + f.phase);
+          // Each keeps to its own spot in the air and wanders lazily round it.
+          const [a, b, c] = f.freq;
+          const wander = 0.16;
+          if (follow) {
+            // Near your hand, loosely: a few centimetres to a hand's width away.
+            const r = 0.08 + 0.14 * hash(i + 600);
+            goal.set(follow.x + Math.cos(f.angle + t * a) * r, follow.y + (hash(i + 650) - 0.4) * 0.12, follow.z + Math.sin(f.angle + t * a) * r);
+          } else {
+            goal.set(centre.x + Math.cos(f.angle) * f.out, tableY + f.up, centre.z + Math.sin(f.angle) * f.out);
+          }
+          const k = follow ? 0.3 : 1;
+          goal.x += wander * Math.sin(t * a * 6.283 + f.phase) * k;
+          goal.y += wander * 0.5 * Math.sin(t * b * 6.283 + f.phase * 1.3) * k;
+          goal.z += wander * Math.sin(t * c * 6.283 + f.phase * 0.7) * k;
         }
-        // A soft spring with drag: they drift, never snap.
-        tmp.copy(goal).sub(f.at).multiplyScalar(follow ? 2.2 : 0.9);
-        f.vel.addScaledVector(tmp, dt).multiplyScalar(Math.pow(0.35, dt));
+        // A soft spring with heavy drag: they drift and hover, never dart.
+        tmp.copy(goal).sub(f.at).multiplyScalar(follow ? 0.9 : 0.5);
+        f.vel.addScaledVector(tmp, dt).multiplyScalar(Math.pow(0.25, dt));
+        const speed = f.vel.length();
+        if (speed > 0.18) f.vel.multiplyScalar(0.18 / speed);
         f.at.addScaledVector(f.vel, dt);
         matrix.makeTranslation(f.at.x, f.at.y, f.at.z);
         mesh.setMatrixAt(i, matrix);
-        // Each glows and dims on its own slow pulse.
-        bright[i] = amount * (0.45 + 0.55 * Math.max(0, Math.sin(t * 1.3 * f.speed + f.phase)) ** 2);
+        // Dark most of the time, then a slow breath of light.
+        bright[i] = amount * (0.03 + 0.97 * breath((t + f.offset) % f.period));
       });
       mesh.instanceMatrix.needsUpdate = true;
       (mesh.geometry.getAttribute('aBright') as InstancedBufferAttribute).needsUpdate = true;

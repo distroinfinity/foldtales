@@ -159,3 +159,10 @@ Signed off by the owner in the headset after a fresh run of the opening, the bea
 ## M3 sign-off, Nov 15, 2026
 
 Signed off by the owner in the headset after AI Storyteller session 2: "I actually felt immersion … we are in the right direction", then "this is good … let's wrap up any remaining work and proceed to close this ticket."
+
+## Room comes alive, headset session 1, Nov 15, 2026 (review build over USB, seated)
+
+`?room=shadows,fireflies` on chapter 1. The treasure hunt is held for a later session, since it needs walking about.
+
+- **Shadow play:** "Shadows are looking nice."
+- **Fireflies:** "can be improved. They do not look very good right now … their motion, their size, and subtleness. Maybe fireflies don't light up constantly. They go on and off like a breathing effect." *Changing:* each is dark most of the time and glows up and fades on its own slow rhythm, smaller, a little yellow-green, on slow wandering paths instead of orbits.

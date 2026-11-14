@@ -188,7 +188,7 @@ async function prepare(world: World) {
   world.scene.add(shadowPlay.mesh);
   for (const puppet of stage.puppets.values()) castShadows(puppet.root);
   // Fireflies: the lantern's own glow, off the page and round your hand.
-  const fireflies = createFireflies(soft.glow);
+  const fireflies = createFireflies();
   world.scene.add(fireflies.mesh);
   const runtime = createShowRuntime({
     manifest,
@@ -310,14 +310,14 @@ async function prepare(world: World) {
   const devCue = reviewQuery('cue');
   if (devCue && manifest.cues.some((c) => c.id === devCue)) runtime.addCue(devCue, 11_500);
   // Review builds only: `?room=shadows,fireflies` plays each room effect in turn once the opening has
-  // finished, about 25 s apart, so they can be checked in one sitting. `hunt` hides the kite on your couch.
+  // finished, 35 s each and 40 s apart, so they can be checked in one sitting. `hunt` hides the kite on your couch.
   const devRoom = (reviewQuery('room') ?? '').split(',').filter(Boolean);
   devRoom.forEach((effect, i) => {
-    const at = 11_500 + i * 25_000;
+    const at = 11_500 + i * 40_000;
     if (effect === 'hunt') runtime.addRoom({ do: 'room', withPrev: false, effect: 'hunt', what: 'object:kite', at: 'room:couch' }, at);
     else if (effect === 'shadows' || effect === 'fireflies') {
       runtime.addRoom({ do: 'room', withPrev: false, effect, what: null, at: null }, at);
-      runtime.addRoom({ do: 'room', withPrev: false, effect: `${effect}-off`, what: null, at: null }, at + 22_000);
+      runtime.addRoom({ do: 'room', withPrev: false, effect: `${effect}-off`, what: null, at: null }, at + 35_000);
     }
   });
   const wrist = createWristMenu({
