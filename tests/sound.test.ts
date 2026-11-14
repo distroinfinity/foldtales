@@ -5,6 +5,9 @@ import { ShowManifest, voiceMsOf } from '../client/src/show/manifest.ts';
 import { actionDuration, scheduleBeat } from '../client/src/show/schedule.ts';
 
 const manifest = ShowManifest.parse(JSON.parse(readFileSync(new URL('../client/public/show/manifest.json', import.meta.url), 'utf8')));
+
+import { Spine as SpineSchema } from '../contracts/src/index.ts';
+const opening = SpineSchema.parse(JSON.parse(readFileSync(new URL('../client/public/show/episode-1.json', import.meta.url), 'utf8'))).scenes[0]!.beats[0]!;
 const art = (path: string) => new URL(`../art/${path}`, import.meta.url);
 const SOUNDS = ['thump', 'bloom', 'cover', 'fold', 'gust', 'puff', 'gasp', 'tap', 'rustle', 'settle', 'felt', 'hum', 'chime'] as const;
 
@@ -21,7 +24,7 @@ describe('the M1 sound', () => {
   });
 
   test('the narrator line is voiced, keyed by its contract line id, at its real length', () => {
-    const narrate = manifest.opening.actions.find((a) => a.do === 'narrate')!;
+    const narrate = opening.actions.find((a) => a.do === 'narrate')!;
     const asset = manifest.voiceLines[lineIdOf(NARRATOR, (narrate as { text: string }).text)];
     expect(asset?.url).toBeTruthy();
     expect(existsSync(art(asset!.url!))).toBe(true);
@@ -29,7 +32,7 @@ describe('the M1 sound', () => {
   });
 
   test('the show times the line from its voice, and the gust still waits for it to end', () => {
-    const schedule = scheduleBeat(manifest.opening, actionDuration({ cueMs: Object.fromEntries(manifest.cues.map((c) => [c.id, c.nominalMs])), voiceMs: voiceMsOf(manifest) }));
+    const schedule = scheduleBeat(opening, actionDuration({ cueMs: Object.fromEntries(manifest.cues.map((c) => [c.id, c.nominalMs])), voiceMs: voiceMsOf(manifest) }));
     const narrate = schedule.items.find((i) => i.action.do === 'narrate')!;
     const gust = schedule.items.find((i) => i.action.do === 'cue' && i.action.cue === 'gust')!;
     expect(narrate.endMs - narrate.startMs).toBeGreaterThan(4500);

@@ -15,7 +15,7 @@ const artRoot = fileURLToPath(new URL('../art', import.meta.url));
 const json = (p: string) => JSON.parse(readFileSync(join(artRoot, p), 'utf8'));
 const manifest = ShowManifest.parse(JSON.parse(readFileSync(new URL('../client/public/show/manifest.json', import.meta.url), 'utf8')));
 const book = BookSpec.parse(json(manifest.book));
-const set = SetSpec.parse(json(manifest.set.file));
+const set = SetSpec.parse(json(manifest.sets[0]!.file));
 const entry = manifest.cast[0]!;
 const rig = Rig.parse(json(`${entry.member.rig}/rig.json`));
 const ref = () => {
@@ -34,7 +34,7 @@ function groupOrderOf(object: Object3D): number {
 }
 
 describe('the stack draws back to front, characters and effects included', () => {
-  const view = buildBook({ book, set, textures: new Map(bookFiles(book, 'book', set, 'sets/shore-path').map((f) => [f, ref()])), bookBase: 'book', setBase: 'sets/shore-path', soft: { shadow: new Texture(), hinge: new Texture(), gutter: new Texture() }, castOnStage: ['pip'] });
+  const view = buildBook({ book, sets: [{ id: 'shore-path', spec: set, base: 'sets/shore-path' }], textures: new Map(bookFiles(book, 'book', set, 'sets/shore-path').map((f) => [f, ref()])), bookBase: 'book', soft: { shadow: new Texture(), hinge: new Texture(), gutter: new Texture() }, castOnStage: ['pip'] });
   const puppet = buildPuppet(entry, rig, new Map(puppetFiles(entry, rig).map((f) => [f, ref()])), { shadow: new Texture(), glow: new Texture(), chin: new Texture(), smoke: ref() });
   view.mounts.get('pip')!.add(puppet.root);
   const leaves = buildLeaves([ref(), ref()]);

@@ -12,7 +12,10 @@ import { setLandingState, type LandingState } from './landing/landing.ts';
 import { buildDim } from './light/dim.ts';
 import { loadStageAssets, uploadAll } from './paint/assets.ts';
 import { makeSoftPieces } from './paint/soft.ts';
-import { CHECKPOINT_VERSION, readCheckpoint, writeCheckpoint, type Checkpoint } from './show/checkpoint.ts';
+import { CHECKPOINT_VERSION, clearCheckpoint, readCheckpoint, writeCheckpoint, type Checkpoint } from './show/checkpoint.ts';
+import { landingChoice, readProgress, writeProgress } from './show/progress.ts';
+import { createObjectHands } from './objects/hands.ts';
+import type { RuntimeSnapshot } from './show/runtime.ts';
 import { createShowClock } from './show/clock.ts';
 import { createShowLog, indexedDbLogStore } from './show/log.ts';
 import { ShowManifest } from './show/manifest.ts';
@@ -115,15 +118,41 @@ async function prepare(world: World) {
 
   const dim = buildDim();
   world.scene.add(dim.mesh);
+  // Each character's own voice settings, from the art's voice.json beside its rig.
+  const voices: Record<string, { chain: typeof narratorVoice.chain; trimDb: number }> = {};
+  await Promise.all(
+    manifest.cast.map(async (entry) => {
+      if (!entry.member.voice) return;
+      try {
+        const response = await fetch(`./art/${entry.member.rig}/voice.json`);
+        if (response.ok) {
+          const v = (await response.json()) as { chain: typeof narratorVoice.chain; trimDb: number };
+          voices[entry.member.id] = { chain: v.chain, trimDb: v.trimDb };
+        }
+      } catch {
+        // That character falls back to the narrator's chain.
+      }
+    }),
+  );
   const sound = createSoundEngine({
     sounds: manifest.sounds,
     voiceLines: manifest.voiceLines,
     artBase: './art',
     voice: { chain: narratorVoice.chain, trimDb: narratorVoice.trimDb, roomTone: narratorVoice.roomTone },
+    voices,
   });
   await sound.load();
   const clock = createShowClock();
-  const runtime = createShowRuntime(manifest, assets.set.moods, { stageRoot: stage.root, book: stage.book, puppets: stage.puppets, heads: stage.heads, dim, leaves: stage.leaves, caption: stage.caption, sound }, clock);
+  const defs = new Map(assets.objects.map((o) => [o.id, o]));
+  const runtime = createShowRuntime({
+    manifest,
+    spine: assets.spine,
+    defs,
+    moods: assets.set.moods,
+    views: { stageRoot: stage.root, book: stage.book, puppets: stage.puppets, actors: stage.actors, heads: stage.heads, dim, leaves: stage.leaves, caption: stage.caption, endPage: stage.endPage, sound, objects: stage.objects, drawer: stage.drawer, satchel: stage.satchel, spark: stage.spark, spans: stage.spans },
+    clock,
+  });
+  const initialObjects = stage.objects.snapshot();
   const wash = buildWash();
   stage.root.add(wash.root);
 
@@ -133,7 +162,7 @@ async function prepare(world: World) {
   emberLayer.renderOrder = OVER_STACK;
   emberLayer.add(ember.sprite);
   world.scene.add(emberLayer);
-  const log = createShowLog(indexedDbLogStore(), { seriesId: manifest.libraryVersion, episodeId: manifest.opening.id }, { nowIso: () => new Date().toISOString(), showMs: () => clock.ms });
+  const log = createShowLog(indexedDbLogStore(), { seriesId: manifest.libraryVersion, episodeId: assets.spine.id }, { nowIso: () => new Date().toISOString(), showMs: () => clock.ms });
   const pause = createPauseControl(clock, {
     suspend: () => sound.suspend(),
     resume: () => sound.resume(),
@@ -145,6 +174,24 @@ async function prepare(world: World) {
   });
   /** A size chosen by hand, or restored after a crash. */
   const sizing: { userScale: number | null } = { userScale: null };
+  /** The scanned table under the book, for settling things you let go of. */
+  const tableTop: { outline: Array<{ x: number; z: number }> | null } = { outline: null };
+  const readAgain = { requested: false };
+  const hands = createObjectHands({
+    objects: stage.objects,
+    runtime,
+    book: stage.book,
+    drawer: stage.drawer,
+    satchel: stage.satchel,
+    stageRoot: stage.root,
+    sound,
+    grips: () => new Map([...stage.puppets].flatMap(([id, p]) => (p.grip ? [[id, p.grip] as const] : []))),
+    table: () => tableTop.outline,
+    onReadAgain: () => {
+      readAgain.requested = true;
+    },
+    endPage: stage.endPage,
+  });
   const controls = createBookControls({
     world,
     stageRoot: stage.root,
@@ -154,23 +201,30 @@ async function prepare(world: World) {
     glow: soft.glow,
     cards: stage.book.cards.length,
     onMoved: () => undefined,
+    extras: () => hands.targets(),
+    onGazeSelect: (origin, direction) => hands.gazeSelect(origin, direction),
     // A new size keeps the printed lines at least 1° tall.
     onResized: (scale) => {
       sizing.userScale = scale;
       const head = world.camera.getWorldPosition(new Vector3());
       const at = stage.root.position;
-      stage.caption.setSize(minTextSizeM(stage.caption.baseSizeM, scale, Math.hypot(head.x - at.x, head.y - at.y, head.z - at.z) + 0.1 * scale));
+      const size = minTextSizeM(stage.caption.baseSizeM, scale, Math.hypot(head.x - at.x, head.y - at.y, head.z - at.z) + 0.1 * scale);
+      stage.caption.setSize(size);
+      stage.endPage.setSize(size);
     },
   });
   if (review) runtime.setOverride(reviewOverride(manifest));
   // Review builds only: `?cue=beam` plays the lighthouse beam once the opening has finished, for P5.
   const devCue = reviewQuery('cue');
-  if (devCue && manifest.cues.some((c) => c.id === devCue)) runtime.addCue(devCue, runtime.schedule.totalMs + 1500);
-  return { manifest, stage, dim, sound, clock, runtime, wash, ember, log, pause, controls, soft, review, room, sizing };
+  if (devCue && manifest.cues.some((c) => c.id === devCue)) runtime.addCue(devCue, 11_500);
+  return { manifest, assets, stage, dim, sound, clock, runtime, wash, ember, log, pause, controls, soft, review, room, sizing, tableTop, hands, readAgain, initialObjects };
 }
 
 function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom: Checkpoint | null): void {
-  const { manifest, stage, sound, clock, runtime, wash, ember, log, pause, controls, room, sizing } = show;
+  const { manifest, assets, stage, sound, clock, runtime, wash, ember, log, pause, controls, room, sizing, tableTop, hands, readAgain, initialObjects } = show;
+  const series = manifest.libraryVersion;
+  // Review builds only: `?speed=4` runs the show four times faster, to walk a whole episode in the emulator.
+  const speed = Math.max(0.25, Math.min(16, Number(reviewQuery('speed') ?? 1) || 1));
   const head = new Vector3();
   const forward = new Vector3();
   const up = new Vector3();
@@ -179,7 +233,6 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
   let nowMs = 0;
   let searching = false;
   let lastCheckpointMs = -Infinity;
-  let completed = false;
   let warming: (() => void) | null = null;
   let warmedSession: XRSession | null = null;
   let unfoldDim = 0;
@@ -192,16 +245,31 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
   const inject = reviewQuery('inject') === 'frame-error';
   let injected = 0;
 
-  // Back after a crash: the story waits, shut, at the saved moment. The book arrives, reopens and carries on.
+  // Back after a crash, or continuing: the story waits, shut, at the saved moment. The book arrives, reopens and carries on.
   if (resumeFrom) {
-    runtime.seek(resumeFrom.showMs);
+    runtime.restore(resumeFrom.runtime as unknown as RuntimeSnapshot, resumeFrom.showMs);
     controls.shut();
     sizing.userScale = resumeFrom.scale;
+  }
+  // Review builds only: `?jump=<beat>` plays the episode silently up to that beat, nobody helping, and starts there.
+  const jump = reviewQuery('jump');
+  if (jump && !resumeFrom) {
+    const s = runtime.scheduler;
+    let t = 0;
+    for (; t < 600_000 && s.current().beatId !== jump && !s.ended; t += 100) s.tick(t, false);
+    if (s.current().beatId === jump) {
+      // A moment before the beat, so its own first actions still happen.
+      const open = s.openProblem(t);
+      const asksDrawer = !!open && assets.spine.scenes.some((sc) => sc.beats.some((b) => b.actions.some((a) => a.do === 'ask_reader' && a.problem === open.id && a.opensDrawer)));
+      runtime.restore({ v: 2, scheduler: s.snapshot(), objects: initialObjects, overlays: [], drawerWanted: asksDrawer, satchelOpen: false }, Math.max(0, s.current().startMs - 1));
+      // Like a resume: it waits, shut, until the book has arrived and opened.
+      controls.shut();
+    } else runtime.reset(initialObjects);
   }
 
   const checkpoint = (): void => {
     if (!runtime.started) return;
-    writeCheckpoint(localStorage, { v: CHECKPOINT_VERSION, savedAt: new Date().toISOString(), seriesId: manifest.libraryVersion, beatId: manifest.opening.id, showMs: clock.ms, scale: stage.root.scale.x, confirmed: arrival?.confirmed ?? false });
+    writeCheckpoint(localStorage, { v: CHECKPOINT_VERSION, savedAt: new Date().toISOString(), seriesId: series, episodeId: assets.spine.id, showMs: clock.ms, scale: stage.root.scale.x, confirmed: arrival?.confirmed ?? false, runtime: runtime.snapshot() as unknown as Record<string, unknown>, ended: runtime.ended });
   };
 
   const placement = startPlacement(
@@ -216,6 +284,8 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       const where = stage.root.position.set(settled.spot.x, settled.spot.y, settled.spot.z);
       stage.root.rotation.y = Math.atan2(head.x - where.x, head.z - where.z);
       const outline = settled.table?.outline ?? null;
+      tableTop.outline = outline;
+      stage.satchel.setSide(settled.satchelSide);
       stage.root.scale.setScalar(scale);
       const eyeDistance = Math.hypot(head.x - where.x, head.y - where.y, head.z - where.z) + 0.1 * scale;
       stage.caption.setSize(minTextSizeM(stage.caption.baseSizeM, scale, eyeDistance));
@@ -272,6 +342,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
 
   // Each part of the frame has its own guard, so an error in one (say, hand input) never stops the story.
   const handsStep = guard('controls', (frame: XRFrame, deltaMs: number) => {
+    hands.frame(clock.ms, controls.amount > 0.98);
     controls.frame(frame, deltaMs, runtime.started && (!arrival || arrival.opened), head);
     if (inject && injected < 3 && clock.ms > 2000) {
       injected++;
@@ -279,19 +350,44 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
     }
   });
 
+  let wasEnded = runtime.ended;
   const storyStep = guard('runtime', (deltaMs: number) => {
-    const { unfold } = runtime.frame(deltaMs, head, { fold: controls.fold(), ribbon: controls.ribbonLift() });
+    // Read it again: the book closes under your hand, then the story opens from the top.
+    if (readAgain.requested) {
+      if (controls.amount > 0.001) controls.close();
+      else {
+        readAgain.requested = false;
+        runtime.reset(initialObjects);
+        controls.lowerRibbon();
+        clearCheckpoint(localStorage);
+        writeProgress(localStorage, { seriesId: series, chapter: 1, state: 'started' });
+        log.append('beat.started', { beatId: assets.spine.scenes[0]!.entry, fallback: null });
+        controls.reopen();
+        wasEnded = false;
+      }
+    }
+    const { unfold } = runtime.frame(deltaMs * speed, nowMs, head, { fold: controls.fold(), ribbon: controls.ribbonLift() }, { left: controls.pinchPoint('left'), right: controls.pinchPoint('right') });
     unfoldDim = unfold.dim;
+    // The book's own pull hides while the drawer is out: it rides on the drawer's front then.
+    const bookPull = stage.book.root.getObjectByName('drawer-pull');
+    if (bookPull) bookPull.visible = runtime.drawerAmount < 0.02;
+    for (const e of runtime.drain()) {
+      if (e.type === 'beat.started') log.append('beat.started', { beatId: e.beatId, fallback: null });
+      else if (e.type === 'beat.completed') log.append('beat.completed', { beatId: e.beatId });
+      else if (e.type === 'problem.opened' && e.opensDrawer) log.append('drawer.opened', { by: 'beat' });
+      lastCheckpointMs = -Infinity;
+    }
+    if (runtime.ended && !wasEnded) {
+      wasEnded = true;
+      writeProgress(localStorage, { seriesId: series, chapter: 1, state: 'finished' });
+      checkpoint();
+    }
     if (vr) {
       // No passthrough to dim: the house lights go down in the painted room itself.
       show.dim.mesh.visible = false;
       roomLook.light.value = roomLight(unfold.dim);
     }
     if (runtime.started) {
-      if (!completed && clock.ms >= runtime.schedule.totalMs) {
-        completed = true;
-        log.append('beat.completed', { beatId: manifest.opening.id });
-      }
       if (nowMs - lastCheckpointMs >= CHECKPOINT_EVERY_MS) {
         lastCheckpointMs = nowMs;
         checkpoint();
@@ -312,7 +408,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       return;
     }
     const a = arrivalAt(nowMs - arrival.atMs, arrival.confirmed);
-    momentForTelemetry = arrival.opened ? `show:${Math.floor(clock.ms / 1000)}s` : a.landed ? 'landed' : a.bookVisible ? 'drop' : a.bloom > 0 ? 'bloom' : 'found';
+    momentForTelemetry = arrival.opened ? `beat:${runtime.scheduler.current().beatId}` : a.landed ? 'landed' : a.bookVisible ? 'drop' : a.bloom > 0 ? 'bloom' : 'found';
     stage.root.getWorldPosition(spot);
     ember.land(spot, a.ember);
     if (searching && a.ember === 0) {
@@ -340,7 +436,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
         sound.roomTone(true);
       } else if (!runtime.started) {
         runtime.start();
-        log.append('beat.started', { beatId: manifest.opening.id, fallback: null });
+        writeProgress(localStorage, { seriesId: series, chapter: 1, state: 'started' });
       }
     }
   });
@@ -400,21 +496,36 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, world
   const fresh = reviewQuery('inject') !== null || reviewQuery('review') !== null || reviewQuery('cue') !== null;
   prepare(world)
     .then((show) => {
-      const resumeFrom = fresh ? null : readCheckpoint(localStorage, Date.now(), { seriesId: show.manifest.libraryVersion, beatId: show.manifest.opening.id, untilMs: show.runtime.schedule.totalMs });
-      run(world, show, resumeFrom);
+      const series = show.manifest.libraryVersion;
+      const saved = fresh ? null : readCheckpoint(localStorage, Date.now(), { seriesId: series, episodeId: show.assets.spine.id });
+      const choice = landingChoice(readProgress(localStorage, series), saved !== null);
+      // You choose on the landing page: continue where you were, or start from the beginning.
+      let ran = false;
+      const begin = (resume: boolean) => {
+        if (ran) {
+          // Back from the landing page with the chapter already open: starting again resets it as "Read it again" does.
+          if (!resume) show.readAgain.requested = true;
+          return;
+        }
+        ran = true;
+        if (!resume) clearCheckpoint(localStorage);
+        run(world, show, resume ? saved : null);
+      };
       if (occlusion) {
         world.registerSystem(DepthSensingSystem);
         world.createTransformEntity(show.stage.root).addComponent(DepthOccludable);
       }
       const enterRoom = show.room
         ? () => {
+            begin(ran ? !show.runtime.ended : choice.resume);
             show.sound.unlock();
             world.launchXR({ sessionMode: SessionMode.ImmersiveVR });
           }
         : null;
       // Without AR (no passthrough), the book opens in the painted room.
       let arSupported = true;
-      const enter = () => {
+      const enter = (resume = choice.resume) => {
+        begin(resume);
         if (!arSupported && enterRoom) {
           enterRoom();
           return;
@@ -422,7 +533,18 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, world
         show.sound.unlock();
         world.launchXR();
       };
-      const ready = (): LandingState => ({ kind: 'ready', open: enter, openRoom: arSupported ? enterRoom : null });
+      // Once the chapter has run, the landing page speaks for where it is now, not where it was at load.
+      const current = () => (ran ? (show.runtime.ended ? { label: 'Read chapter 1 again', restartLabel: null, resume: false } : { label: 'Continue chapter 1', restartLabel: 'Start from the beginning', resume: true }) : choice);
+      const ready = (): LandingState => {
+        const now = current();
+        return {
+          kind: 'ready',
+          open: () => enter(now.resume),
+          openRoom: arSupported ? enterRoom : null,
+          label: now.label,
+          restart: now.restartLabel ? { label: now.restartLabel, run: () => enter(false) } : null,
+        };
+      };
       void navigator.xr
         ?.isSessionSupported('immersive-ar')
         .then((supported) => {
@@ -431,7 +553,11 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, world
         })
         .catch(() => undefined);
       setLandingState(ready());
-      world.visibilityState.subscribe((state) => setLandingState(state === VisibilityState.NonImmersive ? ready() : { kind: 'inside' }));
+      world.visibilityState.subscribe((state) => {
+        // An XR session started some other way (the browser's own prompt, the emulator) takes the button's default.
+        if (state !== VisibilityState.NonImmersive && !ran) begin(choice.resume);
+        setLandingState(state === VisibilityState.NonImmersive ? ready() : { kind: 'inside' });
+      });
     })
     .catch((cause: unknown) => {
       reportError('stage', cause);

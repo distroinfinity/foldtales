@@ -170,6 +170,10 @@ body {
 
 .room:focus-visible { outline: 3px solid var(--gold); outline-offset: 4px; }
 
+/* Back mid-chapter: a quiet second way in, under the button. */
+.restart { margin-top: 18px; font-size: 17px; }
+.restart[hidden] { display: none; }
+
 .failed { color: var(--page); }
 
 #scene-container { position: fixed; inset: 0; z-index: 1; }

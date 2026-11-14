@@ -15,7 +15,7 @@ const textures = new Map(files.map((f) => {
   return [f, wholeRef(t)];
 }));
 const soft = { shadow: new Texture(), hinge: new Texture(), gutter: new Texture() };
-const view = buildBook({ book: bookSpec, set: setSpec, textures, bookBase: 'book', setBase: 'sets/shore-path', soft, castOnStage: ['pip'] });
+const view = buildBook({ book: bookSpec, sets: [{ id: 'shore-path', spec: setSpec, base: 'sets/shore-path' }], textures, bookBase: 'book', soft, castOnStage: ['pip'] });
 
 describe('the book view', () => {
   test('names every file it needs, once', () => {
@@ -37,9 +37,10 @@ describe('the book view', () => {
   });
 
   test('cards draw back to front in the stack order, the character in its place', () => {
-    const order = setSpec.stack.topToBottom;
-    const groupOrder = (id: string) => (view.cards.find((c) => c.id === id)!.root as Group).renderOrder;
-    for (let i = 1; i < order.length; i++) expect(groupOrder(order[i]!)).toBeGreaterThan(groupOrder(order[i - 1]!));
+    // One card per stack entry, in order; the characters' place is a card too.
+    expect(view.cards).toHaveLength(setSpec.stack.topToBottom.length);
+    const groupOrder = (i: number) => (view.cards[i]!.root as Group).renderOrder;
+    for (let i = 1; i < view.cards.length; i++) expect(groupOrder(i)).toBeGreaterThan(groupOrder(i - 1));
   });
 
   test('the character stands on its mark, on the right page', () => {

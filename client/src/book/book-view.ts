@@ -1,4 +1,4 @@
-import { AdditiveBlending, BoxGeometry, ConeGeometry, DoubleSide, Group, Mesh, MeshBasicMaterial, Object3D, PlaneGeometry, ShaderMaterial, Vector3, type BufferAttribute, type Texture } from '@iwsdk/core';
+import { AdditiveBlending, BoxGeometry, CircleGeometry, ConeGeometry, DoubleSide, Group, Mesh, MeshBasicMaterial, Object3D, PlaneGeometry, ShaderMaterial, Vector3, type BufferAttribute, type Texture } from '@iwsdk/core';
 import { cardMaterial, surfaceMaterial } from '../paint/card-material.ts';
 import { subUv, type TexRef } from '../paint/texref.ts';
 import type { Unfold } from '../show/cues.ts';
@@ -21,9 +21,26 @@ export interface BookView {
   leftHalf: Object3D;
   /** Height of the open pages above the table. */
   pageY: number;
+  /** The stack showing now: one card per entry in the set's stack, the same count for every set. */
   cards: BookCard[];
-  /** Where each character on stage stands. Add its puppet here. */
-  mounts: Map<string, Group>;
+  /** Where each character on stage stands. Add its puppet here. Plain objects, so they draw at the actors' place in the stack. */
+  mounts: Map<string, Object3D>;
+  /** Characters and objects stand in these: the actors' place in the stack, and in front of the front card. */
+  actorLayer: Group;
+  frontLayer: Group;
+  /** Past this depth, something on the page draws in front of the front card. */
+  frontHingeZ: number;
+  /** The set showing on each page. During a page turn the right page changes first. */
+  setSets(left: string, right: string): void;
+  /** Which set's cards stand. */
+  setStack(set: string): void;
+  /** A page turning from right to left, 0 lying on the right to 1 lying on the left, between two sets. Null hides it. */
+  setLeaf(turn: number | null, from: string, to: string): void;
+  /** The page corner lifting to invite a turn, 0 to 1, with its gold edge. */
+  setCorner(lift: number, glow: number): void;
+  /** Where the corner is, in world space, for the hand. */
+  cornerWorld(target: Vector3): Vector3;
+  setLamp(lit: boolean): void;
   /** Faces the reader on the closed cover, for the title. */
   titleAnchor: Object3D;
   /** On the open spread's caption band, facing up. */
@@ -32,7 +49,7 @@ export interface BookView {
   standOf(id: string): number;
   /** A place on the open page for one more character (the cast review): it hides with the pop-ups when the book shuts. */
   addMount(name: string, position: [number, number, number]): Group;
-  update(unfold: Unfold, shiver: number, seconds: number): void;
+  update(unfold: Unfold, shiver: number, seconds: number, hideFlat?: boolean): void;
   /** Lifts the ribbon off the page while the show is paused by it. */
   setRibbon(lift: number): void;
   /** The relit lamp's beam: a faint cone in the air, turning. Azimuth in the book's frame, 0 toward you. */
@@ -43,10 +60,10 @@ export interface BookView {
 
 export interface BookInput {
   book: BookSpec;
-  set: SetSpec;
+  /** Every set the book shows, first one first. */
+  sets: Array<{ id: string; spec: SetSpec; base: string }>;
   textures: Map<string, TexRef>;
   bookBase: string;
-  setBase: string;
   /** Soft gradients: a round shadow, one dark at its bottom edge (hinges), one dark at its left edge (the gutter). */
   soft: { shadow: Texture; hinge: Texture; gutter: Texture };
   castOnStage: string[];
@@ -113,7 +130,9 @@ const flatUp = (mesh: Mesh): Mesh => {
   return mesh;
 };
 
-export function buildBook({ book, set, textures, bookBase, setBase, soft, castOnStage }: BookInput): BookView {
+export function buildBook({ book, sets, textures, bookBase, soft, castOnStage }: BookInput): BookView {
+  const set = sets[0]!.spec;
+  const setBase = sets[0]!.base;
   const tex = (file: string): TexRef => {
     const ref = textures.get(file);
     if (!ref) throw new Error(`${file} was not loaded`);
@@ -135,6 +154,7 @@ export function buildBook({ book, set, textures, bookBase, setBase, soft, castOn
 
   const root = new Object3D();
   root.name = 'book';
+  const grounds: Array<{ set: string; side: 'left' | 'right'; mesh: Mesh }> = [];
 
   const navy = surfaceMaterial({ color: NAVY });
   const cloth = surfaceMaterial({ ref: boxed(tex(artJoin(bookBase, book.parts.spine.file))) });
@@ -157,12 +177,15 @@ export function buildBook({ book, set, textures, bookBase, setBase, soft, castOn
     block.position.set(side * (W / 2 + 0.00025), BOARD_M + blockH / 2, 0);
     holder.add(board, block);
 
-    const groundFile = artJoin(setBase, set.ground.file);
-    const groundRef = tex(groundFile);
-    const ground = flatUp(new Mesh(sheet(groundRef, W, D, { u: side === 1 ? [0.5, 1] : [0, 0.5] }), card(groundRef, { solid: true })));
-    ground.name = side === 1 ? 'ground-right' : 'ground-left';
-    ground.position.set((side * W) / 2, half + LIFT_M, 0);
-    holder.add(ground);
+    for (const each of sets) {
+      const groundRef = tex(artJoin(each.base, each.spec.ground.file));
+      const ground = flatUp(new Mesh(sheet(groundRef, W, D, { u: side === 1 ? [0.5, 1] : [0, 0.5] }), card(groundRef, { solid: true })));
+      ground.name = `${side === 1 ? 'ground-right' : 'ground-left'}:${each.id}`;
+      ground.position.set((side * W) / 2, half + LIFT_M, 0);
+      ground.visible = each === sets[0];
+      holder.add(ground);
+      grounds.push({ set: each.id, side: side === 1 ? 'right' : 'left', mesh: ground });
+    }
 
     // Darkest at the fold, as a real spread curves into its gutter.
     const gutterShade = flatUp(new Mesh(plane(0.026, D, { u: side === 1 ? [0, 1] : [1, 0] }), new MeshBasicMaterial({ map: soft.gutter, transparent: true, depthWrite: false, opacity: 0.32, toneMapped: false })));
@@ -231,64 +254,143 @@ export function buildBook({ book, set, textures, bookBase, setBase, soft, castOn
   right.add(pull);
 
   // Pop-up cards, back to front. Each layer is two rigid halves; characters fold themselves.
+  // Every set has the same stack shape, so one unfold drives whichever set is showing. A layer
+  // that two sets share (the sky, the headland) is built once, so turning the page never swaps it.
   const order = set.stack.topToBottom;
-  const cards: BookCard[] = [];
   const extraMounts: Group[] = [];
-  const mounts = new Map<string, Group>();
-  const shadows: Array<{ index: number; mesh: Mesh }> = [];
-  const lastLayer = [...order].reverse().find((id) => set.layers.some((layer) => layer.id === id));
-  order.forEach((id, index) => {
-    const groupOrder = index + 1;
-    const layer = set.layers.find((l) => l.id === id);
-    if (!layer) {
-      if (!castOnStage.includes(id)) return;
-      const mark = set.marks.find((m) => m.id === id);
-      if (!mark) throw new Error(`${id} is in the stack but has no mark`);
-      const mount = new Group();
-      mount.name = `mount:${id}`;
-      mount.renderOrder = groupOrder;
-      mount.position.set(mark.position[0], pageY + LIFT_M * 2, mark.position[2]);
-      right.add(mount);
-      mounts.set(id, mount);
-      cards.push({ id, root: mount, groups: [mount], hinges: [] });
-      return;
-    }
-    const map = tex(artJoin(setBase, layer.file));
-    const [lw, lh] = layer.sizeM;
-    const hingeZ = layer.hinge[0][2];
-    const groups: Group[] = [];
-    const hinges: Object3D[] = [];
-    for (const side of ['left', 'right'] as const) {
-      const group = new Group();
-      group.name = `${id}:${side}`;
-      group.renderOrder = groupOrder;
-      const hinge = new Object3D();
-      hinge.name = `${id}:${side}:hinge`;
-      hinge.position.set(0, pageY, hingeZ);
-      const u = halfUv(side, layer.splitColumnPx, layer.sizePx[0]);
-      const width = lw * (u[1] - u[0]);
-      const x = side === 'left' ? -width / 2 : width / 2;
-      const front = new Mesh(sheet(map, width, lh, { u }), card(map));
-      front.name = 'front';
-      front.position.set(x, lh / 2, 0);
-      const back = new Mesh(sheet(map, width, lh, { u }), card(map, { face: 'back', pool: false }));
-      back.name = 'back';
-      back.rotation.y = Math.PI;
-      back.position.set(x, lh / 2, -BACK_OFFSET_M);
-      hinge.add(front, back);
-      group.add(hinge);
-      const shadow = flatUp(new Mesh(plane(width, HINGE_SHADOW_M), new MeshBasicMaterial({ map: soft.hinge, transparent: true, depthWrite: false, opacity: 0, toneMapped: false })));
-      shadow.name = 'hinge-shadow';
-      shadow.position.set(x, pageY + LIFT_M * 2, hingeZ - HINGE_SHADOW_M / 2);
-      shadow.renderOrder = -1;
-      group.add(shadow);
-      shadows.push({ index, mesh: shadow });
-      (side === 'left' ? leftContent : right).add(group);
-      groups.push(group);
-      hinges.push(hinge);
-    }
-    cards.push({ id, root: groups[1]!, groups, hinges });
-  });
+  const mounts = new Map<string, Object3D>();
+  const shadows: Array<{ index: number; mesh: Mesh; set: string }> = [];
+  const lastLayerIndex = [...order.keys()].reverse().find((i) => set.layers.some((layer) => layer.id === order[i]))!;
+  const cardsBySet = new Map<string, BookCard[]>();
+  const builtLayers = new Map<string, BookCard>();
+  const actorLayer = new Group();
+  actorLayer.name = 'actors';
+  const frontLayer = new Group();
+  frontLayer.name = 'front-actors';
+  frontLayer.renderOrder = order.length + 1;
+  root.add(actorLayer, frontLayer);
+  let frontHingeZ = 0;
+
+  for (const each of sets) {
+    const list: BookCard[] = [];
+    each.spec.stack.topToBottom.forEach((id, index) => {
+      const groupOrder = index + 1;
+      const layer = each.spec.layers.find((l) => l.id === id);
+      if (!layer) {
+        actorLayer.renderOrder = groupOrder;
+        list.push({ id: `actors@${index}`, root: actorLayer, groups: [actorLayer], hinges: [] });
+        return;
+      }
+      if (index === lastLayerIndex) frontHingeZ = Math.max(frontHingeZ, layer.hinge[0][2]);
+      const key = `${index}:${artJoin(each.base, layer.file)}:${layer.hinge[0][2]}`;
+      const shared = builtLayers.get(key);
+      if (shared) {
+        list.push(shared);
+        return;
+      }
+      const map = tex(artJoin(each.base, layer.file));
+      const [lw, lh] = layer.sizeM;
+      const hingeZ = layer.hinge[0][2];
+      const groups: Group[] = [];
+      const hinges: Object3D[] = [];
+      for (const side of ['left', 'right'] as const) {
+        const group = new Group();
+        group.name = `${id}:${side}:${each.id}`;
+        group.renderOrder = groupOrder;
+        const hinge = new Object3D();
+        hinge.name = `${id}:${side}:hinge`;
+        hinge.position.set(0, pageY, hingeZ);
+        const u = halfUv(side, layer.splitColumnPx, layer.sizePx[0]);
+        const width = lw * (u[1] - u[0]);
+        const x = side === 'left' ? -width / 2 : width / 2;
+        const front = new Mesh(sheet(map, width, lh, { u }), card(map));
+        front.name = 'front';
+        front.position.set(x, lh / 2, 0);
+        const back = new Mesh(sheet(map, width, lh, { u }), card(map, { face: 'back', pool: false }));
+        back.name = 'back';
+        back.rotation.y = Math.PI;
+        back.position.set(x, lh / 2, -BACK_OFFSET_M);
+        hinge.add(front, back);
+        group.add(hinge);
+        const shadow = flatUp(new Mesh(plane(width, HINGE_SHADOW_M), new MeshBasicMaterial({ map: soft.hinge, transparent: true, depthWrite: false, opacity: 0, toneMapped: false })));
+        shadow.name = 'hinge-shadow';
+        shadow.position.set(x, pageY + LIFT_M * 2, hingeZ - HINGE_SHADOW_M / 2);
+        shadow.renderOrder = -1;
+        group.add(shadow);
+        shadows.push({ index, mesh: shadow, set: each.id });
+        (side === 'left' ? leftContent : right).add(group);
+        groups.push(group);
+        hinges.push(hinge);
+      }
+      const built = { id, root: groups[1]!, groups, hinges };
+      builtLayers.set(key, built);
+      list.push(built);
+    });
+    cardsBySet.set(each.id, list);
+  }
+  // The opening cast stands in the actors' place, each on its own mount.
+  for (const id of castOnStage) {
+    const mark = set.marks.find((m) => m.id === id) ?? set.marks[0]!;
+    const mount = new Object3D();
+    mount.name = `mount:${id}`;
+    mount.position.set(mark.position[0], pageY + LIFT_M * 2, mark.position[2]);
+    actorLayer.add(mount);
+    mounts.set(id, mount);
+  }
+  let stackSet = sets[0]!.id;
+  let cards = cardsBySet.get(stackSet)!;
+  const allCards = [...new Set([...cardsBySet.values()].flat())];
+  // Only the opening set's cards exist until a page turns.
+  for (const c of allCards) if (!cards.includes(c)) for (const g of c.groups) if (g !== actorLayer) g.visible = false;
+
+  // The leaf that turns: the old right page on its face, the new left page on its back.
+  const leafPivot = new Object3D();
+  leafPivot.name = 'leaf';
+  leafPivot.position.set(0, pageY + LIFT_M * 6, 0);
+  leafPivot.visible = false;
+  root.add(leafPivot);
+  const leafFaces = new Map<string, { front: Mesh; back: Mesh }>();
+  for (const each of sets) {
+    const groundRef = tex(artJoin(each.base, each.spec.ground.file));
+    const front = flatUp(new Mesh(sheet(groundRef, W, D, { u: [0.5, 1] }), card(groundRef, { solid: true })));
+    front.position.x = W / 2;
+    front.name = `leaf-front:${each.id}`;
+    // Seen from below while lying on the right; once over, it lies face up on the left as that set's left page.
+    const back = new Mesh(sheet(groundRef, W, D, { u: [0, 0.5] }), card(groundRef, { solid: true }));
+    back.rotation.x = Math.PI / 2;
+    back.rotation.z = Math.PI;
+    back.position.set(W / 2, -0.0002, 0);
+    back.name = `leaf-back:${each.id}`;
+    front.visible = back.visible = false;
+    leafPivot.add(front, back);
+    leafFaces.set(each.id, { front, back });
+  }
+
+  // The page's outer edge, lifting to invite a turn: a half-round lip curling up about a line
+  // just inside the edge, with a soft gold glow. Mid-edge, clear of the ribbon at the near corner.
+  const LIP_M = 0.044;
+  const cornerPivot = new Object3D();
+  cornerPivot.name = 'page-lip';
+  cornerPivot.position.set(W - LIP_M, pageY + LIFT_M * 5, 0.03);
+  const lipGeometry = new CircleGeometry(LIP_M, 20, -Math.PI / 2, Math.PI);
+  const lipMaterial = surfaceMaterial({ color: book.pageColor });
+  lipMaterial.side = DoubleSide;
+  const triangle = new Mesh(lipGeometry, lipMaterial);
+  triangle.name = 'lip';
+  triangle.rotation.x = -Math.PI / 2;
+  const cornerHinge = new Object3D();
+  cornerHinge.add(triangle);
+  cornerPivot.add(cornerHinge);
+  const cornerGlow = flatUp(new Mesh(new PlaneGeometry(LIP_M * 3, LIP_M * 3.4), new MeshBasicMaterial({ map: soft.shadow, color: '#D4A23E', transparent: true, depthWrite: false, opacity: 0, blending: AdditiveBlending, toneMapped: false })));
+  cornerGlow.name = 'lip-glow';
+  cornerGlow.position.set(LIP_M * 0.6, 0.001, 0);
+  cornerGlow.renderOrder = OVER_STACK;
+  cornerPivot.add(cornerGlow);
+  const lipTip = new Object3D();
+  lipTip.position.set(LIP_M * 0.8, 0, 0);
+  cornerHinge.add(lipTip);
+  cornerPivot.visible = false;
+  right.add(cornerPivot);
 
   const bookShadow = flatUp(new Mesh(new PlaneGeometry(1, 1), new MeshBasicMaterial({ map: soft.shadow, transparent: true, depthWrite: false, toneMapped: false })));
   bookShadow.name = 'book-shadow';
@@ -303,7 +405,9 @@ export function buildBook({ book, set, textures, bookBase, setBase, soft, castOn
   root.add(captionAnchor);
 
   // The beam's cone, pivoting on the lighthouse lamp the art painted.
-  const lampAnchor = set.anchors.lighthouseLamp?.position ?? null;
+  // Each set may have its own lighthouse lamp: the opening's up close, the gap's far off. The beam
+  // pivots on whichever lamp the showing set has.
+  const lamps = new Map<string, { anchor: [number, number, number] | null; lit: Mesh | null }>();
   const beamPivot = new Group();
   beamPivot.name = 'beam';
   beamPivot.renderOrder = OVER_STACK;
@@ -324,41 +428,92 @@ export function buildBook({ book, set, textures, bookBase, setBase, soft, castOn
   cone.renderOrder = 80;
   beamPivot.add(cone);
   beamPivot.visible = false;
-  if (lampAnchor) {
-    beamPivot.position.set(lampAnchor[0], pageY + lampAnchor[1], lampAnchor[2]);
-    root.add(beamPivot);
-  }
-  const lampLitSpec = set.effects['lamp-lit'] as { file: string; px?: [number, number]; sizeM?: [number, number]; layer?: string } | undefined;
-  let lampLit: Mesh | null = null;
-  if (lampLitSpec?.px && lampLitSpec.sizeM && lampLitSpec.layer) {
-    const layer = set.layers.find((l) => l.id === lampLitSpec.layer);
-    const card = cards.find((c) => c.id === lampLitSpec.layer);
-    const ref = textures.get(artJoin(setBase, lampLitSpec.file));
-    if (layer && card && ref) {
-      const [w, h] = lampLitSpec.sizeM;
-      const x = lampLitSpec.px[0] / set.pxPerM - layer.sizeM[0] / 2 + w / 2;
-      const y = layer.sizeM[1] - lampLitSpec.px[1] / set.pxPerM - h / 2;
-      lampLit = new Mesh(sheet(ref, w, h), cardMaterial(ref.texture, { baked: ref.baked, pool: false }));
-      lampLit.name = 'lamp-lit';
-      lampLit.position.set(x, y, 0.0005);
-      lampLit.visible = false;
-      (x < 0 ? card.hinges[0]! : card.hinges[1]!).add(lampLit);
+  root.add(beamPivot);
+  for (const each of sets) {
+    const anchor = (each.spec.anchors.lighthouseLamp?.position as [number, number, number] | undefined) ?? null;
+    const spec = each.spec.effects['lamp-lit'] as { file: string; px?: [number, number]; sizeM?: [number, number]; layer?: string } | undefined;
+    let lit: Mesh | null = null;
+    if (spec?.px && spec.sizeM && spec.layer) {
+      const layer = each.spec.layers.find((l) => l.id === spec.layer);
+      const card = cardsBySet.get(each.id)!.find((c) => c.id === spec.layer);
+      const ref = textures.get(artJoin(each.base, spec.file));
+      if (layer && card && ref) {
+        const [w, h] = spec.sizeM;
+        const x = spec.px[0] / each.spec.pxPerM - layer.sizeM[0] / 2 + w / 2;
+        const y = layer.sizeM[1] - spec.px[1] / each.spec.pxPerM - h / 2;
+        lit = new Mesh(sheet(ref, w, h), cardMaterial(ref.texture, { baked: ref.baked, pool: false }));
+        lit.name = `lamp-lit:${each.id}`;
+        lit.position.set(x, y, 0.0005);
+        lit.visible = false;
+        (x < 0 ? card.hinges[0]! : card.hinges[1]!).add(lit);
+      }
     }
+    lamps.set(each.id, { anchor, lit });
   }
+  const placeBeam = (setId: string) => {
+    const a = lamps.get(setId)?.anchor;
+    if (a) beamPivot.position.set(a[0], pageY + a[1], a[2]);
+  };
+  placeBeam(sets[0]!.id);
 
   const stands = new Map<string, number>();
   const flatOffset = set.stack.flatOffsetM;
+  let lampOn = false;
+  void setBase;
 
   return {
     root,
     leftHalf,
     pageY,
-    cards,
+    get cards() {
+      return cards;
+    },
     mounts,
+    actorLayer,
+    frontLayer,
+    frontHingeZ,
+    setSets(left, rightSet) {
+      for (const g of grounds) g.mesh.visible = g.set === (g.side === 'left' ? left : rightSet);
+    },
+    setStack(next) {
+      if (!cardsBySet.has(next) || next === stackSet) return;
+      stackSet = next;
+      placeBeam(next);
+      for (const [id, lamp] of lamps) if (lamp.lit && id !== next) lamp.lit.visible = false;
+      cards = cardsBySet.get(next)!;
+      const showing = new Set(cards);
+      for (const c of allCards) if (!showing.has(c)) for (const g of c.groups) if (g !== actorLayer) g.visible = false;
+    },
+    setLeaf(turn, from, to) {
+      leafPivot.visible = turn !== null;
+      for (const [id, faces] of leafFaces) {
+        faces.front.visible = turn !== null && id === from;
+        faces.back.visible = turn !== null && id === to;
+      }
+      if (turn !== null) {
+        const t = Math.max(0, Math.min(1, turn));
+        leafPivot.rotation.z = Math.PI * t;
+        // A real leaf lifts in a curve: rise a touch off the spine as it passes the top.
+        leafPivot.position.y = pageY + LIFT_M * 6 + 0.002 * Math.sin(Math.PI * t);
+      }
+    },
+    setCorner(lift, glow) {
+      cornerPivot.visible = lift > 0.001 || glow > 0.001;
+      cornerHinge.rotation.z = lift * 1.05;
+      (cornerGlow.material as MeshBasicMaterial).opacity = 0.8 * glow;
+    },
+    cornerWorld(target) {
+      return lipTip.getWorldPosition(target);
+    },
+    setLamp(lit) {
+      lampOn = lit;
+      const lamp = lamps.get(stackSet)?.lit;
+      if (lamp) lamp.visible = lit;
+    },
     titleAnchor,
     captionAnchor,
     // Anyone not in the stack stands once the front card has: they arrive with the open book.
-    standOf: (id) => stands.get(id) ?? stands.get(order[order.length - 1]!) ?? 0,
+    standOf: (id) => stands.get(id) ?? stands.get(`actors@${order.findIndex((o) => !set.layers.some((l) => l.id === o))}`) ?? 0,
     addMount(name, [x, y, z]) {
       const mount = new Group();
       mount.name = name;
@@ -372,33 +527,35 @@ export function buildBook({ book, set, textures, bookBase, setBase, soft, castOn
       beamPivot.visible = strength > 0.001;
       beamPivot.rotation.y = azimuth;
       beamMaterial.uniforms.uStrength!.value = strength;
-      if (lampLit) lampLit.visible = strength > 0.001;
+      const lamp = lamps.get(stackSet)?.lit;
+      if (lamp) lamp.visible = lampOn || strength > 0.001;
     },
     lampWorld(target) {
-      if (!lampAnchor) return null;
+      if (!lamps.get(stackSet)?.anchor) return null;
       return beamPivot.getWorldPosition(target);
     },
     setRibbon(lift) {
       ribbonPivot.rotation.x = -lift * 0.9;
     },
-    update(unfold, shiver, seconds) {
+    update(unfold, shiver, seconds, hideFlat = false) {
       leftHalf.rotation.z = coverRotationZ(unfold.cover);
       const anyOpen = unfold.cover > 0.001 || unfold.layers.some((l) => l > 0);
       for (const mount of extraMounts) mount.visible = anyOpen;
-      order.forEach((id, index) => {
+      cards.forEach((card, index) => {
         const stand = unfold.layers[index] ?? 0;
-        stands.set(id, stand);
-        const card = cards.find((c) => c.id === id);
-        if (!card) return;
-        for (const group of card.groups) group.visible = anyOpen;
-        const lift = flatOffset * (order.length - index) * (1 - Math.min(1, stand));
-        const wobble = id === lastLayer ? ((4 * Math.PI) / 180) * shiver * Math.sin(Math.floor(seconds * 12) * 1.17) : 0;
+        stands.set(card.id, stand);
+        // While a page turns, cards lying flat fold away into it.
+        const shown = anyOpen && !(hideFlat && stand <= 0.001);
+        for (const group of card.groups) if (group !== actorLayer) group.visible = shown;
+        const lift = flatOffset * (cards.length - index) * (1 - Math.min(1, stand));
+        const wobble = index === lastLayerIndex ? ((4 * Math.PI) / 180) * shiver * Math.sin(Math.floor(seconds * 12) * 1.17) : 0;
         for (const hinge of card.hinges) {
           hinge.rotation.x = layerRotationX(stand) + wobble;
           hinge.position.y = pageY + lift;
         }
       });
-      for (const { index, mesh } of shadows) (mesh.material as MeshBasicMaterial).opacity = 0.28 * Math.max(0, Math.min(1, unfold.layers[index] ?? 0));
+      actorLayer.visible = frontLayer.visible = anyOpen;
+      for (const { index, mesh, set: owner } of shadows) (mesh.material as MeshBasicMaterial).opacity = owner === stackSet || cardsBySet.get(stackSet)!.some((c) => c.groups.includes(mesh.parent as Group)) ? 0.28 * Math.max(0, Math.min(1, unfold.layers[index] ?? 0)) : 0;
       // The shadow covers the closed book, then spreads under the open spread.
       const width = W * (1.18 + 1.06 * unfold.cover);
       bookShadow.scale.set(width, D * 1.22, 1);

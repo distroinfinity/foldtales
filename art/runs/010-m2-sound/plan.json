@@ -1,0 +1,703 @@
+{
+  "id": "010-m2-sound",
+  "question": "Can the run-005 voices and Runway's sound effects give episode 1's every line and new action a warm, real sound?",
+  "why": "M2 is the first time someone else plays. With captions only, the episode is silent where it most needs warmth: Pip's relief, Wick's gruffness, the narrator over the beam. Every new action also needs a sound (look bar).",
+  "sameAcrossJobs": "Voices through Runway text to speech with the run-005 presets (narrator Wanda, Pip Mabel, Wick Arjun) and the narrator file's model and settings, 1 credit a line. Sound effects through eleven_text_to_sound_v2 at 1 credit a second. Every clip goes through art/voice/chain.mjs in the client.",
+  "decideBy": [
+    "Each clip decodes, and sound effects come back at their requested length.",
+    "The client times every beat from the rendered line, and the simulator still finds every path inside 5 to 7 minutes.",
+    "The owner judges voices and mix on the Quest's speakers."
+  ],
+  "learnEvenIfRejected": "How the three run-005 voices carry a whole episode, and how long real lines run against the caption estimate.",
+  "reusableOutput": "Episode 1's prepared lines, and foley for objects, the drawer, the page and the satchel that every later episode reuses.",
+  "estimateCredits": 109,
+  "capNote": "One credit per line plus a credit per second of foley: 109. The cap is the 120 quoted to the owner, leaving room to redo about ten clips.",
+  "capCredits": 120,
+  "soundJobs": [
+    {
+      "id": "lantern-clink",
+      "durationS": 2,
+      "use": "a dropped lantern rolls to the edge",
+      "promptText": "A small brass lantern dropped onto a wooden floor, a soft metal clink, then it rolls a short way and stops. Close, dry, quiet."
+    },
+    {
+      "id": "lantern-flare",
+      "durationS": 1,
+      "use": "a lantern flame catching again",
+      "promptText": "A small candle flame catching and flaring up inside a glass lantern, a soft whoomp and a gentle crackle. Close and quiet, no hiss."
+    },
+    {
+      "id": "object-set-down",
+      "durationS": 1,
+      "use": "something set down on a page",
+      "promptText": "A small light object set down gently on thick paper, one soft papery tap. Close, quiet."
+    },
+    {
+      "id": "page-turn",
+      "durationS": 2,
+      "use": "the page turns",
+      "promptText": "A single thick storybook page turned slowly by hand, a full soft paper sweep and settle. Close, quiet, no rustling crowd."
+    },
+    {
+      "id": "kite-whoosh",
+      "durationS": 2,
+      "use": "the kite lifts and flies",
+      "promptText": "A small paper kite caught by a gust and lifted, a soft fluttering whoosh of wind and paper. Gentle, airy, no howling."
+    },
+    {
+      "id": "ladder-creak",
+      "durationS": 2,
+      "use": "a little wooden ladder laid across and crawled over",
+      "promptText": "A small wooden ladder laid down on stone with a gentle knock, then soft wooden creaks as something small crawls across it. Close, quiet."
+    },
+    {
+      "id": "thread-pluck",
+      "durationS": 1,
+      "use": "a thread pulled taut",
+      "promptText": "A thin thread pulled taut and plucked once, a tiny soft twang. Close and quiet."
+    },
+    {
+      "id": "rope-throw",
+      "durationS": 2,
+      "use": "a rope thrown across and pulled",
+      "promptText": "A coil of rough rope thrown across a short gap, a soft swish and a thump as it lands, then a creak as it pulls tight. Close, quiet."
+    },
+    {
+      "id": "spark-rise",
+      "durationS": 2,
+      "use": "a spark rising up to the lighthouse lamp",
+      "promptText": "A single tiny spark drifting upward, a faint delicate shimmering crackle rising in pitch. Very soft, magical, no music."
+    },
+    {
+      "id": "lamp-light",
+      "durationS": 2,
+      "use": "the lighthouse lamp lights",
+      "promptText": "A large old oil lamp catching light behind glass, a warm soft whoomp and a low gentle glow hum. Warm, soft, no alarm."
+    },
+    {
+      "id": "satchel-in",
+      "durationS": 2,
+      "use": "a keepsake slipped into a leather satchel",
+      "promptText": "A small object slipped into a soft leather satchel, a leather flap lifting and falling, and a tiny brass buckle click. Close, quiet."
+    },
+    {
+      "id": "drawer-slide",
+      "durationS": 2,
+      "use": "a small wooden drawer slides open",
+      "promptText": "A small wooden drawer sliding open smoothly on wooden runners, a soft wooden rumble and a gentle stop. Close, quiet."
+    },
+    {
+      "id": "pick-up",
+      "durationS": 1,
+      "use": "picking up a small object",
+      "promptText": "A small light object lifted from a wooden surface, a tiny soft scrape and tap. Very close, quiet."
+    },
+    {
+      "id": "give-pleased",
+      "durationS": 1,
+      "use": "a small creature takes a gift, pleased",
+      "promptText": "A tiny soft bright two-note chime, like a small music box, pleased and warm. Very gentle."
+    },
+    {
+      "id": "give-puzzled",
+      "durationS": 1,
+      "use": "a small creature turns a gift over, puzzled",
+      "promptText": "A tiny soft questioning two-note wooden chime, rising, curious. Very gentle."
+    },
+    {
+      "id": "rustle-dark",
+      "durationS": 1,
+      "use": "a rustle in the dark",
+      "promptText": "A soft rustle in dry reeds at night, something small moving nearby. Close, quiet, not scary."
+    },
+    {
+      "id": "hop-land",
+      "durationS": 1,
+      "use": "a small creature lands from a hop",
+      "promptText": "A small soft landing thump on sand, gentle. Close, quiet."
+    }
+  ],
+  "voiceJobs": [
+    {
+      "id": "pip-no-no-no",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "No, no, no...",
+      "beat": "lantern-drop"
+    },
+    {
+      "id": "pip-it-rolled-right-to-the-edge-and-it-s-so",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "It rolled right to the edge. And it's so dark over there.",
+      "beat": "lantern-drop"
+    },
+    {
+      "id": "pip-could-you-reach-it-for-me",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Could you reach it for me?",
+      "beat": "lantern-drop"
+    },
+    {
+      "id": "pip-it-s-lit-it-was-cold-and-then-you-held-i",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "It's lit! It was cold, and then you held it, and it just... woke up.",
+      "beat": "lantern-back"
+    },
+    {
+      "id": "pip-thank-you-i-m-not-scared-now-well-a-bit",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Thank you. I'm not scared now. Well. A bit less.",
+      "beat": "lantern-back"
+    },
+    {
+      "id": "pip-it-s-warmer-than-it-s-ever-been-like-it",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "It's warmer than it's ever been. Like it remembers your hand.",
+      "beat": "lantern-back"
+    },
+    {
+      "id": "narrator-it-had-never-burned-so-brightly-it-was-a",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "It had never burned so brightly. It was, after all, the first light anyone had ever handed back to him.",
+      "beat": "lantern-back"
+    },
+    {
+      "id": "pip-oh-that-s-kind-of-you",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Oh! That's kind of you.",
+      "beat": "lantern-puzzled"
+    },
+    {
+      "id": "pip-but-my-lantern-s-still-over-there-in-the",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "But my lantern's still over there, in the dark.",
+      "beat": "lantern-puzzled"
+    },
+    {
+      "id": "narrator-nobody-came-so-the-little-fox-took-a-dee",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "Nobody came. So the little fox took a deep breath, and went to the edge all by himself.",
+      "beat": "lantern-fetch"
+    },
+    {
+      "id": "narrator-and-when-he-held-it-close-brave-in-the-d",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "And when he held it close, brave in the dark, the little flame woke up again.",
+      "beat": "lantern-fetch"
+    },
+    {
+      "id": "pip-i-did-it-i-really-did-it",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "I did it. I really did it!",
+      "beat": "lantern-fetch"
+    },
+    {
+      "id": "pip-wick-will-be-lighting-the-lamp-soon-i-m",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Wick will be lighting the lamp soon. I'm meant to help him.",
+      "beat": "shore-walk"
+    },
+    {
+      "id": "narrator-down-where-the-house-ends-everything-los",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "Down where the house ends, everything lost drifts home in the end. Buttons. Spoons. Odd socks. And once, a whole umbrella.",
+      "beat": "shore-walk"
+    },
+    {
+      "id": "pip-somebody-s-missing-a-very-big-button",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Somebody's missing a very big button.",
+      "beat": "shore-walk"
+    },
+    {
+      "id": "pip-i-hope-they-re-not-cold-without-it",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "I hope they're not cold without it.",
+      "beat": "shore-walk"
+    },
+    {
+      "id": "pip-what-was-that-who-s-there",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "What was that? Who's there?",
+      "beat": "shore-walk"
+    },
+    {
+      "id": "narrator-only-a-moth-moths-are-never-lost-only-di",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "Only a moth. Moths are never lost. Only distracted.",
+      "beat": "shore-walk"
+    },
+    {
+      "id": "pip-moth-you-frightened-me-and-mind-your-fee",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Moth! You frightened me. And mind your feelers, it's hot!",
+      "beat": "shore-walk"
+    },
+    {
+      "id": "pip-no-moth-it-isn-t-for-eating-it-s-for-see",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "No, Moth. It isn't for eating. It's for seeing.",
+      "beat": "shore-walk"
+    },
+    {
+      "id": "pip-see-out-there-it-s-only-sand-dark-sand-n",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "See? Out there it's only sand. Dark sand. Nothing to be scared of.",
+      "beat": "shore-walk"
+    },
+    {
+      "id": "pip-mostly-nothing",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Mostly nothing.",
+      "beat": "shore-walk"
+    },
+    {
+      "id": "pip-wick-says-the-lighthouse-calls-every-los",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Wick says the lighthouse calls every lost thing home. Every night, round and round.",
+      "beat": "the-dark-bit"
+    },
+    {
+      "id": "pip-he-says-one-day-it-might-be-my-job",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "He says one day it might be my job.",
+      "beat": "the-dark-bit"
+    },
+    {
+      "id": "pip-i-d-have-to-stop-being-scared-of-the-dar",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "I'd have to stop being scared of the dark first.",
+      "beat": "the-dark-bit"
+    },
+    {
+      "id": "narrator-the-dark-didn-t-say-anything-it-never-do",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "The dark didn't say anything. It never does. It only waited, the way it always had, for someone brave enough to walk into it.",
+      "beat": "the-dark-bit"
+    },
+    {
+      "id": "pip-come-on-moth-it-s-this-way-stay-close",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Come on, Moth. It's this way. Stay close.",
+      "beat": "the-dark-bit"
+    },
+    {
+      "id": "narrator-the-path-went-on-and-on-and-then-it-simp",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "The path went on, and on, and then it simply stopped.",
+      "beat": "to-the-edge"
+    },
+    {
+      "id": "pip-oh-the-lighthouse-is-right-there-i-can-s",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Oh. The lighthouse is right there. I can see the door.",
+      "beat": "to-the-edge"
+    },
+    {
+      "id": "pip-wick-wick-he-can-t-hear-me-from-all-the",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Wick? Wick! He can't hear me from all the way over here.",
+      "beat": "to-the-edge"
+    },
+    {
+      "id": "pip-maybe-if-i-take-a-run-at-it",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Maybe if I take a run at it...",
+      "beat": "to-the-edge"
+    },
+    {
+      "id": "pip-no-no-no-much-too-far",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "No. No, no. Much too far.",
+      "beat": "to-the-edge"
+    },
+    {
+      "id": "pip-it-s-easy-for-you-moth-you-ve-got-wings",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "It's easy for you, Moth. You've got wings.",
+      "beat": "to-the-edge"
+    },
+    {
+      "id": "narrator-lost-things-had-been-falling-into-that-g",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "Lost things had been falling into that gap for years and years. Far below, the sea kept them.",
+      "beat": "to-the-edge"
+    },
+    {
+      "id": "pip-if-only-we-could-cross-is-there-anything",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "If only we could cross... Is there anything in that drawer?",
+      "beat": "gap-ask"
+    },
+    {
+      "id": "pip-a-kite-in-this-wind",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "A kite? In this wind?",
+      "beat": "cross-kite"
+    },
+    {
+      "id": "pip-i-m-flying-i-m-really-actually-flying",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "I'm flying! I'm really, actually flying!",
+      "beat": "cross-kite"
+    },
+    {
+      "id": "pip-thread-if-only-someone-could-carry-the-e",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Thread! If only someone could carry the end across...",
+      "beat": "cross-thread"
+    },
+    {
+      "id": "narrator-the-moth-only-wanted-to-be-near-the-ligh",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "The moth only wanted to be near the light. But it carried the thread across all the same.",
+      "beat": "cross-thread"
+    },
+    {
+      "id": "pip-a-ladder-if-i-lay-it-down-flat-it-s-a-br",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "A ladder! If I lay it down flat, it's a bridge!",
+      "beat": "cross-ladder"
+    },
+    {
+      "id": "pip-don-t-look-down-don-t-look-down-don-t-lo",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Don't look down. Don't look down. Don't look down.",
+      "beat": "cross-ladder"
+    },
+    {
+      "id": "pip-a-sock-it-s-far-too-short-to-reach-acros",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "A sock? It's far too short to reach across.",
+      "beat": "sock-scarf"
+    },
+    {
+      "id": "pip-but-it-is-very-warm-thank-you",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "But it is very warm. Thank you.",
+      "beat": "sock-scarf"
+    },
+    {
+      "id": "pip-something-longer-maybe-or-something-that",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Something longer, maybe? Or something that flies?",
+      "beat": "sock-scarf"
+    },
+    {
+      "id": "pip-a-key-maybe-the-gap-is-locked",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "A key. Maybe the gap is... locked?",
+      "beat": "key-try"
+    },
+    {
+      "id": "pip-moth-it-s-not-a-light-it-s-a-key",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Moth, it's not a light, it's a key!",
+      "beat": "key-try"
+    },
+    {
+      "id": "pip-i-don-t-think-gaps-have-keyholes-is-ther",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "I don't think gaps have keyholes. Is there something to get me over?",
+      "beat": "key-try"
+    },
+    {
+      "id": "pip-hmm-i-don-t-think-this-will-get-me-acros",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Hmm. I don't think this will get me across.",
+      "beat": "gap-puzzled"
+    },
+    {
+      "id": "pip-is-there-something-longer-or-something-t",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Is there something longer? Or something that flies?",
+      "beat": "gap-puzzled"
+    },
+    {
+      "id": "wick-what-s-all-this-shouting-about-who-s-the",
+      "role": "wick",
+      "presetId": "Arjun",
+      "promptText": "What's all this shouting about? Who's there?",
+      "beat": "wick-rope"
+    },
+    {
+      "id": "pip-wick-it-s-me-i-can-t-get-across",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Wick! It's me! I can't get across!",
+      "beat": "wick-rope"
+    },
+    {
+      "id": "wick-hmph-hold-still-lad-and-catch",
+      "role": "wick",
+      "presetId": "Arjun",
+      "promptText": "Hmph. Hold still, lad. And catch.",
+      "beat": "wick-rope"
+    },
+    {
+      "id": "pip-hand-over-paw-hand-over-paw",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Hand over paw, hand over paw...",
+      "beat": "wick-rope"
+    },
+    {
+      "id": "wick-you-re-shaking-like-a-leaf-lad",
+      "role": "wick",
+      "presetId": "Arjun",
+      "promptText": "You're shaking like a leaf, lad.",
+      "beat": "wick-rope"
+    },
+    {
+      "id": "pip-i-m-fine-i-m-fine-is-it-always-this-dark",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "I'm fine. I'm fine. Is it always this dark out here?",
+      "beat": "wick-rope"
+    },
+    {
+      "id": "wick-every-night-that-s-rather-the-point-of-u",
+      "role": "wick",
+      "presetId": "Arjun",
+      "promptText": "Every night. That's rather the point of us.",
+      "beat": "wick-rope"
+    },
+    {
+      "id": "wick-and-what-do-you-think-you-re-doing-cross",
+      "role": "wick",
+      "presetId": "Arjun",
+      "promptText": "And what do you think you're doing, crossing chasms in the dark?",
+      "beat": "far-side"
+    },
+    {
+      "id": "pip-someone-helped-me-someone-very-big",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Someone helped me. Someone very big.",
+      "beat": "far-side"
+    },
+    {
+      "id": "wick-someone-very-big-up-there",
+      "role": "wick",
+      "presetId": "Arjun",
+      "promptText": "Someone very big? Up there?",
+      "beat": "far-side"
+    },
+    {
+      "id": "pip-they-opened-the-drawer-they-just-reached",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "They opened the drawer. They just reached in and handed it to me.",
+      "beat": "far-side"
+    },
+    {
+      "id": "wick-hmph-well-thank-you-kindly-whoever-you-a",
+      "role": "wick",
+      "presetId": "Arjun",
+      "promptText": "Hmph. Well. Thank you kindly, whoever you are.",
+      "beat": "far-side"
+    },
+    {
+      "id": "pip-you-should-have-seen-it-wick-i-wasn-t-ev",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "You should have seen it, Wick. I wasn't even scared. Well. Not very.",
+      "beat": "far-side"
+    },
+    {
+      "id": "wick-not-very-eh-we-ll-see-about-that",
+      "role": "wick",
+      "presetId": "Arjun",
+      "promptText": "Not very, eh? We'll see about that.",
+      "beat": "far-side"
+    },
+    {
+      "id": "wick-come-on-then-lad-that-lamp-won-t-light-i",
+      "role": "wick",
+      "presetId": "Arjun",
+      "promptText": "Come on then, lad. That lamp won't light itself.",
+      "beat": "far-side"
+    },
+    {
+      "id": "narrator-they-walked-the-last-of-the-path-togethe",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "They walked the last of the path together, the old badger and the small fox, toward the dark tower.",
+      "beat": "lighthouse"
+    },
+    {
+      "id": "wick-forty-years-i-ve-lit-that-lamp-every-sin",
+      "role": "wick",
+      "presetId": "Arjun",
+      "promptText": "Forty years I've lit that lamp. Every single night.",
+      "beat": "lighthouse"
+    },
+    {
+      "id": "pip-even-when-it-stormed",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Even when it stormed?",
+      "beat": "lighthouse"
+    },
+    {
+      "id": "wick-especially-when-it-stormed",
+      "role": "wick",
+      "presetId": "Arjun",
+      "promptText": "Especially when it stormed.",
+      "beat": "lighthouse"
+    },
+    {
+      "id": "narrator-but-tonight-the-lighthouse-stood-dark-on",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "But tonight the lighthouse stood dark. On a night like this, it had never once been dark.",
+      "beat": "lighthouse"
+    },
+    {
+      "id": "wick-can-t-see-the-wick-to-light-it-not-like",
+      "role": "wick",
+      "presetId": "Arjun",
+      "promptText": "Can't see the wick to light it. Not like I used to.",
+      "beat": "lighthouse"
+    },
+    {
+      "id": "wick-don-t-you-go-telling-anyone",
+      "role": "wick",
+      "presetId": "Arjun",
+      "promptText": "Don't you go telling anyone.",
+      "beat": "lighthouse"
+    },
+    {
+      "id": "pip-i-won-t-but-i-ve-still-got-my-light",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "I won't. But I've still got my light.",
+      "beat": "lighthouse"
+    },
+    {
+      "id": "narrator-so-up-they-went-a-hundred-and-twelve-ste",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "So up they went, a hundred and twelve steps, round and round, to the lamp at the very top.",
+      "beat": "lighthouse"
+    },
+    {
+      "id": "narrator-and-the-little-light-became-the-big-one",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "And the little light became the big one, and swept out over every lost thing in the house.",
+      "beat": "lighthouse"
+    },
+    {
+      "id": "wick-not-bad-keeper",
+      "role": "wick",
+      "presetId": "Arjun",
+      "promptText": "Not bad, keeper.",
+      "beat": "the-beam"
+    },
+    {
+      "id": "pip-keeper",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Keeper?",
+      "beat": "the-beam"
+    },
+    {
+      "id": "wick-every-keeper-has-a-first-night-don-t-let",
+      "role": "wick",
+      "presetId": "Arjun",
+      "promptText": "Every keeper has a first night. Don't let it go to your head.",
+      "beat": "the-beam"
+    },
+    {
+      "id": "pip-look-it-reaches-all-the-way-out-to-you",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Look! It reaches all the way out to you.",
+      "beat": "the-beam"
+    },
+    {
+      "id": "wick-same-time-tomorrow-keeper",
+      "role": "wick",
+      "presetId": "Arjun",
+      "promptText": "Same time tomorrow, keeper?",
+      "beat": "the-beam"
+    },
+    {
+      "id": "pip-same-time-tomorrow",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Same time tomorrow.",
+      "beat": "the-beam"
+    },
+    {
+      "id": "narrator-far-out-in-the-dark-something-lost-turne",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "Far out in the dark, something lost turned toward the light, and started for home.",
+      "beat": "the-beam"
+    },
+    {
+      "id": "narrator-and-whatever-the-reader-gave-that-night",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "And whatever the Reader gave that night, the book kept safe, for another time.",
+      "beat": "chapter-end"
+    },
+    {
+      "id": "narrator-because-lost-things-as-you-ll-find-have",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "Because lost things, as you'll find, have a way of coming back.",
+      "beat": "chapter-end"
+    }
+  ]
+}

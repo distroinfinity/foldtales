@@ -1,5 +1,5 @@
 {
-  "v": 1,
+  "v": 2,
   "libraryVersion": "flagship-1",
   "title": "The Lighthouse at the Edge of the Table",
   "artFolders": [
@@ -7,30 +7,19 @@
     "cast/wick",
     "cast/moth",
     "book",
+    "book/drawer",
+    "satchel",
     "sets/shore-path",
+    "sets/the-gap",
     "fx",
+    "objects",
     "sound/m1",
-    "room"
+    "room",
+    "sound/m2",
+    "sets/the-lamp"
   ],
   "book": "book/book.json",
   "room": "room/room.json",
-  "set": {
-    "id": "shore-path",
-    "name": "The shore path",
-    "description": "A sandy path along the shore below the lighthouse, at dusk.",
-    "file": "sets/shore-path/set.json",
-    "marks": [
-      {
-        "id": "pip",
-        "label": "Pip's mark",
-        "position": [
-          0.046,
-          0,
-          -0.0175
-        ]
-      }
-    ]
-  },
   "cast": [
     {
       "member": {
@@ -79,6 +68,9 @@
       "variants": {
         "lantern": {
           "out": "parts/lantern-out.png"
+        },
+        "legs": {
+          "walk": "parts/legs-alt.png"
         }
       },
       "light": {
@@ -92,7 +84,8 @@
           96,
           -350
         ],
-        "outVariant": "out"
+        "outVariant": "out",
+        "object": "lantern"
       },
       "shadow": {
         "widthM": 0.085,
@@ -194,6 +187,10 @@
     {
       "cast": "pip",
       "mark": "pip"
+    },
+    {
+      "cast": "wick",
+      "mark": "wick"
     }
   ],
   "cues": [
@@ -220,6 +217,125 @@
       "summary": "the lighthouse beam sweeps the room",
       "nominalMs": 6000,
       "kind": "beam"
+    },
+    {
+      "id": "drop-held",
+      "summary": "a frightened character lets go of what it carries, and it rolls away",
+      "nominalMs": 1800,
+      "kind": "drop-held",
+      "at": "lantern-edge"
+    },
+    {
+      "id": "relight",
+      "summary": "a carried light flares back to life",
+      "nominalMs": 1200,
+      "kind": "relight"
+    },
+    {
+      "id": "set-down",
+      "summary": "a character sets down what it holds at its feet",
+      "nominalMs": 800,
+      "kind": "set-down"
+    },
+    {
+      "id": "wear",
+      "summary": "a character puts on what it holds, such as a scarf",
+      "nominalMs": 1200,
+      "kind": "wear"
+    },
+    {
+      "id": "page-invite",
+      "summary": "the page's corner lifts, inviting the reader to turn it",
+      "nominalMs": 6000,
+      "kind": "page-invite"
+    },
+    {
+      "id": "page-turn",
+      "summary": "the pop-ups fold flat, the page turns and the next spread rises",
+      "nominalMs": 2600,
+      "kind": "page-turn"
+    },
+    {
+      "id": "cross-kite",
+      "summary": "a kite lifts its holder over the gap",
+      "nominalMs": 6500,
+      "kind": "cross-kite",
+      "travels": {
+        "who": "pip",
+        "to": "far-side"
+      }
+    },
+    {
+      "id": "cross-thread",
+      "summary": "the moth carries a thread across and its holder hauls over",
+      "nominalMs": 7000,
+      "kind": "cross-thread",
+      "travels": {
+        "who": "pip",
+        "to": "far-side"
+      }
+    },
+    {
+      "id": "cross-ladder",
+      "summary": "a ladder is laid across the gap and crawled over",
+      "nominalMs": 7500,
+      "kind": "cross-ladder",
+      "travels": {
+        "who": "pip",
+        "to": "far-side"
+      }
+    },
+    {
+      "id": "cross-rope",
+      "summary": "a rope is thrown across the gap and climbed over",
+      "nominalMs": 6500,
+      "kind": "cross-rope",
+      "travels": {
+        "who": "pip",
+        "to": "far-side"
+      }
+    },
+    {
+      "id": "spark",
+      "summary": "a spark rises from a carried light to the lighthouse lamp",
+      "nominalMs": 2600,
+      "kind": "spark"
+    },
+    {
+      "id": "lamp-lit",
+      "summary": "the lighthouse lamp lights",
+      "nominalMs": 0,
+      "kind": "lamp-lit"
+    },
+    {
+      "id": "keep",
+      "summary": "what the reader gave goes into the satchel",
+      "nominalMs": 1800,
+      "kind": "keep"
+    },
+    {
+      "id": "chapter-end",
+      "summary": "the end of the chapter is printed on the page",
+      "nominalMs": 0,
+      "kind": "chapter-end"
+    },
+    {
+      "id": "rustle",
+      "summary": "a rustle in the dark",
+      "nominalMs": 0,
+      "kind": "sound"
+    },
+    {
+      "id": "lamp-out",
+      "summary": "the lighthouse lamp goes dark",
+      "nominalMs": 0,
+      "kind": "lamp-out"
+    },
+    {
+      "id": "pocket",
+      "summary": "a character tucks what it holds into its coat",
+      "nominalMs": 400,
+      "kind": "pocket"
     }
   ],
   "narrator": {
@@ -294,66 +410,775 @@
       "files": [
         "sound/m1/wash-bloom.mp3"
       ]
+    },
+    "clink": {
+      "files": [
+        "sound/m2/lantern-clink.mp3"
+      ]
+    },
+    "flare": {
+      "files": [
+        "sound/m2/lantern-flare.mp3"
+      ]
+    },
+    "setdown": {
+      "files": [
+        "sound/m2/object-set-down.mp3"
+      ]
+    },
+    "page": {
+      "files": [
+        "sound/m2/page-turn.mp3"
+      ]
+    },
+    "whoosh": {
+      "files": [
+        "sound/m2/kite-whoosh.mp3"
+      ]
+    },
+    "creak": {
+      "files": [
+        "sound/m2/ladder-creak.mp3"
+      ]
+    },
+    "pluck": {
+      "files": [
+        "sound/m2/thread-pluck.mp3"
+      ]
+    },
+    "rope": {
+      "files": [
+        "sound/m2/rope-throw.mp3"
+      ]
+    },
+    "spark": {
+      "files": [
+        "sound/m2/spark-rise.mp3"
+      ]
+    },
+    "lamp": {
+      "files": [
+        "sound/m2/lamp-light.mp3"
+      ]
+    },
+    "satchel": {
+      "files": [
+        "sound/m2/satchel-in.mp3"
+      ]
+    },
+    "drawer": {
+      "files": [
+        "sound/m2/drawer-slide.mp3"
+      ]
+    },
+    "grab": {
+      "files": [
+        "sound/m2/pick-up.mp3"
+      ]
+    },
+    "pleased": {
+      "files": [
+        "sound/m2/give-pleased.mp3"
+      ]
+    },
+    "puzzled": {
+      "files": [
+        "sound/m2/give-puzzled.mp3"
+      ]
+    },
+    "reeds": {
+      "files": [
+        "sound/m2/rustle-dark.mp3"
+      ]
+    },
+    "hop": {
+      "files": [
+        "sound/m2/hop-land.mp3"
+      ]
     }
   },
   "voiceLines": {
-    "line_9cnsuy7crj": {
-      "url": "sound/m1/narrator-opening.mp3",
-      "durationMs": 5040
+    "line_1h4l796j5x5": {
+      "url": "sound/m2/pip-no-no-no.mp3",
+      "durationMs": 1920
+    },
+    "line_5rtjsyk9jt": {
+      "url": "sound/m2/pip-could-you-reach-it-for-me.mp3",
+      "durationMs": 1600
+    },
+    "line_27580zaun15": {
+      "url": "sound/m2/pip-it-s-lit-it-was-cold-and-then-you-held-i.mp3",
+      "durationMs": 6240
+    },
+    "line_1n3f0up85qp": {
+      "url": "sound/m2/pip-oh-that-s-kind-of-you.mp3",
+      "durationMs": 2000
+    },
+    "line_1x23nm9kppq": {
+      "url": "sound/m2/narrator-nobody-came-so-the-little-fox-took-a-dee.mp3",
+      "durationMs": 6320
+    },
+    "line_1hng397vj32": {
+      "url": "sound/m2/narrator-and-when-he-held-it-close-brave-in-the-d.mp3",
+      "durationMs": 5200
+    },
+    "line_18cttmsoq1f": {
+      "url": "sound/m2/pip-i-did-it-i-really-did-it.mp3",
+      "durationMs": 2800
+    },
+    "line_evlvj9qvkz": {
+      "url": "sound/m2/pip-what-was-that-who-s-there.mp3",
+      "durationMs": 2080
+    },
+    "line_2et7te7klvy": {
+      "url": "sound/m2/narrator-only-a-moth-moths-are-never-lost-only-di.mp3",
+      "durationMs": 4400
+    },
+    "line_2dsj8cf2fh3": {
+      "url": "sound/m2/narrator-the-path-went-on-and-on-and-then-it-simp.mp3",
+      "durationMs": 4560
+    },
+    "line_pe6cbli60p": {
+      "url": "sound/m2/pip-oh-the-lighthouse-is-right-there-i-can-s.mp3",
+      "durationMs": 4160
+    },
+    "line_dx50sl4mf1": {
+      "url": "sound/m2/pip-maybe-if-i-take-a-run-at-it.mp3",
+      "durationMs": 2080
+    },
+    "line_2erkqqvtieb": {
+      "url": "sound/m2/pip-no-no-no-much-too-far.mp3",
+      "durationMs": 3040
+    },
+    "line_1svsnjo5bj9": {
+      "url": "sound/m2/pip-it-s-easy-for-you-moth-you-ve-got-wings.mp3",
+      "durationMs": 3200
+    },
+    "line_29pim0nib37": {
+      "url": "sound/m2/pip-a-kite-in-this-wind.mp3",
+      "durationMs": 2320
+    },
+    "line_r7e5viep9x": {
+      "url": "sound/m2/pip-i-m-flying-i-m-really-actually-flying.mp3",
+      "durationMs": 4080
+    },
+    "line_2gagbgcbtq3": {
+      "url": "sound/m2/pip-thread-if-only-someone-could-carry-the-e.mp3",
+      "durationMs": 4160
+    },
+    "line_o7vuvbbv2n": {
+      "url": "sound/m2/narrator-the-moth-only-wanted-to-be-near-the-ligh.mp3",
+      "durationMs": 5200
+    },
+    "line_yhre7meo1o": {
+      "url": "sound/m2/pip-a-ladder-if-i-lay-it-down-flat-it-s-a-br.mp3",
+      "durationMs": 3840
+    },
+    "line_13gbgjj0qa5": {
+      "url": "sound/m2/pip-don-t-look-down-don-t-look-down-don-t-lo.mp3",
+      "durationMs": 4240
+    },
+    "line_20caj1rapqp": {
+      "url": "sound/m2/pip-a-sock-it-s-far-too-short-to-reach-acros.mp3",
+      "durationMs": 3520
+    },
+    "line_13a1038whr1": {
+      "url": "sound/m2/pip-but-it-is-very-warm-thank-you.mp3",
+      "durationMs": 2800
+    },
+    "line_p6h41yr9hf": {
+      "url": "sound/m2/pip-something-longer-maybe-or-something-that.mp3",
+      "durationMs": 4240
+    },
+    "line_8doz1z1jsy": {
+      "url": "sound/m2/pip-a-key-maybe-the-gap-is-locked.mp3",
+      "durationMs": 4000
+    },
+    "line_1zb50v0kjfc": {
+      "url": "sound/m2/pip-moth-it-s-not-a-light-it-s-a-key.mp3",
+      "durationMs": 3200
+    },
+    "line_3tqj8gxlgg": {
+      "url": "sound/m2/pip-i-don-t-think-gaps-have-keyholes-is-ther.mp3",
+      "durationMs": 4480
+    },
+    "line_16eg1ir98sr": {
+      "url": "sound/m2/pip-hmm-i-don-t-think-this-will-get-me-acros.mp3",
+      "durationMs": 3360
+    },
+    "line_w0andppp0u": {
+      "url": "sound/m2/pip-is-there-something-longer-or-something-t.mp3",
+      "durationMs": 3920
+    },
+    "line_t3aairc8ak": {
+      "url": "sound/m2/wick-what-s-all-this-shouting-about-who-s-the.mp3",
+      "durationMs": 2720
+    },
+    "line_22634h6wzai": {
+      "url": "sound/m2/wick-hmph-hold-still-lad-and-catch.mp3",
+      "durationMs": 3440
+    },
+    "line_2axfkyrsj20": {
+      "url": "sound/m2/pip-hand-over-paw-hand-over-paw.mp3",
+      "durationMs": 2960
+    },
+    "line_cw69862r1z": {
+      "url": "sound/m2/wick-you-re-shaking-like-a-leaf-lad.mp3",
+      "durationMs": 2400
+    },
+    "line_1yq91kl5eim": {
+      "url": "sound/m2/pip-i-m-fine-i-m-fine-is-it-always-this-dark.mp3",
+      "durationMs": 4560
+    },
+    "line_23vlyysfzrf": {
+      "url": "sound/m2/wick-every-night-that-s-rather-the-point-of-u.mp3",
+      "durationMs": 3440
+    },
+    "line_14uc99rfrcf": {
+      "url": "sound/m2/wick-and-what-do-you-think-you-re-doing-cross.mp3",
+      "durationMs": 3920
+    },
+    "line_qvqo4fduav": {
+      "url": "sound/m2/pip-someone-helped-me-someone-very-big.mp3",
+      "durationMs": 3760
+    },
+    "line_l7ar9vmx1z": {
+      "url": "sound/m2/wick-someone-very-big-up-there.mp3",
+      "durationMs": 2720
+    },
+    "line_x9282rk9vk": {
+      "url": "sound/m2/wick-hmph-well-thank-you-kindly-whoever-you-a.mp3",
+      "durationMs": 4080
+    },
+    "line_lakzclleu5": {
+      "url": "sound/m2/narrator-and-the-little-light-became-the-big-one.mp3",
+      "durationMs": 5600
+    },
+    "line_2ah4d6ipksb": {
+      "url": "sound/m2/wick-not-bad-keeper.mp3",
+      "durationMs": 1680
+    },
+    "line_1sv8p1h62k": {
+      "url": "sound/m2/pip-keeper.mp3",
+      "durationMs": 800
+    },
+    "line_7b0fgvr6z7": {
+      "url": "sound/m2/wick-every-keeper-has-a-first-night-don-t-let.mp3",
+      "durationMs": 4080
+    },
+    "line_79yatosyuy": {
+      "url": "sound/m2/pip-look-it-reaches-all-the-way-out-to-you.mp3",
+      "durationMs": 2800
+    },
+    "line_2sk5765pd7": {
+      "url": "sound/m2/wick-same-time-tomorrow-keeper.mp3",
+      "durationMs": 1920
+    },
+    "line_9pwqasdqjz": {
+      "url": "sound/m2/pip-same-time-tomorrow.mp3",
+      "durationMs": 1440
+    },
+    "line_20r61s4ivwg": {
+      "url": "sound/m2/narrator-far-out-in-the-dark-something-lost-turne.mp3",
+      "durationMs": 5600
+    },
+    "line_1yh6deyxvuh": {
+      "url": "sound/m2/narrator-and-whatever-the-reader-gave-that-night.mp3",
+      "durationMs": 4880
+    },
+    "line_1tuyoy7p8sy": {
+      "url": "sound/m2/narrator-because-lost-things-as-you-ll-find-have.mp3",
+      "durationMs": 4080
+    },
+    "line_2arc7kzv181": {
+      "url": "sound/m2/narrator-every-night-the-lighthouse-at-the-edge-o.mp3",
+      "durationMs": 7840
+    },
+    "line_1fmmht9l09k": {
+      "url": "sound/m2/wick-forty-years-and-she-s-never-once-gone-da.mp3",
+      "durationMs": 4080
+    },
+    "line_o48vocduft": {
+      "url": "sound/m2/pip-can-i-trim-the-wick-tonight-wick-please.mp3",
+      "durationMs": 3280
+    },
+    "line_9ip1o7o2q5": {
+      "url": "sound/m2/wick-when-you-re-bigger-lad.mp3",
+      "durationMs": 1520
+    },
+    "line_130sbqr8kt2": {
+      "url": "sound/m2/narrator-and-that-was-when-the-wind-came.mp3",
+      "durationMs": 2240
+    },
+    "line_1hu94bx8cx8": {
+      "url": "sound/m2/pip-it-rolled-right-to-the-edge-and-it-s-suc.mp3",
+      "durationMs": 4800
+    },
+    "line_1vbbowsidwa": {
+      "url": "sound/m2/pip-thank-you-it-s-the-only-light-left-now.mp3",
+      "durationMs": 3120
+    },
+    "line_t7pjq5pdvz": {
+      "url": "sound/m2/pip-i-ll-keep-it-close-promise.mp3",
+      "durationMs": 2240
+    },
+    "line_fdkkqdms8": {
+      "url": "sound/m2/pip-but-my-lantern-s-still-over-there-right.mp3",
+      "durationMs": 3280
+    },
+    "line_2d2ae5j63vr": {
+      "url": "sound/m2/pip-wick-i-ll-light-the-lamp-from-mine.mp3",
+      "durationMs": 2320
+    },
+    "line_29lgh9n5unc": {
+      "url": "sound/m2/wick-hold-on-lad-the-wick-s-gone-blown-clean.mp3",
+      "durationMs": 4560
+    },
+    "line_27tpfqdaun9": {
+      "url": "sound/m2/pip-gone-gone-where.mp3",
+      "durationMs": 2080
+    },
+    "line_1up1vygn3uy": {
+      "url": "sound/m2/wick-down-on-the-shore-with-every-lost-thing.mp3",
+      "durationMs": 6320
+    },
+    "line_1atgg1h2iu9": {
+      "url": "sound/m2/pip-then-will-you-come-with-me.mp3",
+      "durationMs": 2480
+    },
+    "line_1cbhnu2l6ys": {
+      "url": "sound/m2/narrator-so-down-went-the-little-fox-a-hundred-an.mp3",
+      "durationMs": 5840
+    },
+    "line_2b1ueonyqeu": {
+      "url": "sound/m2/narrator-down-on-the-shore-the-lost-things-lay-wh.mp3",
+      "durationMs": 4480
+    },
+    "line_9yilnh4dzg": {
+      "url": "sound/m2/pip-a-kite-a-spool-somebody-s-whole-sewing-b.mp3",
+      "durationMs": 5600
+    },
+    "line_v2bix2h6he": {
+      "url": "sound/m2/pip-wick-where-are-you-wick.mp3",
+      "durationMs": 2240
+    },
+    "line_19vt2hqdnpz": {
+      "url": "sound/m2/pip-moth-have-you-seen-a-lamp-wick-all-white.mp3",
+      "durationMs": 4240
+    },
+    "line_61a2ausoiw": {
+      "url": "sound/m2/pip-there-in-the-reeds-but-they-re-too-thick.mp3",
+      "durationMs": 4720
+    },
+    "line_2az61tr381h": {
+      "url": "sound/m2/pip-could-you-reach-in-and-get-it-for-me.mp3",
+      "durationMs": 2000
+    },
+    "line_15o8cthne1": {
+      "url": "sound/m2/pip-that-s-it-that-s-the-lamp-s-wick.mp3",
+      "durationMs": 2560
+    },
+    "line_213bufhlcb": {
+      "url": "sound/m2/pip-safe-in-my-coat-thank-you.mp3",
+      "durationMs": 2720
+    },
+    "line_87nvvbdt6v": {
+      "url": "sound/m2/pip-moth-did-you-see-they-reached-right-into.mp3",
+      "durationMs": 3920
+    },
+    "line_3xno9mrzr1": {
+      "url": "sound/m2/narrator-the-moth-was-more-interested-in-the-lant.mp3",
+      "durationMs": 4160
+    },
+    "line_1knu4yp9uec": {
+      "url": "sound/m2/pip-oh-that-s-a-good-find-but-it-isn-t-the-w.mp3",
+      "durationMs": 3760
+    },
+    "line_1pg741rcaj1": {
+      "url": "sound/m2/pip-the-wick-s-still-in-the-reeds-all-white.mp3",
+      "durationMs": 3600
+    },
+    "line_2g7t38zzqhi": {
+      "url": "sound/m2/narrator-but-moths-it-turns-out-are-very-good-at.mp3",
+      "durationMs": 3680
+    },
+    "line_27dqn4rem03": {
+      "url": "sound/m2/pip-moth-you-found-it-you-re-the-best-moth-i.mp3",
+      "durationMs": 4880
+    },
+    "line_2c1o2hwvqko": {
+      "url": "sound/m2/pip-wick-says-the-lighthouse-calls-every-los.mp3",
+      "durationMs": 7040
+    },
+    "line_9j0k4dao8x": {
+      "url": "sound/m2/pip-i-m-still-scared-of-the-dark-but-less-wi.mp3",
+      "durationMs": 4240
+    },
+    "line_1hg66dok03e": {
+      "url": "sound/m2/pip-come-on-moth-home-is-this-way.mp3",
+      "durationMs": 2320
+    },
+    "line_2g9ntics7fa": {
+      "url": "sound/m2/pip-if-only-we-could-cross-is-there-anything.mp3",
+      "durationMs": 5440
+    },
+    "line_w2h5j0zj9p": {
+      "url": "sound/m2/pip-wick-it-s-me-i-found-the-wick-but-i-can.mp3",
+      "durationMs": 4640
+    },
+    "line_2e16ej1t292": {
+      "url": "sound/m2/pip-and-i-found-the-wick-it-s-right-here-in.mp3",
+      "durationMs": 2960
+    },
+    "line_2bwyt3nqp0l": {
+      "url": "sound/m2/wick-down-a-hundred-and-twelve-steps-in-the-d.mp3",
+      "durationMs": 5920
+    },
+    "line_njx9getc9c": {
+      "url": "sound/m2/wick-not-bad-lad-not-bad-at-all.mp3",
+      "durationMs": 2720
+    },
+    "line_1gkjo4lk9qv": {
+      "url": "sound/m2/wick-then-come-on-lad-that-lamp-won-t-light-i.mp3",
+      "durationMs": 3360
+    },
+    "line_1s0qt56a0kn": {
+      "url": "sound/m2/narrator-up-they-went-a-hundred-and-twelve-steps.mp3",
+      "durationMs": 6480
+    },
+    "line_2dbgkr178p": {
+      "url": "sound/m2/wick-in-it-goes-steady-now.mp3",
+      "durationMs": 2480
+    },
+    "line_gtsal8jja": {
+      "url": "sound/m2/wick-can-t-see-well-enough-to-light-it-lad-no.mp3",
+      "durationMs": 3920
+    },
+    "line_hxj90k4k4k": {
+      "url": "sound/m2/pip-that-s-all-right-i-ve-still-got-my-light.mp3",
+      "durationMs": 2400
     }
   },
-  "opening": {
-    "id": "opening",
-    "source": "authored",
-    "sceneId": null,
-    "estSeconds": 10,
-    "actions": [
-      {
-        "do": "cue",
-        "withPrev": false,
-        "cue": "open-book",
-        "target": null
+  "sets": [
+    {
+      "id": "the-lamp",
+      "name": "The lamp",
+      "description": "The gallery at the top of the lighthouse, around its great lamp, high above the sea.",
+      "file": "sets/the-lamp/set.json",
+      "marks": [
+        {
+          "id": "pip",
+          "label": "Pip's mark",
+          "position": [
+            0.07,
+            0,
+            -0.0175
+          ]
+        },
+        {
+          "id": "wick",
+          "label": "by the lamp",
+          "position": [
+            -0.03,
+            0,
+            -0.022
+          ]
+        },
+        {
+          "id": "lamp",
+          "label": "the great lamp",
+          "position": [
+            -0.093,
+            0.07,
+            -0.0925
+          ]
+        },
+        {
+          "id": "lantern-edge",
+          "label": "the edge of the gallery",
+          "position": [
+            0.04,
+            0,
+            0.094
+          ]
+        },
+        {
+          "id": "edge-step",
+          "label": "a step from the edge",
+          "position": [
+            0.045,
+            0,
+            0.072
+          ]
+        }
+      ]
+    },
+    {
+      "id": "shore-path",
+      "name": "The shore path",
+      "description": "A sandy path along the shore below the lighthouse, at dusk.",
+      "file": "sets/shore-path/set.json",
+      "marks": [
+        {
+          "id": "pip",
+          "label": "Pip's mark",
+          "position": [
+            0.046,
+            0,
+            -0.0175
+          ]
+        },
+        {
+          "id": "lantern-edge",
+          "label": "the near edge of the page",
+          "position": [
+            0.028,
+            0,
+            0.094
+          ]
+        },
+        {
+          "id": "edge-step",
+          "label": "a step from the edge",
+          "position": [
+            0.03,
+            0,
+            0.072
+          ]
+        },
+        {
+          "id": "path-mid",
+          "label": "along the path",
+          "position": [
+            -0.02,
+            0,
+            -0.0175
+          ]
+        },
+        {
+          "id": "path-left",
+          "label": "where the path leaves the page",
+          "position": [
+            -0.11,
+            0,
+            -0.0175
+          ]
+        },
+        {
+          "id": "moth-in",
+          "label": "out of the dark, right",
+          "position": [
+            0.13,
+            0.11,
+            -0.035
+          ]
+        },
+        {
+          "id": "moth-near",
+          "label": "close by, in the air",
+          "position": [
+            0.085,
+            0.12,
+            -0.012
+          ]
+        },
+        {
+          "id": "moth-follow",
+          "label": "in the air, following",
+          "position": [
+            -0.065,
+            0.125,
+            -0.012
+          ]
+        },
+        {
+          "id": "shore-in",
+          "label": "where the steps reach the shore",
+          "position": [
+            0.165,
+            0,
+            -0.0175
+          ]
+        },
+        {
+          "id": "reeds-wick",
+          "label": "in the reeds",
+          "position": [
+            0.15,
+            0,
+            0.074
+          ]
+        },
+        {
+          "id": "kite-sand",
+          "label": "on the sand, left",
+          "position": [
+            -0.035,
+            0,
+            0.08
+          ]
+        },
+        {
+          "id": "spool-sand",
+          "label": "on the sand, far left",
+          "position": [
+            -0.13,
+            0,
+            0.085
+          ]
+        },
+        {
+          "id": "moth-reeds",
+          "label": "over the reeds",
+          "position": [
+            0.14,
+            0.07,
+            0.03
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the-gap",
+      "name": "The gap",
+      "description": "The sandy path ends at a narrow chasm in the dunes, with the lighthouse waiting on the far side.",
+      "file": "sets/the-gap/set.json",
+      "marks": [
+        {
+          "id": "near-edge",
+          "label": "the near edge of the gap",
+          "position": [
+            0.0759,
+            0,
+            -0.0175
+          ]
+        },
+        {
+          "id": "far-side",
+          "label": "the far side of the gap",
+          "position": [
+            -0.0751,
+            0,
+            -0.0175
+          ]
+        },
+        {
+          "id": "gap-middle",
+          "label": "over the middle of the gap",
+          "position": [
+            0,
+            0,
+            -0.0175
+          ]
+        },
+        {
+          "id": "wick-arrives",
+          "label": "the path on the far side",
+          "position": [
+            -0.13,
+            0,
+            -0.0175
+          ]
+        },
+        {
+          "id": "lighthouse-way",
+          "label": "the way to the lighthouse",
+          "position": [
+            -0.19,
+            0,
+            -0.0175
+          ]
+        },
+        {
+          "id": "moth-hover",
+          "label": "in the air above the gap",
+          "position": [
+            -0.025,
+            0.14,
+            -0.035
+          ]
+        },
+        {
+          "id": "gap-start",
+          "label": "where the path comes in",
+          "position": [
+            0.155,
+            0,
+            -0.0175
+          ]
+        },
+        {
+          "id": "moth-gap",
+          "label": "in the air over the path",
+          "position": [
+            0.14,
+            0.12,
+            -0.03
+          ]
+        },
+        {
+          "id": "lamp-pip",
+          "label": "below the lighthouse, near",
+          "position": [
+            -0.065,
+            0,
+            -0.0175
+          ]
+        },
+        {
+          "id": "lamp-wick",
+          "label": "below the lighthouse, far",
+          "position": [
+            -0.16,
+            0,
+            -0.022
+          ]
+        },
+        {
+          "id": "moth-lamp",
+          "label": "circling the lamp",
+          "position": [
+            -0.035,
+            0.205,
+            -0.075
+          ]
+        }
+      ]
+    }
+  ],
+  "objectFiles": [
+    "objects/ladder/object.json",
+    "objects/kite/object.json",
+    "objects/odd-sock/object.json",
+    "objects/spool/object.json",
+    "objects/brass-key/object.json",
+    "objects/rope-coil/object.json",
+    "objects/lamp-wick/object.json"
+  ],
+  "extraObjects": [
+    {
+      "id": "lantern",
+      "name": "brass lantern",
+      "description": "A small brass storm lantern, its glass smudged with soot.",
+      "tags": [
+        "glows",
+        "carries"
+      ],
+      "art": {
+        "kind": "asset",
+        "path": "cast/pip/parts/lantern-out.png"
       },
-      {
-        "do": "narrate",
-        "withPrev": false,
-        "text": "Down where lost things wash ashore, a small fox kept a small light.",
-        "mood": "warm"
+      "size": {
+        "heightM": 0.0537
       },
-      {
-        "do": "cue",
-        "withPrev": false,
-        "cue": "gust",
-        "target": "cast:pip"
-      },
-      {
-        "do": "cue",
-        "withPrev": false,
-        "cue": "lantern-out",
-        "target": "cast:pip"
-      },
-      {
-        "do": "light",
-        "withPrev": true,
-        "mood": "night",
-        "seconds": 1.2
-      },
-      {
-        "do": "emote",
-        "withPrev": true,
-        "who": "pip",
-        "acting": "scared",
-        "target": null
-      },
-      {
-        "do": "emote",
-        "withPrev": false,
-        "who": "pip",
-        "acting": "look",
-        "target": "reader"
-      }
-    ],
-    "next": null,
-    "replaces": null
-  }
+      "pivot": [
+        50,
+        4
+      ],
+      "provenance": "library"
+    }
+  ],
+  "drawer": "book/drawer/drawer.json",
+  "satchel": "satchel/satchel.json",
+  "episode": "show/episode-1.json"
 }

@@ -12,14 +12,27 @@ const REACH_M = 0.6;
 const SCALES = [1, 0.95, 0.9, 0.85, 0.8, 0.75, 0.7];
 const MIN_SCALE = 0.7;
 
-/** The open book's four corners on the table, turned to face the reader, at a scale. */
-export function footprint(spot: Vec3, head: Vec3, scale: number): Vec2[] {
+/** A rectangle in the book's own frame, metres at desk size. */
+export interface Box {
+  minX: number;
+  maxX: number;
+  minZ: number;
+  maxZ: number;
+}
+export const OPEN_BOOK: Box = { minX: -OPEN_W / 2, maxX: OPEN_W / 2, minZ: -OPEN_D / 2, maxZ: OPEN_D / 2 };
+/** The open book with the drawer pulled out toward you (its 0.12 m of travel). */
+export const WITH_DRAWER: Box = { ...OPEN_BOOK, maxZ: OPEN_D / 2 + 0.122 };
+/** Everything on the table: book, drawer out, and the satchel on one side (`side` 1 is right). */
+export const arrangement = (side: 1 | -1): Box =>
+  side === 1 ? { ...WITH_DRAWER, maxX: 0.29 + 0.058 } : { ...WITH_DRAWER, minX: -(0.29 + 0.058) };
+
+/** A box's four corners on the table, turned to face the reader, at a scale. The open book by default. */
+export function footprint(spot: Vec3, head: Vec3, scale: number, box: Box = OPEN_BOOK): Vec2[] {
   const yaw = Math.atan2(head.x - spot.x, head.z - spot.z);
   const cos = Math.cos(yaw);
   const sin = Math.sin(yaw);
-  const hw = (OPEN_W * scale) / 2;
-  const hd = (OPEN_D * scale) / 2;
-  return [[-hw, -hd], [hw, -hd], [hw, hd], [-hw, hd]].map(([x, z]) => ({ x: spot.x + x! * cos + z! * sin, z: spot.z - x! * sin + z! * cos }));
+  const s = scale;
+  return [[box.minX, box.minZ], [box.maxX, box.minZ], [box.maxX, box.maxZ], [box.minX, box.maxZ]].map(([x, z]) => ({ x: spot.x + x! * s * cos + z! * s * sin, z: spot.z - x! * s * sin + z! * s * cos }));
 }
 
 function inside(point: Vec2, polygon: Vec2[]): boolean {
@@ -88,6 +101,8 @@ export interface Settled {
   fits: boolean;
   /** The scanned table the book now rests on, or null if none was near. */
   table: Table | null;
+  /** Which side of the book the satchel sits on: right unless only the left has room. */
+  satchelSide: 1 | -1;
 }
 
 /**
@@ -108,31 +123,40 @@ export function settleOnTable({ head, spot, tables, userScale }: { head: Vec3; s
   }
   if (!table) {
     const chosen = chooseScale({ head, spot, plane: null });
-    return { spot, scale: userScale ?? chosen.scale, fits: chosen.fits, table: null };
+    return { spot, scale: userScale ?? chosen.scale, fits: chosen.fits, table: null, satchelSide: 1 };
   }
   const { outline, y } = table;
   const centre = outline.reduce((c, p) => ({ x: c.x + p.x / outline.length, z: c.z + p.z / outline.length }), { x: 0, z: 0 });
   const span = Math.hypot(centre.x - spot.x, centre.z - spot.z);
   const dir = span > 0 ? { x: (centre.x - spot.x) / span, z: (centre.z - spot.z) / span } : { x: 0, z: 0 };
   const along = (d: number): Vec3 => ({ x: spot.x + dir.x * d, y, z: spot.z + dir.z * d });
-  const onTop = (at: Vec3, scale: number): boolean => footprint(at, head, scale).every((c) => inside(c, outline) || distanceToOutline(c, outline) < 1e-6);
-  const inReach = (at: Vec3, scale: number): boolean => footprint(at, head, scale).every((c) => Math.hypot(c.x - head.x, c.z - head.z) <= REACH_M + 1e-6);
+  const on = (at: Vec3, scale: number, box: Box): boolean => footprint(at, head, scale, box).every((c) => inside(c, outline) || distanceToOutline(c, outline) < 1e-6);
+  // The whole arrangement goes on the top: the drawer pulled out and the satchel beside, right if it fits.
+  const onTop = (at: Vec3, scale: number): 1 | -1 | null => (on(at, scale, arrangement(1)) ? 1 : on(at, scale, arrangement(-1)) ? -1 : null);
+  const inReach = (at: Vec3, scale: number): boolean => footprint(at, head, scale, WITH_DRAWER).every((c) => Math.hypot(c.x - head.x, c.z - head.z) <= REACH_M + 1e-6);
   const scales = userScale ? [userScale] : SCALES;
   for (const scale of scales) {
     for (let d = 0; d <= span + 1e-9; d += STEP_M) {
       const at = along(d);
-      if (onTop(at, scale) && inReach(at, scale)) return { spot: at, scale, fits: true, table };
+      const side = onTop(at, scale);
+      if (side && inReach(at, scale)) return { spot: at, scale, fits: true, table, satchelSide: side };
     }
   }
-  // Nothing both fits and stays in reach: the largest book that fits on the top, as near you as it
-  // goes. You lean in, or stretch it smaller, rather than squint at a small one.
+  // Nothing both fits and stays in reach: the largest arrangement that fits on the top, as near you as
+  // it goes. You lean in, or stretch it smaller, rather than squint at a small one.
   for (const scale of scales) {
     for (let d = 0; d <= span + 1e-9; d += STEP_M) {
       const at = along(d);
-      if (onTop(at, scale)) return { spot: at, scale, fits: false, table };
+      const side = onTop(at, scale);
+      if (side) return { spot: at, scale, fits: false, table, satchelSide: side };
     }
   }
-  return { spot: along(span), scale: userScale ?? MIN_SCALE, fits: false, table };
+  // Even the smallest arrangement won't fit: at least the book itself goes on the top.
+  for (let d = 0; d <= span + 1e-9; d += STEP_M) {
+    const at = along(d);
+    if (on(at, MIN_SCALE, WITH_DRAWER) || on(at, MIN_SCALE, OPEN_BOOK)) return { spot: at, scale: userScale ?? MIN_SCALE, fits: false, table, satchelSide: 1 };
+  }
+  return { spot: along(span), scale: userScale ?? MIN_SCALE, fits: false, table, satchelSide: 1 };
 }
 
 /** A printed line's size in the book's own units, so it stays at least 1° tall at its real distance. */

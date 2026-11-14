@@ -1,4 +1,4 @@
-import { Group, Mesh, MeshBasicMaterial, PlaneGeometry, Vector3, type Object3D, type Texture, type World } from '@iwsdk/core';
+import { Group, Mesh, MeshBasicMaterial, PlaneGeometry, Quaternion, Vector3, type Object3D, type Texture, type World } from '@iwsdk/core';
 import { OVER_STACK, RIBBON_X_SHARE } from '../book/book-view.ts';
 import type { BookView } from '../book/book-view.ts';
 import type { Unfold } from '../show/cues.ts';
@@ -15,6 +15,19 @@ const GLOW_M = 0.07;
 /** Fingertips stop on the real table: a pinch up to this far above a target still takes it. */
 const REACH_UP_M = 0.05;
 
+/** Anything else the hands can take: objects, the drawer pull, the page's edge, characters. */
+export interface ExtraTarget {
+  proxy: Proxy;
+  onGrab?(hand: HandSide, point: Vector3): void;
+  onDrag?(hand: HandSide, point: Vector3): void;
+  onRelease?(hand: HandSide, point: Vector3): void;
+  onCancel?(hand: HandSide): void;
+  /** A soft gold edge shows where a hand is near. False for things that show it themselves. */
+  halo?: boolean;
+  /** A book control this one takes the place of while it's offered (the page's edge over the fore-edge). */
+  replaces?: string;
+}
+
 export interface BookControls {
   /** How open your hands have the book, as hinge angles for `combineUnfold`. */
   fold(): Unfold;
@@ -24,7 +37,17 @@ export interface BookControls {
   shut(): void;
   /** Swings it open; the story carries on once it's fully open. */
   reopen(): void;
+  /** Swings it shut, as if your hand closed it. */
+  close(): void;
+  /** Lays the ribbon back down and lets the show go, as when a chapter starts again. */
+  lowerRibbon(): void;
+  /** How open your hands have it, 0 to 1. */
+  readonly amount: number;
   frame(frame: XRFrame, deltaMs: number, enabled: boolean, head: Vector3): void;
+  /** Each tracked hand's pinch point, in world space. */
+  pinchPoint(side: HandSide): Vector3 | null;
+  /** What each hand holds, by target id. */
+  holding(side: HandSide): string | null;
 }
 
 export interface ControlsDeps {
@@ -38,6 +61,10 @@ export interface ControlsDeps {
   onMoved(): void;
   /** The reader stretched the book to a new size. */
   onResized(scale: number): void;
+  /** Everything else the hands can take, asked for each frame. */
+  extras?: () => ExtraTarget[];
+  /** VR Glasses: look at a target and pinch. Called with the gaze ray in world space. */
+  onGazeSelect?: (origin: Vector3, direction: Vector3) => void;
 }
 
 function readHand(frame: XRFrame, source: XRInputSource, space: XRReferenceSpace): HandFrame | null {
@@ -54,7 +81,14 @@ function readHand(frame: XRFrame, source: XRInputSource, space: XRReferenceSpace
 }
 
 /** The book is the only UI: shut the cover to pause, open it to resume, pinch the ribbon, slide it by the spine. */
-export function createBookControls({ world, stageRoot, book, sound, pause, glow, cards, onMoved, onResized }: ControlsDeps): BookControls {
+export function createBookControls({ world, stageRoot, book, sound, pause, glow, cards, onMoved, onResized, extras, onGazeSelect }: ControlsDeps): BookControls {
+  /** The gaze ray, if this device has one (VR Glasses, or the glasses emulator). */
+  const gaze = { origin: new Vector3(), direction: new Vector3(), valid: false };
+  let listening: XRSession | null = null;
+  let extraTargets: ExtraTarget[] = [];
+  let enabledNow = false;
+  const grabbedThisPinch: Record<HandSide, boolean> = { left: false, right: false };
+  const pinch: Record<HandSide, Vector3 | null> = { left: null, right: null };
   const gestures = createGestures();
   let amount = 1;
   let target: number | null = null;
@@ -128,7 +162,29 @@ export function createBookControls({ world, stageRoot, book, sound, pause, glow,
     sound.play('rustle', stageRoot.position, undefined, 'ui');
   }
 
+  /** What each hand took, kept until it lets go: a held object is no longer a target, but its release still matters. */
+  const heldExtra: Record<HandSide, ExtraTarget | null> = { left: null, right: null };
+
+  function handleExtra(event: GestureEvent): boolean {
+    const extra = (heldExtra[event.hand]?.proxy.id === event.id ? heldExtra[event.hand] : null) ?? extraTargets.find((t) => t.proxy.id === event.id);
+    if (!extra) return false;
+    if (event.kind === 'grab') heldExtra[event.hand] = extra;
+    if (event.kind === 'release' || event.kind === 'cancel') heldExtra[event.hand] = null;
+    const p = pinch[event.hand] ?? new Vector3();
+    if (event.kind === 'grab') extra.onGrab?.(event.hand, p);
+    else if (event.kind === 'drag') extra.onDrag?.(event.hand, p);
+    else if (event.kind === 'release') extra.onRelease?.(event.hand, p);
+    else if (event.kind === 'cancel') {
+      extra.onCancel?.(event.hand);
+      lost[event.hand] = true;
+      pause.set('hands_lost', true);
+    }
+    return true;
+  }
+
   function handle(event: GestureEvent, head: Vector3): void {
+    if (event.kind === 'grab') grabbedThisPinch[event.hand] = true;
+    if (handleExtra(event)) return;
     if (resize && (event.kind === 'release' || event.kind === 'cancel') && (event.id === 'cover' || event.id === 'fore')) {
       resize = null;
       sound.play('settle', stageRoot.position, undefined, 'ui');
@@ -195,6 +251,8 @@ export function createBookControls({ world, stageRoot, book, sound, pause, glow,
   return {
     fold: () => controlFold(amount, cards),
     ribbonLift: () => ribbonLift,
+    pinchPoint: (side) => pinch[side],
+    holding: (side) => gestures.held(side),
     shut() {
       amount = 0;
       stable = 0;
@@ -207,7 +265,19 @@ export function createBookControls({ world, stageRoot, book, sound, pause, glow,
       target = 1;
       pause.set('book_closed', true);
     },
+    close() {
+      stable = 0;
+      target = 0;
+    },
+    lowerRibbon() {
+      ribbon = false;
+      pause.set('ribbon', false);
+    },
+    get amount() {
+      return amount;
+    },
     frame(frame, deltaMs, enabled, head) {
+      enabledNow = enabled;
       if (target !== null) {
         const step = deltaMs * SWING_PER_MS;
         setAmount(amount + Math.sign(target - amount) * Math.min(step, Math.abs(target - amount)));
@@ -217,6 +287,32 @@ export function createBookControls({ world, stageRoot, book, sound, pause, glow,
       for (const halo of halos) halo.visible = false;
       const space = world.xrReferenceSpace;
       if (!space) return;
+      // Gaze and pinch: the session's select on the gaze source picks what you're looking at.
+      gaze.valid = false;
+      for (const source of frame.session.inputSources) {
+        if (source.targetRayMode !== 'gaze') continue;
+        const pose = frame.getPose(source.targetRaySpace, space);
+        if (!pose) continue;
+        const { position: p, orientation: q } = pose.transform;
+        gaze.origin.set(p.x, p.y, p.z);
+        gaze.direction.set(0, 0, -1).applyQuaternion(new Quaternion(q.x, q.y, q.z, q.w));
+        gaze.valid = true;
+      }
+      if (listening !== frame.session && onGazeSelect) {
+        listening = frame.session;
+        // The pinch arrives on the gaze source, or (in the glasses emulator) on the pinching hand. A hand's
+        // pinch counts only if it didn't take hold of something within reach, so a near grab never also fires at what you look at.
+        frame.session.addEventListener('selectstart', (event) => {
+          const side = event.inputSource.handedness;
+          if (side === 'left' || side === 'right') grabbedThisPinch[side] = false;
+        });
+        frame.session.addEventListener('select', (event) => {
+          if (!gaze.valid || !enabledNow) return;
+          const side = event.inputSource.handedness;
+          const fromHand = side === 'left' || side === 'right';
+          if (event.inputSource.targetRayMode === 'gaze' || (fromHand && !grabbedThisPinch[side])) onGazeSelect(gaze.origin.clone(), gaze.direction.clone());
+        });
+      }
       const hands: Record<HandSide, HandFrame | null> = { left: null, right: null };
       for (const source of frame.session.inputSources) {
         if (source.handedness === 'left' || source.handedness === 'right') hands[source.handedness] = readHand(frame, source, space);
@@ -227,12 +323,19 @@ export function createBookControls({ world, stageRoot, book, sound, pause, glow,
           if (!lost.left && !lost.right) pause.set('hands_lost', false);
         }
       }
+      for (const side of ['left', 'right'] as const) {
+        const h = hands[side];
+        pinch[side] = h?.tracked ? (pinch[side] ?? new Vector3()).set(h.pinchPoint.x, h.pinchPoint.y, h.pinchPoint.z) : null;
+      }
       if (!enabled) return;
       lastHands = hands;
-      const targets = proxies();
+      extraTargets = extras?.() ?? [];
+      const replaced = new Set(extraTargets.flatMap((t) => (t.replaces ? [t.replaces] : [])));
+      const targets = [...proxies().filter((p) => !replaced.has(p.id)), ...extraTargets.map((t) => t.proxy)];
       const events = gestures.step(hands, targets);
       for (const event of events) {
         if (event.kind === 'near') {
+          if (extraTargets.find((t) => t.proxy.id === event.id)?.halo === false) continue;
           const halo = halos[event.hand === 'left' ? 0 : 1]!;
           const hand = hands[event.hand]!;
           const p = closestOn(targets.find((t) => t.id === event.id)!, hand.pinchPoint);

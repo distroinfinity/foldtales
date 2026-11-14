@@ -104,9 +104,9 @@ describe('the checkpoint', () => {
     const data = new Map<string, string>();
     return { getItem: (k: string) => data.get(k) ?? null, setItem: (k: string, v: string) => void data.set(k, v), removeItem: (k: string) => void data.delete(k), data };
   };
-  const checkpoint: Checkpoint = { v: CHECKPOINT_VERSION, savedAt: '2026-11-12T10:00:00.000Z', seriesId: 'flagship-1', beatId: 'opening', showMs: 7250, scale: 0.9, confirmed: true };
+  const checkpoint: Checkpoint = { v: CHECKPOINT_VERSION, savedAt: '2026-11-12T10:00:00.000Z', seriesId: 'flagship-1', episodeId: 'chapter-1', showMs: 7250, scale: 0.9, confirmed: true, runtime: { v: 2 }, ended: false };
 
-  const expected = { seriesId: 'flagship-1', beatId: 'opening', untilMs: 10_000 };
+  const expected = { seriesId: 'flagship-1', episodeId: 'chapter-1' };
   const soon = Date.parse('2026-11-12T10:05:00.000Z');
 
   test('round-trips', () => {
@@ -119,19 +119,20 @@ describe('the checkpoint', () => {
     const s = store();
     writeCheckpoint(s, checkpoint);
     expect(readCheckpoint(s, soon, { ...expected, seriesId: 'other' })).toBeNull();
-    expect(readCheckpoint(s, soon, { ...expected, beatId: 'other' })).toBeNull();
+    expect(readCheckpoint(s, soon, { ...expected, episodeId: 'other' })).toBeNull();
   });
 
-  test('once the opening has played out, a reload starts it again, so anyone you show it to sees it', () => {
+  test('a finished chapter is never continued: it is read again from the start', () => {
     const s = store();
-    writeCheckpoint(s, { ...checkpoint, showMs: 12_000 });
+    writeCheckpoint(s, { ...checkpoint, showMs: 400_000, ended: true });
     expect(readCheckpoint(s, soon, expected)).toBeNull();
   });
 
-  test('only a recent crash resumes: after half an hour the story starts again', () => {
+  test('a place is kept for a month: "Continue" works the next evening, not forever', () => {
     const s = store();
     writeCheckpoint(s, checkpoint);
-    expect(readCheckpoint(s, Date.parse('2026-11-12T10:45:00.000Z'), expected)).toBeNull();
+    expect(readCheckpoint(s, Date.parse('2026-11-13T21:00:00.000Z'), expected)).toEqual(checkpoint);
+    expect(readCheckpoint(s, Date.parse('2026-12-20T10:00:00.000Z'), expected)).toBeNull();
   });
 
   test('a checkpoint from another version, or garbage, starts fresh', () => {

@@ -1,22 +1,27 @@
 import { z } from 'zod';
 
-export const CHECKPOINT_VERSION = 1;
+export const CHECKPOINT_VERSION = 2;
 const KEY = 'tt.checkpoint';
-/** A crash window: older than this and the story starts again rather than resuming mid-scene. */
-const MAX_AGE_MS = 30 * 60 * 1000;
+/** How long a place in the story is kept for "Continue". After that the story starts again. */
+const MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
 
 /**
- * Enough to rebuild the stage exactly: the beat cursor and the show clock. Everything else (book,
- * lights, the lantern, who is doing what) is a pure function of those, so nothing is replayed.
+ * Enough to rebuild the stage exactly: the scheduler's bound history and the show clock, where
+ * every object is, and the drawer and satchel. Everything else (lights, the lantern, who is doing
+ * what) is a pure function of those, so nothing is replayed.
  */
 const Checkpoint = z.strictObject({
   v: z.literal(CHECKPOINT_VERSION),
   savedAt: z.iso.datetime(),
   seriesId: z.string().min(1),
-  beatId: z.string().min(1),
+  episodeId: z.string().min(1),
   showMs: z.number().nonnegative(),
   scale: z.number().positive(),
   confirmed: z.boolean(),
+  /** The runtime's own snapshot. Checked by the runtime, which owns its shape. */
+  runtime: z.record(z.string(), z.unknown()),
+  /** The chapter's end page was showing. */
+  ended: z.boolean(),
 });
 export type Checkpoint = z.infer<typeof Checkpoint>;
 
@@ -32,11 +37,10 @@ export function writeCheckpoint(store: Store, checkpoint: Checkpoint): void {
 }
 
 /**
- * A checkpoint worth resuming: the same story and beat as this build, recent, and still inside the
- * beat (`untilMs`). Once the opening has played out, a reload starts it again, so whoever you show it
- * to sees it; a crash mid-opening comes back where it was.
+ * A checkpoint worth resuming: the same story and episode as this build, recent, and not at its
+ * end. A finished chapter starts again from the landing page's "Read it again" instead.
  */
-export function readCheckpoint(store: Store, nowMs: number, expected: { seriesId: string; beatId: string; untilMs: number }): Checkpoint | null {
+export function readCheckpoint(store: Store, nowMs: number, expected: { seriesId: string; episodeId: string }): Checkpoint | null {
   try {
     const raw = store.getItem(KEY);
     if (!raw) return null;
@@ -44,7 +48,7 @@ export function readCheckpoint(store: Store, nowMs: number, expected: { seriesId
     if (!parsed.success) return null;
     const cp = parsed.data;
     if (nowMs - Date.parse(cp.savedAt) > MAX_AGE_MS) return null;
-    if (cp.seriesId !== expected.seriesId || cp.beatId !== expected.beatId || cp.showMs >= expected.untilMs) return null;
+    if (cp.seriesId !== expected.seriesId || cp.episodeId !== expected.episodeId || cp.ended) return null;
     return cp;
   } catch {
     return null;

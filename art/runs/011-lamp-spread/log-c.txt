@@ -1,0 +1,11 @@
+Run 011-lamp-spread: Can run 004 and 007's recipe paint the lighthouse top for chapter 1's new opening spread, a night sky that makes the shore feel like a new place, and the lamp's wick?
+balance 111375, cap 10
+skip lamp-key, already generated
+skip lamp-sky, already generated
+skip lamp-room, already generated
+skip far-railing, already generated
+skip near-ledge, already generated
+skip lamp-ground, already generated
+done night-sky: 112s, 9 credits
+skip wick-sheet, already generated
+finished, total spent 9

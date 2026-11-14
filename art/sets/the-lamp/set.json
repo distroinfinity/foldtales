@@ -1,0 +1,196 @@
+{
+  "id": "the-lamp",
+  "name": "The lamp",
+  "description": "The gallery at the top of the lighthouse, around its great lamp, high above the sea.",
+  "note": "Run 011. The opening spread of chapter 1: the lighthouse up close. Same stage space and conventions as shore-path/set.json.",
+  "pxPerM": 6476.2,
+  "ground": {
+    "file": "ground.png",
+    "sizeM": [
+      0.42,
+      0.315
+    ],
+    "faces": "left half on the cover's inside, right half on the page block",
+    "captionBandM": 0.045
+  },
+  "layers": [
+    {
+      "id": "lamp-sky",
+      "file": "lamp-sky.png",
+      "sizePx": [
+        2720,
+        997
+      ],
+      "sizeM": [
+        0.42,
+        0.1539
+      ],
+      "hinge": [
+        [
+          -0.21,
+          0.0,
+          -0.1375
+        ],
+        [
+          0.21,
+          0.0,
+          -0.1375
+        ]
+      ],
+      "splitColumnPx": 1360,
+      "standingDeg": 0,
+      "flatDeg": 90
+    },
+    {
+      "id": "lamp-room",
+      "file": "lamp-room.png",
+      "sizePx": [
+        2720,
+        1248
+      ],
+      "sizeM": [
+        0.42,
+        0.1927
+      ],
+      "hinge": [
+        [
+          -0.21,
+          0.0,
+          -0.0925
+        ],
+        [
+          0.21,
+          0.0,
+          -0.0925
+        ]
+      ],
+      "splitColumnPx": 1360,
+      "standingDeg": 0,
+      "flatDeg": 90
+    },
+    {
+      "id": "far-railing",
+      "file": "far-railing.png",
+      "sizePx": [
+        2720,
+        326
+      ],
+      "sizeM": [
+        0.42,
+        0.0503
+      ],
+      "hinge": [
+        [
+          -0.21,
+          0.0,
+          -0.0575
+        ],
+        [
+          0.21,
+          0.0,
+          -0.0575
+        ]
+      ],
+      "splitColumnPx": 1360,
+      "standingDeg": 0,
+      "flatDeg": 90
+    },
+    {
+      "id": "near-ledge",
+      "file": "near-ledge.png",
+      "sizePx": [
+        2720,
+        240
+      ],
+      "sizeM": [
+        0.42,
+        0.0371
+      ],
+      "hinge": [
+        [
+          -0.21,
+          0.0,
+          0.0425
+        ],
+        [
+          0.21,
+          0.0,
+          0.0425
+        ]
+      ],
+      "splitColumnPx": 1360,
+      "standingDeg": 0,
+      "flatDeg": 90
+    }
+  ],
+  "stack": {
+    "topToBottom": [
+      "lamp-sky",
+      "lamp-room",
+      "far-railing",
+      "pip",
+      "near-ledge"
+    ],
+    "riseOrder": "top to bottom",
+    "closeOrder": "bottom to top, then the cover",
+    "flatOffsetM": 0.001,
+    "backColor": "#F6EFE2"
+  },
+  "anchors": {
+    "lighthouseLamp": {
+      "layer": "lamp-room",
+      "px": [
+        756,
+        792
+      ],
+      "position": [
+        -0.0933,
+        0.0704,
+        -0.0925
+      ]
+    }
+  },
+  "marks": [
+    {
+      "id": "pip",
+      "label": "Pip's mark",
+      "position": [
+        0.07,
+        0,
+        -0.0175
+      ]
+    }
+  ],
+  "effects": {
+    "lamp-lit": {
+      "file": "lamp-lit.png",
+      "layer": "lamp-room",
+      "px": [
+        316,
+        0
+      ],
+      "sizeM": [
+        0.136,
+        0.1927
+      ],
+      "starts": "swapped over the lamp room when the lamp is lit. Same outline, so nothing moves"
+    }
+  },
+  "moods": {
+    "dusk": [
+      0.86,
+      0.9,
+      1.0
+    ],
+    "night": [
+      0.45,
+      0.55,
+      0.7
+    ],
+    "gold": [
+      1.0,
+      0.88,
+      0.66
+    ]
+  }
+}

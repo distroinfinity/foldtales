@@ -14,14 +14,14 @@
   "layers": [
     {
       "id": "layer-1-sky",
-      "file": "layer-1-sky.png",
+      "file": "layer-1-sky-night.png",
       "sizePx": [
         2720,
-        1173
+        1153
       ],
       "sizeM": [
         0.42,
-        0.1811
+        0.178
       ],
       "hinge": [
         [

@@ -98,7 +98,7 @@ const rigOf = (who: string) => Rig.parse(JSON.parse(readFileSync(join(artRoot, `
 const entryOf = (i: number) => manifest.cast[i];
 
 describe('buildPuppet', () => {
-  const fox = buildPuppet(entry, rig, fakeTextures(castDir, rig, ['parts/lantern-out.png']), fx);
+  const fox = buildPuppet(entry, rig, fakeTextures(castDir, rig, ['parts/lantern-out.png', 'parts/legs-alt.png']), fx);
   const named = (root: Object3D, name: string) => root.getObjectByName(name)!;
   const pose = (face: string) => actingPose(entry.member, { acting: null, localMs: 0, target: null }, 0, { gust: 0, seed: 0, heads: [] }) && { ...actingPose(entry.member, { acting: null, localMs: 0, target: null }, 0, { gust: 0, seed: 0, heads: ['forward'] }), face };
   const state = { stand: 1, glow: 1, smoke: 0 };

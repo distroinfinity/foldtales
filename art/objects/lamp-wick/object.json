@@ -1,0 +1,22 @@
+{
+  "id": "lamp-wick",
+  "name": "lamp wick",
+  "description": "A short length of thick white braided cotton lamp wick, loosely curled, singed black at one end.",
+  "tags": [
+    "bends",
+    "soft",
+    "lightweight"
+  ],
+  "art": {
+    "kind": "asset",
+    "path": "objects/lamp-wick/lamp-wick.png"
+  },
+  "size": {
+    "heightM": 0.066
+  },
+  "pivot": [
+    50,
+    50
+  ],
+  "provenance": "library"
+}
