@@ -6,7 +6,15 @@ import { askForMicrophone } from './microphone.ts';
 
 export type LandingState =
   | { kind: 'loading'; share: number }
-  | { kind: 'ready'; open: () => void; openRoom: (() => void) | null; label?: string; restart?: { label: string; run: () => void } | null }
+  | {
+      kind: 'ready';
+      open: () => void;
+      openRoom: (() => void) | null;
+      label?: string;
+      restart?: { label: string; run: () => void } | null;
+      /** The second way in: the AI Storyteller, a quieter door under the book's. */
+      storyteller?: { label: string; run: () => void } | null;
+    }
   | { kind: 'opening' }
   | { kind: 'inside' }
   | { kind: 'failed' };
@@ -46,6 +54,16 @@ export function setLandingState(state: LandingState): void {
         root.dataset.state = 'opening';
         state.open();
       };
+      const storyteller = root.querySelector<HTMLButtonElement>('#storyteller');
+      if (storyteller) {
+        storyteller.hidden = !state.storyteller;
+        storyteller.textContent = state.storyteller?.label ?? '';
+        storyteller.onclick = () => {
+          // XR has to start inside this tap too.
+          root.dataset.state = 'opening';
+          state.storyteller?.run();
+        };
+      }
       const room = root.querySelector<HTMLButtonElement>('#room')!;
       room.hidden = !state.openRoom;
       room.onclick = () => {

@@ -114,7 +114,12 @@ export function createObjectHands(deps: HandsDeps) {
     for (const [id, grip] of deps.grips()) {
       if (!deps.runtime.canReceive(id)) continue;
       const g = v(grip);
-      const d = Math.min(g.distanceTo(held), g.distanceTo(body));
+      // Measured to the whole length of what you hold, from your pinch through its centre to its far end,
+      // so a long thing (the ladder, held by its top) is handed over when any of it reaches the paws.
+      const far = body.clone().multiplyScalar(2).sub(held);
+      const along = far.clone().sub(held);
+      const t = along.lengthSq() > 1e-8 ? Math.max(0, Math.min(1, g.clone().sub(held).dot(along) / along.lengthSq())) : 0;
+      const d = g.distanceTo(held.clone().addScaledVector(along, t));
       if (d < bestD) {
         best = id;
         bestD = d;

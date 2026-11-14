@@ -67,6 +67,12 @@ export interface GiftResult {
   events: SchedulerEvent[];
 }
 
+/** What the runtime reports each frame: the scheduler's events, plus the reader's own doings. */
+export type RuntimeEvent =
+  | SchedulerEvent
+  | { type: 'gift'; objectId: string; castId: string; outcome: GiftOutcome; atMs: number }
+  | { type: 'cast.held' | 'cast.dropped'; castId: string; atMs: number };
+
 export interface ShowRuntime {
   scheduler: Scheduler;
   readonly started: boolean;
@@ -75,7 +81,11 @@ export interface ShowRuntime {
   readonly endedAtMs: number | null;
   start(): void;
   /** Back to the very start of the episode, as if the book had just been opened. */
-  reset(objects: RuntimeSnapshot['objects']): void;
+  reset(objects: RuntimeSnapshot['objects'], keepScheduler?: boolean): void;
+  /** A quiet line printed on the caption band when nobody is speaking (the Storyteller's "… is listening"). Null clears it. */
+  setHint(text: string | null): void;
+  /** Plays a different show on the same stage: the AI Storyteller's live scheduler and its growing spine. */
+  useScheduler(scheduler: Scheduler, spine: Spine, objects: RuntimeSnapshot['objects']): void;
   /** Rebuilds from a checkpoint, at its show time, without replaying any sound. */
   restore(snapshot: RuntimeSnapshot, ms: number): void;
   snapshot(): RuntimeSnapshot;
@@ -102,8 +112,10 @@ export interface ShowRuntime {
   /** A character picked up by the reader: the show holds still while you have them. */
   setHeld(castId: string | null): void;
   readonly drawerAmount: number;
-  /** Events for the log and telemetry, drained each frame. */
-  drain(): SchedulerEvent[];
+  /** Events for the log, the director and telemetry, drained each frame. */
+  drain(): RuntimeEvent[];
+  /** How long each action holds, as the scheduler times it. */
+  readonly durationOf: (action: import('@tabletop/contracts').StageAction) => number;
   /** The noticing character for a held object, if any. */
   notice(castId: string | null, objectId: string | null): void;
   /** Characters you could pick up now, with the top of each head in world space. */
@@ -172,7 +184,9 @@ export interface RuntimeDeps {
   clock: ShowClock;
 }
 
-export function createShowRuntime({ manifest, spine, defs, moods, views, clock }: RuntimeDeps): ShowRuntime {
+export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods, views, clock }: RuntimeDeps): ShowRuntime {
+  /** The spine showing: the authored chapter, or a live one whose spreads are added as the story visits them. */
+  let spine = authoredSpine;
   const cueMs = Object.fromEntries(manifest.cues.map((cue) => [cue.id, cue.nominalMs]));
   const kinds = new Map<string, CueKind>(manifest.cues.map((cue) => [cue.id, cue.kind]));
   const cueDef = new Map(manifest.cues.map((cue) => [cue.id, cue]));
@@ -212,7 +226,8 @@ export function createShowRuntime({ manifest, spine, defs, moods, views, clock }
   let wallMs = 0;
   const HOP_MS = 650;
   let endedAtMs: number | null = null;
-  const pending: SchedulerEvent[] = [];
+  let hint: string | null = null;
+  const pending: RuntimeEvent[] = [];
   const speeches: Array<{ speech: Speech; atMs: number; text: string; endMs: number }> = [];
   let marks: SoundMark[] = [];
   /** Effects and sounds already applied, by key. Anything at or before a restored moment counts as done. */
@@ -305,6 +320,9 @@ export function createShowRuntime({ manifest, spine, defs, moods, views, clock }
       const id = a.object;
       if (lightObjects.get(id) === a.who) views.objects.send(id, { kind: 'carried', cast: a.who }, nowMs, 600, 0.03);
       else views.objects.send(id, { kind: 'paw', cast: a.who }, nowMs, 600, 0.03);
+    } else if (a.do === 'give') {
+      // One paw to another: it flies across, as a hand-over does.
+      if (views.objects.get(a.object)) views.objects.send(a.object, { kind: 'paw', cast: a.to }, nowMs, 500, 0.03);
     } else if (a.do === 'place' && a.what.startsWith('object:')) {
       const at = markOf(manifest, setOfScene(scheduler.scene()), a.at);
       if (at) views.objects.send(a.what.slice(7), { kind: 'page', at }, nowMs, 400, 0.02);
@@ -413,6 +431,7 @@ export function createShowRuntime({ manifest, spine, defs, moods, views, clock }
     get drawerAmount() {
       return drawerAmount;
     },
+    durationOf,
     get pageInviting() {
       const e = scheduler.current();
       return scheduler.beat(e.beatId).actions.some((a) => a.do === 'cue' && kinds.get(a.cue) === 'page-invite') && clock.ms >= e.startMs + 400;
@@ -421,8 +440,19 @@ export function createShowRuntime({ manifest, spine, defs, moods, views, clock }
       started = true;
       views.sound.roomTone(true);
     },
-    reset(initialObjects) {
-      scheduler = createScheduler(spine, durationOf);
+    setHint(text) {
+      hint = text;
+    },
+    useScheduler(next, nextSpine, initialObjects) {
+      spine = nextSpine;
+      scheduler = next;
+      runtime.reset(initialObjects, true);
+    },
+    reset(initialObjects, keepScheduler = false) {
+      if (!keepScheduler) {
+        spine = authoredSpine;
+        scheduler = createScheduler(spine, durationOf);
+      }
       views.objects.restore(initialObjects);
       overlays = [];
       drawerWanted = false;
@@ -502,6 +532,7 @@ export function createShowRuntime({ manifest, spine, defs, moods, views, clock }
       if (!carried || carried.cast !== id) {
         heldCast = id;
         hopping.delete(id);
+        pending.push({ type: 'cast.held', castId: id, atMs: clock.ms });
         views.sound.play('gasp', views.puppets.get(id)?.root.getWorldPosition(new Vector3()), undefined, 'ui');
       }
       carried = { cast: id, point: (point ?? carried?.point ?? new Vector3()).clone() };
@@ -511,6 +542,7 @@ export function createShowRuntime({ manifest, spine, defs, moods, views, clock }
       const actor = views.actors.get(carried.cast);
       if (actor) hopping.set(carried.cast, { from: [actor.position.x, actor.position.y - views.book.pageY, actor.position.z], startMs: wallMs });
       views.sound.play('hop', actor?.getWorldPosition(new Vector3()), undefined, 'ui');
+      pending.push({ type: 'cast.dropped', castId: carried.cast, atMs: clock.ms });
       carried = null;
       heldCast = null;
     },
@@ -529,6 +561,7 @@ export function createShowRuntime({ manifest, spine, defs, moods, views, clock }
       const ms = clock.ms;
       const { outcome, events } = scheduler.gift(ms, objectId, def?.tags ?? [], castId);
       handleEvents(events);
+      pending.push({ type: 'gift', objectId, castId, outcome, atMs: ms });
       const light = lightObjects.get(objectId) === castId;
       const at = views.puppets.get(castId)!.root.getWorldPosition(new Vector3());
       if (light && (outcome.kind === 'rule' || outcome.kind === 'fallback')) {
@@ -929,7 +962,8 @@ export function createShowRuntime({ manifest, spine, defs, moods, views, clock }
       } else if (inviting && invite) {
         // A first-timer's hint, printed on the page like the rest: it fades in once the edge has lifted.
         views.caption.show('Turn the page', clamp01((invite.localMs - 700) / 500) * 0.85);
-      } else views.caption.show(null, 0);
+      } else if (hint) views.caption.show(hint, 0.6 + 0.15 * Math.sin(nowMs / 600));
+      else views.caption.show(null, 0);
       views.endPage.show(end && !caption && bookOpen, end ? clamp01((ms - endedAtMs!) / 900) : 0);
 
       if (started) {
@@ -947,6 +981,8 @@ export function createShowRuntime({ manifest, spine, defs, moods, views, clock }
             const speaker = mark.sound === 'narration' ? NARRATOR : mark.from!;
             const speech = views.sound.speak(speaker, mark.text!, speaker === NARRATOR ? undefined : at);
             if (speech) speeches.push({ speech, atMs: mark.atMs, text: mark.text!, endMs: mark.endMs ?? Infinity });
+            // A line with no voice yet (the director's, until live voices): a soft murmur from the speaker under the caption.
+            else if (speaker !== NARRATOR) views.sound.play('interested', at);
           } else views.sound.play(mark.sound, at);
         }
         // A line cut short by your gift stops at once, so the reaction isn't talked over.

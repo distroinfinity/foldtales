@@ -110,6 +110,10 @@ export interface ObjectsView {
   centreOf(id: string, target: Vector3): Vector3;
   snapshot(): ObjectState[];
   restore(states: ObjectState[]): void;
+  /** Something new, painted during the story: it joins the stage at `home`, like any other object. */
+  add(def: ObjectDef, ref: TexRef, home: Home): void;
+  /** Takes painted things away again (a new evening). */
+  removeLive(): void;
 }
 
 const SHADOW_LIFT = 0.0007;
@@ -138,21 +142,18 @@ export function createObjects(initial: ObjectState[], deps: ObjectsDeps): Object
     return g;
   };
 
-  for (const state of states.values()) {
-    const def = deps.defs.get(state.id) ?? [...deps.defs.values()].find((d) => d.id === state.id);
-    if (!def || def.art.kind !== 'asset') continue;
-    const ref = deps.textures.get(def.art.path);
-    if (!ref) throw new Error(`${def.art.path} was not loaded`);
+  /** Builds an object's card, glow and shadow from its painting. */
+  const build = (id: string, def: ObjectDef, ref: TexRef): void => {
     const h = def.size.heightM;
     const w = (h * ref.sizePx[0]) / ref.sizePx[1];
     const holder = new Object3D();
-    holder.name = `object:${state.id}`;
+    holder.name = `object:${id}`;
     const card = new Mesh(planeFor(ref, w, h), cardMaterial(ref.texture, { baked: ref.baked, doubleSided: true }));
     card.name = 'card';
     card.renderOrder = 400;
     holder.add(card);
     let lit: Mesh | null = null;
-    const litRef = deps.litArt.get(state.id);
+    const litRef = deps.litArt.get(id);
     if (litRef) {
       lit = new Mesh(planeFor(litRef, w, h), cardMaterial(litRef.texture, { baked: litRef.baked, doubleSided: true }));
       lit.name = 'lit';
@@ -161,7 +162,7 @@ export function createObjects(initial: ObjectState[], deps: ObjectsDeps): Object
       card.add(lit);
     }
     let glow: Mesh | null = null;
-    const glowAt = deps.glowAt.get(state.id);
+    const glowAt = deps.glowAt.get(id);
     if (glowAt) {
       glow = new Mesh(new PlaneGeometry(h * 2.4, h * 2.4), new MeshBasicMaterial({ map: deps.glow, transparent: true, depthWrite: false, blending: AdditiveBlending, toneMapped: false, side: DoubleSide, opacity: 0 }));
       glow.name = 'glow';
@@ -170,11 +171,19 @@ export function createObjects(initial: ObjectState[], deps: ObjectsDeps): Object
       card.add(glow);
     }
     const shadow = new Mesh(new PlaneGeometry(1, 1), new MeshBasicMaterial({ map: deps.shadow, transparent: true, depthWrite: false, toneMapped: false, opacity: 0.55 }));
-    shadow.name = `shadow:${state.id}`;
+    shadow.name = `shadow:${id}`;
     shadow.rotation.x = -Math.PI / 2;
     shadow.renderOrder = -1;
     deps.bookRoot.add(shadow);
-    views.set(state.id, { holder, card, lit, glow, shadow, w, h, pivot: [def.pivot[0] / 100, def.pivot[1] / 100] });
+    views.set(id, { holder, card, lit, glow, shadow, w, h, pivot: [def.pivot[0] / 100, def.pivot[1] / 100] });
+  };
+
+  for (const state of states.values()) {
+    const def = deps.defs.get(state.id) ?? [...deps.defs.values()].find((d) => d.id === state.id);
+    if (!def || def.art.kind !== 'asset') continue;
+    const ref = deps.textures.get(def.art.path);
+    if (!ref) throw new Error(`${def.art.path} was not loaded`);
+    build(state.id, def, ref);
   }
 
   /** The card's offset from its holder: standing on its base, centred, or held at its pivot. */
@@ -213,6 +222,8 @@ export function createObjects(initial: ObjectState[], deps: ObjectsDeps): Object
     else parent.add(holder);
   };
 
+  /** Things painted during the story. */
+  const live = new Set<string>();
   const view: ObjectsView = {
     states: () => [...states.values()],
     get: (id) => states.get(id),
@@ -395,6 +406,28 @@ export function createObjects(initial: ObjectState[], deps: ObjectsDeps): Object
         states.set(s.id, copy);
       }
       flights.clear();
+    },
+    add(def, ref, home) {
+      if (views.has(def.id)) return;
+      live.add(def.id);
+      // Painted for you: yours, so a page turn carries it along to your satchel rather than leaving it behind.
+      states.set(def.id, { id: def.id, home, given: false, grabbable: true, touched: true });
+      build(def.id, def, ref);
+    },
+    removeLive() {
+      for (const id of live) {
+        const v = views.get(id);
+        if (v) {
+          v.holder.removeFromParent();
+          v.shadow.removeFromParent();
+          (v.card.material as MeshBasicMaterial).map?.dispose();
+          v.card.geometry.dispose();
+        }
+        views.delete(id);
+        states.delete(id);
+        flights.delete(id);
+      }
+      live.clear();
     },
   };
   return view;
