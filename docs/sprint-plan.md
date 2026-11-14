@@ -62,18 +62,50 @@ Why: AI lines spliced into the written chapter didn't land ("If a story is alrea
   - [ ] Your book on any headset
   - [ ] **Later, once the product is nearly done: turn sign-in on and test it.** Built and tested on the Mac, switched off for now (owner, Nov 14). Set up Resend (needs a domain and its DNS records), a Google sign-in client, and the server's sign-in secrets (`BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `TT_CLIENT_HOST`). Then turn on `TT_ACCOUNTS=on` (server) and `TT_PUBLIC_ACCOUNTS=on` (site) together. Test on the Quest: Google in Quest Browser, the phone code, and a second headset.
   - [ ] **Host it on foldtales.xyz** (owner, Nov 15): the site on Cloudflare Pages through the existing CI, and the backend on Railway at api.foldtales.xyz. The AI stays off in production for now. Steps in the plan's "Hosting on foldtales.xyz"; this also releases ticket 0's held hosting task.
-  - [ ] **How someone chooses between a story and the AI Storyteller** (owner, Nov 15; for a fresh session, plan first). The product is now two ways to play: the written chapters of *Tales from the Table's Edge*, and the AI Storyteller. The page shows the book first and the Storyteller as a door further down.
-    - **The question to settle before any design: does the choice happen on the web page, or inside the book in XR?**
-      - **On the web page:** you choose before you enter. The page has to carry both without losing the polish of today's single hero.
-      - **Inside XR:** the book is the menu, as the design language says (`docs/design-language.md`, "The book is the only UI"). An opening spread or the contents page offers a written story or making one up, and the page keeps one action, "Open the book".
-    - **Constraints either way:**
-      - The Storyteller needs the microphone, and it must be granted on the page before XR: a first prompt inside XR ended the session (measured twice).
-      - A judge must still be one tap from something wonderful.
-      - Returning readers continue where they were.
-      - More chapters are coming, so there will be a shelf of stories somewhere.
+  - [ ] **Product flows and user journeys: an overhaul, planned end to end** (owner, Nov 15). For a fresh session: **plan first, the owner approves before any code**.
+    - **Why:** the owner says the flows don't hang together: "The overhaul of user journeys and product journeys needs to be planned well and executed." Two examples:
+      - The wrist quit menu is "very absurd right now".
+      - A first attempt at the landing (PR #16, closed) bolted a second section onto a polished page instead of asking the real questions.
+    - **Scope: every moment a person moves between things, on the web page and in the headset, as one product:**
+      1. **Arriving.**
+         - A first visit on a Quest.
+         - A judge opening the link cold.
+         - A visitor on a desktop or phone.
+         - Returning mid-chapter, after a chapter, and after an AI story.
+      2. **Choosing what to do.**
+         - A written story or the AI Storyteller. **First question: does that choice live on the web page or inside the book in XR?**
+         - The shelf of stories, as more chapters come.
+      3. **Getting ready.**
+         - The microphone: it must be granted on the page before XR, because a first prompt inside XR ended the session, twice.
+         - A table, or the painted room.
+         - Finding the surface.
+      4. **Inside: the controls a reader uses.** Today they're scattered and inconsistent:
+         - pause on the ribbon;
+         - the contents on the sage tab;
+         - pause, start again and leave on the wrist tag;
+         - no clear way to switch between a story and the Storyteller.
+         
+         One coherent model: what's on the book, what's on you, and what the system's own menu does. Meta reserves the palm pinch.
+      5. **Endings:** the end of a chapter, the end of an AI story, and what comes next.
+      6. **Leaving and coming back:** putting the book away, the page you return to, and continuing the next evening.
+      7. **When things go wrong:** no internet, the AI slow or failing, the microphone refused, XR refused.
+    - **How to plan it:**
+      - Walk today's journeys on the Quest and write down each step as it really is.
+      - Mark the load at each step: choices, words, reaches, waits.
+      - Look at how the best Quest titles handle menus, pause and leaving: Moss, Meta's hand and system-menu guidance.
+      - Propose one model with a shared vocabulary, with mockups.
+      - Settle the open questions with the owner on cards.
+      - Build in phases, each checked in the headset.
+    - **Keep:**
+      - the book as the only UI inside XR (`docs/design-language.md`);
+      - hands only, and completable silently;
+      - a judge one tap from something wonderful;
+      - today's polished page (PR #11) as the baseline, changed only by the approved plan;
+      - the deadline, Nov 18.
+    - **Context:**
       - The AI is live in production: the keys are on Railway, and the site's build no longer switches the Storyteller door off.
-    - **Tried and rejected:** PR #16, closed. It put two equal doors in the hero and a second scrolling section for the Storyteller. The owner: "you have fucked up the landing page. It was very polished … don't try to cut-paste things and add them where they don't belong … the first question is: should the mode selection happen even on the landing page or after you have entered the XR experience?" Its branch, `product-two-ways`, is kept only as a reference.
-    - **Keep** today's page (PR #11) as it is until this is decided.
+      - Sign-in is built and off.
+      - The rejected attempt's branch, `product-two-ways`, is a reference only.
 - **Art library** (runs throughout)
   - [x] Book and first set for M1 (run 004, PR #1). Approved on the Mac
   - [x] Drawer objects for M2 (run 006, PR #2). Approved on the Mac and in Quest Browser
