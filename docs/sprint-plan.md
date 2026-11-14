@@ -4,14 +4,20 @@
 
 ## Progress
 
-*Last updated Nov 14, 2026. A workstream is ticked when it's merged to main, and a milestone when the owner signs it off in the headset. ⏸ means held by the owner's choice. **Now: ticket 3, a story that bends and remembers. M2 signed off by the owner on Nov 14, and played by someone new.***
+*Last updated Nov 14, 2026. A workstream is ticked when it's merged to main, and a milestone when the owner signs it off in the headset. ⏸ means held by the owner's choice. **Now: two tracks. The owner writes more defined chapters and stories; ticket 3 builds the AI mode. M2 signed off by the owner on Nov 14, and played by someone new.***
+
+**The product is two ways (owner, Nov 14, after ticket 3's first headset session):**
+1. **Defined stories:** authored chapters and books, theatrical experiences. Chapter 1 is the first. The owner writes more, in parallel.
+2. **AI mode, the AI playground:** free-roam, impromptu, any AI experiment. It reuses the cast, sets and props, and can bring new ones. Voiced live. Ticket 3 builds it.
+
+Why: AI lines spliced into the written chapter didn't land ("If a story is already written and we try to interfere with it, it's not that fun"; "I like the version of the story that we have currently"), and unvoiced lines broke immersion. The research is in `docs/plans/2026-11-14-ai-mode-research.md`. The product workspace (positioning, landing, journeys) takes the split into its plan.
 
 ### Milestones
 
 - [x] **M0, Pip on your table.** Signed off on the Quest 3 on Nov 12, from a local build over USB (hosting is held).
 - [x] **M1, the first 30 seconds.** Signed off on the Quest 3 on Nov 13, from a local review build over USB (PR #6).
 - [x] **M2, first five minutes.** Signed off by the owner on the Quest 3 on Nov 14, from a local review build over USB (PR #7). Someone new played it on Nov 14 and was amazed by the wow; the web page and journey around the book need polish later (ticket 6).
-- [ ] **M3, a story that bends and remembers.** ← next
+- [ ] **M3, the AI mode.** ← next. Re-cut on Nov 14 from "a story that bends and remembers": the AI gets its own mode instead of being layered on the written chapters.
 - [ ] **M4, voices and Talk.**
 - [ ] **M5, Story Circle.**
 - [ ] **M6, ready to submit.**
@@ -32,10 +38,13 @@
   - [x] Hands and objects
   - [x] Show and flagship
   - [x] First-session journey (added by the owner, Nov 13)
-- [ ] **3. A story that bends and remembers** ← next
-  - [ ] Director
-  - [ ] Memory and satchel
-  - [ ] Tonight's lost thing
+- [ ] **3. AI mode (the AI playground)** ← next. Re-cut Nov 14. Plan: `docs/plans/2026-11-14-ticket-3-story-bends-remembers.md`; research: `docs/plans/2026-11-14-ai-mode-research.md`
+  - [ ] Director (first version built: AI lines spliced into chapter 1; off since session 1, kept behind `?director=on`)
+  - [ ] The AI playground: a free, improvised, voiced mode on the same stage
+  - [ ] Live voices and speech in (ElevenLabs, chosen Nov 14), pulled forward from ticket 4
+  - [ ] Memory and satchel (chapter-end memory recorded; carrying into later chapters follows the owner's new chapters)
+  - [ ] Stop the show: the wrist tag (pause, start again, put the book away)
+- [ ] **Defined stories: more chapters** (the owner, in parallel, Nov 14)
 - [ ] **4. Voices and Talk**
   - [x] Voice audition (run 005): full cast chosen from measurements, since the owner delegated it. Not yet compared by ear. Plan: `docs/superpowers/plans/2026-11-09-voice-audition.md`
   - [ ] Rest of voice and music: voice chain in the product, line pre-render, foley, music
@@ -141,7 +150,9 @@ Ends at **M2**, the first complete product, and the first time someone else play
 - **Agent verifies:** emulator hand-pose flows, `iwsdk-glasses-test` for gaze and FOV, no controller paths. Offline simulator: both paths and every tag branch finish in 5–7 minutes, with no stalls. Landing states for a first visit, mid-chapter return and finished chapter, checked on the Mac.
 - **You verify:** P1, with you and at least one other person. Is the zero-input episode satisfying? Payoff by minute 1? Does the beam land? Does someone new know how to start, and what to do at the end?
 
-### 3. A story that bends and remembers
+### 3. AI mode (re-cut Nov 14; was "A story that bends and remembers")
+
+**Re-cut after headset session 1.** The product is two ways: defined stories, and an AI mode. The owner writes more chapters in parallel, and this ticket builds the AI mode, voiced live, with speech in. The table below is the original scope, kept for the record; the plan file has the current one.
 
 The AI layer. Director and memory are clubbed because you can only judge them together, by playing one episode and then the next. Ends at **M3**.
 

@@ -1,6 +1,92 @@
-# Ticket 3: A story that bends and remembers (ends at M3)
+# Ticket 3: the AI Storyteller (ends at M3)
 
-**Status:** Approved by the owner on Nov 14, after one Codex review (all eleven findings taken, see the review log). Building phase 1.
+**Status:** Re-cut on Nov 14 after headset session 1, reviewed once by Codex (fourteen findings, all taken; see "Re-cut review log"). Waiting for the owner's approval. The first scope (a director layered on the written chapters, chapter 2, Tonight's lost thing) is kept further down for the record.
+
+## Re-cut after headset session 1 (Nov 14)
+
+**What happened.** The director's lines spliced into chapter 1 didn't land: "If a story is already written and we try to interfere with it, it's not that fun … you can easily do that with an if-else … AI responses are just being read and not spoken aloud … my immersion is lost." The owner likes chapter 1 as authored. So the product is now **two ways**: **Tales from the Table's Edge**, the authored chapters (the owner writes more, in parallel), and the **AI Storyteller**, which this ticket builds (names from the product workspace). Research: `docs/plans/2026-11-14-ai-mode-research.md`. Concept: `docs/plans/2026-11-14-ai-storyteller.md`.
+
+**Owner decisions (Nov 14):** all four pillars, "and as many creative and wow factors as we can bring with AI": live voiced cast that also stages the world; your real room in the story; show them something real; anything you imagine appears. "You're in the cast" and "they remember you" when they make it better, or later. Live voices and speech in through **ElevenLabs** (the owner's existing account; key to come). Not bound by the PRD's older rules where the vision has grown.
+
+**What stays from the first scope:** the scheduler's time-box work (bridges, pacing, the wrong-try guard), the gap at night, the ladder's hand-over, the wrist tag, and chapter-end memory. The director is off for chapter 1 (review flag `?director=on`); its validator and backend planner are reused by the Storyteller.
+
+### The AI Storyteller, as built
+
+**An evening.** You open the AI Storyteller (from the landing page's second door, or the book). The book opens on the lamp spread with Pip, Wick and Moth waiting. They greet you out loud. You talk; they answer in their own voices and act. They move about, turn the page to the shore or the gap, change the light, light the lamp, sweep the beam over your room, open the drawer, hand each other things. Every so often they turn to you, and what you say decides what happens next. Show them a real thing, or ask for something that isn't there, and it arrives, painted in the book's style. Your couch, your table, your window are part of their world. When it winds down, the narrator closes it into a page.
+
+| Unit | Does | Where |
+|---|---|---|
+| **Contracts (own PR, first)** | New routes: `storyTurn` (a stream of its own turn events, each line with its audio inline), `paintProp` (a job: a description and an optional camera frame in, a painted, cut-out object out later), `soundEffect` (a short sound for a new thing). The turn's request carries the stage as it is (set, who stands where, objects, light), the room (labelled planes as simple positions), what was heard or done, and the evening so far. Coordinated with the product workspace's auth PR: one after the other, `CONTRACT_VERSION` bumped once each | `contracts/` |
+| **Backend: the storyteller** | Sonnet runs the evening as an improvising director with the stage library as its only vocabulary: who may move where, what can be placed, cues, light, page turns between the three sets, the drawer, room marks. Streams lines as they're written, so the first can be voiced before the rest exists. Its own action policy (below), stricter than "anything" and wider than the director's talk-only rules | `backend/src/storyteller/` |
+| **Backend: voices and ears** | ElevenLabs Flash voices each line in the speaker's voice as it's written, and the turn stream carries it (key in the backend's environment). The speech token route issues a short-lived token for ElevenLabs' realtime speech to text, so the microphone streams from the headset without the key | `backend/src/voice/` |
+| **The cast's live voices** | Instant voice clones of Pip, Wick, Moth and the narrator, made in the owner's ElevenLabs account from the lines we already rendered (run 005 and 012, our own outputs), so live lines sound like the authored ones. Played through the same voice chain | `art/voice/live.json` |
+| **Live stage** | A live scheduler with the same shape as the authored one, so the runtime, puppets, book, objects, light and beam work unchanged: beats arrive from the turn stream, each is played only once its lines are voiced, and between turns the cast idles and listens (never silent for long: small acting, room tone). Page turns move to whichever set the story asks for | `client/src/storyteller/` |
+| **Listening** | While the Storyteller is open the cast listens, with a paper ear lit on the book. Speech ends, a character turns to you with a small "hm?", and the turn starts (about 1.5 s to the first voiced word). The cast's own voices are kept out of the microphone (echo cancellation, and listening pauses while they speak; you can cut in by pinching anyone) | `client/src/storyteller/` |
+| **Anything appears** | When the story needs something that isn't in the library, Moth flies off the page and the backend paints it in the book's style (Runway `seedream5_flash`, about 2 credits, under 30 s), cuts it out on flat paper, checks it, and Moth brings it back. A short sound is made for it. Capped per evening; if it fails, Moth "couldn't find it" | `backend/src/storyteller/paint.ts`, client objects |
+| **Show them something real** | Hold a real thing up to the book. If the Quest's browser gives us the camera (it reports one to our page; to be proven first), a frame goes to Claude's vision, which names it in the story's terms ("the Giant's cup"), and it's painted in as above | `client/src/storyteller/camera.ts` |
+| **Your room** | The Quest's Space Setup planes (table, couch, wall, window, with positions) become places the story can name and go to: room marks the director can use, Moth flying to your window, Pip hopping off the book onto your table to look over its edge | `client/src/stage/`, the turn request |
+| **Entry and exit** | The landing's "AI Storyteller" door enters straight in (`EnterTarget` from the product workspace's seam); `libraryState()` in `progress.ts` tells the landing it's available. The wrist tag stops it (pause, start again, put the book away) | `client/src/index.ts`, `client/src/show/progress.ts` |
+
+**Not bound by:** the old rule that a story never waits on AI. In the Storyteller the cast *is* waiting for you, so a turn may take a second or two, always covered by listening and thinking acting, never by silence or a spinner.
+
+### Order of work, with gates
+
+**The three-day acceptance target** is the core evening, done properly: contracts, entry, voiced turns, bounded staging, interruption and failure recovery. The wow pillars come in behind it, each opened only when its own test passes, so a pillar that can't be proven in time is left out rather than shipped half-working.
+
+1. **Contracts PR** (merged first, after the product workspace's auth PR or before it, one version bump each). `storyTurn` is a stream of its own event type, not `ReplyChunk`: `line` (id, speaker, text, mood, the line's audio inline as base64 MP3 with its real duration), `stage` (a batch of stage actions), `turn-to-you` (the cast waits for your answer), `done`, `error`. Lines are synthesised on the backend, so no raw-audio route is needed. `paintProp` is a job: it returns a job id at once, and a second call collects the result, so the 8 s request deadline holds. `ROUTE_NAMES`, the HTTP client, mocks and backend mounting change together. Every new route is classed as an AI route in the guard, with per-evening caps on turns, characters voiced, paintings and listening minutes.
+2. **The core evening (Nov 15).**
+   - A **Storyteller action policy**, separate from the director's: talk, emote, move, place and give within the library, light, music, page turns to any of the three sets, the drawer, the lamp and beam cues. It's checked against the stage as it is (who's on this spread, which objects exist, marks on this set).
+   - **The runtime takes an injected scheduler.** Today it builds its own. The live scheduler supports jumps to any set (a turn to a set that isn't next), cast that stays where it was placed, and a `give` handler (one paw to another).
+   - **Live lines in the sound engine:** a decoded clip is registered under its line id and played through the same voice chain, so beats are timed by real audio. A beat plays its first line as soon as that line is voiced, not after all of them.
+   - **Turn state machine with generations:** listening, then thinking, then performing, then listening. Pinching anyone, or "wait!", starts a new generation, and everything from older generations (late transcripts, queued audio, actions) is dropped. The microphone stops sending while the cast speaks, plus a short tail. The commit is measured from the end of speech, with the speech-to-text silence threshold tuned down from its 1.5 s default.
+   - **The microphone's lifecycle:** permission asked on the landing page before XR (the first prompt inside XR has ended the session twice), a fresh capture per listen, stopped on pause, headset off, the wrist tag and session end. If permission is denied, "Tell them" falls back to the wrist tag's choices.
+   - **Moderation and privacy:** what you said is checked (Haiku) before the turn, and every line before it's voiced; off-tone becomes an in-story redirect. A first-use disclosure (cloud voice) and a mute on the wrist tag. Raw audio is never stored, and neither are detailed room shapes.
+   - **Measured:** speech end to first voiced word, p50 and p95, against a 1.5 s target, with a bounded timeout and a spoken "hm, let me think" retry.
+   - Then the emulator (typed "heard" lines), and **headset session 2: talk to them.**
+3. **Gated wow (Nov 16), each behind its own test:**
+   - **Anything appears:** painted props go in once a planned art run (plan, cap, ledger, as every run) proves the recipe: flat paper, measurable checks (alpha coverage, bounds, size, texture budget), and textures uploaded before Moth reveals them. Objects gain a runtime registration path (definition, texture, mesh, shadow, interaction, persistence, disposal). You judge the first ones in the headset.
+   - **Show them something real:** only if a real passthrough frame arrives inside our immersive session with ordinary permissions. Meta has an open [investigation](https://developers.meta.com/vr/support/investigations/1557993751977106/) where only the avatar camera shows up; an ADB workaround is never a judge's requirement. Otherwise it becomes "tell them about something", painted the same way. Images are sent only after an explicit yes.
+   - **Your room:** a room registry kept from Space Setup (couches, windows and vertical planes too, which placement throws away today), with labels and world positions, and a world-space actor layer so a character can leave the folding book layers. It starts with Moth, who flies, and Pip looking out at your room; walking onto the table comes after.
+   - **Headset session 3.**
+4. **Finish (Nov 17):** entry from the landing (`EnterTarget`, `libraryState()` with a mode in progress), the wrist tag in the headset, "they remember you" if time allows, the PR review, **sign-off**.
+
+### How it's checked
+
+- `pnpm test` stays green; chapter 1 unchanged (the director stays off there).
+- Scripted evenings against the real backend: a set of spoken lines in, checked for voice coverage, valid staging, no repeated line, no stall over 4 s without acting or sound, time to first voiced word.
+- Emulator: a typed "heard" line in place of the microphone, the turn played out on the stage, page turns, a painted prop arriving.
+- Headset: talk to them, show them something, ask for something that isn't there.
+
+### Risks
+
+| Risk | If it happens |
+|---|---|
+| The turn takes too long and the pause feels dead | Haiku for the first line while Sonnet plans the rest; a character's "thinking" acting starts as soon as you stop |
+| The cast hears itself | Listening pauses while they speak; pinch to cut in |
+| Live paintings miss the look bar | Automatic checks reject them, and Moth "couldn't find it" |
+| The camera isn't available to the browser | Ask for the thing by voice instead ("show" becomes "tell"); still painted in |
+| The clones don't sound like the cast | ElevenLabs library voices picked by ear, with the same voice chain |
+
+### Re-cut review log
+
+Codex reviewed the re-cut once on Nov 14, read-only, against the code: no P0, twelve P1 and two P2. I checked each against the code: all real, all taken (in "Order of work, with gates").
+
+1. **P1. The director's validator only allows talk** (`client/src/director/validate.ts`), which rules out the core feature. *Taken:* a separate Storyteller action policy, checked against the stage as it is.
+2. **P1. The runtime builds its own scheduler and assumes adjacent spreads,** and has no `give` handler. *Taken:* the scheduler is injected, with jumps to any set, persistent placement and `give`.
+3. **P1. Streams can only carry `ReplyChunk`,** and the backend sends JSON SSE, not audio. *Taken:* `storyTurn` has its own event type, with audio inline as base64.
+4. **P1. The sound engine only plays prepared clips,** timed from the manifest. *Taken:* live clips are registered by line id and timed by their real length, and the first line plays as soon as it's voiced.
+5. **P1. Objects can't be added at runtime,** and painting can't fit the 8 s deadline. *Taken:* runtime registration, and painting as a job.
+6. **P1. Room planes are filtered to tables, without labels,** and actors live in the book's folding layers. *Taken:* a room registry and a world-space actor layer, starting with Moth.
+7. **P1. Microphone permission and lifecycle are missing.** *Taken:* permission before XR, capture per listen, stopped on every pause, and a fallback when denied.
+8. **P1. Interruptions need a turn state machine.** *Taken:* generations drop stale work; the microphone is gated through playback plus a tail.
+9. **P1. New paid routes would skip the AI caps** (`backend/src/guard.ts` lists them by name). *Taken:* classed as AI routes, with per-evening caps. Told the product workspace, which is changing the guard for accounts.
+10. **P1. No moderation of speech, vision or images, and no privacy controls.** *Taken:* moderation before the turn and before voicing, disclosure, mute, explicit camera consent, nothing raw stored.
+11. **P1. A listed camera isn't a working camera,** per Meta's open investigation. *Taken:* gated on a real passthrough frame; "tell them" otherwise.
+12. **P2. The 1.5 s promise has no budget** (the speech-to-text silence default alone is 1.5 s). *Taken:* measured p50/p95, threshold tuned, bounded timeout and retry.
+13. **P2. Automatic checks can't establish the look bar.** *Taken:* a planned art run for the recipe, measurable checks, prewarmed textures, and the owner's judgment in the headset.
+14. **P1. Three days miss integration and recovery work.** *Taken:* the core evening done properly is the acceptance target; each wow pillar is gated.
+
+## The first scope (Nov 14, superseded by the re-cut above)
 
 **Goal.** Answer the owner's words after the first headset session: "I don't see any AI in it. I think that's planned ahead." What you hand over, and when, now changes what the characters say and do, in ways nobody wrote ahead of time. Next evening, chapter 2 is really different because of chapter 1: what you kept comes back, and its owner comes looking. Turn off Wi-Fi mid-chapter and it still finishes. And from the end page you can pick a lost thing and get a brand-new story about it.
 
