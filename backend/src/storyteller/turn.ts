@@ -63,7 +63,7 @@ const ROOM_HELP: Record<RoomEffect, string> = {
   'fireflies-off': 'the fireflies go',
   gulls: 'gulls fly in and perch on a place in the room',
   'gulls-off': 'the gulls fly off',
-  window: 'the reader\'s real window shows the story\'s night sea, with the beam passing',
+  window: 'a window onto the story\'s night sea opens in the reader\'s room, on their real window or a wall (at: names which), with the lighthouse beam passing',
   'window-off': 'the window goes back to normal',
 };
 /** What a room effect needs showing first. */

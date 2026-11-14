@@ -316,7 +316,7 @@ async function prepare(world: World) {
   if (devCue && manifest.cues.some((c) => c.id === devCue)) runtime.addCue(devCue, 11_500);
   // Review builds only: `?room=shadows,fireflies` plays each room effect in turn, starting a few
   // seconds after the show does (fresh or resumed), 35 s each and 40 s apart, so they can be checked
-  // in one sitting. `hunt` hides the kite on your couch. Scheduled again after "Start from the beginning".
+  // in one sitting. `hunt` hides the kite on your couch; `window-wall` opens the window on a wall. Scheduled again after "Start from the beginning".
   const devRoom = (reviewQuery('room') ?? '').split(',').filter(Boolean);
   const devRoomState = { scheduled: false, lastMs: 0 };
   const scheduleDevRoom = (fromMs: number): void => {
@@ -324,6 +324,11 @@ async function prepare(world: World) {
     devRoom.forEach((effect, i) => {
       const at = Math.max(11_500, fromMs + 6_000) + i * 40_000;
       if (effect === 'hunt') runtime.addRoom({ do: 'room', withPrev: false, effect: 'hunt', what: 'object:kite', at: 'room:couch' }, at);
+      else if (effect === 'window-wall') {
+        // The window effect on a wall, as in a room with no window.
+        runtime.addRoom({ do: 'room', withPrev: false, effect: 'window', what: null, at: 'room:wall' }, at);
+        runtime.addRoom({ do: 'room', withPrev: false, effect: 'window-off', what: null, at: null }, at + 35_000);
+      }
       else if (effect === 'shadows' || effect === 'fireflies' || effect === 'window') {
         runtime.addRoom({ do: 'room', withPrev: false, effect, what: null, at: null }, at);
         runtime.addRoom({ do: 'room', withPrev: false, effect: `${effect}-off`, what: null, at: null }, at + 35_000);
@@ -419,8 +424,8 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       room: () => roomMap.forStory(stage.root),
       roomFx: () => ({
         on: roomFx.on,
-        // The window only where Space Setup found one.
-        available: [...ROOM_EFFECTS_BUILT, ...(show.windowView && roomMap.places().some((p) => p.label === 'window') ? (['window', 'window-off'] as const) : [])],
+        // The window opens on a real window, or a wall, or a stand-in wall: anywhere, once its painting has loaded.
+        available: [...ROOM_EFFECTS_BUILT, ...(show.windowView ? (['window', 'window-off'] as const) : [])],
       }),
       nowMs: () => clock.ms,
       log: (m) => console.info(m),
@@ -758,7 +763,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       hands: [controls.fingertip('left'), controls.fingertip('right')],
       onRise: (at) => sound.play('spark', at),
     });
-    windowView?.frame({ state: roomNow.window, nowMs, room: roomMap, bookOpen: controls.amount > 0.98 });
+    windowView?.frame({ state: roomNow.window, nowMs, room: roomMap, bookOpen: controls.amount > 0.98, head, forward });
     // Which room effects are showing, each time that changes, so frame summaries can be read per effect.
     const fxOn = effectsOn(roomNow);
     const fxKey = fxOn.join(',');

@@ -169,3 +169,4 @@ Signed off by the owner in the headset after AI Storyteller session 2: "I actual
 - **Fireflies, second look** (breathing, smaller, slower): "fire flies look good."
 - The owner asked where the shadows went: the second link asked only for fireflies. Shadows play only when a beat or the Storyteller calls them (the owner's choice), so each review link names the effects it plays.
 - **Shadows and fireflies, together** (after the timing fix): "looking great. Fireflies are great. Proceed to the next." Both approved in the headset.
+- **Owner, on the window:** "What if someone doesn't have a window in their room? … account for walls … make it a bit more modular. Wall, window, anything that we can use, but not trying to fit it." *Changing:* the window effect opens on a real window if there is one (filling the glass), otherwise on a wall as a painted opening with a soft watercolour edge, no fake frame; a beat or the storyteller can name the place.

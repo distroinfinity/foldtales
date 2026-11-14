@@ -174,7 +174,7 @@ export function roomAt(items: readonly Item[], ms: number): RoomNow {
         break;
       case 'window':
       case 'window-off':
-        lasting(now.window, effect === 'window', startMs);
+        lasting(now.window, effect === 'window', startMs, effect === 'window' ? action.at : null);
         turnBig('window', effect === 'window', startMs);
         break;
       case 'hunt': {
