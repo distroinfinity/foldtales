@@ -236,7 +236,7 @@ Don't push on. Pull in the fallback from the risk table in `technical-design.md`
 - [ ] Anthropic API key for the backend only, with a spending limit set in the console. *(Not needed until ticket 3.)*
 
 **When the product is nearly done (ticket 7)**
-- [ ] A domain, about $10 a year, if you want a nicer link than the default and email codes for sign-in. Ideas that looked unregistered on Nov 15 (confirm at the registrar): `tabletoptheater.app`, `tabletoptheater.xyz`, `tabletoptheater.studio`, `tabletoptales.app`, `tablesedge.app`, `readtabletop.com`, `talesfromthetablesedge.com`. Taken: `tabletoptheater.com`, `tabletop.theater`.
+- [ ] A domain, about $10 a year, if you want a nicer link than the default and email codes for sign-in. Short ideas that looked unregistered on Nov 15 (confirm at the registrar): `openthebook.app` (my pick: it's the page's one button), `talebook.app`, `tablebook.app`, `talesedge.app`, `tabletheater.app`, `pipandwick.app`. The product keeps the name Tabletop Theater. Taken: `tabletoptheater.com`, `tabletop.theater`, `taletable`, `tabletales`.
 - [ ] Resend and a Google sign-in client, then sign-in switched on (ticket 7's to-do above).
 
 **When tickets ask, with an estimate first**
