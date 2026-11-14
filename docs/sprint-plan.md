@@ -48,6 +48,8 @@
   - [ ] Sign-in proved end to end (accounts, the phone code, Google)
   - [ ] The page: the hero and the scroll that opens the book, on every device
   - [ ] Your book on any headset
+  - [ ] **Later, once the product is nearly done: turn sign-in on and test it.** Built and tested on the Mac, switched off for now (owner, Nov 14). Set up Resend (needs a domain and its DNS records), a Google sign-in client, and the server's sign-in secrets (`BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `TT_CLIENT_HOST`). Then turn on `TT_ACCOUNTS=on` (server) and `TT_PUBLIC_ACCOUNTS=on` (site) together. Test on the Quest: Google in Quest Browser, the phone code, and a second headset.
+  - [ ] **Later: deploy.** The site on Vercel or Cloudflare Pages: a default `*.vercel.app` or `*.pages.dev` address is fine. The backend on Railway (`*.up.railway.app`), because it needs a long-running Node server with its SQLite file, which serverless functions can't keep. A domain is optional for the link, but Resend needs one to send email codes.
 - **Art library** (runs throughout)
   - [x] Book and first set for M1 (run 004, PR #1). Approved on the Mac
   - [x] Drawer objects for M2 (run 006, PR #2). Approved on the Mac and in Quest Browser
@@ -232,6 +234,10 @@ Don't push on. Pull in the fallback from the risk table in `technical-design.md`
 - [ ] Next time the USB prompt appears, tick **Always allow from this computer**. *(Not confirmed.)*
 - [ ] ⏸ Create or connect: Railway project (backend), Cloudflare account (static client, free tier). *(Held with hosting.)*
 - [ ] Anthropic API key for the backend only, with a spending limit set in the console. *(Not needed until ticket 3.)*
+
+**When the product is nearly done (ticket 7)**
+- [ ] A domain, about $10 a year, if you want a nicer link than the default and email codes for sign-in. Ideas that looked unregistered on Nov 15 (confirm at the registrar): `tabletoptheater.app`, `tabletoptheater.xyz`, `tabletoptheater.studio`, `tabletoptales.app`, `tablesedge.app`, `readtabletop.com`, `talesfromthetablesedge.com`. Taken: `tabletoptheater.com`, `tabletop.theater`.
+- [ ] Resend and a Google sign-in client, then sign-in switched on (ticket 7's to-do above).
 
 **When tickets ask, with an estimate first**
 - [ ] Speech to text and possibly fast live voice: ElevenLabs or your OpenAI key (ticket 4).
