@@ -26,12 +26,15 @@ const FADE_MS = 3000;
 const OPENING_M: [number, number] = [1.6, 1.1];
 /** Beside the book, not behind it (where the shadows fall): this far round from straight ahead. */
 const ASIDE_RAD = 0.35;
+/** A real window is used only if it's this far round from where you face (owner: never behind you). */
+const IN_VIEW_RAD = (70 * Math.PI) / 180;
 /** One full turn of the lamp, as the book's beam turns. */
 const TURN_MS = 7000;
 
 export interface WindowView {
   mesh: Mesh;
-  frame(opts: { state: Lasting; nowMs: number; room: RoomMap; bookOpen: boolean; head: Vector3; forward: Vector3 }): void;
+  /** `book`: where the book is; you face it, so that's the way "in front of you" means. */
+  frame(opts: { state: Lasting; nowMs: number; room: RoomMap; bookOpen: boolean; head: Vector3; forward: Vector3; book: Vector3 | null }): void;
 }
 
 export function createWindowView(art: TexRef): WindowView {
@@ -127,10 +130,19 @@ export function createWindowView(art: TexRef): WindowView {
   /** Chooses where the window opens: the named place, else a real window, else a wall beside the book. */
   const choose = (room: RoomMap, at: string | null, head: Vector3, forward: Vector3): typeof spot => {
     const named = at ? room.resolve(at, 'face') : null;
-    // With no place named, the real window nearest you (a room can have several, some far off).
-    let nearest: ReturnType<RoomMap['places']>[number] | null = null;
-    if (!at) for (const p of room.places()) if (p.label === 'window' && (!nearest || p.centre.distanceTo(head) < nearest.centre.distanceTo(head))) nearest = p;
-    const glass = named && (named.label === 'window' || named.label === 'door') ? named : nearest;
+    // Only a window you can see without turning round: within reach of where you face, left or right.
+    const flat = new Vector3(forward.x, 0, forward.z).normalize();
+    const inView = (p: { centre: Vector3 }) => flat.angleTo(new Vector3(p.centre.x - head.x, 0, p.centre.z - head.z)) < IN_VIEW_RAD;
+    let best: ReturnType<RoomMap['places']>[number] | null = null;
+    if (!at || named?.label === 'window') {
+      for (const p of room.places()) {
+        if (p.label !== 'window' || !inView(p)) continue;
+        // The most nearly ahead.
+        const a = flat.angleTo(new Vector3(p.centre.x - head.x, 0, p.centre.z - head.z));
+        if (!best || a < flat.angleTo(new Vector3(best.centre.x - head.x, 0, best.centre.z - head.z))) best = p;
+      }
+    }
+    const glass = named?.label === 'door' && inView(named) ? named : best;
     if (glass) return { centre: glass.centre.clone(), normal: glass.normal.clone(), size: [glass.sizeM[0] * INSET, glass.sizeM[1] * INSET], opening: false };
     // A wall by its own id opens there; "a wall" means the one you face, beside the book.
     const exact = !!at && /-[0-9]+$/.test(at);
@@ -153,7 +165,7 @@ export function createWindowView(art: TexRef): WindowView {
 
   return {
     mesh,
-    frame({ state, nowMs, room, bookOpen, head, forward }) {
+    frame({ state, nowMs, room, bookOpen, head, forward, book }) {
       if (state.on !== wasOn) {
         wasOn = state.on;
         changedAt = nowMs - Math.min(state.sinceMs, FADE_MS);
@@ -166,7 +178,10 @@ export function createWindowView(art: TexRef): WindowView {
         if (!state.on) spot = null;
         return;
       }
-      spot ??= choose(room, state.at, head, forward);
+      // You face the book, whatever your head is doing the moment it opens.
+      const facing = book ? tmp.copy(book).sub(head).setY(0) : forward;
+      if (facing.lengthSq() < 1e-4) facing.copy(forward);
+      spot ??= choose(room, state.at, head, facing.clone());
       if (!spot) {
         mesh.visible = false;
         return;

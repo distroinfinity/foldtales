@@ -763,7 +763,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       hands: [controls.fingertip('left'), controls.fingertip('right')],
       onRise: (at) => sound.play('spark', at),
     });
-    windowView?.frame({ state: roomNow.window, nowMs, room: roomMap, bookOpen: controls.amount > 0.98, head, forward });
+    windowView?.frame({ state: roomNow.window, nowMs, room: roomMap, bookOpen: controls.amount > 0.98, head, forward, book: stage.root.visible ? stage.root.getWorldPosition(bookAt) : null });
     // Which room effects are showing, each time that changes, so frame summaries can be read per effect.
     const fxOn = effectsOn(roomNow);
     const fxKey = fxOn.join(',');
