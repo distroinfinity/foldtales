@@ -5,6 +5,7 @@ import { OpenTheBook, PaintedRoomLink, SendToQuest } from './actions.tsx';
 import type { Device } from './device.ts';
 import { landingSnapshot, openingTap, subscribeLanding } from './landing.ts';
 import { BOOK_TITLE, libraryStateShim, type LibraryState } from './library.ts';
+import { ACCOUNTS_ON } from './flags.ts';
 import { HERO_ART, WEB_ART, preloadArt } from './preload.ts';
 import { Bookplate, ChaptersSheet } from './sheets.tsx';
 import { Story } from './story.tsx';
@@ -42,13 +43,13 @@ export function App({ device }: { device: Device }) {
   const [wasInside, setWasInside] = useState(false);
   useEffect(() => {
     if (state.kind === 'inside') setWasInside(true);
-    else if (wasInside && state.kind === 'ready' && reader) {
+    else if (ACCOUNTS_ON && wasInside && state.kind === 'ready' && reader) {
       setWasInside(false);
       void pushBook();
     }
   }, [state.kind, wasInside, reader]);
   useEffect(() => {
-    void currentReader().then((r) => {
+    if (ACCOUNTS_ON) void currentReader().then((r) => {
       setReader(r?.name ?? null);
       if (r) void pullBook();
     });
@@ -82,7 +83,7 @@ export function App({ device }: { device: Device }) {
         <a href="./" className="display pointer-events-auto text-[22px] font-medium tracking-[0.005em] text-page no-underline">
           Tabletop Theater
         </a>
-        {device === 'headset' && (
+        {ACCOUNTS_ON && device === 'headset' && (
           <button type="button" className="pointer-events-auto min-h-12 cursor-pointer rounded-full border border-page/15 bg-room/50 px-5 text-[15px] text-page/85 backdrop-blur-md hover:border-page/35" onClick={() => setSheet('plate')}>
             {reader ? `${reader}’s book` : 'Sign in'}
           </button>
@@ -135,7 +136,7 @@ export function App({ device }: { device: Device }) {
         </nav>
       </footer>
 
-      <Bookplate open={sheet === 'plate'} onClose={() => setSheet(null)} signedIn={reader} />
+      {ACCOUNTS_ON && <Bookplate open={sheet === 'plate'} onClose={() => setSheet(null)} signedIn={reader} />}
       <ChaptersSheet open={sheet === 'chapters'} onClose={() => setSheet(null)} library={library} />
     </>
   );

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { Device } from './device.ts';
 import { openingTap, type PageState } from './landing.ts';
 import { primaryLabel, type LibraryState } from './library.ts';
+import { ACCOUNTS_ON } from './flags.ts';
 import { ShimmerButton } from './ui/shimmer-button.tsx';
 
 /** This page, as a link to send to a headset. */
@@ -87,7 +88,7 @@ export function OpenTheBook({ state, library, onSignIn, signedIn, compact = fals
           {ready.restart.label}
         </button>
       )}
-      {!compact && (<p className="m-0 mt-1 text-[15px] text-page/55">
+      {!compact && ACCOUNTS_ON && (<p className="m-0 mt-1 text-[15px] text-page/55">
         {signedIn ? (
           <>
             This book belongs to {signedIn}.{' '}

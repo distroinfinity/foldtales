@@ -70,12 +70,17 @@ export interface GuardConfig {
   now: () => Date;
   /** The user a session token belongs to, or null. Without it, nobody is ever signed in. */
   sessionUser?: (token: string) => Promise<string | null>;
+  /**
+   * Whether AI routes need a signed-in reader. On by default; the server turns it off unless
+   * TT_ACCOUNTS=on, so development and the build run without sign-in (owner, Nov 14).
+   */
+  requireSignIn?: boolean;
 }
 
 const bearerOf = (header: string | undefined): string | null => header?.match(/^Bearer (.+)$/)?.[1] ?? null;
 
 /** Authentication and caps. Counting comes before the handler, so a failed count never runs an AI route. */
-export function guard(store: Store, { secret, caps, now, sessionUser }: GuardConfig): MiddlewareHandler {
+export function guard(store: Store, { secret, caps, now, sessionUser, requireSignIn = true }: GuardConfig): MiddlewareHandler {
   return async (c, next) => {
     const route = routeOfPath.get(c.req.path);
     if (!route && !ACCOUNT_PATHS.has(c.req.path)) return next();
@@ -119,8 +124,9 @@ export function guard(store: Store, { secret, caps, now, sessionUser }: GuardCon
     }
     if (AI_ROUTES.has(route)) {
       const userId = await userOf();
-      if (!userId) throw new BackendError('unauthorized', SIGN_IN_REQUIRED);
-      spend(`user:${userId}`, route, caps.userFeature, 'your account has reached its daily limit');
+      if (!userId && requireSignIn) throw new BackendError('unauthorized', SIGN_IN_REQUIRED);
+      // With sign-in switched off, a guest's AI use is capped per device, as before accounts.
+      spend(userId ? `user:${userId}` : device, route, caps.userFeature, userId ? 'your account has reached its daily limit' : 'this device has reached its daily limit');
       spend('all', route, caps.feature, 'this feature has reached its daily limit');
       spend('all', 'ai', caps.global, 'the daily limit has been reached');
       return caller.run({ deviceId, userId }, next);

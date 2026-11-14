@@ -8,6 +8,7 @@ import { useRef, useState } from 'react';
 import type { Device } from './device.ts';
 import type { LibraryState } from './library.ts';
 import { askForMicrophone } from './microphone.ts';
+import { ACCOUNTS_ON } from './flags.ts';
 import content from './page-content.json';
 import { art } from './preload.ts';
 import { TextAnimate } from './ui/text-animate.tsx';
@@ -77,7 +78,7 @@ function Door({ device, library, signedIn, onSignIn, enterStoryteller, storytell
   const [mic, setMic] = useState<'unknown' | 'granted' | 'denied'>('unknown');
   // Elsewhere, the page's own "Send to your Quest" sits just below; one is enough.
   if (device !== 'headset') return null;
-  if (!signedIn)
+  if (ACCOUNTS_ON && !signedIn)
     return (
       <div className="flex flex-col items-center gap-3">
         <button type="button" className={doorButton} onClick={onSignIn}>
@@ -88,7 +89,7 @@ function Door({ device, library, signedIn, onSignIn, enterStoryteller, storytell
     );
   // Built and switched on in this build when ticket 3's side supplies the launcher (PR review 2).
   if (!(library.storyteller.available || enterStoryteller) || !enterStoryteller)
-    return <p className="m-0 max-w-[40ch] text-[16px] text-page/65">You’re signed in as {signedIn}. The AI Storyteller is on its way to this book, and it will open from here.</p>;
+    return <p className="m-0 max-w-[40ch] text-[16px] text-page/65">{signedIn ? `You’re signed in as ${signedIn}. ` : ''}The AI Storyteller is on its way to this book, and it will open from here.</p>;
   // Never open it without the microphone: it's a conversation (owner, in the headset, Nov 14).
   if (mic !== 'granted')
     return (

@@ -437,3 +437,10 @@ On PR #11 at `7c37528`, with in-memory probes: no P0, six P1, five P2. I checked
 9. **P2. The hero waited for all 28 pictures.** *Fixed:* it waits only for its own five; the rest load straight after.
 10. **P2. A full re-render and a geometry read on every scroll frame.** *Half fixed:* the lamp is measured only once it's on the page. The re-render stays for now; the headset frame rate decides whether it needs motion values.
 11. **P2. Small text on paper and in the footer was under 4.5:1.** *Fixed:* raised to at least 75% ink and 60% paper.
+
+## Sign-in switched off for now (owner, Nov 14)
+
+"Build sign up flows and everything but add a config flag to keep it disabled for now. I don't want to slow down dev progress." Sign-in is fully built, and **off by default**:
+- **Client: `TT_PUBLIC_ACCOUNTS=on`** shows the Sign in button, the bookplate, the line under the main button and the phone's page, syncs the book, and gates the AI Storyteller on sign-in. When it's off: none of that appears, the Storyteller door goes straight to the microphone, and `/link/` says sign-in isn't switched on.
+- **Backend: `TT_ACCOUNTS=on`** makes AI routes require a signed-in reader. When it's off, guests use them, capped per device as before accounts. The auth routes stay mounted either way.
+- Turn both on together, at deploy time, once Google and Resend are set up.

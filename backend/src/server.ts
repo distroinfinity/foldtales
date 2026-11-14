@@ -43,7 +43,7 @@ const app = createApp(
   {
     beforeContract: browserAccess(process.env.TT_CLIENT_HOST, devOrigins),
     auth: (app) => accounts.mountAuth(app),
-    afterContract: [guard(store, { secret, caps: readCaps(process.env), now, sessionUser: accounts.sessionUser })],
+    afterContract: [guard(store, { secret, caps: readCaps(process.env), now, sessionUser: accounts.sessionUser, requireSignIn: process.env.TT_ACCOUNTS === 'on' })],
     routes: (app) => accounts.mountRoutes(app),
     extend: adminTelemetry(store, process.env.TT_ADMIN_TOKEN),
   },

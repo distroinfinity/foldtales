@@ -4,6 +4,7 @@
  */
 import { useEffect, useState, type FormEvent } from 'react';
 import { approveDevice, denyDevice, emailSendCode, emailVerify, getSession, googleStartUrl, phoneVerifyCode } from '../account/index.ts';
+import { ACCOUNTS_ON } from '../landing/flags.ts';
 import { Shell, mount } from './shell.tsx';
 
 const field = 'min-h-16 w-full rounded-[12px] border border-page/25 bg-[#1d1814] px-5 text-[22px] text-page outline-none focus:border-gold';
@@ -159,4 +160,12 @@ function Link() {
   );
 }
 
-mount(<Link />);
+mount(
+  ACCOUNTS_ON ? (
+    <Link />
+  ) : (
+    <Shell title="Sign in your headset">
+      <p>Sign-in isn’t switched on yet. You don’t need an account to read the book.</p>
+    </Shell>
+  ),
+);
