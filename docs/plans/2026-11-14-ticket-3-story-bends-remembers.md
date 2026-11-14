@@ -1,0 +1,153 @@
+# Ticket 3: A story that bends and remembers (ends at M3)
+
+**Status:** Approved by the owner on Nov 14, after one Codex review (all eleven findings taken, see the review log). Building phase 1.
+
+**Goal.** Answer the owner's words after the first headset session: "I don't see any AI in it. I think that's planned ahead." What you hand over, and when, now changes what the characters say and do, in ways nobody wrote ahead of time. Next evening, chapter 2 is really different because of chapter 1: what you kept comes back, and its owner comes looking. Turn off Wi-Fi mid-chapter and it still finishes. And from the end page you can pick a lost thing and get a brand-new story about it.
+
+**Read with:** `docs/sprint-plan.md` (ticket 3), `docs/technical-design.md` (Objects, Director, Memory, AI pieces at a glance), `docs/design-language.md`, `docs/playtest-notes.md`, `docs/plans/2026-11-13-ticket-2-first-five-minutes.md`.
+
+## Decisions made with the owner (Nov 14)
+
+- **Chapter 2 is authored, with one new visitor.** I write it like chapter 1. Your keepsake turns up caught on the lamp gallery, and its owner, a new prepared visitor, comes for it. Paid runs: the visitor (about 10–15 credits) and chapter 2's voice lines (about 50–60 credits). **Cap 100 credits in total, and I can run them once each plan is written**, checking the shared balance before and after. The visitor is shown on the Mac before it goes in a build.
+- **AI lines are captions only for now.** The speaker's mouth moves, with a soft murmur under the caption. Ticket 4 voices them live; the slot for a voice (`VoiceAsset.url`) already exists, so nothing here changes when it does.
+- **Tonight's lost thing is picked in the book, from the drawer.** "Tonight's lost thing" is printed on the end page and the contents page. Pinch it, the drawer opens with the lost things, and you hand one to Pip.
+- **No internet means stop and say so, plainly.** If a new story can't be written (no connection, or the AI fails), the book says it in plain words, like any app: "No internet connection. A new story needs the internet." (or "Couldn't write a new story just now. Try again.") with "Try again" and the chapters you have. No filler, no pretend story. A chapter already playing never needs the internet, so it always finishes.
+- **The API key** is in the main checkout's `.env.local` as `ANTHROPIC_API_KEY`, read by the backend only. Models as the technical design names them: `claude-sonnet-5-5` for planning beats and stories, `claude-haiku-5-5` for quick reactions. Both requests ask for the server's refusal fallback, so a declined request is retried on another model rather than failing.
+
+## What changes in the headset
+
+### 1. The director, in every chapter
+
+The authored chapter stays the spine: it always plays, and it alone decides the physical story (who crosses how, the lamp, the beam). The director adds **short extra beats about what you just did**, written live, and only when they're ready.
+
+- **Reactions.** Hand something over when nobody is asking for it, or something that doesn't answer what's being asked, and a line comes back about that exact thing and that moment. Give Wick the brass key on the lamp spread: "Hmph. I've not seen this since the door rusted shut." Give Pip the kite before the gap: he wonders what it's for. The authored take-and-examine plays at once, as now; the reaction follows within a few seconds. While a problem is open, a gift still picks its authored branch, whoever takes it (as in ticket 2: Wick passes the lantern on to Pip), and the reaction joins that branch.
+- **Callbacks.** At quiet moments later in the chapter, a character remembers what you did: that you held the lantern until it woke up, that you picked Pip up and set him down on the shore, that you tried the sock before the ladder. The ending lines name it too ("Someone very big. With a ladder.").
+- **What it can't do.** Director beats are talk and acting only: lines, looks, hops, examining. They can't move anyone, place anything, open the drawer, solve a problem or end the chapter, and they can only name characters and objects that are on this spread right now. The story's shape stays authored, so every resolution and the take-it-away test hold by construction. The time-box doesn't hold by itself: a director beat is admitted only if the chapter's projected end, along its slowest remaining path (including the holding grace still unspent), stays under 7 minutes.
+- **Never waits.** A director beat plays only if it's ready and validated when its moment comes. Late, failed, capped or offline: it's dropped, and the authored story carries on without a gap. No bridge is ever needed for these, because nothing authored waits on them.
+
+### 2. Memory, the satchel and chapter 2
+
+- **What lasts.** When a chapter ends, the app records what lasts as canon: how the lantern came back (you, or Pip in the dark), how the gap was crossed, and what went into your satchel, each kept object with one sentence of history ("Carried Pip over the gap on the first night").
+- **Your satchel carries across chapters.** What you kept in chapter 1 is in your satchel when chapter 2 opens, with its history, and you can hand it over again.
+- **Chapter 2, "The one who came looking"** (outline below), changes for real with canon: which keepsake comes back, the recap, how Pip faces the dark, and how they cross the gap.
+- **The contents page, behind the sage tab.** Pinch the sage tab and the story pauses, the pop-ups fold, and the spread shows the contents: every chapter you've played, every lost-thing story, "Tonight's lost thing", and "Start the book over" at the foot. Pinch a chapter to see its page: that chapter's own set with the cast where they ended and your keepsakes laid on it, and what lasts printed below. On a chapter's page: "Read it again", and beside each keepsake "Give it back", which undoes it, so the next chapter plays as if you'd never kept it. Pinch the sage tab again to go back to the story.
+- **"Start the book over"** asks once ("Pinch again to forget everything"), then deletes the log, the satchel, the canon and the saved place, on the headset and on the server's mirror.
+- **The landing page** follows: "Continue chapter 2" once chapter 1 is finished, "Read it again" choices on the contents page inside.
+- **Survives reload.** Canon and satchel are derived from the event log in IndexedDB, mirrored to the backend's memory routes when it's reachable.
+
+### 3. Tonight's lost thing
+
+- Pinch "Tonight's lost thing" (on the end page or the contents page). The drawer opens with the lost things (kite, spool, ladder, sock, key, rope coil). Hand one to Pip.
+- While the story is written (about 20–30 s), Pip and Wick turn it over and wonder whose it is (a few authored, voiced lines), then the page turns into the new story, with its title on the caption band. The request has its own 60 s deadline (the usual 8 s would cut it off); past that, it's the plain "Couldn't write a new story just now" with "Try again", and the late answer is ignored.
+- **The story is written by Sonnet in a short story format** (title, three spreads, each with its lines, one problem written in tags with its branches), and **the backend builds the full spine from it**: page turns, entrances, asks, fallback and ignored beats. So the structure is always valid, and the AI's job is only the story. It plays on the existing sets with the existing cast, and ends with the lamp and the beam calling the lost thing home.
+- Before it plays, the client checks it like any authored chapter: `checkSpine`, the director's validator on every line, and a run of the simulator (both the zero-input path and every branch must finish in 5–7 minutes with no repeat). If any check fails, it's treated as a failure: the plain message, and try again.
+- Lines are captions only (decision above). A light moderation pass (Haiku) checks the generated words are PG and cozy before the story is offered.
+- **Spoken premises** need speech, which is ticket 4. This ticket builds the object premise only; the spoken one joins with Talk.
+
+### 4. Small things from session 2
+
+- **The kite and spool left on the shore.** Pip says one new line as you arrive on the shore: "Take whatever you like. Lost things always come in handy." (one voice line in the chapter 2 run).
+- **The ladder needed two tries.** I'll check the hand-over distance against the ladder's long body (it landed on the page first) and loosen it if it's measured to the wrong point.
+- **The gap's daytime sky.** The gap set borrows the shore's day sky; it will borrow the shore's night sky from run 011 instead. No credits.
+- **Turning the page by hand** hasn't been felt in the headset yet. First thing to ask about in session 1.
+
+## Chapter 2, "The one who came looking" (outline for your approval)
+
+The next evening. Same three spreads, about 6 minutes. The visitor is **Tansy, a small field mouse from the sewing basket upstairs, who loses everything she owns** (name and look are yours to change). Her things are what wash up in the Lost and Found, so every keepsake can be hers.
+
+1. **The lamp, at dusk.** "Previously on…" (about 20 s, narrator, voiced lines picked by canon: how the lantern came back, how Pip crossed). Pip trims the new wick while Wick watches, and Wick calls him "keeper" again. Your keepsake from chapter 1 has drifted home overnight, the way lost things do, and is caught on the gallery railing. A small voice calls up the stairs: Tansy, who came looking for it. **Reach in, free it and hand it to her.** If nobody does, Moth tugs it loose. If you kept nothing, it's her odd sock that's caught. She's been losing things all week, and tonight she's lost too: she followed the light and can't find her way home. **Turn the page.**
+2. **The shore, by night.** Pip leads Tansy home along the shore, braver than last night (lines change with whether he fetched the lantern himself). Tansy drops the key to her basket, and it rolls into the reeds. **Reach in for it** (anything that opens solves it; a wrong thing gets a funny failure). If nobody does, Moth goes for the shine. **Turn the page.**
+3. **The gap.** The path home crosses the gap again. Pip remembers how he crossed last night ("Last time I flew!"). The drawer and your satchel open, and you help them across with anything that works, as in chapter 1. If nobody helps, Tansy uses the keepsake you gave back to her: the kite lifts her over, her ladder is laid across, her thread is carried by Moth. If it was something that can't cross (the sock), Wick's rope comes, as last night. At the lighthouse, Wick steps back and lets Pip light the lamp on his own for the first time (the arc: Wick learns to hand over the lamp; it's lines and acting, then the spark from Pip's lantern, as in chapter 1). The beam sweeps your room and shows Tansy her way home. "The end of chapter two", "Read it again", "Tonight's lost thing".
+
+**What comes back.** Chapter 1's satchel can hold several things (the crossing object, plus anything else you gave). The one on the gallery railing is the object that crossed the gap; if nothing crossed, the first other thing you kept; if your satchel is empty, Tansy's own sock. It goes home with Tansy (canon: "Tansy has her kite back"); everything else stays in your satchel for the gap. "Give it back" on chapter 1's page removes a keepsake, and the choice above runs again.
+
+The variants (which keepsake comes back, how the lantern came back) are assembled into a plain contract `Spine` when the chapter starts, so the scheduler and simulator run it like chapter 1. The assembled spine is saved with the chapter's start event, so a reload rebuilds the same one.
+
+## How it's built
+
+Engine code still knows no character names.
+
+| Unit | Does | Where |
+|---|---|---|
+| **Splicing in the scheduler** | The scheduler gains one operation: `offer(beat)`, a validated director beat waiting for its moment. At the next action-group boundary of whatever is playing (between groups, or after an ask's spoken line while it waits; never inside a line or a crossing), it **suspends** the current execution, plays the director beat, then carries on with the **rest of the same beat from that group**. A suspension is not a gift's cut: nothing in the remainder is pulled forward (a character's entrance still happens when the remainder reaches it), and action keys stay those of the original beat, so once-only effects apply exactly once. If a gift preempts while a remainder is pending, the remainder is dropped, as a cut beat is today. An execution gains `fromIndex`, so the remainder is rebuilt exactly on resume; director beats live in the snapshot, whose version goes up (an older checkpoint is simply not resumed). An offer expires if its moment passes (8 s for a reaction, the end of the scene for a callback) | `client/src/show/scheduler.ts` |
+| **Time-box** | The projected end is computed from real scheduled durations: the current beat's remainder, then the slowest path through what's left (the longest branch of every problem still open or to come, plus its unspent holding grace). Today, holding something through all three asks already reaches 7:11 in the simulator (three 12 s graces), so the holding grace also gets an episode-wide budget that keeps that path under 7:00 | `client/src/show/scheduler.ts` |
+| **Director client** | Builds `planBeat` requests: the spine and cursor, a library narrowed to who and what is on this spread, the satchel with history, canon, the last 40 events, `usedLineIds`, and the trigger (`gift` for reactions; `lookahead` for callbacks, sent at the start of a quiet beat when something new has happened since the last one). One request in flight per trigger kind, through `aiOrAuthored`, with the 8 s deadline already in `backend.ts`. `planSpine` gets its own 60 s deadline | `client/src/director/` |
+| **Validator** | On the client, for every director beat, at the offer and again when it's admitted: `checkBeat` against the narrowed library, talk and acting only, at most 4 lines and 15 s, stage directions like `*grumbles*` stripped, no line over 160 characters, and a small PG word check. **No repeats, by line id** (`lineIdOf`): not a line already used, not any line anywhere in this chapter's spine (so an AI line can't steal one still to come), and not one in another offer still waiting. Anything that fails is dropped and logged, never repaired. The simulator compares lines by id too | `client/src/director/validate.ts` |
+| **The log records the story** | Today the log keeps beat starts and ends and the drawer only. It gains what memory and the director need: `episode.started` (with the spine, including an assembled or generated one, and the objects), `object.handed`, `object.used`, `problem.attempted`, `problem.resolved`, `entity.grabbed` for characters, `object.kept` with its history, `episode.ended`. Chapter-end canon is written once per finished chapter (idempotent by episode run), so a reload at the end page doesn't record it twice | `client/src/index.ts`, `client/src/show/log.ts` |
+| **Backend director** | Real handlers for `planBeat` and `planSpine` with the Anthropic SDK, keys from the environment, caps through the existing guard. Structured output on a small schema (lines with speaker, text, mood and an acting each), which the backend turns into contract stage actions. Prompt caching on the stable part (cast, world, spine). Gift reactions on Haiku with thinking off; lookahead and stories on Sonnet with `between_tools`. A refusal, a timeout or a bad shape is an error the client turns into the authored path | `backend/src/director/` |
+| **Story builder** | Turns the story format into a full contract `Spine` on the existing sets: page turns between spreads, entrances on the right marks, one ask per spread with rules, a fallback and an ignored beat (another character solves it), and the lamp and beam ending. Checked with `checkSpine` before it's sent | `backend/src/director/spine.ts` |
+| **Memory** | A pure reducer from the event log to canon, satchel (with history), pages and progress, honouring `canon.reverted`. Chapter end appends `object.kept`, `canon.recorded` and `page.composed`. Mirrored with `memoryAppend`. **"Start the book over"** clears the IndexedDB log, progress and checkpoint at once, bumps a log generation so writes still in flight are dropped, drops any director work in flight, and calls `memoryDelete`; if the backend can't be reached, a pending delete is kept and sent before any later mirror upload | `client/src/memory/` |
+| **Chapter 2** | `episode-2.json`: a spine plus canon variants, assembled at start. Its beats are checked by `checkSpine` and the simulator for every keepsake and every lantern ending | `client/public/show/` |
+| **Contents page and composed pages** | The sage tab toggles a contents mode: pop-ups fold, lines are printed on the spread and pinched like any book control (64 mm, reaching 5 cm up). A chapter's page is that chapter's own set and cast at their end marks, with the keepsakes on it, and what lasts printed on the caption band | `client/src/book/` |
+| **Several chapters in one runtime** | The runtime loads a spine per chapter (chapter 1, chapter 2, a lost-thing story) and resets onto it, the way "Read it again" resets today. Sets, cast and objects are already all loaded. **Reload:** progress records the active episode; the checkpoint carries its episode id and, for an assembled or generated chapter, the spine itself, so startup builds the runtime on the right spine before it reads the checkpoint. The log's episode id follows the switch | `client/src/show/runtime.ts`, `client/src/index.ts`, `client/src/show/checkpoint.ts`, `client/src/show/progress.ts` |
+| **Simulator** | Gains a scripted director with chosen latency and failure (none, slow, failing, capped, offline, random), so hundreds of shows run in CI time | `client/src/show/simulate.ts` |
+
+**Contracts.** I expect no change. `planBeat`, `planSpine`, `ReadyBeat`, `Beat.replaces`, the canon and page events and the memory routes already cover this. "Talk and acting only" and "next group boundary" are client decisions, written here. If a real contract change turns up, it goes as its own small PR first.
+
+## Order of work
+
+Each phase ends playable, and gets judged in the emulator before the headset.
+
+### Phase 1: the director in chapter 1 (thinnest playable)
+- [ ] Splicing in the scheduler, offers, expiry, time-box admission, snapshot.
+- [ ] Backend `planBeat` on Claude, with caching and fallbacks; validator; director client; reactions and callbacks.
+- [ ] Simulator with an injected director: hundreds of runs, every failure mode.
+- [ ] The gap's night sky; the ladder's hand-over.
+- [ ] **Headset session 1:** hand odd things over and see what comes back; Wi-Fi off mid-chapter; the page turn by hand.
+
+### Phase 2: memory and chapter 2
+- [ ] Memory reducer, chapter-end canon, satchel across chapters, mirror, delete.
+- [ ] Run 013: the visitor (plan, generate, cut out, rig, Mac look). Run 014: chapter 2's voices plus the shore line (plan, generate, check, close).
+- [ ] Chapter 2 data with its variants; several chapters in one runtime; landing "Continue chapter 2".
+- [ ] Contents page, composed pages, "Give it back", "Start the book over".
+- [ ] **Headset session 2:** the returning evening, including closing the book mid-scene.
+
+### Phase 3: Tonight's lost thing
+- [ ] Backend `planSpine` and the story builder; moderation pass.
+- [ ] The pick from the drawer, the wait, the checks, the plain failure message.
+- [ ] **Headset session 3:** start three stories of your own. Iterate until you sign M3 off.
+
+**Time.** About two days to M3, with the deadline on Nov 18: phase 1 by the end of Nov 14, phase 2 on Nov 15, phase 3 on the morning of Nov 16, the rest of Nov 16 for headset sessions and the sign-off. Rough budgets: splicing, the time-box and the log 3 h; backend director and validator 3 h; simulator runs 1 h; memory 2 h; runs 013 and 014 3 h; chapter 2 data 3 h; contents page and pages 3 h; lost thing 4 h.
+
+If time runs short, nothing the ticket requires is cut; polish goes first, in this order: fewer callbacks (reactions stay), the visitor as a single painted card with simple motion rather than a jointed puppet, the composed page as the chapter's set and keepsakes without the cast at their end marks, and chapter 2's shore lines shared across lantern endings (the keepsake variants and the gap's variants stay, since they're what makes chapter 2 change).
+
+## How it's checked
+
+- **Existing suite green** (`pnpm test`), with the zero-input path and the authored chapter 1 unchanged when the director is off.
+- **Simulator (P4), run from a script:** hundreds of shows per chapter with scripted readers and an injected director (instant, 2–9 s, 30% failing, all failing, capped, offline). Each asserts: 5–7 minutes, no stretch over 8 s quiet, no repeated line id, every gift gets `take` in its tick and a consequence within 6 s, every path resolves. Gifts that are asides or repeats are counted too: an aside's reaction is measured for when it actually lands (or that it expired cleanly), and a repeat gets its wordless "can't do that".
+- **Story rubric (P2):** every library object handed to each character in each spread, through the real backend, scored on a short rubric (about this object, in character, fits the moment, PG). I read the worst and the best, and you play them.
+- **Changes, not mentions:** chapter 2 simulated with each canon (each keepsake, each lantern ending, nothing kept) and after "Give it back": the beats played differ, not only the words.
+- **Reload:** canon and satchel survive a reload and a crash mid-chapter 2.
+- **Emulator:** the sage tab, contents, a chapter page, "Give it back", "Tonight's lost thing" through the drawer, the failure message with the backend off. Glasses field of view for the contents page.
+- **Keys:** `pnpm check:bundle` still finds no key in the client.
+
+## Risks
+
+| Risk | If it happens |
+|---|---|
+| Director lines are bland or samey | Tighten the prompt with chapter-specific notes, and the rubric shows it before you play |
+| Splicing makes the authored lines feel interrupted | Splice only before a line that starts a new thought (a `wait` or a speaker change), and fewer callbacks |
+| Reactions arrive too late to feel connected | Haiku with thinking off, a shorter prompt, and the 6 s expiry |
+| Generated stories don't pass the checks often | More of the structure in the builder, fewer free choices for the AI |
+| Captions-only AI lines feel unfinished next to voiced ones | Expected until ticket 4; the murmur and mouth movement carry it |
+| Chapter 2 runs long with every variant | The simulator's time-box per variant, and trimmed walks |
+
+## Not in this ticket
+
+Voices for AI lines, Talk and spoken premises, music (ticket 4). Story Circle (ticket 5, held). The web page and the journey around the book (ticket 6). Live-painted pages and finds (if there's time, later).
+
+## Review log
+
+Codex reviewed the plan once on Nov 14, read-only, against the code: no P0, eight P1 and three P2. I checked each one in the code. All eleven are real (number 9 only partly), and all are taken.
+
+1. **P1. Story generation would hit the 8 s deadline** in `client/src/backend.ts`. *Taken:* `planSpine` has its own 60 s deadline, and a late answer is ignored.
+2. **P1. The time-box isn't safe "by construction".** Holding something through all three asks already runs 7:11 in the simulator (three 12 s graces on a 6:35 path). *Taken:* admission uses real durations along the slowest remaining path, including the unspent grace, and the grace gets an episode-wide budget.
+3. **P1. Memory has nothing to read.** The log keeps only beats and the drawer (`client/src/index.ts`). *Taken:* the log records the story's events, chapter starts with their spine, and chapter ends, with chapter-end canon written once.
+4. **P1. A reload in chapter 2 or a generated story would come back on chapter 1,** since startup loads the manifest's episode and the checkpoint refuses another episode. *Taken:* progress records the active episode, the checkpoint carries its spine, and startup builds the runtime on it first.
+5. **P1. "Start the book over" could leave or bring back memory:** the log store can't delete, and writes are asynchronous. *Taken:* a local clear, a log generation that drops writes in flight, and a pending server delete sent before any later upload.
+6. **P1. Splicing isn't a gift's cut:** a cut brings later entrances forward. *Taken:* a suspension keeps the remainder's actions and keys as they are, and a gift drops a pending remainder.
+7. **P1. A reaction can't land during a long ask,** and the simulator doesn't measure asides. *Taken:* a splice may follow an ask's spoken line while it waits, the expiry is 8 s, and the simulator measures asides and repeats.
+8. **P1. Chapter 2's ladder had two homes:** chapter 1 puts it in the satchel, and the plan also left it across the gap. *Taken:* the gap is re-crossed in chapter 2, with what you kept as Tansy's way over if nobody helps; which keepsake comes back is defined for several kept things and for "Give it back". Wick letting Pip light the lamp is lines and acting, so no `give` handler is needed.
+9. **P2. "Anything to anyone"** isn't how problems work: the branch plays whoever takes the gift. *Partly taken:* that's ticket 2's accepted behaviour (Wick passes the lantern on), so it stays; the plan now says reactions are for gifts nobody asked for or that don't answer the ask, and join the branch otherwise.
+10. **P2. The repetition check was too narrow,** and the simulator compares raw text. *Taken:* no repeats by line id against used lines, every line of the chapter's spine and other waiting offers, checked again at admission; the simulator uses ids.
+11. **P2. The cut order would cut required work** (composed pages, consequence variants). *Taken:* hour budgets per phase, and a cut order that thins polish only.
