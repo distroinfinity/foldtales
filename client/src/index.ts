@@ -39,6 +39,8 @@ import { createWristMenu } from './stage/wrist.ts';
 import { createLiveScheduler } from './storyteller/live.ts';
 import { createStorySession, type StorySession } from './storyteller/session.ts';
 import { createEars } from './storyteller/ears.ts';
+import { createTalkTab } from './stage/talk.ts';
+import type { ExtraTarget } from './stage/controls.ts';
 import { presentCast } from './director/director.ts';
 import { minTextSizeM, settleOnTable } from './stage/sizing.ts';
 import { warmUp } from './stage/warm-up.ts';
@@ -203,6 +205,8 @@ async function prepare(world: World) {
   /** The scanned table under the book, for settling things you let go of. */
   const tableTop: { outline: Array<{ x: number; z: number }> | null } = { outline: null };
   const readAgain = { requested: false };
+  /** Other things the hands can take, added by a mode (the Storyteller's "Hold to talk"). */
+  const moreTargets: Array<() => ExtraTarget[]> = [];
   /** "Put the book away" from the wrist: the book closes, then the session ends. */
   const away = { requested: false };
   const hands = createObjectHands({
@@ -229,7 +233,7 @@ async function prepare(world: World) {
     glow: soft.glow,
     cards: stage.book.cards.length,
     onMoved: () => undefined,
-    extras: () => hands.targets(),
+    extras: () => [...hands.targets(), ...moreTargets.flatMap((f) => f())],
     onGazeSelect: (origin, direction) => hands.gazeSelect(origin, direction),
     // A new size keeps the printed lines at least 1° tall.
     onResized: (scale) => {
@@ -292,11 +296,11 @@ async function prepare(world: World) {
       else away.requested = true;
     },
   });
-  return { manifest, assets, stage, dim, sound, clock, runtime, wash, ember, log, pause, controls, soft, review, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, directorOn, storyConfig };
+  return { manifest, assets, stage, dim, sound, clock, runtime, wash, ember, log, pause, controls, soft, review, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, directorOn, storyConfig, moreTargets };
 }
 
 function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom: Checkpoint | null, target: EnterTarget | null = null): void {
-  const { manifest, assets, stage, sound, clock, runtime, wash, ember, log, pause, controls, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, storyConfig } = show;
+  const { manifest, assets, stage, sound, clock, runtime, wash, ember, log, pause, controls, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, storyConfig, moreTargets } = show;
   // The AI Storyteller, when that's the door the reader chose on the landing page.
   const storyMode = target?.kind === 'storyteller' && storyConfig !== null;
   let story: StorySession | null = null;
@@ -361,8 +365,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
         const name = (who && manifest.cast.find((c) => c.member.id === who)?.member.name) || 'They';
         storyHint.listening = state === 'listening';
         if (state === 'listening') {
-          storyHint.base = micAllowed ? `Your turn. ${name} ${name === 'They' ? 'are' : 'is'} listening…` : "They can't hear you yet: allow the microphone on the page outside the book.";
-          if (micAllowed) sound.play('chime', stage.book.root.getWorldPosition(new Vector3()), undefined, 'ui');
+          storyHint.base = micAllowed ? `Your turn. Hold the gold tab to talk to ${name === 'They' ? 'them' : name}.` : "They can't hear you yet: allow the microphone on the page outside the book.";
         } else storyHint.base = state === 'thinking' ? (storyHint.heard ? `You: ${storyHint.heard}` : '…') : null;
         if (state !== 'thinking') storyHint.heard = null;
         runtime.setHint(storyHint.base);
@@ -400,26 +403,48 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
   /** What the caption band says between lines: whose turn it is, and your words as they're heard. */
   const storyHint: { base: string | null; heard: string | null; listening: boolean } = { base: null, heard: null, listening: false };
   if (storyMode) beginStory();
-  // Listening: only with the microphone already allowed on the landing page (a first prompt inside XR has ended the session).
+  // Listening: hold to talk. The microphone was allowed on the landing page before the Storyteller opened.
   let micAllowed = false;
   void navigator.permissions?.query({ name: 'microphone' as PermissionName }).then((p) => {
     micAllowed = p.state === 'granted';
     p.onchange = () => (micAllowed = p.state === 'granted');
   }).catch(() => undefined);
+  const trim = (t: string) => (t.length > 70 ? `…${t.slice(-67)}` : t);
   const ears = createEars({
     token: () => storyAccess.withBackend((api) => api.speechToken({})).then((t) => (t && t.provider !== 'mock' ? t.token : null)).catch(() => null),
     heard: (text) => {
-      storyHint.heard = text.length > 70 ? `${text.slice(0, 67)}…` : text;
+      if (!text) {
+        runtime.setHint("Didn't catch that. Hold the gold tab and try again.");
+        return;
+      }
+      storyHint.heard = trim(text);
       runtime.setHint(`You: ${storyHint.heard}`);
       story?.heard(text);
     },
-    // Your words as they come, on the page; and a few clear words while they're speaking cut in.
-    hearing: (text) => {
-      if (storyHint.listening) runtime.setHint(`You: ${text.length > 70 ? `…${text.slice(-67)}` : text}`);
-      if (story && (story.state === 'performing' || story.state === 'thinking') && text.trim().split(/\s+/).length >= 4) story.interrupt();
+    hearing: (text) => runtime.setHint(`You: ${trim(text)}`),
+    onState: (state) => {
+      talk.setState(state === 'off' ? 'idle' : state);
+      if (state === 'opening') runtime.setHint('Wait for the tab to glow, then speak.');
+      if (state === 'listening') {
+        runtime.setHint("Listening… let go when you're done.");
+        sound.play('chime', stage.book.root.getWorldPosition(new Vector3()), undefined, 'ui');
+      }
     },
     log: (m) => console.info(m),
   });
+  const talk = createTalkTab({
+    bookRoot: stage.book.root,
+    pageY: stage.book.pageY,
+    pageW: assets.book.closedSizeM[0],
+    pageD: assets.book.closedSizeM[1],
+    hold: () => {
+      // Holding the tab while they speak is cutting in: they stop, and listen.
+      if (story && (story.state === 'performing' || story.state === 'thinking')) story.interrupt();
+      void ears.hold();
+    },
+    release: () => ears.release(),
+  });
+  moreTargets.push(() => talk.targets());
   let earsOn = false;
   const startEpisode = () => {
     log.forget();
@@ -600,11 +625,13 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
     for (const a of answers.splice(0)) director.receive(runtime.scheduler, clock.ms, a.id, a.ready);
     if (show.directorOn && runtime.started && !runtime.ended) director.frame(runtime.scheduler, clock.ms);
     story?.frame();
-    const listen = story !== null && runtime.started && !clock.paused && micAllowed;
-    if (listen !== earsOn) {
-      earsOn = listen;
-      if (listen) ears.start();
-      else ears.stop();
+    // The tab is there while the Storyteller's book is open and playing; a pause lets the microphone go.
+    const canTalk = story !== null && runtime.started && !clock.paused && controls.amount > 0.98;
+    if (canTalk !== earsOn) {
+      earsOn = canTalk;
+      talk.setShown(canTalk);
+      if (canTalk && micAllowed) ears.ready();
+      if (!canTalk) ears.stop();
     }
     for (const e of runtime.drain()) {
       if (e.type === 'gift' && story) {
@@ -849,8 +876,11 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, world
         }
         void askForMicrophone(navigator.mediaDevices?.getUserMedia?.bind(navigator.mediaDevices)).then((answer) => {
           micState = answer === 'granted' ? 'granted' : 'denied';
-          const state = ready();
-          setLandingState(answer === 'granted' && state.kind === 'ready' && state.storyteller ? { ...state, storyteller: { ...state.storyteller, label: 'Thank you. Now open the AI Storyteller' } } : state);
+          if (answer === 'granted') {
+            // Straight in. If the browser wants a fresh tap for VR, the door is ready for it.
+            setLandingState({ ...(ready() as Extract<LandingState, { kind: 'ready' }>), storyteller: { label: 'Open the AI Storyteller', run: () => enter(false, 'story') } });
+            enter(false, 'story');
+          } else setLandingState(ready());
         });
       };
       const ready = (): LandingState => {
