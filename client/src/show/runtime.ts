@@ -82,7 +82,7 @@ export interface ShowRuntime {
   start(): void;
   /** Back to the very start of the episode, as if the book had just been opened. */
   reset(objects: RuntimeSnapshot['objects'], keepScheduler?: boolean): void;
-  /** A quiet line printed on the caption band when nobody is speaking (the Storyteller's "Pip is listening"). Null clears it. */
+  /** A quiet line printed on the caption band when nobody is speaking (the Storyteller's "… is listening"). Null clears it. */
   setHint(text: string | null): void;
   /** Plays a different show on the same stage: the AI Storyteller's live scheduler and its growing spine. */
   useScheduler(scheduler: Scheduler, spine: Spine, objects: RuntimeSnapshot['objects']): void;
