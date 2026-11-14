@@ -12,7 +12,7 @@
 
 **Why.** In the AI Storyteller's second headset session (Nov 14), the owner asked the cast to "light up my room" and the lighthouse beam swept the real room: "that lighthouse effect was nice … very simple and clever, like a rotating light in my room. More things which interact with my living place." Not new characters: more things like the lamp. The same session found the cast promising room effects that never happened ("the kite is circling your couch"). This ticket builds real room effects, so the cast has real things to do and only promises what exists.
 
-**Read with:** `docs/design-language.md` (Light and the room, the look bar), `docs/technical-design.md` (Stage and your room, P5), `art/README.md`, ticket 3's `backend/src/storyteller/turn.ts` (PR #9).
+**Read with:** `docs/design-language.md` (Light and the room, the look bar), `docs/technical-design.md` (Stage and your room, P5), `art/README.md`, ticket 3's `backend/src/storyteller/turn.ts` (PR #9, merged Nov 15).
 
 ## What you'll get
 
@@ -71,7 +71,7 @@ Checked on Nov 14 against Meta's docs (metavr `vr_docs_search`) and the IWSDK 1.
 - **Closing the book pauses the room too.** Effects fade with the book, like the beam, and return when it opens.
 - **Built before they're needed.** Every view and texture is made at load and hidden, since the Quest hitches when things are built mid-show (technical design).
 
-Code lives in `client/src/room-fx/` (room map, `roomAt`, one view per effect), with hooks in `light/dim.ts`, `room/room-view.ts`, `show/schedule.ts`, `show/runtime.ts` (including characters turning toward a room place, not only toward you), `show/manifest.ts`, `show/sound-marks.ts`, `sound/engine.ts`, `objects/objects.ts` and `objects/hands.ts`. Nothing in `backend/src/storyteller/` or `client/src/storyteller/` until PR #9 merges.
+Code lives in `client/src/room-fx/` (room map, `roomAt`, one view per effect), with hooks in `light/dim.ts`, `room/room-view.ts`, `show/schedule.ts`, `show/runtime.ts` (including characters turning toward a room place, not only toward you), `show/manifest.ts`, `show/sound-marks.ts`, `sound/engine.ts`, `objects/objects.ts` and `objects/hands.ts`. The storyteller side touches `backend/src/storyteller/turn.ts` and `client/src/storyteller/session.ts` (PR #9 merged Nov 15).
 
 ## The new stage action
 
@@ -159,7 +159,7 @@ Frame budget for the whole layer: today's builds run at a median 90 fps, lows 78
 - **No window frame in Space Setup:** the effect isn't offered. A chapter beat that asks for it is skipped, and the storyteller never hears of it.
 - **Budget:** +1 draw.
 
-## The storyteller's side (after PR #9 merges)
+## The storyteller's side (PR #9 merged on Nov 15)
 
 1. **A `ROOM` step** in `turn.ts`'s step format, parsed and checked against the effect list, the available list and the room map, like `CUE`. Its arguments are checked too: a hunt needs an object that's on stage, a `tide-in` needs the sea out, `thunder` needs rain.
 2. **The request says what's possible and what's on:** only effects that are built, loaded and supported in this room, and what's showing now (for example "it's raining in the room; the sea is out"). The cast can't promise a window effect in a room without a window.
@@ -168,7 +168,7 @@ Frame budget for the whole layer: today's builds run at a median 90 fps, lows 78
 5. **Room places as names the cast can use:** "your couch", "the shelf by the window", never coordinates.
 6. **A scripted check:** 20 room requests ("make it rain", "where's my kite?", "show me the stars", "fly to my window" in a room with no window) against the live storyteller, read by me, with no promise left without its effect. Not a unit test, and no paid credits beyond the usual Claude calls.
 
-The ticket-3 session tells me when PR #9 merges. I rebase onto main then, and wire whatever effects are built by that time. Each later effect joins the list with no extra wiring.
+PR #9 merged on Nov 15 (`187c046`), and this branch is rebased onto it. The storyteller is wired as soon as the first effect works (the hunt), and each later effect joins the list with no extra wiring. As merged, its rules say (`turn.ts`, the "Only describe what the stage really shows" rule): "Of the story, only light, the lamp's beam and a flying character's MOVE reach the room." That line is widened to list the room effects as each one lands, and the next rule ("one who flies can fly to the window") is replaced as above, since `MOVE` only reaches marks on the book.
 
 ## Order of build, smallest wow first
 
@@ -186,7 +186,7 @@ Each step ends with something you can see in the headset. Every step after 1 run
 | 7 | **Snow and fog** | Run 014 | Snow on your table and couch |
 | 8 | **The sea**, tide, paper boat, bottle, gulls | Runs 015 and 016 | The sea on your floor, lapping at your couch |
 | 9 | **The window** | None (reused art) | Your window shows the night sea |
-| — | **Storyteller wiring**, as soon as PR #9 merges | None | "Make it rain" works, and no promise is left empty |
+| — | **Storyteller wiring**, from step 2 on (PR #9 is merged) | None | "Make it rain" works, and no promise is left empty |
 
 Why this order: steps 2 to 4 need no new art and no credits, and the hunt builds straight on the beam you already loved. The storm is the biggest single wow, so it comes right after the free ones. The sea is the most art and code, so it's later. The window is cheap but only works in rooms with a window frame, so it's last.
 
@@ -199,7 +199,8 @@ Why this order: steps 2 to 4 need no new art and no credits, and the hunt builds
 - `checkBeat` takes the room map's places, so a `room` action naming an unknown exact place is caught; label refs always pass, since they fall back.
 - Telemetry gains `room_fx { effect, on }`, so frame summaries can be read per effect.
 - `data/tags.json` gains a `message` tag ("carries words for someone"), for the bottle.
-- `CONTRACT_VERSION` goes from 3 to 4. Ticket 3's contracts are already merged (PR #10), so this doesn't collide with PR #9. If the product workspace has a contract PR open at the same time, we go one after the other, as before.
+- `CONTRACT_VERSION` goes from 3 to 4. No other open PR touches contracts (checked Nov 15). This is PR #14.
+- `StageNow.roomFx` is optional, so the merged storyteller client keeps working until it sends it.
 
 ## Art runs (each gets its own `plan.json` before any credits, per `art/README.md`)
 
