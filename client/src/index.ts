@@ -309,12 +309,17 @@ async function prepare(world: World) {
   // Review builds only: `?cue=beam` plays the lighthouse beam once the opening has finished, for P5.
   const devCue = reviewQuery('cue');
   if (devCue && manifest.cues.some((c) => c.id === devCue)) runtime.addCue(devCue, 11_500);
-  // Review builds only: `?room=hunt` hides the kite in your room once the opening has finished, and the beam finds it.
-  if (reviewQuery('room') === 'hunt') runtime.addRoom({ do: 'room', withPrev: false, effect: 'hunt', what: 'object:kite', at: 'room:couch' }, 11_500);
-  // `?room=shadows`: the cast's shadows on your wall, from the end of the opening.
-  if (reviewQuery('room') === 'shadows') runtime.addRoom({ do: 'room', withPrev: false, effect: 'shadows', what: null, at: null }, 11_500);
-  // `?room=fireflies`: fireflies off the page, round your hand.
-  if (reviewQuery('room') === 'fireflies') runtime.addRoom({ do: 'room', withPrev: false, effect: 'fireflies', what: null, at: null }, 11_500);
+  // Review builds only: `?room=shadows,fireflies` plays each room effect in turn once the opening has
+  // finished, about 25 s apart, so they can be checked in one sitting. `hunt` hides the kite on your couch.
+  const devRoom = (reviewQuery('room') ?? '').split(',').filter(Boolean);
+  devRoom.forEach((effect, i) => {
+    const at = 11_500 + i * 25_000;
+    if (effect === 'hunt') runtime.addRoom({ do: 'room', withPrev: false, effect: 'hunt', what: 'object:kite', at: 'room:couch' }, at);
+    else if (effect === 'shadows' || effect === 'fireflies') {
+      runtime.addRoom({ do: 'room', withPrev: false, effect, what: null, at: null }, at);
+      runtime.addRoom({ do: 'room', withPrev: false, effect: `${effect}-off`, what: null, at: null }, at + 22_000);
+    }
+  });
   const wrist = createWristMenu({
     parent: world.scene,
     sound,
