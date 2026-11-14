@@ -21,7 +21,7 @@ import type { RuntimeSnapshot } from './show/runtime.ts';
 import { createShowClock } from './show/clock.ts';
 import { createShowLog, indexedDbLogStore } from './show/log.ts';
 import { libraryOf, ShowManifest } from './show/manifest.ts';
-import { BackendError, estimateSpeechMs, linesOf, type ReadyBeat, type ShowObject } from '@tabletop/contracts';
+import { BackendError, SIGN_IN_REQUIRED, estimateSpeechMs, linesOf, type ReadyBeat, type ShowObject } from '@tabletop/contracts';
 import { createDirector } from './director/director.ts';
 import { ChapterCanon, recordChapterEnd } from './memory/memory.ts';
 import { createPauseControl } from './show/pause.ts';
@@ -332,7 +332,8 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
             }
             for await (const event of events) {
               // A stream reports a refused token as an event, not a throw: renew it with a plain call, then try once more.
-              if (event.kind === 'error' && event.code === 'unauthorized' && attempt === 0) {
+              // A guest who must sign in is not a stale device token: that one is shown, not renewed.
+              if (event.kind === 'error' && event.code === 'unauthorized' && event.message !== SIGN_IN_REQUIRED && attempt === 0) {
                 await storyAccess.withBackend((api) => api.memoryRead({ seriesId: 'token-check', afterSeq: null })).catch(() => null);
                 break;
               }
@@ -385,7 +386,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       onAcknowledge: (who) => sound.play('interested', stage.puppets.get(who)?.root.getWorldPosition(new Vector3())),
       // A guest can't use the AI Storyteller: said plainly, printed on the page, never as an error.
       onError: (code, message) => {
-        if (code === 'unauthorized' && /sign in/i.test(message)) storyHint.blocked = 'Sign in on the page outside the book to talk with them.';
+        if (code === 'unauthorized' && message === SIGN_IN_REQUIRED) storyHint.blocked = 'Sign in on the page outside the book to talk with them.';
         else if (code === 'upstream_failed' && /could not be reached/.test(message)) storyHint.blocked = 'No internet connection. The AI Storyteller needs the internet.';
         else return;
         runtime.setHint(storyHint.blocked);
