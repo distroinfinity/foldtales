@@ -12,6 +12,7 @@
 - **AI lines are captions only for now.** The speaker's mouth moves, with a soft murmur under the caption. Ticket 4 voices them live; the slot for a voice (`VoiceAsset.url`) already exists, so nothing here changes when it does.
 - **Tonight's lost thing is picked in the book, from the drawer.** "Tonight's lost thing" is printed on the end page and the contents page. Pinch it, the drawer opens with the lost things, and you hand one to Pip.
 - **No internet means stop and say so, plainly.** If a new story can't be written (no connection, or the AI fails), the book says it in plain words, like any app: "No internet connection. A new story needs the internet." (or "Couldn't write a new story just now. Try again.") with "Try again" and the chapters you have. No filler, no pretend story. A chapter already playing never needs the internet, so it always finishes.
+- **Stop the show: a wrist tag** (owner, Nov 14, during headset session 1). A small painted paper tag on the back of your left wrist, like a watch, shown when you turn the back of that hand toward you (never palm-up, so it stays clear of Meta's reserved palm-pinch system gesture). Pinch or tap it with the other hand, and three paper tags fan out: "Pause" (then "Carry on"), "Start this chapter again", "Put the book away". **Put the book away** closes the book and ends the immersive session; the landing page then offers "Continue" from that exact moment. The ribbon stays as the one-touch pause, closing the book still pauses, and the Meta button still exits. Chapters, Tonight's lost thing and "Start the book over" stay on the contents page behind the sage tab. Researched first: the system gesture is reserved (VRC.Quest.Input.8) and the app pauses when the system asks (VRC.Quest.Functional.2), which it already does.
 - **The API key** is in the main checkout's `.env.local` as `ANTHROPIC_API_KEY`, read by the backend only. Models as the technical design names them: `claude-sonnet-5-5` for planning beats and stories, `claude-haiku-5-5` for quick reactions. Both requests ask for the server's refusal fallback, so a declined request is retried on another model rather than failing.
 
 ## What changes in the headset
@@ -101,6 +102,9 @@ Each phase ends playable, and gets judged in the emulator before the headset.
 - **Simulator, 438 shows per seed across six director profiles** (off, instant, normal, slow, 30% failing, all failing): 0 failing; every path 5:00–6:55; about 75% of director beats offered get played.
 - **Emulator:** the kite handed to Pip while he asks for the wick gets "A kite? Oh, look at its patches. Somebody loved this kite very much…" about 5 s later; after the lantern, Wick: "Somebody big had a hand in that."; after the ladder: "Five little rungs, and not one of them wobbled. Well, only my knees." With the backend stopped, the chapter plays on with no gap. The ladder is handed over on the first try when held by its top (hand-over now measured along the whole object).
 - [ ] **Headset session 1:** hand odd things over and see what comes back; Wi-Fi off mid-chapter; the page turn by hand.
+
+### Phase 1b: stop the show
+- [ ] The wrist tag and its three tags, painted and printed like the book, with every hand state shown and heard. Pause, restart the chapter, put the book away (ends the session, landing offers Continue). Emulator, then the headset.
 
 ### Phase 2: memory and chapter 2
 - [ ] Memory reducer, chapter-end canon, satchel across chapters, mirror, delete.
