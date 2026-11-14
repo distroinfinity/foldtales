@@ -1,4 +1,4 @@
-import { ACTING, HANDLING_MS, MOVE_MS, estimateSpeechMs, type Beat, type StageAction } from '@tabletop/contracts';
+import { ACTING, HANDLING_MS, MOVE_MS, ROOM_EFFECTS, estimateSpeechMs, type Beat, type StageAction } from '@tabletop/contracts';
 
 export interface Timed {
   index: number;
@@ -45,6 +45,8 @@ export function actionDuration({ cueMs = {}, voiceMs = () => null }: DurationSou
         return cueMs[action.cue] ?? 0;
       case 'ask_reader':
         return action.waitSeconds * 1000;
+      case 'room':
+        return ROOM_EFFECTS[action.effect].ms;
       case 'music':
       case 'resolve':
         return 0;

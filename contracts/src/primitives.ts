@@ -18,13 +18,28 @@ export const PlayerRef = z.string().regex(new RegExp(`^(?:${ID}|\\$giver)$`));
 const CAST_TARGET = `cast:(?:${ID}|\\$receiver)`;
 const OBJECT_TARGET = `object:(?:${ID}|\\$offered)`;
 
+/**
+ * Kinds of place in the reader's real room, from Space Setup. A place's id is its kind and a
+ * number (`couch-2`); a bare kind (`couch`) means the best place of that kind, or the next best.
+ */
+export const ROOM_LABELS = ['table', 'couch', 'bed', 'wall', 'window', 'door', 'floor', 'ceiling', 'shelf', 'storage', 'screen', 'lamp', 'plant', 'other'] as const;
+export const RoomLabel = z.enum(ROOM_LABELS);
+export type RoomLabel = z.infer<typeof RoomLabel>;
+const ROOM_PLACE = `(?:${ROOM_LABELS.join('|')})(?:-[0-9]+)?`;
+/** A room place's own id, such as `couch-2`. */
+export const RoomPlaceId = z.string().regex(new RegExp(`^(?:${ROOM_LABELS.join('|')})-[0-9]+$`));
+const ROOM_TARGET = `room:${ROOM_PLACE}`;
+/** A place in the reader's room: `room:couch` (the best couch, or the next best place) or `room:couch-2` (that one). */
+export const RoomRef = z.string().regex(new RegExp(`^${ROOM_TARGET}$`));
+export type RoomRef = z.infer<typeof RoomRef>;
+
 /** A character or an object on stage. */
 export const EntityRef = z.string().regex(new RegExp(`^(?:${CAST_TARGET}|${OBJECT_TARGET})$`));
 
-/** Where something points. The director names targets and marks, never coordinates. */
+/** Where something points. The director names targets, marks and room places, never coordinates. */
 export const Target = z
   .string()
-  .regex(new RegExp(`^(?:reader|player:(?:${ID}|\\$giver)|${CAST_TARGET}|${OBJECT_TARGET}|mark:${ID})$`));
+  .regex(new RegExp(`^(?:reader|player:(?:${ID}|\\$giver)|${CAST_TARGET}|${OBJECT_TARGET}|mark:${ID}|${ROOM_TARGET})$`));
 
 export const Mood = z.enum(['neutral', 'warm', 'tense', 'wonder', 'silly', 'sad', 'relief']);
 export type Mood = z.infer<typeof Mood>;
