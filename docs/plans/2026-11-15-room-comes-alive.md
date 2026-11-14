@@ -1,6 +1,14 @@
 # Your room comes alive (room effects)
 
-**Status:** Plan, reviewed once by Codex (Nov 15, ten findings, all taken in), waiting for the owner's approval. No code yet. Branch `ticket-4-room-comes-alive`, from main.
+**Status:** Approved by the owner on Nov 15. Reviewed once by Codex (ten findings, all taken in). Building, starting with the contracts PR.
+
+## Decisions made with the owner (Nov 15)
+
+- **Plan approved as written,** in the build order below.
+- **Up to 180 Runway credits:** art runs 014 and 015 (at most 35 each) and sound run 016 (at most 110, free CC0 sounds first). A clear window on the shared account is confirmed before each run.
+- **The room storm plays in chapter 1's opening,** where the storm blows the lamp out. Chapter 1 is signed off, so this change is checked by the owner in the headset before it merges.
+- **Shadows only when the story asks,** never automatically.
+- **The seated hunt:** look at the hidden thing and pinch to call it to you, as well as walking over (default kept). Branch `ticket-4-room-comes-alive`, from main.
 
 **Why.** In the AI Storyteller's second headset session (Nov 14), the owner asked the cast to "light up my room" and the lighthouse beam swept the real room: "that lighthouse effect was nice … very simple and clever, like a rotating light in my room. More things which interact with my living place." Not new characters: more things like the lamp. The same session found the cast promising room effects that never happened ("the kite is circling your couch"). This ticket builds real room effects, so the cast has real things to do and only promises what exists.
 
@@ -173,7 +181,7 @@ Each step ends with something you can see in the headset. Every step after 1 run
 | 2 | **The treasure hunt.** Beam finds the kite on your couch; walk over or look and pinch | None | Does the beam stopping on your couch land? Also: labels logged from your room, and one `?occlusion=on` look |
 | 3 | **Shadow play** | None | Does Pip's giant shadow on your wall feel like magic or like a glitch? |
 | 4 | **Fireflies** | None | Do they feel alive around your hand? |
-| 5 | **The storm:** rain, darkness, thunder, sound all around | Runs 014 and 016 | Rain in your room, with and without occlusion |
+| 5 | **The storm:** rain, darkness, thunder, sound all around, and in chapter 1's opening storm | Runs 014 and 016 | Rain in your room, with and without occlusion; chapter 1's opening with the storm |
 | 6 | **The night sky**, constellations, shooting star, the wish | Run 014 | Stars on your ceiling |
 | 7 | **Snow and fog** | Run 014 | Snow on your table and couch |
 | 8 | **The sea**, tide, paper boat, bottle, gulls | Runs 015 and 016 | The sea on your floor, lapping at your couch |
@@ -244,10 +252,3 @@ Cap 110. Every clip gets run 009's finishing pass (levels vary by 20 dB or more)
 | Shadow pass causes a hitch | Split the silhouette pass across frames, or drop to 8 poses a second for shadows |
 | Too many effects at once | The app's rules cap it at two big effects plus the beam |
 | A painted piece looks like clip art in a real room | It doesn't ship (no test visuals). Repaint once inside the run's cap, or cut the piece |
-
-## Questions for you
-
-1. **May I spend up to 180 Runway credits** (art runs 014 and 015, at most 35 each, and sound run 016, at most 110, CC0 first)? I'll ask for a clear window on the shared account before each.
-2. **Chapter 1:** the opening already has a storm that blows out the lamp. Should the room storm play there too? Chapter 1 is signed off, so I won't touch it unless you say yes. Otherwise, effects show up in the chapters you're writing and in the Storyteller.
-3. **Shadows:** only when a beat calls for them (my default), or always whenever a light is lit and a wall is found?
-4. **The hunt, seated:** look and pinch to call the object to you (my default, alongside walking over)?
