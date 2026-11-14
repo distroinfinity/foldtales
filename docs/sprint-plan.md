@@ -28,7 +28,7 @@ Why: AI lines spliced into the written chapter didn't land ("If a story is alrea
   - [x] Repo and contracts. Plan: `docs/superpowers/plans/2026-11-09-repo-and-contracts.md`
   - [x] Pip on the table
   - [x] Deploy and backend: CI, device tokens, caps, memory, telemetry and the report
-  - [ ] ⏸ Hosting: Cloudflare previews per branch, the live Railway backend, and the live cap test. Workflow and config are committed, and deploys stay off until `BACKEND_URL` is set
+  - [x] Hosting: live since Nov 15 (ticket 7). Cloudflare Pages and Railway build main from GitHub; no per-branch previews, by the owner's choice
 - [x] **1. First 30 seconds** (PR #6). Plan: `docs/plans/2026-11-12-ticket-1-first-30-seconds.md`
   - [x] Painted Stage Kit
   - [x] Stage and room
@@ -61,7 +61,7 @@ Why: AI lines spliced into the written chapter didn't land ("If a story is alrea
   - [ ] The page: the hero and the scroll that opens the book, on every device
   - [ ] Your book on any headset
   - [ ] **Later, once the product is nearly done: turn sign-in on and test it.** Built and tested on the Mac, switched off for now (owner, Nov 14). Set up Resend (needs a domain and its DNS records), a Google sign-in client, and the server's sign-in secrets (`BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `TT_CLIENT_HOST`). Then turn on `TT_ACCOUNTS=on` (server) and `TT_PUBLIC_ACCOUNTS=on` (site) together. Test on the Quest: Google in Quest Browser, the phone code, and a second headset.
-  - [ ] **Host it on foldtales.xyz** (owner, Nov 15): the site on Cloudflare Pages through the existing CI, and the backend on Railway at api.foldtales.xyz. The AI stays off in production for now. Steps in the plan's "Hosting on foldtales.xyz"; this also releases ticket 0's held hosting task.
+  - [x] **Host it on foldtales.xyz** (owner, Nov 15). Live at https://www.foldtales.xyz with the API at api.foldtales.xyz; each platform deploys main from GitHub: the site on Cloudflare Pages through the existing CI, and the backend on Railway at api.foldtales.xyz. The AI stays off in production for now. Steps in the plan's "Hosting on foldtales.xyz"; this also releases ticket 0's held hosting task.
 - **Art library** (runs throughout)
   - [x] Book and first set for M1 (run 004, PR #1). Approved on the Mac
   - [x] Drawer objects for M2 (run 006, PR #2). Approved on the Mac and in Quest Browser
