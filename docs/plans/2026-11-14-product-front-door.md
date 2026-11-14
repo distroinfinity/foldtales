@@ -479,3 +479,13 @@ Decided with the owner:
 - [x] The first deploy is **main's code** (`92194c2`), from a clean checkout: `/healthz` answers 200, and a request without the contract header is refused. Address: `backend-production-a5ad31ed.up.railway.app`. `api.foldtales.xyz` is added on Railway and waits for DNS.
 - [ ] Owner: move `foldtales.xyz`'s nameservers from GoDaddy to Cloudflare. Then the agent adds the `api` CNAME and Railway's TXT check, and attaches `foldtales.xyz` to Pages.
 - [ ] Owner: the `CLOUDFLARE_API_TOKEN` and `RAILWAY_TOKEN` secrets. Then the agent sets `BACKEND_URL=https://api.foldtales.xyz`, which switches the CI deploys on.
+
+**DNS stays at GoDaddy (owner, Nov 15).** Cloudflare can't host a bare domain whose DNS is elsewhere, so the site is **www.foldtales.xyz**, and GoDaddy forwards `foldtales.xyz` to it (301). The backend's `TT_CLIENT_HOST` is `www.foldtales.xyz`.
+
+GoDaddy records:
+- `www` CNAME `foldtales.pages.dev`
+- `api` CNAME `aoa8djfe.up.railway.app`
+- `_railway-verify.api` TXT, with the value Railway gives
+- forwarding of `foldtales.xyz` to `https://www.foldtales.xyz`
+
+`www.foldtales.xyz` was added to the Pages project through the API. Neither CLI login may mint deploy tokens: Railway's GraphQL answers "Not Authorized", and the Cloudflare OAuth login has no token scope. So `RAILWAY_TOKEN` and `CLOUDFLARE_API_TOKEN` come from the dashboards.
