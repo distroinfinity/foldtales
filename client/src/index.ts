@@ -364,14 +364,23 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
         // Printed on the page, like every caption: whose turn it is, and plainly when they can't hear you.
         const name = (who && manifest.cast.find((c) => c.member.id === who)?.member.name) || 'They';
         storyHint.listening = state === 'listening';
-        if (state === 'listening') {
-          storyHint.base = micAllowed ? `Your turn. Hold the gold tab to talk to ${name === 'They' ? 'them' : name}.` : "They can't hear you yet: allow the microphone on the page outside the book.";
+        if (state === 'performing') storyHint.blocked = null;
+        if (state === 'listening' && storyHint.blocked) storyHint.base = storyHint.blocked;
+        else if (state === 'listening') {
+          storyHint.base = micAllowed ? `Your turn: hold the button to talk to ${name === "They" ? "them" : name}.` : "They can't hear you yet: allow the microphone on the page outside the book.";
         } else storyHint.base = state === 'thinking' ? (storyHint.heard ? `You: ${storyHint.heard}` : '…') : null;
         if (state !== 'thinking') storyHint.heard = null;
         runtime.setHint(storyHint.base);
       },
       onPaint: (job) => void collectPainting(job, story),
       onAcknowledge: (who) => sound.play('interested', stage.puppets.get(who)?.root.getWorldPosition(new Vector3())),
+      // A guest can't use the AI Storyteller: said plainly, printed on the page, never as an error.
+      onError: (code, message) => {
+        if (code === 'unauthorized' && /sign in/i.test(message)) storyHint.blocked = 'Sign in on the page outside the book to talk with them.';
+        else if (code === 'upstream_failed' && /could not be reached/.test(message)) storyHint.blocked = 'No internet connection. The AI Storyteller needs the internet.';
+        else return;
+        runtime.setHint(storyHint.blocked);
+      },
     });
   };
   /** A painting the story asked for: wait for it, upload it out of sight, then it appears on the page and the story is told. */
@@ -401,7 +410,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
     }
   }
   /** What the caption band says between lines: whose turn it is, and your words as they're heard. */
-  const storyHint: { base: string | null; heard: string | null; listening: boolean } = { base: null, heard: null, listening: false };
+  const storyHint: { base: string | null; heard: string | null; listening: boolean; blocked: string | null } = { base: null, heard: null, listening: false, blocked: null };
   if (storyMode) beginStory();
   // Listening: hold to talk. The microphone was allowed on the landing page before the Storyteller opened.
   let micAllowed = false;
@@ -414,7 +423,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
     token: () => storyAccess.withBackend((api) => api.speechToken({})).then((t) => (t && t.provider !== 'mock' ? t.token : null)).catch(() => null),
     heard: (text) => {
       if (!text) {
-        runtime.setHint("Didn't catch that. Hold the gold tab and try again.");
+        runtime.setHint("Didn’t catch that. Hold the button and try again.");
         return;
       }
       storyHint.heard = trim(text);

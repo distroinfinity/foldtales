@@ -33,6 +33,8 @@ export interface SessionDeps {
   log?(message: string): void;
   /** A painting the story asked for. */
   onPaint?(job: { jobId: string; objectId: string; description: string }): void;
+  /** A turn failed: a guest's "sign in" (401), no connection, or the story slipped. */
+  onError?(code: string, message: string): void;
   /** Someone turned to you because you said or gave something: a small sound from them. */
   onAcknowledge?(who: string): void;
   /** State changes, for the paper ear and the cast's listening acting. */
@@ -135,6 +137,7 @@ export function createStorySession(deps: SessionDeps) {
           return;
         } else if (event.kind === 'error') {
           deps.log?.(`storyteller turn failed: ${event.code}`);
+          deps.onError?.(event.code, event.message);
           toListening(null);
           return;
         }
