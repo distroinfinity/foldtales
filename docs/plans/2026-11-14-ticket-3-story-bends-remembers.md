@@ -69,6 +69,15 @@
 | The camera isn't available to the browser | Ask for the thing by voice instead ("show" becomes "tell"); still painted in |
 | The clones don't sound like the cast | ElevenLabs library voices picked by ear, with the same voice chain |
 
+### Progress (Nov 14, evening)
+
+- **Contracts v2 merged** (PR #10): `storyTurn`, `paintProp`/`paintResult`, `soundEffect`, counted as AI routes in the guard.
+- **The core evening runs in the emulator** (`?storyteller=1`). The book opens on the lamp spread. Claude writes each turn as short steps (`SAY`, `MOVE`, `ENTER`, `ACT`, `GIVE`, `PLACE`, `LIGHT`, `CUE`, `SET`, `PAINT`, `LISTEN`), each checked against the stage library. Each line is voiced as soon as it's written and played in order on a live scheduler, and the page turns to whichever set the story goes to. The first line is ready about 1.9–2.4 s after the turn starts (before voicing time). "Pip is listening…" is printed on the caption band between turns.
+- **Anything appears works end to end.** Run 013 (8 credits) proved the recipe. In the emulator, "a tiny blue teapot that lost its whistle" was painted in 27 s (2 credits), set on the page, and the story picked it up ("there's a hole where the whistle should be"). Caps: 6 paintings an evening, `PAINT_CREDIT_CAP` (100) in all.
+- **The seam for the landing:** `libraryState()`, `LibraryState`, `EnterTarget` and `CHAPTERS` in `client/src/show/progress.ts`, with the product workspace's exact shapes. `run(world, show, resumeFrom, target)` in `index.ts` takes the landing's `EnterTarget`; `{ kind: 'storyteller' }` opens straight into the Storyteller.
+- **Waiting on:** the owner's ElevenLabs key, for live voices and speech in. Until then lines are captions only and you type to them (in the emulator).
+- **Still to do:** listening (ElevenLabs realtime speech to text, barge-in), choosing the library voices by ear, your room (planes with labels), the camera test, the wrist tag in the headset, a guest's sign-in line.
+
 ### Re-cut review log
 
 Codex reviewed the re-cut once on Nov 14, read-only, against the code: no P0, twelve P1 and two P2. I checked each against the code: all real, all taken (in "Order of work, with gates").

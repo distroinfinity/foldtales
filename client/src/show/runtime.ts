@@ -82,6 +82,8 @@ export interface ShowRuntime {
   start(): void;
   /** Back to the very start of the episode, as if the book had just been opened. */
   reset(objects: RuntimeSnapshot['objects'], keepScheduler?: boolean): void;
+  /** A quiet line printed on the caption band when nobody is speaking (the Storyteller's "Pip is listening"). Null clears it. */
+  setHint(text: string | null): void;
   /** Plays a different show on the same stage: the AI Storyteller's live scheduler and its growing spine. */
   useScheduler(scheduler: Scheduler, spine: Spine, objects: RuntimeSnapshot['objects']): void;
   /** Rebuilds from a checkpoint, at its show time, without replaying any sound. */
@@ -224,6 +226,7 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
   let wallMs = 0;
   const HOP_MS = 650;
   let endedAtMs: number | null = null;
+  let hint: string | null = null;
   const pending: RuntimeEvent[] = [];
   const speeches: Array<{ speech: Speech; atMs: number; text: string; endMs: number }> = [];
   let marks: SoundMark[] = [];
@@ -436,6 +439,9 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
     start() {
       started = true;
       views.sound.roomTone(true);
+    },
+    setHint(text) {
+      hint = text;
     },
     useScheduler(next, nextSpine, initialObjects) {
       spine = nextSpine;
@@ -956,7 +962,8 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
       } else if (inviting && invite) {
         // A first-timer's hint, printed on the page like the rest: it fades in once the edge has lifted.
         views.caption.show('Turn the page', clamp01((invite.localMs - 700) / 500) * 0.85);
-      } else views.caption.show(null, 0);
+      } else if (hint) views.caption.show(hint, 0.6 + 0.15 * Math.sin(nowMs / 600));
+      else views.caption.show(null, 0);
       views.endPage.show(end && !caption && bookOpen, end ? clamp01((ms - endedAtMs!) / 900) : 0);
 
       if (started) {

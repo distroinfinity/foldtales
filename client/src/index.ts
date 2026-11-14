@@ -14,7 +14,7 @@ import { buildDim } from './light/dim.ts';
 import { loadStageAssets, uploadAll } from './paint/assets.ts';
 import { makeSoftPieces } from './paint/soft.ts';
 import { CHECKPOINT_VERSION, clearCheckpoint, readCheckpoint, writeCheckpoint, type Checkpoint } from './show/checkpoint.ts';
-import { landingChoice, readProgress, writeProgress } from './show/progress.ts';
+import { landingChoice, readProgress, writeProgress, type EnterTarget } from './show/progress.ts';
 import { createObjectHands } from './objects/hands.ts';
 import type { RuntimeSnapshot } from './show/runtime.ts';
 import { createShowClock } from './show/clock.ts';
@@ -293,10 +293,10 @@ async function prepare(world: World) {
   return { manifest, assets, stage, dim, sound, clock, runtime, wash, ember, log, pause, controls, soft, review, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, directorOn, storyConfig };
 }
 
-function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom: Checkpoint | null): void {
+function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom: Checkpoint | null, target: EnterTarget | null = null): void {
   const { manifest, assets, stage, sound, clock, runtime, wash, ember, log, pause, controls, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, storyConfig } = show;
   // The AI Storyteller instead of chapter 1: a review flag until the landing page's door passes it in.
-  const storyMode = reviewQuery('storyteller') === '1' && storyConfig !== null;
+  const storyMode = (target?.kind === 'storyteller' || reviewQuery('storyteller') === '1') && storyConfig !== null;
   let story: StorySession | null = null;
   const library = libraryOf(manifest, assets.objects);
   const onStage = manifest.onStage.map((o) => o.cast);
@@ -353,7 +353,12 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       room: () => [],
       nowMs: () => clock.ms,
       log: (m) => console.info(m),
-      onState: (state, who) => console.info(`storyteller: ${state}${who ? ` (${who})` : ''}`),
+      onState: (state, who) => {
+        console.info(`storyteller: ${state}${who ? ` (${who})` : ''}`);
+        // Printed on the page, like every caption: who is listening, or that they're thinking it over.
+        const name = (who && manifest.cast.find((c) => c.member.id === who)?.member.name) || 'They';
+        runtime.setHint(state === 'listening' ? `${name} ${name === 'They' ? 'are' : 'is'} listening…` : state === 'thinking' ? '…' : null);
+      },
       onPaint: (job) => void collectPainting(job, story),
     });
   };
