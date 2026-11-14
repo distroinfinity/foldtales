@@ -42,10 +42,18 @@ export interface BeamLight {
   strength: number;
 }
 
+/** A soft pool of light on a real place in the room: the hunt's find. */
+export interface SpotLight {
+  at: Vector3;
+  /** How wide the pool is, metres. */
+  radiusM: number;
+  strength: number;
+}
+
 export interface DimView {
   mesh: Mesh;
   /** Positions on your head each frame, so the room around you dims and the book stays lit. */
-  update(head: Vector3, book: Vector3, bookWidthM: number, dim: number, beam?: BeamLight | null): void;
+  update(head: Vector3, book: Vector3, bookWidthM: number, dim: number, beam?: BeamLight | null, spot?: SpotLight | null): void;
   /** Review only: adjusts the darkness, the pool's own dimming and the falloff, live. */
   tune(shape: { max?: number; pool?: number; falloff?: number }): void;
 }
@@ -70,6 +78,9 @@ export function buildDim(): DimView {
       uBeamAz: { value: 0 },
       uBeamStrength: { value: 0 },
       uBeamHalf: { value: BEAM_HALF },
+      uSpotDir: { value: new Vector3(0, -1, 0) },
+      uSpotAngle: { value: 0.1 },
+      uSpotStrength: { value: 0 },
     },
     vertexShader: /* glsl */ `
       varying vec3 vDir;
@@ -80,8 +91,8 @@ export function buildDim(): DimView {
         gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
       }`,
     fragmentShader: /* glsl */ `
-      uniform float uDim, uMax, uPool, uInner, uOuter, uBeamAz, uBeamStrength, uBeamHalf;
-      uniform vec3 uBookDir, uLamp;
+      uniform float uDim, uMax, uPool, uInner, uOuter, uBeamAz, uBeamStrength, uBeamHalf, uSpotAngle, uSpotStrength;
+      uniform vec3 uBookDir, uLamp, uSpotDir;
       varying vec3 vDir;
       varying vec3 vWorld;
       void main() {
@@ -96,8 +107,11 @@ export function buildDim(): DimView {
         float off = abs(mod(az - uBeamAz + 3.14159265, 6.2831853) - 3.14159265);
         float band = 1.0 - smoothstep(0.6, 1.8, abs(vWorld.y - uLamp.y));
         float beam = uBeamStrength * band * (1.0 - smoothstep(uBeamHalf * 0.3, uBeamHalf, off));
-        alpha *= 1.0 - 0.9 * beam;
-        gl_FragColor = vec4(color * alpha + vec3(1.0, 0.8, 0.48) * 0.24 * beam, alpha);
+        // The pool of light on a found thing: seen from your eyes, a soft disc around it.
+        float toSpot = acos(clamp(dot(normalize(vDir), uSpotDir), -1.0, 1.0));
+        float spot = uSpotStrength * (1.0 - smoothstep(uSpotAngle * 0.45, uSpotAngle, toSpot));
+        alpha *= (1.0 - 0.9 * beam) * (1.0 - 0.85 * spot);
+        gl_FragColor = vec4(color * alpha + vec3(1.0, 0.8, 0.48) * (0.24 * beam + 0.16 * spot), alpha);
       }`,
     side: BackSide,
     transparent: true,
@@ -119,8 +133,15 @@ export function buildDim(): DimView {
       if (shape.pool !== undefined) material.uniforms.uPool!.value = shape.pool;
       if (shape.falloff !== undefined) falloff = shape.falloff;
     },
-    update(head, book, bookWidthM, dim, beam) {
+    update(head, book, bookWidthM, dim, beam, spot) {
       material.uniforms.uBeamStrength!.value = beam?.strength ?? 0;
+      material.uniforms.uSpotStrength!.value = spot?.strength ?? 0;
+      if (spot) {
+        const toSpot = spot.at.clone().sub(head);
+        const distance = Math.max(0.3, toSpot.length());
+        material.uniforms.uSpotDir!.value.copy(toSpot.normalize());
+        material.uniforms.uSpotAngle!.value = Math.atan(spot.radiusM / distance);
+      }
       if (beam) {
         material.uniforms.uLamp!.value.copy(beam.lamp);
         material.uniforms.uBeamAz!.value = beam.azimuth;

@@ -1,6 +1,9 @@
 import Anthropic from '@anthropic-ai/sdk';
 import {
   ACTING,
+  ROOM_EFFECTS,
+  RoomRef,
+  type RoomEffect,
   NARRATOR,
   checkBeat,
   estimateSpeechMs,
@@ -34,6 +37,64 @@ const MAX_STEPS = 18;
 const MAX_LINES = 6;
 const MAX_PAINTS = 1;
 
+/** What each room effect does, in the words the storyteller reads. Only the ones the client says it can show are offered. */
+const ROOM_HELP: Record<RoomEffect, string> = {
+  rain: 'painted rain falls across the reader\'s whole room and it darkens',
+  snow: 'snow falls in the room and settles on their real table and couch',
+  fog: 'fog rolls along their floor',
+  thunder: 'a thunder flash lights their walls (only while it rains)',
+  clear: 'the weather in the room ends',
+  'night-sky': 'the room goes dark and stars and the moon come out on their ceiling',
+  'stars-lantern': 'the Lantern constellation lights up overhead (only with the night sky)',
+  'stars-kite': 'the Kite constellation lights up overhead (only with the night sky)',
+  'stars-fox': 'the Fox constellation lights up overhead (only with the night sky)',
+  'shooting-star': 'a shooting star crosses their ceiling (only with the night sky)',
+  day: 'the night sky ends',
+  sea: 'watercolour sea washes across their floor and laps at the couch',
+  'tide-in': 'the tide rises on their floor (only with the sea)',
+  'tide-out': 'the tide falls (only with the sea)',
+  boat: 'a paper boat sails off the page onto the sea (only with the sea)',
+  bottle: 'a bottle with a message washes up at the reader\'s feet: name the object',
+  'sea-off': 'the sea ends',
+  shadows: 'the cast throw giant shadows on the reader\'s wall from the light',
+  'shadows-off': 'the shadows end',
+  hunt: 'the object is hidden in the reader\'s room and the lighthouse beam sweeps the room and finds it there; the reader fetches it. Name the object, and a place with at:',
+  fireflies: 'fireflies drift off the page into the room and follow the reader\'s hand',
+  'fireflies-off': 'the fireflies go',
+  gulls: 'gulls fly in and perch on a place in the room',
+  'gulls-off': 'the gulls fly off',
+  window: 'the reader\'s real window shows the story\'s night sea, with the beam passing',
+  'window-off': 'the window goes back to normal',
+};
+/** What a room effect needs showing first. */
+const ROOM_NEEDS: Partial<Record<RoomEffect, RoomEffect>> = {
+  thunder: 'rain',
+  'stars-lantern': 'night-sky',
+  'stars-kite': 'night-sky',
+  'stars-fox': 'night-sky',
+  'shooting-star': 'night-sky',
+  'tide-in': 'sea',
+  'tide-out': 'sea',
+  boat: 'sea',
+};
+/** What a room effect turns on or off, for later steps in the same turn. */
+function roomAfter(on: Set<string>, effect: RoomEffect): void {
+  const weather = ['rain', 'snow', 'fog'];
+  if (weather.includes(effect)) {
+    for (const w of weather) on.delete(w);
+    on.add(effect);
+    if (effect !== 'fog') on.delete('night-sky');
+  } else if (effect === 'clear') for (const w of weather) on.delete(w);
+  else if (effect === 'night-sky') {
+    on.add(effect);
+    on.delete('rain');
+    on.delete('snow');
+  } else if (effect === 'day') on.delete('night-sky');
+  else if (effect === 'sea-off') on.delete('sea');
+  else if (effect.endsWith('-off')) on.delete(effect.slice(0, -4));
+  else if (['sea', 'shadows', 'fireflies', 'gulls', 'window'].includes(effect)) on.add(effect);
+}
+
 export const RULES = `You are the AI Storyteller of a live pop-up storybook theatre, performed by paper puppets on the reader's real table in mixed reality. The reader talks to the cast out loud and you make the story up with them, as it happens, like the best improv troupe: say yes, build on what they say, and make something you can SEE happen.
 
 The world: the Lost and Found at the Edge of the Table, where everything lost in a house drifts home and a lighthouse calls it in. Cozy, warm, a little funny, gently brave; a bedtime picture book for teens and adults. PG. The reader is a giant, friendly presence the characters can see and talk to. Nobody mentions AI, screens, games or apps.
@@ -52,6 +113,7 @@ LIGHT <dusk|night|gold>    the light over the stage changes
 CUE <cue> [<target>]       an effect: ${CUES.join(', ')}
 SET <set id>               turn the page to another set (then use that set's marks)
 PAINT <new-object-id> | <what it looks like>   something new that isn't in the library is fetched and painted into the story (at most one per turn; only when the story really wants a new thing)
+ROOM <effect> [object:<id>] [at:<room place>]   an effect in the reader's real room. Only the effects listed for tonight. Write it on the line just before the words that talk about it
 LISTEN <who>               end the turn: the cast turns to the reader and waits
 
 Rules:
@@ -60,10 +122,10 @@ Rules:
 - Keep turns short (10 to 25 seconds of talk). Usually end with a question or an invitation to the reader, then LISTEN. Sometimes play out a little scene first.
 - Use what the reader says, exactly, as the story's direction. If they suggest a story, start telling it with the cast. If they ask a character something, that character answers in character.
 - Things in the reader's satchel are theirs, kept from earlier evenings. When the reader asks for one, or the story wants it, bring it out with PLACE onto a mark. Never PAINT something the satchel already holds.
-- Only describe what the stage really shows. Objects stay on the page: never say one flies, circles or lands somewhere in the reader's room. Of the story, only light, the lamp's beam and a flying character's MOVE reach the room.
+- Only describe what the stage really shows. Objects stay on the page unless a ROOM step takes them into the room: never say one flies, circles or lands somewhere in the reader's room otherwise. Of the story, only light, the lamp's beam, a flying character's MOVE and the ROOM effects listed for tonight reach the room. Say a room effect happens only in the line right after its ROOM step, and never promise one that isn't listed.
 - When the reader names a thing the story needs that isn't among the objects here (a teapot, a hat, a lost key of their own), PAINT it early in the turn so it can arrive on the page; a character can go to fetch it.
 - Go places: when the story moves (down to the shore, out to the gap, up to the lamp), SET the page to that set and use its marks.
-- The reader's real room is listed as room marks. You may use them: a character can look out at the giant's couch, or one who flies can fly to the window.
+- The reader's real room is listed as room places (couch-1, window-1…). Characters stay on the book and can talk about the giant's couch or window; ROOM effects use these places with at:, such as ROOM hunt object:kite at:couch-1. When the reader asks for something in their room ("make it rain", "where's my kite?"), use the ROOM effect that does it if it's listed; if none is, say so kindly in story and do something on the page instead.
 - If the reader asks for something unkind or out of tone, the narrator gently turns the page to something cozier, in story.
 - Never repeat a line from the evening so far.
 - Never guess the reader's name, age or gender: call them "giant", "you", or by a name they've told you.`;
@@ -98,7 +160,10 @@ function contextOf(request: StoryTurnRequest): string {
     `Sets:\n${sets.join('\n')}\nMarks on the set showing now: ${marks}`,
     `Light: ${stage.light}. The lighthouse lamp is ${stage.lampLit ? 'lit' : 'dark'}.`,
     objects.length ? `Objects here:\n${objects.join('\n')}` : 'No objects here yet.',
-    room.length ? `The reader's real room (room marks): ${room.map((r) => `${r.id} (a ${r.label})`).join(', ')}` : '',
+    room.length ? `The reader's real room (room places): ${room.map((r) => `${r.id} (a ${r.label})`).join(', ')}` : '',
+    stage.roomFx?.available.length
+      ? `Room effects you can use tonight (ROOM): ${stage.roomFx.available.map((e) => `${e}: ${ROOM_HELP[e]}`).join('; ')}.${stage.roomFx.on.length ? ` Showing in the room now: ${stage.roomFx.on.join(', ')}.` : ''}`
+      : 'No room effects tonight.',
     request.canon.length ? `From earlier stories:\n${request.canon.map((c) => `- ${c.text}`).join('\n')}` : '',
     history.length ? `The evening so far:\n${history.slice(-40).map((h) => `${h.who}: ${h.text}`).join('\n')}` : '',
     `NOW: ${what}`,
@@ -113,9 +178,11 @@ type Step =
   | { kind: 'action'; action: StageAction }
   | { kind: 'set'; setId: string }
   | { kind: 'paint'; objectId: string; description: string }
-  | { kind: 'listen'; who: string | null };
+  | { kind: 'listen'; who: string | null }
+  /** A room effect that can't happen: the line about it is dropped too, so nothing is promised. */
+  | { kind: 'refused' };
 
-export function parseStep(line: string, request: StoryTurnRequest, setId: string): Step | null {
+export function parseStep(line: string, request: StoryTurnRequest, setId: string, roomOn: ReadonlySet<string> = new Set(request.stage.roomFx?.on ?? [])): Step | null {
   const cast = castOf(request);
   const marks = new Set(request.library.sets.find((s) => s.id === setId)?.marks.map((m) => m.id) ?? []);
   const objects = new Set(request.stage.objects.map((o) => o.id));
@@ -195,6 +262,29 @@ export function parseStep(line: string, request: StoryTurnRequest, setId: string
       if (!id || objects.has(id) || tail.length < 3) return null;
       return { kind: 'paint', objectId: id, description: tail.slice(0, 200) };
     }
+    case 'ROOM': {
+      const effect = words[1] as RoomEffect | undefined;
+      if (!effect || !request.stage.roomFx?.available.includes(effect)) return { kind: 'refused' };
+      const need = ROOM_NEEDS[effect];
+      if (need && !roomOn.has(need)) return { kind: 'refused' };
+      const places = new Set(request.room.map((r) => r.id));
+      let what: string | null = null;
+      let at: string | null = null;
+      for (const w of words.slice(2)) {
+        if (w.startsWith('object:')) {
+          if (!objects.has(w.slice(7))) return { kind: 'refused' };
+          what = w;
+        } else if (w.startsWith('at:') || w.startsWith('room:')) {
+          const name = w.slice(w.indexOf(':') + 1);
+          const ref = `room:${name}`;
+          // A place by id must be in this room; a bare kind (couch) always has a next best place.
+          if (!RoomRef.safeParse(ref).success || (/-[0-9]+$/.test(name) && !places.has(name))) return { kind: 'refused' };
+          at = ref;
+        }
+      }
+      if (ROOM_EFFECTS[effect].what !== (what !== null)) return { kind: 'refused' };
+      return { kind: 'action', action: { do: 'room', withPrev: false, effect, what, at } };
+    }
     case 'LISTEN': {
       const who = words[1];
       return { kind: 'listen', who: who && cast.has(who) ? who : null };
@@ -252,6 +342,10 @@ export async function* storyTurn(request: StoryTurnRequest, deps: TurnDeps): Asy
   let steps = 0;
   let paints = 0;
   let listened: string | null | undefined;
+  /** Room effects on as the turn goes, so a later step can rely on an earlier one (rain, then thunder). */
+  const roomOn = new Set<string>(request.stage.roomFx?.on ?? []);
+  /** A refused room effect takes the next line with it: that's the line describing it. */
+  let dropNextLine = false;
   let firstAt: number | null = null;
   /** In order; each entry knows when it's ready, so voiced lines go out while the rest is written. */
   const queue: Array<{ done: boolean; value: TurnEvent | null; wait: Promise<TurnEvent | null> }> = [];
@@ -280,16 +374,24 @@ export async function* storyTurn(request: StoryTurnRequest, deps: TurnDeps): Asy
 
   const take = (step: Step): void => {
     steps += 1;
-    if (step.kind === 'action') {
+    if (step.kind === 'refused') {
+      dropNextLine = true;
+      deps.log?.('storyteller refused a room effect, and the line about it');
+    } else if (step.kind === 'action') {
+      if (step.action.do === 'room') roomAfter(roomOn, step.action.effect);
       pending.push(step.action);
     } else if (step.kind === 'say') {
+      if (dropNextLine) {
+        dropNextLine = false;
+        return;
+      }
       const id = lineIdOf(step.who, step.text);
       if (used.has(id) || lines >= MAX_LINES) return;
       used.add(id);
       lines += 1;
       const beat = beatOf(request, setId, pending, step);
       pending = [];
-      const issues = checkBeat(beat, request.library, request.stage.objects, sceneOf(setId));
+      const issues = checkBeat(beat, request.library, request.stage.objects, sceneOf(setId), request.room);
       if (issues.length) {
         deps.log?.(`storyteller dropped a line: ${issues.map((i) => i.code).join(', ')}`);
         return;
@@ -324,7 +426,7 @@ export async function* storyTurn(request: StoryTurnRequest, deps: TurnDeps): Asy
       for (let nl = buffer.indexOf('\n'); nl >= 0; nl = buffer.indexOf('\n')) {
         const raw = buffer.slice(0, nl);
         buffer = buffer.slice(nl + 1);
-        const step = parseStep(raw, request, setId);
+        const step = parseStep(raw, request, setId, roomOn);
         if (step && steps < MAX_STEPS && listened === undefined) take(step);
       }
       // Nothing is said until moderation has passed the turn (it runs alongside, so it rarely waits).
@@ -346,7 +448,7 @@ export async function* storyTurn(request: StoryTurnRequest, deps: TurnDeps): Asy
       return;
     }
     if (buffer.trim()) {
-      const step = parseStep(buffer, request, setId);
+      const step = parseStep(buffer, request, setId, roomOn);
       if (step && listened === undefined) take(step);
     }
     if (pending.length) enqueue(Promise.resolve({ kind: 'beat', ready: { beat: beatOf(request, setId, pending, null), voice: {} } }));

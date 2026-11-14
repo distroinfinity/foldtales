@@ -26,6 +26,8 @@ import { createDirector } from './director/director.ts';
 import { ChapterCanon, recordChapterEnd } from './memory/memory.ts';
 import { createPauseControl } from './show/pause.ts';
 import { createShowRuntime } from './show/runtime.ts';
+import { createRoomMap } from './room-fx/room-map.ts';
+import { effectsOn } from './room-fx/state.ts';
 import { createSoundEngine } from './sound/engine.ts';
 import narratorVoice from '../../art/voice/narrator.json';
 import { arrivalAt, OPEN_AT_MS } from './stage/arrival.ts';
@@ -47,6 +49,9 @@ import { minTextSizeM, settleOnTable } from './stage/sizing.ts';
 import { warmUp } from './stage/warm-up.ts';
 import { buildEmber, buildWash } from './stage/wash.ts';
 import { createTelemetry } from './telemetry.ts';
+
+/** Room effects this build can show. Each joins as it's built, and the storyteller hears of only these. */
+const ROOM_EFFECTS_BUILT: import('@tabletop/contracts').RoomEffect[] = ['hunt'];
 
 const FLUSH_EVERY_MS = 10_000;
 const FRAMEBUFFER_SCALE = 1.4;
@@ -173,12 +178,15 @@ async function prepare(world: World) {
   await sound.load();
   const clock = createShowClock();
   const defs = new Map(assets.objects.map((o) => [o.id, o]));
+  // Your real room, from Space Setup, for room effects and the storyteller.
+  const roomMap = createRoomMap();
+  stage.objects.setRoom((place) => roomMap.byId(place)?.centre.clone() ?? null);
   const runtime = createShowRuntime({
     manifest,
     spine: assets.spine,
     defs,
     moods: assets.set.moods,
-    views: { stageRoot: stage.root, book: stage.book, puppets: stage.puppets, actors: stage.actors, heads: stage.heads, dim, leaves: stage.leaves, caption: stage.caption, endPage: stage.endPage, sound, objects: stage.objects, drawer: stage.drawer, satchel: stage.satchel, spark: stage.spark, spans: stage.spans },
+    views: { stageRoot: stage.root, book: stage.book, puppets: stage.puppets, actors: stage.actors, heads: stage.heads, dim, leaves: stage.leaves, caption: stage.caption, endPage: stage.endPage, sound, objects: stage.objects, drawer: stage.drawer, satchel: stage.satchel, spark: stage.spark, spans: stage.spans, room: roomMap },
     clock,
   });
   const initialObjects = stage.objects.snapshot();
@@ -211,6 +219,10 @@ async function prepare(world: World) {
   /** "Put the book away" from the wrist: the book closes, then the session ends. */
   const away = { requested: false };
   const hands = createObjectHands({
+    roomBelow: (world) => {
+      const place = roomMap.below(world);
+      return place ? { kind: 'room', place: place.id, offset: [world.x - place.centre.x, world.z - place.centre.z] } : null;
+    },
     objects: stage.objects,
     runtime,
     book: stage.book,
@@ -236,6 +248,7 @@ async function prepare(world: World) {
     onMoved: () => undefined,
     extras: () => [...hands.targets(), ...moreTargets.flatMap((f) => f())],
     onGazeSelect: (origin, direction) => hands.gazeSelect(origin, direction),
+    onHeadSelect: (origin, direction) => hands.headSelect(origin, direction),
     // A new size keeps the printed lines at least 1° tall.
     onResized: (scale) => {
       sizing.userScale = scale;
@@ -287,6 +300,8 @@ async function prepare(world: World) {
   // Review builds only: `?cue=beam` plays the lighthouse beam once the opening has finished, for P5.
   const devCue = reviewQuery('cue');
   if (devCue && manifest.cues.some((c) => c.id === devCue)) runtime.addCue(devCue, 11_500);
+  // Review builds only: `?room=hunt` hides the kite in your room once the opening has finished, and the beam finds it.
+  if (reviewQuery('room') === 'hunt') runtime.addRoom({ do: 'room', withPrev: false, effect: 'hunt', what: 'object:kite', at: 'room:couch' }, 11_500);
   const wrist = createWristMenu({
     parent: world.scene,
     sound,
@@ -297,11 +312,11 @@ async function prepare(world: World) {
       else away.requested = true;
     },
   });
-  return { manifest, assets, stage, dim, sound, clock, runtime, wash, ember, log, pause, controls, soft, review, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, directorOn, storyConfig, moreTargets };
+  return { manifest, assets, stage, dim, sound, clock, runtime, roomMap, wash, ember, log, pause, controls, soft, review, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, directorOn, storyConfig, moreTargets };
 }
 
 function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom: Checkpoint | null, target: EnterTarget | null = null): void {
-  const { manifest, assets, stage, sound, clock, runtime, wash, ember, log, pause, controls, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, storyConfig, moreTargets } = show;
+  const { manifest, assets, stage, sound, clock, runtime, roomMap, wash, ember, log, pause, controls, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, storyConfig, moreTargets } = show;
   // The AI Storyteller, when that's the door the reader chose on the landing page.
   const storyMode = target?.kind === 'storyteller' && storyConfig !== null;
   let story: StorySession | null = null;
@@ -366,7 +381,8 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
         const holding = new Map(stage.objects.states().flatMap((o) => (o.home.kind === 'paw' ? [[o.home.cast, o.id] as const] : [])));
         return [...present].map((id) => ({ id, mark: marks.get(id) ?? null, holding: holding.get(id) ?? null }));
       },
-      room: () => [],
+      room: () => roomMap.forStory(stage.root),
+      roomFx: () => ({ on: roomFx.on, available: ROOM_EFFECTS_BUILT }),
       nowMs: () => clock.ms,
       log: (m) => console.info(m),
       onState: (state, who) => {
@@ -514,6 +530,10 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
   // Review builds only: `?speed=4` runs the show four times faster, to walk a whole episode in the emulator.
   const speed = Math.max(0.25, Math.min(16, Number(reviewQuery('speed') ?? 1) || 1));
   const head = new Vector3();
+  const bookAt = new Vector3();
+  /** The room effects showing now, for telemetry and the storyteller. */
+  const roomFx: { on: import('@tabletop/contracts').RoomEffect[] } = { on: [] };
+  let roomFxKey = '';
   const forward = new Vector3();
   const up = new Vector3();
   const spot = new Vector3();
@@ -607,6 +627,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
   function beginSession(session: XRSession): void {
     warmedSession = session;
     vr = session.environmentBlendMode === 'opaque' && !!room;
+    roomMap.reset();
     roomPlaced = false;
     sessionFrames = 0;
     if (room) room.root.visible = vr;
@@ -675,7 +696,22 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
         wasEnded = false;
       }
     }
-    const { unfold } = runtime.frame(deltaMs * speed, nowMs, head, { fold: controls.fold(), ribbon: controls.ribbonLift() }, { left: controls.pinchPoint('left'), right: controls.pinchPoint('right') });
+    const { unfold, room: roomNow } = runtime.frame(deltaMs * speed, nowMs, head, { fold: controls.fold(), ribbon: controls.ribbonLift() }, { left: controls.pinchPoint('left'), right: controls.pinchPoint('right') });
+    // Which room effects are showing, each time that changes, so frame summaries can be read per effect.
+    const fxOn = effectsOn(roomNow);
+    const fxKey = fxOn.join(',');
+    if (fxKey !== roomFxKey) {
+      roomFxKey = fxKey;
+      roomFx.on = fxOn;
+      telemetry.record({ kind: 'room_fx', on: fxOn });
+    }
+    // Review builds: what's out in the room, for checks without pictures.
+    if (REVIEW_HOOKS) {
+      const seen = roomMap.seenLabels().join(',');
+      if (seen && document.documentElement.dataset.roomLabels !== seen) document.documentElement.dataset.roomLabels = seen;
+      const out = stage.objects.states().flatMap((o) => (o.home.kind === 'room' ? [`${o.id}@${o.home.place}`] : [])).join(',');
+      if (document.documentElement.dataset.roomObjects !== out) document.documentElement.dataset.roomObjects = out;
+    }
     unfoldDim = unfold.dim;
     // The book's own pull hides while the drawer is out: it rides on the drawer's front then.
     const bookPull = stage.book.root.getObjectByName('drawer-pull');
@@ -821,6 +857,10 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       world.camera.getWorldDirection(forward);
       up.set(0, 1, 0).applyQuaternion(world.camera.quaternion);
       sound.setListener(head, forward, up);
+      // Your room, read from Space Setup now and then, and where the book stands in it.
+      const space = world.xrReferenceSpace;
+      if (space) roomMap.frame(frame, space, head, forward);
+      roomMap.setBookAt(stage.root.visible ? stage.root.getWorldPosition(bookAt) : null);
       // Stage two of preloading: draw everything once, out of sight, so the XR shader variants compile now.
       if (frame.session !== warmedSession) {
         beginSession(frame.session);
