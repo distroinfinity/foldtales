@@ -1,15 +1,17 @@
-import { motion, useReducedMotion } from 'motion/react';
-import { useEffect, useState, useSyncExternalStore, type ReactNode } from 'react';
+import { motion } from 'motion/react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 import { currentReader, pullBook, pushBook } from './account-ui.ts';
 import { OpenTheBook, PaintedRoomLink, SendToQuest } from './actions.tsx';
 import type { Device } from './device.ts';
 import { landingSnapshot, openingTap, subscribeLanding } from './landing.ts';
-import { BOOK_TITLE, readLibrary, type LibraryState } from './library.ts';
+import { readLibrary, type LibraryState } from './library.ts';
 import { ACCOUNTS_ON } from './flags.ts';
 import { HERO_ART, WEB_ART, preloadArt } from './preload.ts';
 import { Bookplate, ChaptersSheet } from './sheets.tsx';
 import { Story } from './story.tsx';
-import { Storyteller } from './storyteller.tsx';
+import { StoryDoor, Storyteller } from './storyteller.tsx';
+import { Hero } from './hero.tsx';
+import content from './page-content.json';
 
 export const TAGLINE = 'A living storybook on your table. Reach in and help the characters through each chapter, or make up a new story with the AI Storyteller.';
 
@@ -21,16 +23,6 @@ function useLibrary(): LibraryState {
   const [library, setLibrary] = useState(() => readLibrary(localStorage));
   useEffect(() => setLibrary(readLibrary(localStorage)), [state.kind]);
   return library;
-}
-
-/** The page's one orchestrated entrance: the room is dark, the lamp comes up, then the words. */
-function Reveal({ ready, delay, children, className }: { ready: boolean; delay: number; children: ReactNode; className?: string }) {
-  const still = useReducedMotion();
-  return (
-    <motion.div className={className} initial={still ? false : { opacity: 0, y: 10, filter: 'blur(8px)' }} animate={ready ? { opacity: 1, y: 0, filter: 'blur(0px)' } : undefined} transition={{ delay, duration: 0.9, ease: [0.2, 0.7, 0.2, 1] }}>
-      {children}
-    </motion.div>
-  );
 }
 
 export function App({ device }: { device: Device }) {
@@ -60,20 +52,22 @@ export function App({ device }: { device: Device }) {
     });
   }, []);
 
-  const action = (compact: boolean) =>
-    device === 'headset' ? <OpenTheBook state={state} library={library} signedIn={reader} onSignIn={() => setSheet('plate')} compact={compact} /> : <SendToQuest compact={compact} />;
-
-  const hero = (
+  const bookDoor = (compact: boolean, align: 'start' | 'center') => <OpenTheBook state={state} library={library} signedIn={reader} onSignIn={() => setSheet('plate')} compact={compact} align={align} />;
+  const storyDoor = (
+    <StoryDoor
+      device={device}
+      library={library}
+      signedIn={reader}
+      onSignIn={() => setSheet('plate')}
+      enterStoryteller={state.kind === 'ready' && state.storyteller ? () => openingTap(state.storyteller!.run) : null}
+      storytellerLabel={state.kind === 'ready' ? (state.storyteller?.label ?? null) : null}
+    />
+  );
+  // The "Listen" section opens with what it is; the 3D book does the rest as you scroll.
+  const listenIntro = (
     <>
-      <Reveal ready={artReady} delay={0.5}>
-        <h1 className="display m-0 text-[clamp(44px,6.2vw,96px)] font-semibold italic leading-[0.95] text-page">{BOOK_TITLE}</h1>
-      </Reveal>
-      <Reveal ready={artReady} delay={0.75}>
-        <p className="m-0 mx-auto mt-4 max-w-[44ch] text-[clamp(17px,1.5vw,20px)] leading-relaxed text-page/80">{TAGLINE}</p>
-      </Reveal>
-      <Reveal ready={artReady} delay={1} className="mt-7">
-        {device === 'headset' ? action(false) : <SendToQuest compact />}
-      </Reveal>
+      <h2 className="display m-0 text-[clamp(34px,4.4vw,64px)] leading-[1.02] text-page">{content.listenIntro.title}</h2>
+      <p className="m-0 mt-3 max-w-[42ch] text-[clamp(17px,1.35vw,20px)] leading-relaxed text-page/70">{content.listenIntro.line}</p>
     </>
   );
 
@@ -94,24 +88,33 @@ export function App({ device }: { device: Device }) {
       <motion.div aria-hidden className="pointer-events-none fixed inset-0 z-10 bg-room" initial={{ opacity: 1 }} animate={{ opacity: artReady ? 0 : 1 }} transition={{ duration: 1.1, ease: 'easeOut' }} />
 
       <main>
-        <Story hero={hero} />
-        <Storyteller
-          device={device}
-          library={library}
-          signedIn={reader}
-          onSignIn={() => setSheet('plate')}
-          enterStoryteller={state.kind === 'ready' && state.storyteller ? () => openingTap(state.storyteller!.run) : null}
-          storytellerLabel={state.kind === 'ready' ? (state.storyteller?.label ?? null) : null}
-        />
+        <Hero ready={artReady} device={device} bookAction={bookDoor(true, 'start')} storyAction={storyDoor} />
+        <Story hero={listenIntro} />
+        <Storyteller />
 
-        <section className="px-5 pb-20 pt-[16vh] text-center" aria-labelledby="end-title">
-          <h2 id="end-title" className="display m-0 text-[clamp(36px,4.6vw,64px)] leading-[1.02]">
-            {device === 'headset' ? 'Your table is ready.' : 'Open it on your Quest.'}
+        <section className="px-5 pb-20 pt-[14vh] md:px-10" aria-labelledby="end-title">
+          <h2 id="end-title" className="display m-0 text-center text-[clamp(36px,4.6vw,64px)] leading-[1.02]">
+            {content.end.title}
           </h2>
-          <p className="m-0 mx-auto mt-4 max-w-[44ch] text-[18px] leading-relaxed text-page/65">
-            You’ll need a Meta Quest 3 or 3S and about six minutes. A table helps, but the painted room works anywhere.
-          </p>
-          <div className="mt-8 flex justify-center">{device === 'headset' ? action(true) : <SendToQuest />}</div>
+          <p className="m-0 mx-auto mt-4 max-w-[46ch] text-center text-[18px] leading-relaxed text-page/65">{content.end.needs}</p>
+          {device === 'headset' ? (
+            <div className="mx-auto mt-10 grid max-w-[860px] gap-10 md:grid-cols-2">
+              <div>
+                <h3 className="display m-0 text-[28px] text-page">{content.doors.listen.heading}</h3>
+                <p className="m-0 mb-4 mt-1 text-[16px] text-page/60">{content.doors.listen.needs}</p>
+                {bookDoor(true, 'start')}
+              </div>
+              <div>
+                <h3 className="display m-0 text-[28px] text-page">{content.doors.make.heading}</h3>
+                <p className="m-0 mb-4 mt-1 text-[16px] text-page/60">{content.doors.make.needs}</p>
+                {storyDoor}
+              </div>
+            </div>
+          ) : (
+            <div className="mt-9 flex justify-center">
+              <SendToQuest />
+            </div>
+          )}
         </section>
       </main>
 

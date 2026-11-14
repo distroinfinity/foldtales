@@ -1,34 +1,151 @@
 {
   "note": "The page's words and pictures for this book, as data: the engine and the page's code know no character names. Art files are made by tools/web-art.ts into public/web/.",
   "art": [
-    "room-tabletop.webp", "cover.webp", "room-flat-window.webp", "room-flat-lamp.webp", "room-flat-shelves.webp",
-    "shore-ground.webp", "shore-layer-1-sky-night.webp", "shore-layer-2-headland.webp", "shore-layer-3-dunes.webp", "shore-layer-4-foreground.webp",
-    "pip-lit.webp", "pip-scared.webp", "pip-up.webp", "pip-talk.webp", "lantern-lit.webp", "lantern-out.webp", "smoke.webp",
-    "lamp-ground.webp", "lamp-lamp-sky.webp", "lamp-lamp-room.webp", "lamp-far-railing.webp", "lamp-near-ledge.webp", "lamp-lamp-lit.webp",
-    "wick.webp", "moth.webp", "object-kite.webp", "object-spool.webp", "object-brass-key.webp"
+    "room-tabletop.webp",
+    "cover.webp",
+    "room-flat-window.webp",
+    "room-flat-lamp.webp",
+    "room-flat-shelves.webp",
+    "shore-ground.webp",
+    "shore-layer-1-sky-night.webp",
+    "shore-layer-2-headland.webp",
+    "shore-layer-3-dunes.webp",
+    "shore-layer-4-foreground.webp",
+    "pip-lit.webp",
+    "pip-scared.webp",
+    "pip-up.webp",
+    "pip-talk.webp",
+    "lantern-lit.webp",
+    "lantern-out.webp",
+    "smoke.webp",
+    "lamp-ground.webp",
+    "lamp-lamp-sky.webp",
+    "lamp-lamp-room.webp",
+    "lamp-far-railing.webp",
+    "lamp-near-ledge.webp",
+    "lamp-lamp-lit.webp",
+    "wick.webp",
+    "moth.webp",
+    "object-kite.webp",
+    "object-spool.webp",
+    "object-brass-key.webp"
   ],
-  "lead": { "lit": "pip-lit.webp", "scared": "pip-scared.webp", "up": "pip-up.webp" },
+  "lead": {
+    "lit": "pip-lit.webp",
+    "scared": "pip-scared.webp",
+    "up": "pip-up.webp"
+  },
   "beats": [
-    { "from": 0.075, "to": 0.37, "title": "It opens on your table.", "line": "A painted pop-up book appears on your real table, and the room dims around it." },
-    { "from": 0.39, "to": 0.645, "title": "Reach in.", "line": "Pip’s lantern blows out. Pick it up, hand it back, and the light comes home." },
-    { "from": 0.675, "to": 1, "title": "The lighthouse lights your room.", "line": "When the lamp is lit again, its beam sweeps across your real walls." }
+    {
+      "from": 0.075,
+      "to": 0.37,
+      "title": "It opens on your table.",
+      "line": "A painted pop-up book appears on your real table, and the room dims around it."
+    },
+    {
+      "from": 0.39,
+      "to": 0.645,
+      "title": "Reach in.",
+      "line": "Pip’s lantern blows out. Pick it up, hand it back, and the light comes home."
+    },
+    {
+      "from": 0.675,
+      "to": 1,
+      "title": "The lighthouse lights your room.",
+      "line": "When the lamp is lit again, its beam sweeps across your real walls."
+    }
   ],
   "storyteller": {
-    "title": "Or make up a new story, out loud.",
+    "title": "Or make one up, out loud.",
     "line": "With the AI Storyteller, you talk to Pip, Wick and Moth, hand them anything, and the story is made up as you go. Every voice is live.",
     "cast": [
-      { "file": "wick.webp", "alt": "Wick the badger, holding his logbook", "className": "absolute bottom-[10%] left-[33%] h-[50%] brightness-[.78]" },
-      { "file": "pip-talk.webp", "alt": "Pip the fox, talking, with his lantern", "className": "absolute bottom-[8%] left-[47%] h-[56%]", "lantern": true }
+      {
+        "file": "wick.webp",
+        "alt": "Wick the badger, holding his logbook",
+        "className": "absolute bottom-[10%] left-[33%] h-[50%] brightness-[.78]"
+      },
+      {
+        "file": "pip-talk.webp",
+        "alt": "Pip the fox, talking, with his lantern",
+        "className": "absolute bottom-[8%] left-[47%] h-[56%]",
+        "lantern": true
+      }
     ],
-    "flier": { "file": "moth.webp", "alt": "Moth, fluttering", "className": "absolute left-[64%] top-[24%] h-[17%]" },
-    "gift": { "file": "object-brass-key.webp", "alt": "A brass key" },
+    "flier": {
+      "file": "moth.webp",
+      "alt": "Moth, fluttering",
+      "className": "absolute left-[64%] top-[24%] h-[17%]"
+    },
+    "gift": {
+      "file": "object-brass-key.webp",
+      "alt": "A brass key"
+    },
     "lines": [
-      { "who": "Pip", "text": "A key! Wick, the Giant gave us a key. What does it open?" },
-      { "who": "Wick", "text": "Hmph. The old cellar, I’d wager. Nobody’s been down there in years." }
+      {
+        "who": "Pip",
+        "text": "A key! Wick, the Giant gave us a key. What does it open?"
+      },
+      {
+        "who": "Wick",
+        "text": "Hmph. The old cellar, I’d wager. Nobody’s been down there in years."
+      }
+    ],
+    "beats": [
+      {
+        "title": "Talk to them.",
+        "line": "Say anything. They answer in their own voices, and the story goes where you take it.",
+        "you": "Pip, what’s out there tonight?",
+        "them": {
+          "who": "Pip",
+          "text": "The tide brought something in! Shall we go and look?"
+        }
+      },
+      {
+        "title": "Anything you imagine appears.",
+        "line": "Ask for it, and it’s painted for the book on the spot.",
+        "you": "Could you find me a key?",
+        "them": {
+          "who": "Moth",
+          "text": "Found one! It was shining in the reeds."
+        }
+      },
+      {
+        "title": "Your room joins in.",
+        "line": "They know your table, your couch and your walls, and they make them part of the story.",
+        "you": null,
+        "them": {
+          "who": "Pip",
+          "text": "Look, a great soft mountain! Can we climb it?"
+        }
+      }
     ]
   },
   "about": {
     "book": "Tales from the Table’s Edge is set in the Lost and Found, where everything lost in a house drifts home to a lighthouse at the edge of the table. Pip is a young fox, afraid of the dark, who quietly wants to be the next keeper. Wick is the grumpy old keeper, secretly losing his sight. Moth flies at anything bright, and brings odd finds.",
     "storyteller": "Talk to Pip, Wick and Moth, hand them anything, and the AI makes up the story as you go, voiced live. It needs an account and the internet."
+  },
+  "promise": "A living storybook on your table.",
+  "doors": {
+    "listen": {
+      "heading": "Listen to a story",
+      "title": "Tales from the Table’s Edge",
+      "line": "A written story in chapters. The book opens on your table, and you reach in to help.",
+      "needs": "Chapter 1 takes about six minutes. Just your hands."
+    },
+    "make": {
+      "heading": "Make one up",
+      "title": "with the AI Storyteller",
+      "line": "Talk to Pip, Wick and Moth. They answer in their own voices, and anything you imagine appears.",
+      "needs": "Uses your voice and the internet.",
+      "quote": "“Oh! It’s you. What shall we make tonight?”"
+    }
+  },
+  "listenIntro": {
+    "title": "Listen to a story.",
+    "line": "Tales from the Table’s Edge: a written story in chapters, with a hand from you."
+  },
+  "end": {
+    "title": "Two ways to spend the evening.",
+    "needs": "You’ll need a Meta Quest 3 or 3S. A table helps, but the painted room works anywhere."
   }
 }

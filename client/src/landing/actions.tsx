@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import type { Device } from './device.ts';
 import { openingTap, type PageState } from './landing.ts';
 import { primaryLabel, type LibraryState } from './library.ts';
@@ -49,20 +49,23 @@ export function SendToQuest({ compact = false }: { compact?: boolean }) {
   );
 }
 
-export function OpenTheBook({ state, library, onSignIn, signedIn, compact = false }: { state: PageState; library: LibraryState; onSignIn: () => void; signedIn: string | null; compact?: boolean }) {
+export function OpenTheBook({ state, library, onSignIn, signedIn, compact = false, align = 'center' }: { state: PageState; library: LibraryState; onSignIn: () => void; signedIn: string | null; compact?: boolean; align?: 'start' | 'center' }) {
   const choice = primaryLabel(library);
+  const detailId = useId();
+  // In a door, the door's own words already say how long and what it needs; only a returning state adds a line.
+  const detail = compact && choice.label === 'Open the book' ? null : choice.detail;
   const ready = state.kind === 'ready' ? state : state.kind === 'refused' ? state.last : null;
   const label =
     state.kind === 'loading' ? 'Getting the book ready' : state.kind === 'opening' ? 'Opening the book…' : state.kind === 'failed' ? 'The book didn’t load' : (ready?.label ?? choice.label);
   return (
-    <div className="flex flex-col items-center gap-3">
+    <div className={`flex flex-col gap-3 ${align === 'start' ? 'items-start' : 'items-center'}`}>
       <ShimmerButton
         type="button"
         disabled={!ready}
         gleam={false}
         onClick={() => ready && openingTap(ready.open)}
         data-action="open"
-        aria-describedby="open-detail"
+        aria-describedby={detail ? detailId : undefined}
       >
         {label}
         {state.kind === 'loading' && (
@@ -79,9 +82,11 @@ export function OpenTheBook({ state, library, onSignIn, signedIn, compact = fals
           .
         </p>
       ) : (
-        <p id="open-detail" className="m-0 text-[15px] text-page/55">
-          {choice.detail}
+        detail && (
+        <p id={detailId} className="m-0 text-[15px] text-page/55">
+          {detail}
         </p>
+        )
       )}
       {ready?.restart && (
         <button type="button" className={`${quiet} text-[16px]`} onClick={() => openingTap(ready.restart!.run)}>
