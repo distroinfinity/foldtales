@@ -1,0 +1,23 @@
+{
+  "episodeId": "chapter-1",
+  "title": "The night the light went out",
+  "facts": [
+    { "key": "lantern", "value": "reader", "beats": ["lantern-back"], "text": "The Reader held Pip's lantern until it woke up again." },
+    { "key": "lantern", "value": "pip", "beats": ["lantern-fetch"], "text": "Pip fetched his lantern from the edge himself, brave in the dark." },
+    { "key": "wick", "value": "reader", "beats": ["wick-back"], "text": "The Reader reached into the reeds for the lamp's wick." },
+    { "key": "wick", "value": "moth", "beats": ["wick-moth"], "text": "Moth found the lamp's wick in the reeds." },
+    { "key": "crossing", "value": "kite", "beats": ["cross-kite"], "text": "Pip flew over the gap on a patched paper kite." },
+    { "key": "crossing", "value": "thread", "beats": ["cross-thread"], "text": "Moth carried a thread across the gap, and Pip hauled himself over." },
+    { "key": "crossing", "value": "ladder", "beats": ["cross-ladder"], "text": "Pip crawled over the gap on a little wooden ladder." },
+    { "key": "crossing", "value": "rope", "beats": ["wick-rope"], "text": "Wick threw his rope across the gap." },
+    { "key": "keeper", "value": "first-night", "beats": ["the-beam"], "text": "Pip lit the great lamp, and Wick called him keeper." }
+  ],
+  "history": {
+    "kite": [{ "beats": ["cross-kite"], "text": "Carried Pip over the gap, the night the light went out." }, { "text": "Found on the sand by the shore, the night the light went out." }],
+    "spool": [{ "beats": ["cross-thread"], "text": "Its thread was the first line across the gap." }, { "text": "Found on the sand by the shore, the night the light went out." }],
+    "ladder": [{ "beats": ["cross-ladder"], "text": "Laid across the gap as a bridge, the night the light went out." }, { "text": "From the Lost and Found drawer." }],
+    "odd-sock": [{ "beats": ["sock-scarf"], "text": "Pip wore it as a scarf at the edge of the gap." }, { "text": "From the Lost and Found drawer." }],
+    "brass-key": [{ "beats": ["key-try"], "text": "Pip tried to unlock the gap with it. Moth tried to fly off with it." }, { "text": "From the Lost and Found drawer." }],
+    "default": [{ "text": "Kept from the night the light went out." }]
+  }
+}

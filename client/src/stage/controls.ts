@@ -41,6 +41,10 @@ export interface BookControls {
   close(): void;
   /** Lays the ribbon back down and lets the show go, as when a chapter starts again. */
   lowerRibbon(): void;
+  /** Lifts or lowers the ribbon as if your hand had pinched it: the wrist tag's "Pause" and "Carry on". */
+  setRibbon(on: boolean): void;
+  /** Whether the ribbon is holding the story. */
+  readonly ribbonUp: boolean;
   /** How open your hands have it, 0 to 1. */
   readonly amount: number;
   frame(frame: XRFrame, deltaMs: number, enabled: boolean, head: Vector3): void;
@@ -272,6 +276,15 @@ export function createBookControls({ world, stageRoot, book, sound, pause, glow,
     lowerRibbon() {
       ribbon = false;
       pause.set('ribbon', false);
+    },
+    setRibbon(on) {
+      if (ribbon === on) return;
+      ribbon = on;
+      pause.set('ribbon', on);
+      sound.play('felt', stageRoot.position, undefined, 'ui');
+    },
+    get ribbonUp() {
+      return ribbon;
     },
     get amount() {
       return amount;

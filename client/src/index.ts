@@ -21,6 +21,7 @@ import { createShowLog, indexedDbLogStore } from './show/log.ts';
 import { libraryOf, ShowManifest } from './show/manifest.ts';
 import { BackendError, estimateSpeechMs, linesOf, type ReadyBeat, type ShowObject } from '@tabletop/contracts';
 import { createDirector } from './director/director.ts';
+import { ChapterCanon, recordChapterEnd } from './memory/memory.ts';
 import { createPauseControl } from './show/pause.ts';
 import { createShowRuntime } from './show/runtime.ts';
 import { createSoundEngine } from './sound/engine.ts';
@@ -32,6 +33,7 @@ import { reviewOverride } from './stage/review.ts';
 import { createFrameGuard } from './stage/frame-guard.ts';
 import { startPlacement } from './stage/placement-runtime.ts';
 import { createSessionFlow } from './stage/session-flow.ts';
+import { createWristMenu } from './stage/wrist.ts';
 import { minTextSizeM, settleOnTable } from './stage/sizing.ts';
 import { warmUp } from './stage/warm-up.ts';
 import { buildEmber, buildWash } from './stage/wash.ts';
@@ -103,6 +105,11 @@ async function prepare(world: World) {
     }),
     preloadFonts(),
   ]);
+  // What this chapter records when it ends, beside its episode data.
+  const canonData = await fetch(`./${manifest.episode.replace(/\.json$/, '.canon.json')}`)
+    .then((r) => (r.ok ? r.json() : null))
+    .then((raw) => (raw ? ChapterCanon.parse(raw) : null))
+    .catch(() => null);
   const soft = makeSoftPieces();
   // Review builds only: `?review=cast` stands the whole cast on the open book, cycling every acting.
   const review = reviewQuery('review') === 'cast';
@@ -179,6 +186,8 @@ async function prepare(world: World) {
   /** The scanned table under the book, for settling things you let go of. */
   const tableTop: { outline: Array<{ x: number; z: number }> | null } = { outline: null };
   const readAgain = { requested: false };
+  /** "Put the book away" from the wrist: the book closes, then the session ends. */
+  const away = { requested: false };
   const hands = createObjectHands({
     objects: stage.objects,
     runtime,
@@ -218,7 +227,8 @@ async function prepare(world: World) {
   if (review) runtime.setOverride(reviewOverride(manifest));
 
   // The director: short live beats about what you do, offered to the scheduler, which plays them only if they're ready in time.
-  // Review builds can turn it off with `?director=off`, to play the authored chapter alone.
+  // Off for the authored chapter since headset session 1 (owner, Nov 14: the AI layer on a written story didn't land).
+  // Review builds can still try it with `?director=on` while the new AI mode is designed.
   const originOf = new Map(assets.spine.scenes.flatMap((sc) => sc.objects.map((o) => [o.id, o.origin] as const)));
   const showObjects = (): ShowObject[] =>
     stage.objects.states().flatMap((s) => {
@@ -226,7 +236,7 @@ async function prepare(world: World) {
       return def && s.home.kind !== 'away' ? [{ id: s.id, def, owner: null, origin: originOf.get(s.id) ?? 'set', history: [] }] : [];
     });
   const answers: Array<{ id: number; ready: ReadyBeat | null }> = [];
-  const directorOn = reviewQuery('director') !== 'off';
+  const directorOn = reviewQuery('director') === 'on';
   const director = createDirector({
     spine: assets.spine,
     library: libraryOf(manifest, assets.objects),
@@ -255,11 +265,21 @@ async function prepare(world: World) {
   // Review builds only: `?cue=beam` plays the lighthouse beam once the opening has finished, for P5.
   const devCue = reviewQuery('cue');
   if (devCue && manifest.cues.some((c) => c.id === devCue)) runtime.addCue(devCue, 11_500);
-  return { manifest, assets, stage, dim, sound, clock, runtime, wash, ember, log, pause, controls, soft, review, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects };
+  const wrist = createWristMenu({
+    parent: world.scene,
+    sound,
+    paused: () => controls.ribbonUp,
+    choose: (choice) => {
+      if (choice === 'pause' || choice === 'resume') controls.setRibbon(choice === 'pause');
+      else if (choice === 'restart') readAgain.requested = true;
+      else away.requested = true;
+    },
+  });
+  return { manifest, assets, stage, dim, sound, clock, runtime, wash, ember, log, pause, controls, soft, review, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, directorOn };
 }
 
 function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom: Checkpoint | null): void {
-  const { manifest, assets, stage, sound, clock, runtime, wash, ember, log, pause, controls, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects } = show;
+  const { manifest, assets, stage, sound, clock, runtime, wash, ember, log, pause, controls, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs } = show;
   const startEpisode = () => {
     log.forget();
     director.reset();
@@ -386,7 +406,10 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
   // Each part of the frame has its own guard, so an error in one (say, hand input) never stops the story.
   const handsStep = guard('controls', (frame: XRFrame, deltaMs: number) => {
     hands.frame(clock.ms, controls.amount > 0.98);
-    controls.frame(frame, deltaMs, runtime.started && (!arrival || arrival.opened), head);
+    const space = world.xrReferenceSpace;
+    if (space && runtime.started) wrist.frame(frame, space, head);
+    // While the wrist's tags are open, your hands are choosing there, not taking hold of the book.
+    controls.frame(frame, deltaMs, runtime.started && (!arrival || arrival.opened) && !wrist.open, head);
     if (inject && injected < 3 && clock.ms > 2000) {
       injected++;
       throw new Error('injected frame error');
@@ -395,6 +418,15 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
 
   let wasEnded = runtime.ended;
   const storyStep = guard('runtime', (deltaMs: number) => {
+    // Put the book away: it closes, the place is kept, and the immersive session ends. The landing page offers "Continue".
+    if (away.requested) {
+      if (controls.amount > 0.001) controls.close();
+      else {
+        away.requested = false;
+        checkpoint();
+        void world.renderer.xr.getSession()?.end().catch(() => undefined);
+      }
+    }
     // Read it again: the book closes under your hand, then the story opens from the top.
     if (readAgain.requested) {
       if (controls.amount > 0.001) controls.close();
@@ -417,14 +449,14 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
     if (bookPull) bookPull.visible = runtime.drawerAmount < 0.02;
     // The director's answers become offers; then, at the start of a quiet beat, it may ask for a callback.
     for (const a of answers.splice(0)) director.receive(runtime.scheduler, clock.ms, a.id, a.ready);
-    if (runtime.started && !runtime.ended) director.frame(runtime.scheduler, clock.ms);
+    if (show.directorOn && runtime.started && !runtime.ended) director.frame(runtime.scheduler, clock.ms);
     for (const e of runtime.drain()) {
       if (e.type === 'gift') {
         log.append('object.handed', { objectId: e.objectId, toCast: e.castId, playerId: 'reader' });
         const o = e.outcome;
         if (o.kind === 'rule' || o.kind === 'fallback') log.append('problem.attempted', { problemId: o.problemId, objectId: e.objectId, playerId: 'reader', ruleId: o.kind === 'rule' ? o.ruleId : null });
         if (o.kind === 'rule' && o.outcome === 'solved') log.append('problem.resolved', { problemId: o.problemId, outcome: o.ruleId, objectId: e.objectId });
-        director.gift(runtime.scheduler, clock.ms, showObjects().find((x) => x.id === e.objectId) ?? null, e.castId, e.outcome);
+        if (show.directorOn) director.gift(runtime.scheduler, clock.ms, showObjects().find((x) => x.id === e.objectId) ?? null, e.castId, e.outcome);
         continue;
       }
       if (e.type === 'cast.held' || e.type === 'cast.dropped') {
@@ -451,6 +483,13 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
     }
     if (runtime.ended && !wasEnded) {
       wasEnded = true;
+      // What lasts: the facts the next chapter reads, what you keep and its history, and the page.
+      if (canonData) {
+        const played = new Set(runtime.scheduler.snapshot().history.map((h) => h.beatId));
+        const kept = stage.objects.states().filter((o) => o.home.kind === 'satchel').map((o) => o.id);
+        const sets = [...new Set(assets.spine.scenes.map((sc) => sc.setId))];
+        recordChapterEnd(log.append, canonData, played, kept, defs, sets.map((id) => `sets/${id}/ground.png`));
+      }
       writeProgress(localStorage, { seriesId: series, chapter: 1, state: 'finished' });
       checkpoint();
     }

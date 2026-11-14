@@ -22,6 +22,21 @@ What the owner noticed in the headset, in plain words. These come before new fea
 - [x] The page turned on its own as soon as a hand came near its corner; the owner wanted to hold the page and turn it (session 2). Now the leaf follows your pinch round the spine: let go past the tipping point and it turns, short of it and it falls back, and the story waits while you hold it. Looking at the corner and pinching still turns it in one go. Checked in the emulator; to feel in the headset next session.
 - [x] A first play by someone who has never seen it (M2's second check). Done on Nov 14: "they were amazed. The wow factor is really nice."
 - [ ] Polish the product around the book: the web page and the whole journey into and out of it (owner, Nov 14, after the first new player). Later, with ticket 6's landing work.
+- [ ] **The AI layer on the written chapter doesn't land** (ticket 3, session 1). Reactions and callbacks spliced into chapter 1 felt like interference, not a story bending, and read like an if-else. Unvoiced AI lines break immersion. Turned off for chapter 1 (review flag `?director=on` keeps it reachable). The AI mode is being rethought from research.
+- [ ] **Stop the show from inside** (owner, session 1): pause, restart, leave. Chosen: a painted tag on the back of the left wrist. Built, not yet in the headset.
+- [ ] Turning the page by hand: still not felt in the headset (the session went to the AI layer).
+
+## Ticket 3, headset session 1, Nov 14, 2026 (review build over USB, the director on chapter 1)
+
+The director's first try: short AI beats spliced into the authored chapter 1, a reaction when you hand over something nobody asked for and a callback at a quiet beat, captions only. The backend logged seven calls (Haiku about 2.7 s, Sonnet 2.4 to 3.6 s). The live watch dropped mid-session (the Quest's debug link went down after the other workspace's port cleanup and a browser restart), so this has no beat-by-beat log.
+
+- **Owner:** "I think we are approaching this wrong. If a story is already written and we try to interfere with it, it's not that fun. It's not landing perfectly as a defined story with which we interact and do our parts when asked, nor is our interference significant enough to blend the story."
+  - "If I am just handing over the incorrect thing and then you get an AI response, I don't think there's anything dynamic in that. You can easily do that with an if-else case and it's still a predictive deterministic system, not anything which is flowing or blending on its own."
+  - "I like the version of the story that we have currently."
+  - "AI responses to me are just being read and not being spoken aloud. Those are too disconnected. I feel like my immersion is lost when I have to read those texts which are not spoken aloud."
+  - "For AI mode we have to think of something else … how would an AI theater make sense? … Do research on what other products are out there and where exactly the gap is. How will that wow factor come from? Because honestly I liked our predefined story and what you did right now is a mess."
+- **Also asked:** a way to pause, restart and leave from inside. Researched (Meta reserves the palm-pinch system gesture, VRC.Quest.Input.8; apps pause when the system asks, VRC.Quest.Functional.2), offered as question cards; the owner chose a wrist tag.
+- **Done straight after:** the director is off for chapter 1, which plays as authored. The scheduler fixes the director work found stay (every path 5:00 to 6:55, bridges for quick readers, pacing). Research on the AI mode is next.
 
 ## Ticket 2, headset session 2, Nov 14, 2026 (review build over USB, the re-cut chapter): M2 signed off
 
