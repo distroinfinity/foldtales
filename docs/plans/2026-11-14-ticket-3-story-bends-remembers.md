@@ -1,6 +1,24 @@
 # Ticket 3: the AI Storyteller (ends at M3)
 
-**Status:** Re-cut on Nov 14 after headset session 1, reviewed once by Codex (fourteen findings, all taken; see "Re-cut review log"), and **approved by the owner** the same day. Building: the contracts PR, then the core evening.
+**Status:** **Done, M3 signed off by the owner on Nov 15** (PR #9). Re-cut on Nov 14 after headset session 1, reviewed once by Codex (fourteen findings, all taken; see "Re-cut review log"), and approved by the owner the same day.
+
+**What shipped (Nov 15):**
+- The AI Storyteller: its own door on the landing, mic first, then straight in.
+- A voiced, staging cast: Claude writes lines and stage steps, and ElevenLabs voices each line as it's written. The first voiced word comes about 2–3 s after a turn starts.
+- Hold to talk: a paper button on the table, pressed with a fingertip or pinched.
+- Anything you ask for is painted live (Runway, about 2 credits, about 25 s).
+- The satchel keeps every painting on the device for later evenings, and the cast can bring kept things back by voice, without painting them again.
+- In-story moderation, a guest's sign-in line (when accounts are on), and the wrist tag.
+- The whole PR was reviewed by Codex on Nov 15: ten findings, all fixed.
+
+**Not built here:**
+- "Your room" moved to its own workstream, *Your room comes alive* (see `docs/sprint-plan.md`), which builds room effects for the chapters and the Storyteller.
+- "Show them something real" (the camera) wasn't tried.
+- "You're in the cast" (voice cloning) is later.
+
+Both are in `docs/v2-ideas.md`.
+
+**Not yet seen in the headset:** a kept painting coming back in the satchel on a later evening (built, typechecked and reviewed; the owner closed the ticket before trying it).
 
 **Owner decisions on the build (Nov 14):** live voices are **ElevenLabs library voices** picked to be close to the cast, through the same voice chain (cloning the cast's own voices is a nice-to-have, later). Live painting may spend **100–150 Runway credits** in total "if that increases performance", each run planned first with its cap, with the shared balance checked before and after. AI Storyteller calls need sign-in once the product workspace's accounts land: a guest's 401 shows as "Sign in on the page outside the book", never as an error. The first scope (a director layered on the written chapters, chapter 2, Tonight's lost thing) is kept further down for the record.
 

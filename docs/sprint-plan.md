@@ -4,7 +4,7 @@
 
 ## Progress
 
-*Last updated Nov 14, 2026. A workstream is ticked when it's merged to main, and a milestone when the owner signs it off in the headset. ⏸ means held by the owner's choice. **Now: two tracks. The owner writes more defined chapters and stories; ticket 3 builds the AI mode. M2 signed off by the owner on Nov 14, and played by someone new.***
+*Last updated Nov 15, 2026. A workstream is ticked when it's merged to main, and a milestone when the owner signs it off in the headset. ⏸ means held by the owner's choice. **Now: M3 signed off (the AI Storyteller, PR #9). The owner writes more chapters; "Your room comes alive" builds room effects for both the chapters and the Storyteller.***
 
 **The product is two ways (owner, Nov 14, after ticket 3's first headset session):**
 1. **Defined stories:** authored chapters and books, theatrical experiences. Chapter 1 is the first. The owner writes more, in parallel.
@@ -17,7 +17,7 @@ Why: AI lines spliced into the written chapter didn't land ("If a story is alrea
 - [x] **M0, Pip on your table.** Signed off on the Quest 3 on Nov 12, from a local build over USB (hosting is held).
 - [x] **M1, the first 30 seconds.** Signed off on the Quest 3 on Nov 13, from a local review build over USB (PR #6).
 - [x] **M2, first five minutes.** Signed off by the owner on the Quest 3 on Nov 14, from a local review build over USB (PR #7). Someone new played it on Nov 14 and was amazed by the wow; the web page and journey around the book need polish later (ticket 6).
-- [ ] **M3, the AI mode.** ← next. Re-cut on Nov 14 from "a story that bends and remembers": the AI gets its own mode instead of being layered on the written chapters.
+- [x] **M3, the AI mode.** Signed off by the owner on the Quest 3 on Nov 15, from a local review build over USB (PR #9): "I actually felt immersion. They were like they were following my commands … we are in the right direction." Re-cut on Nov 14 from "a story that bends and remembers": the AI gets its own mode instead of being layered on the written chapters.
 - [ ] **M4, voices and Talk.**
 - [ ] **M5, Story Circle.**
 - [ ] **M6, ready to submit.**
@@ -38,12 +38,15 @@ Why: AI lines spliced into the written chapter didn't land ("If a story is alrea
   - [x] Hands and objects
   - [x] Show and flagship
   - [x] First-session journey (added by the owner, Nov 13)
-- [ ] **3. AI mode (the AI playground)** ← next. Re-cut Nov 14. Plan: `docs/plans/2026-11-14-ticket-3-story-bends-remembers.md`; research: `docs/plans/2026-11-14-ai-mode-research.md`
-  - [ ] Director (first version built: AI lines spliced into chapter 1; off since session 1, kept behind `?director=on`)
-  - [ ] The AI playground: a free, improvised, voiced mode on the same stage
-  - [ ] Live voices and speech in (ElevenLabs, chosen Nov 14), pulled forward from ticket 4
-  - [ ] Memory and satchel (chapter-end memory recorded; carrying into later chapters follows the owner's new chapters)
-  - [ ] Stop the show: the wrist tag (pause, start again, put the book away)
+- [x] **3. AI mode: the AI Storyteller** (PR #9). Re-cut Nov 14. Plan: `docs/plans/2026-11-14-ticket-3-story-bends-remembers.md`; research: `docs/plans/2026-11-14-ai-mode-research.md`
+  - [x] Director (built: AI lines spliced into chapter 1; off since session 1, kept behind `?director=on`)
+  - [x] The AI Storyteller: a free, improvised, voiced mode on the same stage, its own door on the landing
+  - [x] Live voices and speech in (ElevenLabs), pulled forward from ticket 4: hold to talk, by fingertip or pinch
+  - [x] Anything you ask for appears: painted live (Runway, about 2 credits each, 6 an evening)
+  - [x] Memory and satchel: chapter-end memory recorded; the Storyteller keeps everything painted for you in your satchel, per device (carrying into later chapters follows the owner's new chapters)
+  - [x] Stop the show: the wrist tag (pause, start again, put the book away)
+  - Moved on: "your room" to **Your room comes alive** below; "show them something real" (the camera) and "you're in the cast" (voice cloning) to `docs/v2-ideas.md`
+- [ ] **Your room comes alive** ← next (Superset workspace "Ticket 4: Your room comes alive", branch `ticket-4-room-comes-alive`, started Nov 15). Effects that act on the real room, for the chapters and the Storyteller: weather in the room, shadow play on the wall, a treasure hunt with the beam, the night sky on the ceiling, the sea on the floor, things that leave the page, the window as the story's window. Plan first, owner approval before code
 - [ ] **Defined stories: more chapters** (the owner, in parallel, Nov 14)
 - [ ] **4. Voices and Talk**
   - [x] Voice audition (run 005): full cast chosen from measurements, since the owner delegated it. Not yet compared by ear. Plan: `docs/superpowers/plans/2026-11-09-voice-audition.md`

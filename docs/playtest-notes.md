@@ -141,3 +141,21 @@ Signed off by the owner in the headset after a fresh run of the opening, the bea
 - **Owner direction:** not new characters. More elements like the lamp that act on the real room: "very simple and clever, like a rotating light in my room". Ideas offered: weather in the room, shadow play on the wall, a treasure hunt across the room with the beam, the night sky on the ceiling, the sea on the floor. Owner to choose.
 - **Owner request:** keep everything generated in an inventory to reuse later. *Planned:* `docs/plans/2026-11-14-storyteller-satchel.md`.
 - Runway spent this session: 2 credits (one painting).
+- **Later the same night (Nov 15):**
+  - Pressing Hold to talk with a fingertip on the table worked the first time.
+  - Asked for "a teapot that is … [dancing]": the "Chipped Blue-Flower Teapot" was painted in 26 s for 2 credits. The owner named it "Shubham Mishra", and the cast took the name at once ("Writing it in the log, so no one forgets it was ever lost").
+  - The owner: "this is good, I created a tea pot." Then closed the ticket.
+  - Runway spent this session: 4 credits (two paintings).
+- **Codex review of PR #9, all ten fixed:**
+  - the microphone stops the moment you let go, or leave XR or the page;
+  - a dropped speech connection resets the button;
+  - nothing is said or painted before moderation passes;
+  - paint credits are reserved up front;
+  - a gift given while they're thinking becomes the turn;
+  - a new evening disposes the old one;
+  - paintings survive page turns;
+  - the satchel cap holds when two things are saved at once.
+
+## M3 sign-off, Nov 15, 2026
+
+Signed off by the owner in the headset after AI Storyteller session 2: "I actually felt immersion … we are in the right direction", then "this is good … let's wrap up any remaining work and proceed to close this ticket."
