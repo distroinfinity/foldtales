@@ -40,11 +40,9 @@ export function browserAccess(clientHost: string | undefined, devOrigins: string
     exposeHeaders: ['set-auth-token'],
     maxAge: 600,
   };
-  // Branch previews (e.g. <branch>.foldtales.pages.dev) reach the app routes too; never the credentialed auth routes.
-  const previewHost = process.env.TT_PREVIEW_HOST;
   const appCors = cors({
     ...shared,
-    origin: (origin) => (isAllowedOrigin(origin, clientHost) || isAllowedOrigin(origin, previewHost) || exact.includes(origin) ? origin : null),
+    origin: (origin) => (isAllowedOrigin(origin, clientHost) || exact.includes(origin) ? origin : null),
   });
   const authCors = cors({ ...shared, credentials: true, origin: (origin) => (exact.includes(origin) ? origin : null) });
   return [
