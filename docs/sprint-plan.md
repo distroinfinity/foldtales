@@ -46,7 +46,11 @@ Why: AI lines spliced into the written chapter didn't land ("If a story is alrea
   - [x] Memory and satchel: chapter-end memory recorded; the Storyteller keeps everything painted for you in your satchel, per device (carrying into later chapters follows the owner's new chapters)
   - [x] Stop the show: the wrist tag (pause, start again, put the book away)
   - Moved on: "your room" to **Your room comes alive** below; "show them something real" (the camera) and "you're in the cast" (voice cloning) to `docs/v2-ideas.md`
-- [ ] **Your room comes alive** ← next (Superset workspace "Ticket 4: Your room comes alive", branch `ticket-4-room-comes-alive`, started Nov 15). Effects that act on the real room, for the chapters and the Storyteller: weather in the room, shadow play on the wall, a treasure hunt with the beam, the night sky on the ceiling, the sea on the floor, things that leave the page, the window as the story's window. Plan first, owner approval before code
+- [ ] **Your room comes alive** ← next (Superset workspace "Ticket 4: Your room comes alive", branch `ticket-4-room-comes-alive`, started Nov 15). Effects that act on the real room, for the chapters and the Storyteller: weather in the room, shadow play on the wall, a treasure hunt with the beam, the night sky on the ceiling, the sea on the floor, things that leave the page, the window as the story's window. Plan: `docs/plans/2026-11-15-room-comes-alive.md`, approved by the owner on Nov 15 (with the room storm in chapter 1's opening). Draft PR #13
+  - [x] Contracts: the `room` stage action (PR #14, merged Nov 15)
+  - [ ] The room-effects layer and the chapter side (room map, room state, the dim's spot: built, in PR #13)
+  - [ ] The seven effects: treasure hunt (built, waiting for the owner's headset check), shadow play, fireflies, storm, night sky, snow and fog, sea, window
+  - [ ] The storyteller's `ROOM` step (built for the hunt), and its room rule widened to list the effects
 - [ ] **Defined stories: more chapters** (the owner, in parallel, Nov 14)
 - [ ] **4. Voices and Talk**
   - [x] Voice audition (run 005): full cast chosen from measurements, since the owner delegated it. Not yet compared by ear. Plan: `docs/superpowers/plans/2026-11-09-voice-audition.md`
@@ -174,6 +178,21 @@ The AI layer. Director and memory are clubbed because you can only judge them to
 - **Blocked by:** 2. **Blocks:** 5's full show, 6.
 - **Agent verifies:** P4: hundreds of simulated shows with injected slowness and failure, no stall, no repeat, time-box met, and every gift acknowledged. P2's rubric across the library. Next episode differs with and without each consequence, undo reverses it, and data survives reload.
 - **You verify:** hand over odd things. Does what you gave change the ending? Turn off Wi-Fi mid-episode. Play the returning evening, including closing the book mid-scene. Start three stories of your own.
+
+### Your room comes alive
+
+Added by the owner on Nov 14, after the AI Storyteller's second headset session: "More things which interact with my living place." Not new characters: effects that act on your real room, like the lamp's beam. One shared layer, called by a new `room` stage action from written chapters and from the storyteller. Plan: `docs/plans/2026-11-15-room-comes-alive.md`.
+
+| Workstream | What it does |
+|---|---|
+| **Contracts** | The `room` action, room places as targets, the ceiling label, what's on and what's possible in the storyteller's request, a `room_fx` telemetry event. Its own small PR (#14), merged first |
+| **Room-effects layer** | Room map from Space Setup with fallbacks, effect state worked out from the show's timeline, the dim's tint, flash and spot, sound placed in the room |
+| **The seven effects** | In order: treasure hunt, shadow play, fireflies, storm, night sky, snow and fog, sea with boat, bottle and gulls, window |
+| **Storyteller** | A `ROOM` step, and the rule "only describe what the stage really shows" widened to list the room effects, so the cast only promises what a `ROOM` step makes happen |
+
+- **Blocked by:** 2 (the stage and the beam), and 3 for the storyteller side (merged Nov 15). **Blocks:** nothing.
+- **Agent verifies:** `pnpm test`, typecheck and build stay green. Each effect in the emulator's living room, with no planes, and in the painted room, against the look bar. Pause and resume mid-effect. Fps per effect from telemetry. A scripted check that the storyteller never promises a room effect without making it happen.
+- **You verify:** each effect in your own room, in build order, and up to 180 Runway credits for art and sound (asked first).
 
 ### 4. Voices and Talk
 
