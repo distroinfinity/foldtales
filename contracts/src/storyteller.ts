@@ -3,7 +3,8 @@ import { ReadyBeat, VoiceAsset } from './beats.ts';
 import { CanonEntry } from './events.ts';
 import { StageLibrary } from './library.ts';
 import { ObjectDef, ShowObject } from './objects.ts';
-import { ErrorCode, Id, LightMood, Vec3 } from './primitives.ts';
+import { ErrorCode, Id, LightMood, RoomLabel, RoomPlaceId, Vec3 } from './primitives.ts';
+import { RoomEffect } from './stage-actions.ts';
 
 /**
  * The AI Storyteller: an evening made up live with the reader. Each turn the client sends the
@@ -13,8 +14,9 @@ import { ErrorCode, Id, LightMood, Vec3 } from './primitives.ts';
 
 /** A place in the reader's real room, from Space Setup, in stage space (metres from the book's spine). */
 export const RoomPlace = z.strictObject({
-  id: Id,
-  label: z.enum(['table', 'couch', 'bed', 'wall', 'window', 'door', 'floor', 'shelf', 'storage', 'screen', 'lamp', 'plant', 'other']),
+  /** Its kind and a number, such as `couch-2`. */
+  id: RoomPlaceId,
+  label: RoomLabel,
   /** The middle of its top or face. */
   at: Vec3,
   /** Width and depth (or height, for a wall), metres. */
@@ -31,6 +33,8 @@ export const StageNow = z.strictObject({
   objects: z.array(ShowObject),
   light: LightMood,
   lampLit: z.boolean(),
+  /** Room effects showing now, and the ones this room and build can show. Absent means none at all. */
+  roomFx: z.strictObject({ on: z.array(RoomEffect), available: z.array(RoomEffect) }).optional(),
 });
 export type StageNow = z.infer<typeof StageNow>;
 

@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { NARRATOR, type StageLibrary } from './library.ts';
 import { ObjectOrigin, type ShowObject } from './objects.ts';
 import { Id, PLACEHOLDERS, type Issue } from './primitives.ts';
-import { StageActions, type StageAction } from './stage-actions.ts';
+import { ROOM_EFFECTS, StageActions, type StageAction } from './stage-actions.ts';
 
 export const LineId = z.string().regex(/^line_[a-z0-9]+$/);
 export type LineId = z.infer<typeof LineId>;
@@ -194,8 +194,12 @@ export function checkReady(ready: ReadyBeat): Issue[] {
   return issues;
 }
 
-/** References and timing only. Pacing and repetition belong to the director's validator. */
-export function checkBeat(beat: Beat, library: StageLibrary, objects: ShowObject[], scene: Scene | null): Issue[] {
+/**
+ * References and timing only. Pacing and repetition belong to the director's validator. With the
+ * reader's room places, a room action or target naming an exact place (`room:couch-2`) must exist;
+ * a bare kind (`room:couch`) always passes, since the app falls back to the next best place.
+ */
+export function checkBeat(beat: Beat, library: StageLibrary, objects: ShowObject[], scene: Scene | null, room: readonly { id: string }[] | null = null): Issue[] {
   const issues: Issue[] = [];
   const issue = (code: string, path: string, message: string) => issues.push({ code, path, message });
   const cast = new Map(library.cast.map((c) => [c.id, c]));
@@ -217,12 +221,17 @@ export function checkBeat(beat: Beat, library: StageLibrary, objects: ShowObject
   const checkMark = (id: string, path: string) => {
     if (!marks.has(id)) issue('unknown_mark', path, `${id} is not on this set`);
   };
+  const places = room ? new Set(room.map((p) => p.id)) : null;
+  const checkRoom = (id: string, path: string) => {
+    if (places && id.includes('-') && !places.has(id)) issue('unknown_room_place', path, `${id} is not in the reader's room`);
+  };
   const checkTarget = (target: string | null, path: string) => {
     if (target === null || target === 'reader') return;
     const [kind, id] = target.split(':') as [string, string];
     if (kind === 'cast') checkCast(id, path);
     else if (kind === 'object') checkObject(id, path);
     else if (kind === 'mark') checkMark(id, path);
+    else if (kind === 'room') checkRoom(id, path);
   };
   const checkProblem = (id: string | null, path: string) => {
     if (id !== null && id !== scene?.problem?.id) issue('unknown_problem', path, `${id} is not this scene's problem`);
@@ -279,6 +288,15 @@ export function checkBeat(beat: Beat, library: StageLibrary, objects: ShowObject
       case 'resolve':
         checkProblem(action.problem, path);
         break;
+      case 'room': {
+        const takes = ROOM_EFFECTS[action.effect].what;
+        if (takes && action.what === null) issue('room_needs_object', path, `${action.effect} needs an object`);
+        if (!takes && action.what !== null) issue('room_takes_no_object', path, `${action.effect} takes no object`);
+        if (action.what !== null && !action.what.startsWith('object:')) issue('room_needs_object', path, `${action.effect} uses an object, not ${action.what}`);
+        checkTarget(action.what, path);
+        checkTarget(action.at, path);
+        break;
+      }
       case 'narrate':
       case 'light':
       case 'music':

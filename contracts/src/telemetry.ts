@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { FallbackReason } from './events.ts';
 import { ErrorCode, Id, RouteName } from './primitives.ts';
+import { RoomEffect } from './stage-actions.ts';
 
 const Count = z.number().nonnegative();
 const event = <K extends string, F extends z.ZodRawShape>(kind: K, fields: F) =>
@@ -15,6 +16,8 @@ const variants = [
   event('fallback', { reason: FallbackReason, beatId: Id }),
   event('error', { where: z.string().min(1), message: z.string().min(1) }),
   event('stage_fit', { surface: z.enum(['hit_test', 'plane', 'fallback']), widthM: Count, scale: Count }),
+  /** The room effects showing, each time that changes, so frame summaries can be read per effect. */
+  event('room_fx', { on: z.array(RoomEffect).max(30) }),
 ] as const;
 
 const TelemetryEvent = z.discriminatedUnion('kind', variants);

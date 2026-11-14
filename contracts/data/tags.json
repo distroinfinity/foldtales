@@ -23,5 +23,6 @@
   { "id": "opens", "meaning": "Unlocks, unlatches or opens something" },
   { "id": "shiny", "meaning": "Reflects light, and tempts anything that loves it" },
   { "id": "edible", "meaning": "Someone could eat it" },
-  { "id": "rolls", "meaning": "Round enough to roll along" }
+  { "id": "rolls", "meaning": "Round enough to roll along" },
+  { "id": "message", "meaning": "Carries words for someone to read" }
 ]

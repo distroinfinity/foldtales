@@ -27,6 +27,7 @@ const validActions = [
   },
   { do: 'wait', withPrev: false, seconds: 1.5 },
   { do: 'resolve', withPrev: false, problem: 'the-brook', outcome: 'crossed on a string' },
+  { do: 'room', withPrev: false, effect: 'hunt', what: 'object:string', at: 'room:couch' },
 ] as const;
 
 const invalidActions: Record<string, unknown> = {
@@ -53,6 +54,7 @@ const invalidActions: Record<string, unknown> = {
   },
   wait: { do: 'wait', withPrev: false, seconds: -1 },
   resolve: { do: 'resolve', withPrev: false, problem: null, outcome: 'done' },
+  room: { do: 'room', withPrev: false, effect: 'hurricane', what: null, at: 'room:attic' },
 };
 
 describe('StageAction', () => {
@@ -144,7 +146,7 @@ test('the JSON Schema uses only what structured outputs accept', () => {
     }
     if (node.type === 'array') expect((node.minItems as number | undefined) ?? 0).toBeLessThanOrEqual(1);
   });
-  expect(objects).toBe(13);
+  expect(objects).toBe(14);
 });
 
 test('a generated UUID is a valid id, and capitals are not', () => {

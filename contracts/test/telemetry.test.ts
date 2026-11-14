@@ -15,6 +15,7 @@ const examples: Record<string, { valid: object; invalid: object }> = {
   fallback: { valid: { reason: 'slow', beatId: 'ask' }, invalid: { reason: 'tired', beatId: 'ask' } },
   error: { valid: { where: 'frame', message: 'boom' }, invalid: { where: 'frame' } },
   stage_fit: { valid: { surface: 'hit_test', widthM: 0.6, scale: 1 }, invalid: { surface: 'moon', widthM: 0.6, scale: 1 } },
+  room_fx: { valid: { on: ['rain', 'shadows'] }, invalid: { on: ['hurricane'] } },
 };
 
 const batch = (events: unknown[]) => ({ v: 1, buildId: 'b1', sessionId: 's1', events });
