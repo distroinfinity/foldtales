@@ -1,9 +1,7 @@
-import '@fontsource-variable/fraunces/opsz.css';
-import '@fontsource/atkinson-hyperlegible-next/400.css';
-import '@fontsource/atkinson-hyperlegible-next/500.css';
-import './landing.css';
-import { askForMicrophone } from './microphone.ts';
-
+/**
+ * The page's state, set by the 3D side (client/src/index.ts) and read by the React page.
+ * The API is unchanged from before the redesign, so index.ts keeps calling setLandingState.
+ */
 export type LandingState =
   | { kind: 'loading'; share: number }
   | {
@@ -12,93 +10,55 @@ export type LandingState =
       openRoom: (() => void) | null;
       label?: string;
       restart?: { label: string; run: () => void } | null;
-      /** The second way in: the AI Storyteller, a quieter door under the book's. */
+      /** The second way in: the AI Storyteller (ticket 3 wires it in index.ts). The page's door gates it on sign-in and the microphone. */
       storyteller?: { label: string; run: () => void } | null;
     }
   | { kind: 'opening' }
   | { kind: 'inside' }
   | { kind: 'failed' };
 
-const landing = (): HTMLElement | null => document.getElementById('landing');
-let wired = false;
+/** A tap that should have opened the book, but no session came. */
+export type PageState = LandingState | { kind: 'refused'; last: Extract<LandingState, { kind: 'ready' }> };
 
-/** The first frame: the book, one button, and the voice note. Nothing else. */
-export function setLandingState(state: LandingState): void {
-  const root = landing();
-  if (!root) return;
-  const button = root.querySelector<HTMLButtonElement>('#open')!;
-  const label = root.querySelector<HTMLElement>('.open-label')!;
-  wireMicrophone(root);
-  root.dataset.state = state.kind;
-  switch (state.kind) {
-    case 'loading':
-      button.disabled = true;
-      label.textContent = 'Getting the book ready';
-      button.style.setProperty('--share', String(state.share));
-      break;
-    case 'ready':
-      button.disabled = false;
-      label.textContent = state.label ?? 'Open the book';
-      const restart = root.querySelector<HTMLButtonElement>('#restart');
-      if (restart) {
-        restart.hidden = !state.restart;
-        restart.textContent = state.restart?.label ?? '';
-        restart.onclick = () => {
-          // XR has to start inside this tap too.
-          root.dataset.state = 'opening';
-          state.restart?.run();
-        };
-      }
-      button.onclick = () => {
-        // XR has to start inside this tap, so nothing awaits before it.
-        root.dataset.state = 'opening';
-        state.open();
-      };
-      const storyteller = root.querySelector<HTMLButtonElement>('#storyteller');
-      if (storyteller) {
-        storyteller.hidden = !state.storyteller;
-        storyteller.textContent = state.storyteller?.label ?? '';
-        storyteller.onclick = () => {
-          // XR has to start inside this tap too.
-          root.dataset.state = 'opening';
-          state.storyteller?.run();
-        };
-      }
-      const room = root.querySelector<HTMLButtonElement>('#room')!;
-      room.hidden = !state.openRoom;
-      room.onclick = () => {
-        root.dataset.state = 'opening';
-        state.openRoom?.();
-      };
-      break;
-    case 'opening':
-    case 'inside':
-      break;
-    case 'failed':
-      button.disabled = true;
-      label.textContent = 'The book didn’t load';
-      root.querySelector('.hint')!.textContent = 'Check your connection, then reload this page.';
-      break;
-  }
+/** If the browser hasn't opened the book this long after a tap, offer a fresh one. */
+const REFUSED_AFTER_MS = 12_000;
+
+let current: PageState = { kind: 'loading', share: 0 };
+let lastReady: Extract<LandingState, { kind: 'ready' }> | null = null;
+let refusedTimer: ReturnType<typeof setTimeout> | null = null;
+const listeners = new Set<() => void>();
+
+function publish(next: PageState): void {
+  current = next;
+  document.documentElement.dataset.landing = next.kind;
+  for (const listener of listeners) listener();
 }
 
-function wireMicrophone(root: HTMLElement): void {
-  if (wired) return;
-  wired = true;
-  const mic = root.querySelector<HTMLButtonElement>('#mic')!;
-  mic.addEventListener('click', async () => {
-    if (mic.dataset.answer) return;
-    const answer = await askForMicrophone(navigator.mediaDevices?.getUserMedia?.bind(navigator.mediaDevices));
-    mic.dataset.answer = answer;
-    mic.textContent = answer === 'granted' ? 'They can hear you now.' : 'The story plays the same without your voice.';
-  });
-  void navigator.permissions
-    ?.query({ name: 'microphone' as PermissionName })
-    .then((status) => {
-      if (status.state === 'granted') {
-        mic.dataset.answer = 'granted';
-        mic.textContent = 'They can hear you now.';
-      }
-    })
-    .catch(() => undefined);
+export function setLandingState(state: LandingState): void {
+  if (refusedTimer && state.kind !== 'opening') {
+    clearTimeout(refusedTimer);
+    refusedTimer = null;
+  }
+  if (state.kind === 'ready') lastReady = state;
+  publish(state);
+}
+
+/** The page's own taps go through here, so XR still starts inside the tap. */
+export function openingTap(run: () => void): void {
+  publish({ kind: 'opening' });
+  run();
+  if (refusedTimer) clearTimeout(refusedTimer);
+  refusedTimer = setTimeout(() => {
+    refusedTimer = null;
+    if (current.kind === 'opening' && lastReady) publish({ kind: 'refused', last: lastReady });
+  }, REFUSED_AFTER_MS);
+}
+
+export function landingSnapshot(): PageState {
+  return current;
+}
+
+export function subscribeLanding(listener: () => void): () => void {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
 }

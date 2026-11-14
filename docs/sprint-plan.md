@@ -56,6 +56,12 @@ Why: AI lines spliced into the written chapter didn't land ("If a story is alrea
   - [ ] Two-headset proof (can start once ticket 1 places a stage)
   - [ ] Shared show
 - [ ] **6. Ship**
+- [ ] **7. The product around the book** (added by the owner, Nov 14). Plan: `docs/plans/2026-11-14-product-front-door.md`
+  - [ ] Sign-in proved end to end (accounts, the phone code, Google)
+  - [ ] The page: the hero and the scroll that opens the book, on every device
+  - [ ] Your book on any headset
+  - [ ] **Later, once the product is nearly done: turn sign-in on and test it.** Built and tested on the Mac, switched off for now (owner, Nov 14). Set up Resend (needs a domain and its DNS records), a Google sign-in client, and the server's sign-in secrets (`BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `TT_CLIENT_HOST`). Then turn on `TT_ACCOUNTS=on` (server) and `TT_PUBLIC_ACCOUNTS=on` (site) together. Test on the Quest: Google in Quest Browser, the phone code, and a second headset.
+  - [ ] **Host it on foldtales.xyz** (owner, Nov 15): the site on Cloudflare Pages through the existing CI, and the backend on Railway at api.foldtales.xyz. The AI stays off in production for now. Steps in the plan's "Hosting on foldtales.xyz"; this also releases ticket 0's held hosting task.
 - **Art library** (runs throughout)
   - [x] Book and first set for M1 (run 004, PR #1). Approved on the Mac
   - [x] Drawer objects for M2 (run 006, PR #2). Approved on the Mac and in Quest Browser
@@ -197,11 +203,25 @@ Stays its own ticket, because it needs two headsets and can fail independently. 
 
 ### 6. Ship
 
-Ends at **M6**. Cold start budget, PWA and offline cache, final device pass, accessibility (captions, one-handed), VR Glasses view pass, the open items in playtest notes, licenses and credits including Runway's terms, privacy text, demo video, submission form. The no-headset page: a desktop or phone visitor sees what this is, a short look at it, and how to open the link on a Quest, never a dead button. About and credits, reached from a quiet link on the landing page.
+Ends at **M6**. Cold start budget, PWA and offline cache, final device pass, accessibility (captions, one-handed), VR Glasses view pass, the open items in playtest notes, licenses and credits including Runway's terms, privacy text, demo video, submission form. The no-headset page, About and credits moved to ticket 7 (Nov 14).
 
 - **Blocked by:** everything else. **Blocks:** submission.
 - **Agent verifies:** cold start on a throttled network, the Must-pass list against automated checks, form copy lengths, license list complete.
 - **You verify:** film the video from real Quest recordings, and retest audio capture first. Play it as a judge, from the submitted link, with the controllers in a drawer.
+
+### 7. The product around the book
+
+Added by the owner on Nov 14, after the first new player: "Currently I land on the page. It's one random book with a start story. This is not a finished product." v1's freeze doesn't stop the owner's own request. It pulls forward ticket 6's no-headset page, About and credits, and owns the whole journey around the book.
+
+| Workstream | What it does |
+|---|---|
+| **Positioning and library** | Tabletop Theater, an interactive storybook. The book is *Tales from the Table's Edge*, with chapters, and beside it is the AI Storyteller. Written into the PRD |
+| **The page** | One page for every device: a hero with the one action, then a short scroll that opens the real pop-up book (Apple-style). "Open the book" on a headset, "Send to your Quest" elsewhere. Chapters, About, Privacy |
+| **Accounts** | Sign-in that remembers you: a code on the page finished on your phone, or Google. Better Auth in the backend. Your place and finished chapters on any headset. The AI Storyteller needs sign-in |
+
+- **Blocked by:** nothing; reads ticket 3's `libraryState()`. **Blocks:** 6.
+- **Agent verifies:** Mac screenshots and a scroll recording at the Quest's 1280 × 670, desktop and phone widths; the emulator handoff from each landing state into the book; sign-in on the real link.
+- **You verify:** the look on the Mac; in the headset, the handoff into the book, Google sign-in in Quest Browser, and the phone code.
 
 ### Art library
 
@@ -228,6 +248,10 @@ Don't push on. Pull in the fallback from the risk table in `technical-design.md`
 - [ ] Next time the USB prompt appears, tick **Always allow from this computer**. *(Not confirmed.)*
 - [ ] ⏸ Create or connect: Railway project (backend), Cloudflare account (static client, free tier). *(Held with hosting.)*
 - [ ] Anthropic API key for the backend only, with a spending limit set in the console. *(Not needed until ticket 3.)*
+
+**When the product is nearly done (ticket 7)**
+- [x] A domain: **`foldtales.xyz`**, bought by the owner on Nov 15. The product is named **Foldtales**. Point it at the deployed site, and use it as Resend's sending domain.
+- [ ] Resend and a Google sign-in client, then sign-in switched on (ticket 7's to-do above).
 
 **When tickets ask, with an estimate first**
 - [ ] Speech to text and possibly fast live voice: ElevenLabs or your OpenAI key (ticket 4).

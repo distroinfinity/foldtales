@@ -1,6 +1,8 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { iwsdkDev } from '@iwsdk/vite-plugin-dev';
+import tailwindcss from '@tailwindcss/vite';
+import react from '@vitejs/plugin-react';
 import { defineConfig, type ServerOptions } from 'vite';
 import { readPorts } from '../tools/ports.ts';
 import { artPlugin } from './vite/art-plugin.ts';
@@ -24,6 +26,8 @@ function devServer(): ServerOptions {
 
 export default defineConfig(({ command }) => ({
   plugins: [
+    react(),
+    tailwindcss(),
     iwsdkDev(),
     artPlugin({
       artRoot: fileURLToPath(new URL('../art', import.meta.url)),
@@ -39,7 +43,8 @@ export default defineConfig(({ command }) => ({
     outDir: 'dist',
     sourcemap: process.env.NODE_ENV !== 'production',
     target: 'esnext',
-    rollupOptions: { input: './index.html' },
+    // The page, plus the 2D pages that never load the 3D book.
+    rollupOptions: { input: { main: './index.html', about: './about/index.html', privacy: './privacy/index.html', link: './link/index.html', authReturn: './auth/return/index.html' } },
   },
   esbuild: { target: 'esnext' },
   resolve: { dedupe: ['three'] },

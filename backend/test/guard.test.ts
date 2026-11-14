@@ -1,4 +1,4 @@
-import { BackendError, CONTRACT_HEADER, CONTRACT_VERSION, createHttpBackend, type ReplyChunk, type ShowEvent } from '@tabletop/contracts';
+import { BackendError, CONTRACT_HEADER, CONTRACT_VERSION, SESSION_HEADER, SIGN_IN_REQUIRED, createHttpBackend, type ReplyChunk, type ShowEvent } from '@tabletop/contracts';
 import { createMockBackend, fixtureLibrary } from '@tabletop/contracts/mocks';
 import { describe, expect, test } from 'vitest';
 import { createApp } from '../src/app.ts';
@@ -18,16 +18,21 @@ function harness(capOverrides: Partial<Caps> = {}, adminToken?: string) {
   const now = () => clock.now;
   const app = createApp({ ...createMockBackend(), ...realRoutes(store, SECRET, now) }, () => undefined, {
     beforeContract: browserAccess(HOST),
-    afterContract: [guard(store, { secret: SECRET, caps: { ...readCaps({}), ...capOverrides }, now })],
+    // Stands in for Better Auth: `session-<user>` is a valid session for that user.
+    afterContract: [guard(store, { secret: SECRET, caps: { ...readCaps({}), ...capOverrides }, now, sessionUser: async (t) => t.match(/^session-(.+)$/)?.[1] ?? null })],
     extend: adminTelemetry(store, adminToken),
   });
-  const fetcher = (address = '198.51.100.7'): typeof fetch =>
+  const fetcher = (address = '198.51.100.7', session?: string): typeof fetch =>
     ((input: string | URL | Request, init?: RequestInit) =>
-      app.request(String(input), { ...init, headers: { ...(init?.headers as Record<string, string>), 'x-real-ip': address } })) as typeof fetch;
-  const api = (token?: string, address?: string) => createHttpBackend({ baseUrl: '', token, fetch: fetcher(address) });
-  const device = async (address?: string) => {
+      app.request(String(input), {
+        ...init,
+        headers: { ...(init?.headers as Record<string, string>), 'x-real-ip': address, ...(session ? { [SESSION_HEADER]: session } : {}) },
+      })) as typeof fetch;
+  const api = (token?: string, address?: string, session?: string) => createHttpBackend({ baseUrl: '', token, fetch: fetcher(address, session) });
+  /** A device signed in as `ann` unless told otherwise; `null` is a guest. */
+  const device = async (address?: string, session: string | null = 'session-ann') => {
     const issued = await api(undefined, address).issueDevice({});
-    return { ...issued, api: api(issued.token, address) };
+    return { ...issued, api: api(issued.token, address, session ?? undefined) };
   };
   return { app, store, clock, api, device };
 }
@@ -50,19 +55,30 @@ const event = (id: string, seq: number | null, seriesId = 's'): ShowEvent =>
   ({ v: 1, id, seq, seriesId, episodeId: null, actor: { kind: 'app' }, showMs: 0, at: NOON.toISOString(), type: 'session.resumed', data: {} }) as ShowEvent;
 
 describe('tokens', () => {
-  test('an AI route needs a valid token', async () => {
+  test('an AI route needs a valid token and a valid session', async () => {
     const { api, device } = harness();
     const { token } = await device();
-    expect(await codeOf(api().speechToken({}))).toBe('unauthorized');
-    expect(await codeOf(api(`${token}x`).speechToken({}))).toBe('unauthorized');
-    expect(await codeOf(api(token).speechToken({}))).toBe('ok');
+    expect(await codeOf(api(undefined, undefined, 'session-ann').speechToken({}))).toBe('unauthorized');
+    expect(await codeOf(api(`${token}x`, undefined, 'session-ann').speechToken({}))).toBe('unauthorized');
+    expect(await codeOf(api(token, undefined, 'session-ann').speechToken({}))).toBe('ok');
+    const guest = api(token).speechToken({});
+    await expect(guest).rejects.toMatchObject({ code: 'unauthorized', message: SIGN_IN_REQUIRED });
+    expect(await codeOf(api(token, undefined, 'forged').speechToken({}))).toBe('unauthorized');
+  });
+
+  test('a guest keeps memory and telemetry, keyed by the device', async () => {
+    const { device } = harness();
+    const guest = await device(undefined, null);
+    await guest.api.memoryAppend({ seriesId: 's', events: [event('a', 1)] });
+    expect((await guest.api.memoryRead({ seriesId: 's', afterSeq: null })).events.map((e) => e.id)).toEqual(['a']);
+    expect((await guest.api.sendTelemetry({ v: 1, buildId: 'b', sessionId: 's', events: [] })).accepted).toBe(0);
   });
 
   test('an expired token is refused', async () => {
     const { api, clock, device } = harness();
     const { token } = await device();
     clock.now = new Date(NOON.getTime() + 31 * 86_400_000);
-    expect(await codeOf(api(token).speechToken({}))).toBe('unauthorized');
+    expect(await codeOf(api(token, undefined, 'session-ann').speechToken({}))).toBe('unauthorized');
   });
 
   test('renewing, even expired, keeps the device and its memory', async () => {
@@ -102,7 +118,7 @@ describe('new identities', () => {
 });
 
 describe('browser access', () => {
-  const headers = 'content-type,authorization,' + CONTRACT_HEADER;
+  const headers = `content-type,authorization,${CONTRACT_HEADER},${SESSION_HEADER}`;
   const preflight = (app: ReturnType<typeof harness>['app'], origin: string) =>
     app.request('/v1/speech/token', { method: 'OPTIONS', headers: { origin, 'access-control-request-method': 'POST', 'access-control-request-headers': headers } });
 
@@ -117,11 +133,18 @@ describe('browser access', () => {
     for (const header of headers.split(',')) expect(allowed).toContain(header.toLowerCase());
     const post = await app.request('/v1/speech/token', {
       method: 'POST',
-      headers: { origin, 'content-type': 'application/json', authorization: `Bearer ${token}`, [CONTRACT_HEADER]: String(CONTRACT_VERSION) },
+      headers: {
+        origin,
+        'content-type': 'application/json',
+        authorization: `Bearer ${token}`,
+        [CONTRACT_HEADER]: String(CONTRACT_VERSION),
+        [SESSION_HEADER]: 'session-ann',
+      },
       body: '{}',
     });
     expect(post.status).toBe(200);
     expect(post.headers.get('access-control-allow-origin')).toBe(origin);
+    expect(post.headers.get('access-control-allow-credentials')).toBeNull();
   });
 
   test.each([`https://evil-${HOST}`, `http://${HOST}`, `https://${HOST}.evil.com`, 'not a url'])('%s gets no CORS header', async (origin) => {
@@ -148,7 +171,7 @@ describe('browser access', () => {
 
 describe('caps', () => {
   test.each([
-    ['per device', { deviceFeature: 0 }],
+    ['per user', { userFeature: 0 }],
     ['per feature', { feature: 0 }],
     ['global', { global: 0 }],
   ] as Array<[string, Partial<Caps>]>)('%s, at zero, stops an AI route', async (_label, caps) => {
@@ -162,16 +185,17 @@ describe('caps', () => {
     expect(chunks.at(-1)).toMatchObject({ kind: 'error', code: 'quota_exceeded' });
   });
 
-  test('a device cap leaves other devices alone', async () => {
-    const { device } = harness({ deviceFeature: 1 });
+  test('a user cap follows the account across headsets, and leaves other users alone', async () => {
+    const { device } = harness({ userFeature: 1 });
     const a = await device();
     await a.api.speakLine(line);
     expect(await codeOf(a.api.speakLine(line))).toBe('quota_exceeded');
-    expect(await codeOf((await device()).api.speakLine(line))).toBe('ok');
+    expect(await codeOf((await device()).api.speakLine(line))).toBe('quota_exceeded');
+    expect(await codeOf((await device(undefined, 'session-bob')).api.speakLine(line))).toBe('ok');
   });
 
   test('caps reset the next UTC day', async () => {
-    const { clock, device } = harness({ deviceFeature: 1 });
+    const { clock, device } = harness({ userFeature: 1 });
     const a = await device();
     await a.api.speakLine(line);
     expect(await codeOf(a.api.speakLine(line))).toBe('quota_exceeded');

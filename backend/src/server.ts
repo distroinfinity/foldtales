@@ -6,6 +6,7 @@ import { BackendError } from '@tabletop/contracts';
 import { createMockBackend, MOCK_PROFILES } from '@tabletop/contracts/mocks';
 import { readPorts } from '../../tools/ports.ts';
 import { createApp, resolveListen } from './app.ts';
+import { openAccounts, readAuthSettings } from './auth/index.ts';
 import Anthropic from '@anthropic-ai/sdk';
 import { createPlanBeat } from './director/beat.ts';
 import { createClaude } from './director/claude.ts';
@@ -16,7 +17,7 @@ import { createVoices, readLiveVoices } from './storyteller/voices.ts';
 import { guard, readCaps } from './guard.ts';
 import { realRoutes } from './real-routes.ts';
 import { openStore } from './store.ts';
-import { adminTelemetry, browserAccess } from './web.ts';
+import { adminTelemetry, browserAccess, clientOrigins } from './web.ts';
 
 const profile = process.env.MOCK_PROFILE ?? 'normal';
 if (!Object.hasOwn(MOCK_PROFILES, profile)) {
@@ -33,6 +34,16 @@ mkdirSync(dataDir, { recursive: true });
 const store = openStore(join(dataDir, 'backend.db'));
 const now = () => new Date();
 
+// The dev client's own addresses, so its pages can sign in through the proxy or directly.
+const ports = dev ? readPorts() : null;
+// The IWSDK dev server serves https (WebXR needs it), and the plain Vite one http.
+const devOrigins = ports ? ['https', 'http'].flatMap((scheme) => [`${scheme}://127.0.0.1:${ports.CLIENT_PORT}`, `${scheme}://localhost:${ports.CLIENT_PORT}`]) : [];
+const origins = clientOrigins(process.env.TT_CLIENT_HOST, devOrigins);
+const accounts = await openAccounts(
+  store.db,
+  readAuthSettings(process.env, { dev, backendPort: ports?.BACKEND_PORT ?? null, clientOrigins: origins, log: console.log }),
+  now,
+);
 // The director is real once a key is set (backend only, never the client); without one it stays the mock.
 const key = process.env.ANTHROPIC_API_KEY;
 const claude = key ? createClaude(key) : null;
@@ -73,8 +84,10 @@ const app = createApp(
   { ...createMockBackend(MOCK_PROFILES[profile as keyof typeof MOCK_PROFILES]), ...director, ...realRoutes(store, secret, now) },
   console.error,
   {
-    beforeContract: browserAccess(process.env.TT_CLIENT_HOST),
-    afterContract: [guard(store, { secret, caps: readCaps(process.env), now })],
+    beforeContract: browserAccess(process.env.TT_CLIENT_HOST, devOrigins),
+    auth: (app) => accounts.mountAuth(app),
+    afterContract: [guard(store, { secret, caps: readCaps(process.env), now, sessionUser: accounts.sessionUser, requireSignIn: process.env.TT_ACCOUNTS === 'on' })],
+    routes: (app) => accounts.mountRoutes(app),
     extend: adminTelemetry(store, process.env.TT_ADMIN_TOKEN),
   },
 );

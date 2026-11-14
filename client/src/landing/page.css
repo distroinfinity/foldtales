@@ -1,0 +1,77 @@
+@import 'tailwindcss';
+
+/* The design language's colours and type (docs/design-language.md). */
+@theme {
+  --color-room: #15110e;
+  --color-lamplight: #e9b864;
+  --color-navy: #1f2a44;
+  --color-night: #151c2e;
+  --color-deep: #0e1424;
+  --color-page: #f6efe2;
+  --color-ink: #2b2420;
+  --color-gold: #d4a23e;
+  --color-rust: #b5502e;
+  --color-rust-deep: #96401f;
+  --color-sage: #76917d;
+  --font-display: 'Cormorant Garamond', 'Iowan Old Style', Georgia, serif;
+  --font-sans: 'Atkinson Hyperlegible Next', system-ui, sans-serif;
+  --animate-shimmer-slide: shimmer-slide var(--speed) ease-in-out infinite alternate;
+  --animate-spin-around: spin-around calc(var(--speed) * 2) infinite linear;
+
+  @keyframes shimmer-slide {
+    to { transform: translate(calc(100cqw - 100%), 0); }
+  }
+  @keyframes spin-around {
+    0% { transform: translateZ(0) rotate(0); }
+    15%, 35% { transform: translateZ(0) rotate(90deg); }
+    65%, 85% { transform: translateZ(0) rotate(270deg); }
+    100% { transform: translateZ(0) rotate(360deg); }
+  }
+}
+
+@layer base {
+  html { background: var(--color-room); color-scheme: dark; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--color-room);
+    color: var(--color-page);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  :focus-visible { outline: 3px solid var(--color-gold); outline-offset: 4px; border-radius: 4px; }
+  ::selection { background: color-mix(in srgb, var(--color-gold) 40%, transparent); }
+}
+
+/* Titles: a classic book face. The book's own title is always italic, as titles are in print. */
+.display { font-family: var(--font-display); font-weight: 600; letter-spacing: -0.012em; font-feature-settings: 'kern', 'liga', 'onum'; }
+
+/* Paper: the bookplate and the contents sheet are printed pages. */
+.paper {
+  background: radial-gradient(ellipse at 30% 20%, #fbf6ec, var(--color-page) 60%, #ece2cf);
+  color: var(--color-ink);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset, 0 24px 60px rgba(5, 7, 16, 0.55);
+}
+
+/* The 3D book on its table. Everything below reads --p, the story's scroll progress. */
+.stage3d { perspective: var(--persp, 1000px); perspective-origin: 50% 18%; }
+.p3 { position: absolute; transform-style: preserve-3d; }
+.face { position: absolute; inset: 0; backface-visibility: hidden; background-repeat: no-repeat; }
+.face.back { transform: rotateY(180deg); }
+
+/* The lighthouse beam: one wedge of light, swept by --beam (degrees). */
+.beam {
+  background: conic-gradient(from calc(var(--beam, 0deg) - 9deg) at var(--bx, 30%) var(--by, 40%),
+    rgba(255, 226, 160, 0) 0deg, rgba(255, 226, 160, 0.38) 6deg, rgba(255, 236, 190, 0.55) 9deg, rgba(255, 226, 160, 0.38) 12deg, rgba(255, 226, 160, 0) 18deg, rgba(255, 226, 160, 0) 360deg);
+  mix-blend-mode: screen;
+  filter: blur(6px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}
+
+/* The 3D scene shows only once you're inside. */
+html:not([data-landing='inside']) #scene-container { visibility: hidden; }
+html[data-landing='inside'] #landing { display: none; }
+#scene-container { position: fixed; inset: 0; z-index: 1; }
