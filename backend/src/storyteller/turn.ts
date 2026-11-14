@@ -61,7 +61,7 @@ Rules:
 - Use what the reader says, exactly, as the story's direction. If they suggest a story, start telling it with the cast. If they ask a character something, that character answers in character.
 - When the reader names a thing the story needs that isn't among the objects here (a teapot, a hat, a lost key of their own), PAINT it early in the turn so it can arrive on the page; a character can go to fetch it.
 - Go places: when the story moves (down to the shore, out to the gap, up to the lamp), SET the page to that set and use its marks.
-- The reader's real room is listed as room marks. You may use them: a character can look out at the giant's couch, or the moth can fly to the window.
+- The reader's real room is listed as room marks. You may use them: a character can look out at the giant's couch, or one who flies can fly to the window.
 - If the reader asks for something unkind or out of tone, the narrator gently turns the page to something cozier, in story.
 - Never repeat a line from the evening so far.`;
 
@@ -219,6 +219,8 @@ export interface TurnDeps {
   log?: (message: string) => void;
   /** Is what the reader said fit for the book? Runs alongside the turn. */
   moderate?: (text: string) => Promise<boolean>;
+  /** Starts painting something new; returns the job id at once. */
+  paint?: (sessionId: string, description: string, objectId: string) => string;
 }
 
 /** The turn as a stream of events, ending in exactly one of listen, redirect or error. */
@@ -298,7 +300,9 @@ export async function* storyTurn(request: StoryTurnRequest, deps: TurnDeps): Asy
     } else if (step.kind === 'paint') {
       if (paints >= MAX_PAINTS) return;
       paints += 1;
-      enqueue(Promise.resolve({ kind: 'paint', jobId: `pending-${step.objectId}`, objectId: step.objectId, description: step.description }));
+      if (!deps.paint) return;
+      const jobId = deps.paint(request.sessionId, step.description, step.objectId);
+      enqueue(Promise.resolve({ kind: 'paint', jobId, objectId: step.objectId, description: step.description }));
     } else listened = step.who;
   };
 

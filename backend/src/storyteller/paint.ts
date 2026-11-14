@@ -1,0 +1,156 @@
+import { readFileSync } from 'node:fs';
+import { randomUUID } from 'node:crypto';
+import { TAG_VOCABULARY, type ObjectDef, type PaintRequest, type PaintResult } from '@tabletop/contracts';
+import { z } from 'zod';
+import { REACTOR, type Claude } from '../director/claude.ts';
+import { cutOut } from './cutout.ts';
+
+/**
+ * The live painter: something new the story needs, painted in the book's object style (run 013's
+ * recipe), cut out, named and tagged, about 30 s. A job, so no request waits on it. Capped per
+ * evening and in total; anything that fails its checks is "couldn't find it", never shown.
+ */
+
+const API = 'https://api.dev.runwayml.com/v1';
+const MODEL = 'seedream5_flash';
+const PER_EVENING = 6;
+const CREDITS_PER_PAINTING = 2;
+const JOB_TTL_MS = 10 * 60_000;
+
+const template = (thing: string) =>
+  `Paint one new thing in exactly the painting style of Figure 1, as a single separate storybook object: ${thing}. The object alone, centered, upright, about half the height of the image. Leave a wide margin of empty paper on all four sides, with nothing touching the edge of the image. Its silhouette has a clean hard edge traced with a fine graphite pencil outline. No cast shadows on the paper. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. Natural, believable, not a cartoon. On plain flat solid vivid magenta paper, one even color. No pink or purple on the object. No scenery, no text, no kite.`;
+
+const Named = z.object({
+  name: z.string().min(1).transform((s) => s.slice(0, 40)),
+  description: z.string().min(1).transform((s) => s.slice(0, 160)),
+  tags: z.array(z.string()).transform((t) => t.slice(0, 4)),
+  size: z.enum(['tiny', 'small', 'medium', 'large']),
+  /** The thing to paint, in plain words, as it looks. */
+  paint: z.string().min(1).transform((s) => s.slice(0, 300)),
+  fit: z.boolean(),
+});
+
+const HEIGHT_M = { tiny: 0.045, small: 0.065, medium: 0.085, large: 0.11 } as const;
+
+export interface PainterDeps {
+  runwayKey: string | undefined;
+  claude: Claude | null;
+  /** The style reference, Figure 1 (run 013). */
+  styleRefPath: string;
+  /** Total credits this process may spend on paintings. */
+  creditCap: number;
+  log?: (m: string) => void;
+}
+
+export function createPainter(deps: PainterDeps) {
+  const jobs = new Map<string, { result: PaintResult; at: number }>();
+  const perEvening = new Map<string, number>();
+  let spent = 0;
+  let styleRef: string | null = null;
+  const ref = () => (styleRef ??= `data:image/png;base64,${readFileSync(deps.styleRefPath).toString('base64')}`);
+  const headers = () => ({ Authorization: `Bearer ${deps.runwayKey}`, 'X-Runway-Version': '2024-11-06', 'Content-Type': 'application/json' });
+
+  async function name(request: PaintRequest): Promise<z.infer<typeof Named>> {
+    if (!deps.claude) throw new Error('no claude');
+    const tags = TAG_VOCABULARY.map((t) => `${t.id} (${t.meaning})`).join('; ');
+    const schema = {
+      type: 'object',
+      additionalProperties: false,
+      required: ['name', 'description', 'tags', 'size', 'paint', 'fit'],
+      properties: {
+        name: { type: 'string' },
+        description: { type: 'string' },
+        tags: { type: 'array', items: { type: 'string', enum: TAG_VOCABULARY.map((t) => t.id) } },
+        size: { type: 'string', enum: ['tiny', 'small', 'medium', 'large'] },
+        paint: { type: 'string' },
+        fit: { type: 'boolean' },
+      },
+    };
+    const content = request.image
+      ? `The reader showed the storybook's characters a real thing (photo attached). Name it as a storybook object, as the characters would see it (it belongs to the Giant, the reader). Describe it for a painter in plain words: its shape, colours, material. Story note: ${request.description}`
+      : `A storybook needs this thing painted: ${request.description}. Name it and describe it for a painter in plain words: its shape, colours, material.`;
+    return deps.claude.ask({
+      model: REACTOR,
+      system: `You name and tag objects for a cozy, PG painted storybook. Tags only from this list: ${tags}. size is how big it is next to a small fox (tiny: a key; small: a mug; medium: a teapot; large: a kite). fit is false only if it's unsafe or unsuitable for a cozy PG book (weapons, gore, anything adult).`,
+      user: content,
+      image: request.image ?? undefined,
+      schema,
+      parse: Named,
+      maxTokens: 400,
+      timeoutMs: 8000,
+    });
+  }
+
+  async function paint(thing: string): Promise<Buffer> {
+    const r = await fetch(`${API}/text_to_image`, {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify({ model: MODEL, ratio: '1024:1024', promptText: template(thing), referenceImages: [{ uri: ref() }] }),
+    });
+    const made = (await r.json()) as { id?: string };
+    if (!r.ok || !made.id) throw new Error(`runway refused (${r.status})`);
+    spent += CREDITS_PER_PAINTING;
+    for (let i = 0; i < 30; i++) {
+      await new Promise((resolve) => setTimeout(resolve, 2500));
+      const task = (await fetch(`${API}/tasks/${made.id}`, { headers: headers() }).then((x) => x.json()).catch(() => ({ status: 'UNKNOWN' }))) as { status: string; output?: string[] };
+      if (task.status === 'SUCCEEDED' && task.output?.[0]) return Buffer.from(await (await fetch(task.output[0])).arrayBuffer());
+      if (task.status === 'FAILED' || task.status === 'CANCELLED') throw new Error(`runway ${task.status.toLowerCase()}`);
+    }
+    throw new Error('runway took too long');
+  }
+
+  async function run(jobId: string, request: PaintRequest, objectId: string | null): Promise<void> {
+    const started = Date.now();
+    try {
+      const named = await name(request);
+      if (!named.fit) throw new Error('not for this book');
+      const image = await paint(named.paint);
+      const cut = await cutOut(image);
+      if (!cut.ok) throw new Error(cut.reason);
+      const id = objectId ?? `live-${jobId.slice(-8)}`;
+      const known = [...new Set(named.tags)].filter((t) => TAG_VOCABULARY.some((v) => v.id === t)).slice(0, 4);
+      const def: ObjectDef = {
+        id,
+        name: named.name.toLowerCase(),
+        description: named.description,
+        tags: known.length ? known : ['lightweight'],
+        art: { kind: 'url', url: `data:image/png;base64,${cut.cutout.png.toString('base64')}` },
+        size: { heightM: HEIGHT_M[named.size] },
+        pivot: [50, 96],
+        provenance: 'live',
+      };
+      jobs.set(jobId, { result: { status: 'done', object: def }, at: Date.now() });
+      deps.log?.(`painted "${named.name}" in ${Date.now() - started} ms (${spent} credits so far)`);
+    } catch (cause) {
+      deps.log?.(`painting failed after ${Date.now() - started} ms: ${String(cause)}`);
+      jobs.set(jobId, { result: { status: 'failed', reason: String(cause).slice(0, 120) }, at: Date.now() });
+    }
+  }
+
+  const prune = () => {
+    const now = Date.now();
+    for (const [id, j] of jobs) if (now - j.at > JOB_TTL_MS) jobs.delete(id);
+  };
+
+  return {
+    /** Starts a painting; the job id is returned at once. Over a cap, the job fails straight away. */
+    start(request: PaintRequest, objectId: string | null = null): string {
+      prune();
+      const jobId = `paint-${randomUUID().slice(0, 12)}`;
+      const count = perEvening.get(request.sessionId) ?? 0;
+      if (!deps.runwayKey || !deps.claude) jobs.set(jobId, { result: { status: 'failed', reason: 'painting is off' }, at: Date.now() });
+      else if (count >= PER_EVENING) jobs.set(jobId, { result: { status: 'failed', reason: 'enough painting for one evening' }, at: Date.now() });
+      else if (spent + CREDITS_PER_PAINTING > deps.creditCap) jobs.set(jobId, { result: { status: 'failed', reason: 'the painting budget is spent' }, at: Date.now() });
+      else {
+        perEvening.set(request.sessionId, count + 1);
+        jobs.set(jobId, { result: { status: 'pending' }, at: Date.now() });
+        void run(jobId, request, objectId);
+      }
+      return jobId;
+    },
+    result(jobId: string): PaintResult {
+      return jobs.get(jobId)?.result ?? { status: 'failed', reason: 'no such painting' };
+    },
+  };
+}
+export type Painter = ReturnType<typeof createPainter>;

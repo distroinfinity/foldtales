@@ -1,4 +1,5 @@
-import { DepthOccludable, DepthSensingSystem, Group, SessionMode, Vector3, VisibilityState, World } from '@iwsdk/core';
+import { DepthOccludable, DepthSensingSystem, Group, SessionMode, SRGBColorSpace, TextureLoader, Vector3, VisibilityState, World } from '@iwsdk/core';
+import { wholeRef } from './paint/texref.ts';
 import { roomLight, tableSpot } from './room/room.ts';
 import { buildRoom, roomLook } from './room/room-view.ts';
 import { REVIEW_HOOKS, reviewQuery } from './dev.ts';
@@ -307,18 +308,29 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       firstSet: cfg.firstSet,
       entrances: (setId, cast) => cast.flatMap((c) => (cfg.entrances[setId]?.[c] ? [{ cast: c, mark: cfg.entrances[setId]![c]! }] : [])),
     });
+    stage.objects.removeLive();
     runtime.useScheduler(live, live.spine, initialObjects);
     sound.clearLines();
     story = createStorySession({
       withBackend: (call) => storyAccess.withBackend(call),
       stream: (request) =>
         (async function* () {
-          const events = await storyAccess.withBackend(async (api) => api.storyTurn(request)).catch(() => null);
-          if (!events) {
-            yield { kind: 'error' as const, code: 'upstream_failed' as const, message: 'the backend could not be reached' };
-            return;
+          for (let attempt = 0; attempt < 2; attempt++) {
+            const events = await storyAccess.withBackend(async (api) => api.storyTurn(request)).catch(() => null);
+            if (!events) {
+              yield { kind: 'error' as const, code: 'upstream_failed' as const, message: 'the backend could not be reached' };
+              return;
+            }
+            for await (const event of events) {
+              // A stream reports a refused token as an event, not a throw: renew it with a plain call, then try once more.
+              if (event.kind === 'error' && event.code === 'unauthorized' && attempt === 0) {
+                await storyAccess.withBackend((api) => api.memoryRead({ seriesId: 'token-check', afterSeq: null })).catch(() => null);
+                break;
+              }
+              yield event;
+              if (event.kind === 'listen' || event.kind === 'redirect' || event.kind === 'error') return;
+            }
           }
-          yield* events;
         })(),
       live,
       sound,
@@ -342,8 +354,35 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       nowMs: () => clock.ms,
       log: (m) => console.info(m),
       onState: (state, who) => console.info(`storyteller: ${state}${who ? ` (${who})` : ''}`),
+      onPaint: (job) => void collectPainting(job, story),
     });
   };
+  /** A painting the story asked for: wait for it, upload it out of sight, then it appears on the page and the story is told. */
+  async function collectPainting(job: { jobId: string; objectId: string }, session: StorySession | null): Promise<void> {
+    const deadline = performance.now() + 75_000;
+    while (performance.now() < deadline) {
+      await new Promise((r) => setTimeout(r, 2500));
+      if (story !== session) return; // A new evening began meanwhile.
+      const result = await storyAccess.withBackend((api) => api.paintResult({ jobId: job.jobId })).catch(() => null);
+      if (!result || result.status === 'pending') continue;
+      if (result.status === 'failed') {
+        console.info(`storyteller: the painting didn't come (${result.reason})`);
+        return;
+      }
+      const def = { ...result.object, id: job.objectId };
+      if (def.art.kind !== 'url') return;
+      const texture = await new TextureLoader().loadAsync(def.art.url).catch(() => null);
+      if (!texture || story !== session) return;
+      texture.colorSpace = SRGBColorSpace;
+      const ref = wholeRef(texture);
+      defs.set(def.id, def);
+      stage.objects.add(def, ref, { kind: 'page', at: [0.035, 0, 0.055] });
+      world.renderer.initTexture(texture);
+      sound.play('chime', stage.book.root.getWorldPosition(new Vector3()), undefined, 'ui');
+      session?.arrived(def.id);
+      return;
+    }
+  }
   if (storyMode) beginStory();
   const startEpisode = () => {
     log.forget();

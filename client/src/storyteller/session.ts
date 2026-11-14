@@ -141,6 +141,7 @@ export function createStorySession(deps: SessionDeps) {
     pendingListen = true;
   }
   let pendingListen = false;
+  const arrivals: string[] = [];
 
   return {
     sessionId,
@@ -164,8 +165,10 @@ export function createStorySession(deps: SessionDeps) {
       if (state === 'thinking') return;
       void turn({ kind: 'gift', objectId, castId });
     },
+    /** Something painted has arrived: told as soon as they're listening, never over a scene. */
     arrived(objectId: string): void {
-      void turn({ kind: 'arrived', objectId });
+      if (state === 'listening') void turn({ kind: 'arrived', objectId });
+      else arrivals.push(objectId);
     },
     /** Stop them mid-flow (a pinch on anyone): what's queued goes, and they listen. */
     interrupt(): void {
@@ -178,6 +181,10 @@ export function createStorySession(deps: SessionDeps) {
       if (pendingListen && state === 'performing' && deps.live.idle) {
         setState('listening', listener);
         listeningSinceMs = now;
+      }
+      if (state === 'listening' && arrivals.length) {
+        void turn({ kind: 'arrived', objectId: arrivals.shift()! });
+        return;
       }
       if (state === 'listening') {
         pendingListen = false;

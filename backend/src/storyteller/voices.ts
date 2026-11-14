@@ -18,6 +18,8 @@ export interface Voices {
   speak(speaker: string, text: string): Promise<VoiceAsset | null>;
   /** Characters voiced this process, for the per-evening caps and the cost report. */
   readonly characters: number;
+  /** A short sound effect, made on the spot. */
+  sound(description: string, seconds: number): Promise<VoiceAsset | null>;
 }
 
 export function readLiveVoices(path: string): LiveVoices | null {
@@ -38,6 +40,21 @@ export function createVoices(apiKey: string | undefined, config: LiveVoices | nu
   return {
     get characters() {
       return characters;
+    },
+    async sound(description, seconds) {
+      if (!apiKey) return null;
+      const response = await fetch('https://api.elevenlabs.io/v1/sound-generation', {
+        method: 'POST',
+        headers: { 'xi-api-key': apiKey, 'content-type': 'application/json' },
+        body: JSON.stringify({ text: description, duration_seconds: seconds, prompt_influence: 0.5 }),
+        signal: AbortSignal.timeout(15_000),
+      });
+      if (!response.ok) {
+        log(`elevenlabs sound ${response.status}`);
+        return null;
+      }
+      const audio = Buffer.from(await response.arrayBuffer()).toString('base64');
+      return { url: `data:audio/mpeg;base64,${audio}`, durationMs: Math.round(seconds * 1000) };
     },
     async speak(speaker, text) {
       if (!apiKey || !config) return null;

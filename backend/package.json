@@ -13,6 +13,7 @@
     "@hono/node-server": "^2.1.6",
     "@tabletop/contracts": "workspace:*",
     "hono": "^4.13.17",
+    "sharp": "0.35.4",
     "zod": "^4.6.7"
   }
 }

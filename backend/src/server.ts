@@ -9,6 +9,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { createPlanBeat } from './director/beat.ts';
 import { createClaude } from './director/claude.ts';
 import { createModerator } from './storyteller/moderate.ts';
+import { createPainter } from './storyteller/paint.ts';
 import { storyTurn } from './storyteller/turn.ts';
 import { createVoices, readLiveVoices } from './storyteller/voices.ts';
 import { guard, readCaps } from './guard.ts';
@@ -37,11 +38,23 @@ const claude = key ? createClaude(key) : null;
 const voices = createVoices(process.env.ELEVENLABS_API_KEY, readLiveVoices(join(process.cwd(), '..', 'art', 'voice', 'live.json')));
 const anthropic = key ? new Anthropic({ apiKey: key, maxRetries: 0 }) : null;
 const moderate = claude ? createModerator(claude) : undefined;
+// Live painting: run 013's recipe, capped in credits for this process (owner: 100–150 in all).
+const painter = createPainter({
+  runwayKey: process.env.RUNWAYML_API_SECRET,
+  claude,
+  styleRefPath: join(process.cwd(), '..', 'art', 'runs', '013-live-props', 'style-ref.png'),
+  creditCap: Number(process.env.PAINT_CREDIT_CAP ?? 100),
+  log: (m) => console.log(m),
+});
 const director =
   claude && anthropic && profile === 'normal'
     ? {
         planBeat: createPlanBeat(claude),
-        storyTurn: (request: Parameters<typeof storyTurn>[0]) => storyTurn(request, { anthropic, voices, moderate, log: (m) => console.log(m) }),
+        storyTurn: (request: Parameters<typeof storyTurn>[0]) =>
+          storyTurn(request, { anthropic, voices, moderate, log: (m) => console.log(m), paint: (sessionId, description, objectId) => painter.start({ sessionId, description, image: null }, objectId) }),
+        paintProp: async (request: Parameters<typeof painter.start>[0]) => ({ jobId: painter.start(request) }),
+        paintResult: async ({ jobId }: { jobId: string }) => painter.result(jobId),
+        soundEffect: async ({ description, seconds }: { description: string; seconds: number }) => (await voices.sound(description, seconds)) ?? { url: null, durationMs: seconds * 1000 },
       }
     : {};
 console.log(claude ? 'director and storyteller: claude' : 'director and storyteller: mock', process.env.ELEVENLABS_API_KEY ? '; voices: elevenlabs' : '; voices: captions only');

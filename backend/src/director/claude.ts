@@ -15,6 +15,8 @@ export interface AskOptions<T> {
   parse: z.ZodType<T>;
   maxTokens: number;
   timeoutMs: number;
+  /** A picture to look at with the words. */
+  image?: { mime: 'image/jpeg' | 'image/png'; base64: string };
 }
 
 export interface Claude {
@@ -25,7 +27,7 @@ export interface Claude {
 export function createClaude(apiKey: string, log: (message: string, cause?: unknown) => void = console.error): Claude {
   const client = new Anthropic({ apiKey, maxRetries: 0 });
   return {
-    async ask({ model, system, user, schema, parse, maxTokens, timeoutMs }) {
+    async ask({ model, system, user, schema, parse, maxTokens, timeoutMs, image }) {
       const started = Date.now();
       let response: Anthropic.Beta.BetaMessage;
       try {
@@ -34,7 +36,12 @@ export function createClaude(apiKey: string, log: (message: string, cause?: unkn
             model,
             max_tokens: maxTokens,
             system: [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }],
-            messages: [{ role: 'user', content: user }],
+            messages: [
+              {
+                role: 'user',
+                content: image ? [{ type: 'image', source: { type: 'base64', media_type: image.mime, data: image.base64 } }, { type: 'text', text: user }] : user,
+              },
+            ],
             output_config: { format: { type: 'json_schema', schema }, effort: model === PLANNER ? 'medium' : 'low' },
             // Sonnet 5.5 turns thinking off with between_tools; Haiku 5.5 takes disabled at low effort.
             thinking: model === PLANNER ? { type: 'between_tools' } : { type: 'disabled' },
