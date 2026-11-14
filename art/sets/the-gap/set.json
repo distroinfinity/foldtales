@@ -2,7 +2,7 @@
   "id": "the-gap",
   "name": "The gap",
   "description": "The sandy path ends at a narrow chasm in the dunes, with the lighthouse waiting on the far side.",
-  "note": "The gap set, as the art proposes it. Same stage space and conventions as shore-path/set.json. The sky and headland are shore-path's own, so the lighthouse, its lamp anchor and the beam's origin don't move between sets. Re-check on the Quest.",
+  "note": "The gap set, as the art proposes it. Same stage space and conventions as shore-path/set.json. The sky and headland are shore-path's own (the night sky from run 011, so the gap is night like the shore), so the lighthouse, its lamp anchor and the beam's origin don't move between sets. Re-check on the Quest.",
   "reference": "Open book 0.42 x 0.315 m. Each layer image spans the full 0.42 m width at pxPerM, and splits at splitColumnPx: the left half stands on the cover's inside, the right half on the page block.",
   "pxPerM": 6476.2,
   "ground": {
@@ -17,14 +17,14 @@
   "layers": [
     {
       "id": "layer-1-sky",
-      "file": "../shore-path/layer-1-sky.png",
+      "file": "../shore-path/layer-1-sky-night.png",
       "sizePx": [
         2720,
-        1173
+        1153
       ],
       "sizeM": [
         0.42,
-        0.1811
+        0.178
       ],
       "hinge": [
         [

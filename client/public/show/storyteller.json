@@ -1,0 +1,8 @@
+{
+  "firstSet": "the-lamp",
+  "entrances": {
+    "the-lamp": { "pip": "pip", "wick": "wick", "moth": "lamp" },
+    "shore-path": { "pip": "pip", "wick": "path-mid", "moth": "moth-near" },
+    "the-gap": { "pip": "near-edge", "wick": "far-side", "moth": "moth-hover" }
+  }
+}

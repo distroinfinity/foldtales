@@ -41,6 +41,10 @@ export interface BookControls {
   close(): void;
   /** Lays the ribbon back down and lets the show go, as when a chapter starts again. */
   lowerRibbon(): void;
+  /** Lifts or lowers the ribbon as if your hand had pinched it: the wrist tag's "Pause" and "Carry on". */
+  setRibbon(on: boolean): void;
+  /** Whether the ribbon is holding the story. */
+  readonly ribbonUp: boolean;
   /** How open your hands have it, 0 to 1. */
   readonly amount: number;
   frame(frame: XRFrame, deltaMs: number, enabled: boolean, head: Vector3): void;
@@ -48,6 +52,8 @@ export interface BookControls {
   pinchPoint(side: HandSide): Vector3 | null;
   /** What each hand holds, by target id. */
   holding(side: HandSide): string | null;
+  /** Each tracked hand's index fingertip, in world space: for buttons pressed with a finger. */
+  fingertip(side: HandSide): Vector3 | null;
 }
 
 export interface ControlsDeps {
@@ -89,6 +95,7 @@ export function createBookControls({ world, stageRoot, book, sound, pause, glow,
   let enabledNow = false;
   const grabbedThisPinch: Record<HandSide, boolean> = { left: false, right: false };
   const pinch: Record<HandSide, Vector3 | null> = { left: null, right: null };
+  const tips: Record<HandSide, Vector3 | null> = { left: null, right: null };
   const gestures = createGestures();
   let amount = 1;
   let target: number | null = null;
@@ -252,6 +259,7 @@ export function createBookControls({ world, stageRoot, book, sound, pause, glow,
     fold: () => controlFold(amount, cards),
     ribbonLift: () => ribbonLift,
     pinchPoint: (side) => pinch[side],
+    fingertip: (side) => tips[side],
     holding: (side) => gestures.held(side),
     shut() {
       amount = 0;
@@ -272,6 +280,15 @@ export function createBookControls({ world, stageRoot, book, sound, pause, glow,
     lowerRibbon() {
       ribbon = false;
       pause.set('ribbon', false);
+    },
+    setRibbon(on) {
+      if (ribbon === on) return;
+      ribbon = on;
+      pause.set('ribbon', on);
+      sound.play('felt', stageRoot.position, undefined, 'ui');
+    },
+    get ribbonUp() {
+      return ribbon;
     },
     get amount() {
       return amount;
@@ -314,8 +331,14 @@ export function createBookControls({ world, stageRoot, book, sound, pause, glow,
         });
       }
       const hands: Record<HandSide, HandFrame | null> = { left: null, right: null };
+      tips.left = null;
+      tips.right = null;
       for (const source of frame.session.inputSources) {
-        if (source.handedness === 'left' || source.handedness === 'right') hands[source.handedness] = readHand(frame, source, space);
+        if (source.handedness !== 'left' && source.handedness !== 'right') continue;
+        hands[source.handedness] = readHand(frame, source, space);
+        const joint = source.hand?.get('index-finger-tip');
+        const pose = joint && frame.getJointPose ? frame.getJointPose(joint, space) : null;
+        if (pose) tips[source.handedness] = new Vector3(pose.transform.position.x, pose.transform.position.y, pose.transform.position.z);
       }
       for (const side of ['left', 'right'] as const) {
         if (lost[side] && hands[side]?.tracked) {

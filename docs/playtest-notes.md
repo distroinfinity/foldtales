@@ -22,6 +22,21 @@ What the owner noticed in the headset, in plain words. These come before new fea
 - [x] The page turned on its own as soon as a hand came near its corner; the owner wanted to hold the page and turn it (session 2). Now the leaf follows your pinch round the spine: let go past the tipping point and it turns, short of it and it falls back, and the story waits while you hold it. Looking at the corner and pinching still turns it in one go. Checked in the emulator; to feel in the headset next session.
 - [x] A first play by someone who has never seen it (M2's second check). Done on Nov 14: "they were amazed. The wow factor is really nice."
 - [ ] Polish the product around the book: the web page and the whole journey into and out of it (owner, Nov 14, after the first new player). Later, with ticket 6's landing work.
+- [ ] **The AI layer on the written chapter doesn't land** (ticket 3, session 1). Reactions and callbacks spliced into chapter 1 felt like interference, not a story bending, and read like an if-else. Unvoiced AI lines break immersion. Turned off for chapter 1 (review flag `?director=on` keeps it reachable). The AI mode is being rethought from research.
+- [ ] **Stop the show from inside** (owner, session 1): pause, restart, leave. Chosen: a painted tag on the back of the left wrist. Built, not yet in the headset.
+- [ ] Turning the page by hand: still not felt in the headset (the session went to the AI layer).
+
+## Ticket 3, headset session 1, Nov 14, 2026 (review build over USB, the director on chapter 1)
+
+The director's first try: short AI beats spliced into the authored chapter 1, a reaction when you hand over something nobody asked for and a callback at a quiet beat, captions only. The backend logged seven calls (Haiku about 2.7 s, Sonnet 2.4 to 3.6 s). The live watch dropped mid-session (the Quest's debug link went down after the other workspace's port cleanup and a browser restart), so this has no beat-by-beat log.
+
+- **Owner:** "I think we are approaching this wrong. If a story is already written and we try to interfere with it, it's not that fun. It's not landing perfectly as a defined story with which we interact and do our parts when asked, nor is our interference significant enough to blend the story."
+  - "If I am just handing over the incorrect thing and then you get an AI response, I don't think there's anything dynamic in that. You can easily do that with an if-else case and it's still a predictive deterministic system, not anything which is flowing or blending on its own."
+  - "I like the version of the story that we have currently."
+  - "AI responses to me are just being read and not being spoken aloud. Those are too disconnected. I feel like my immersion is lost when I have to read those texts which are not spoken aloud."
+  - "For AI mode we have to think of something else … how would an AI theater make sense? … Do research on what other products are out there and where exactly the gap is. How will that wow factor come from? Because honestly I liked our predefined story and what you did right now is a mess."
+- **Also asked:** a way to pause, restart and leave from inside. Researched (Meta reserves the palm-pinch system gesture, VRC.Quest.Input.8; apps pause when the system asks, VRC.Quest.Functional.2), offered as question cards; the owner chose a wrist tag.
+- **Done straight after:** the director is off for chapter 1, which plays as authored. The scheduler fixes the director work found stay (every path 5:00 to 6:55, bridges for quick readers, pacing). Research on the AI mode is next.
 
 ## Ticket 2, headset session 2, Nov 14, 2026 (review build over USB, the re-cut chapter): M2 signed off
 
@@ -111,3 +126,36 @@ Plain build over USB (`vite preview`, https), real tracking.
 ## M1 sign-off, Nov 13, 2026
 
 Signed off by the owner in the headset after a fresh run of the opening, the beam and the painted room: "this looks good … good to clean up, merge changes and move forward."
+
+## Ticket 3, AI Storyteller, headset session 2, Nov 14, 2026 (review build over USB, evening)
+
+- **Mic not allowed:** the first try ("What all can you do?") wasn't heard, with no feedback. *Fixed:* the Storyteller door asks for the microphone first and opens straight after Allow; a plain line on the page says when the mic isn't allowed.
+- **Two doors:** "think more like a product". *Built:* chapter 1 stays the main button; the AI Storyteller is a second door under it.
+- **Wrist menu not discoverable.** *Built:* the wrist tag says "Pinch me: pause, start again, leave" until first used.
+- **Hold to talk:** "I am not able to press this button … the label can be on top of the button itself." *Changed:* one paper button with a gold rim and the words on it. A capture showed the owner pressing it with a fingertip (it only took a pinch) and the button covering the "Your turn" line. *Fixed (built, not yet tried):* a fingertip press works too, and the button lies on the table in front of the book.
+- **Pinch on the button:** worked six times in a row. The cast answered in about 7 s each time.
+- **Immersion:** "This time it was nice. I actually felt immersion. They were following my commands." Asking them to light up the room brought the lighthouse beam across the real room: "that lighthouse effect was nice … we are in the right direction."
+- **"Stop doing everything now":** the cast stopped and waited ("Doing nothing is a keeper's oldest skill").
+- **Painting on demand:** "Can you get a kite for me … shaped like [a dragon]". Painted "Emerald Scale Kite" in 25 s for 2 credits; the cast covered the wait; it landed and the owner picked it up. "It is okayish."
+- **Bug, the cast promises room effects that don't exist:** three times the cast said the kite was "flying across your room" / "circling your couch". The owner said they couldn't see it; Pip apologised in character. *To fix:* the storyteller only describes what the stage really shows; better, build real room effects (see below).
+- **Owner direction:** not new characters. More elements like the lamp that act on the real room: "very simple and clever, like a rotating light in my room". Ideas offered: weather in the room, shadow play on the wall, a treasure hunt across the room with the beam, the night sky on the ceiling, the sea on the floor. Owner to choose.
+- **Owner request:** keep everything generated in an inventory to reuse later. *Planned:* `docs/plans/2026-11-14-storyteller-satchel.md`.
+- Runway spent this session: 2 credits (one painting).
+- **Later the same night (Nov 15):**
+  - Pressing Hold to talk with a fingertip on the table worked the first time.
+  - Asked for "a teapot that is … [dancing]": the "Chipped Blue-Flower Teapot" was painted in 26 s for 2 credits. The owner named it "Shubham Mishra", and the cast took the name at once ("Writing it in the log, so no one forgets it was ever lost").
+  - The owner: "this is good, I created a tea pot." Then closed the ticket.
+  - Runway spent this session: 4 credits (two paintings).
+- **Codex review of PR #9, all ten fixed:**
+  - the microphone stops the moment you let go, or leave XR or the page;
+  - a dropped speech connection resets the button;
+  - nothing is said or painted before moderation passes;
+  - paint credits are reserved up front;
+  - a gift given while they're thinking becomes the turn;
+  - a new evening disposes the old one;
+  - paintings survive page turns;
+  - the satchel cap holds when two things are saved at once.
+
+## M3 sign-off, Nov 15, 2026
+
+Signed off by the owner in the headset after AI Storyteller session 2: "I actually felt immersion … we are in the right direction", then "this is good … let's wrap up any remaining work and proceed to close this ticket."

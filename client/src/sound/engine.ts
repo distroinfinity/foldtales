@@ -37,6 +37,14 @@ export type SoundBus = 'show' | 'ui';
 export interface SoundEngine {
   /** Fetches and decodes every clip. Safe before the landing tap. */
   load(): Promise<void>;
+  /**
+   * A live line (the AI Storyteller's): its audio, as a data URL, is decoded and kept under its line
+   * id, so `speak` plays it through the speaker's voice chain like any prepared line. Resolves once
+   * it can be played; false if it couldn't be decoded (the line then shows as a caption).
+   */
+  addLine(lineId: string, url: string, durationMs: number): Promise<boolean>;
+  /** Forgets live lines, at the end of an evening. */
+  clearLines(): void;
   /** How many clips decoded, for the review build's checks. */
   loaded(): number;
   /** Call from the landing tap: browsers only start audio from a gesture. */
@@ -288,8 +296,33 @@ export function createSoundEngine(sources?: SoundSources): SoundEngine {
     tone.gain.setTargetAtTime(1, t + seconds, 0.4);
   }
 
+  const live = new Set<string>();
   return {
     loaded: () => buffers.size,
+    async addLine(lineId, url, durationMs) {
+      if (!sources) return false;
+      const b = ensure();
+      if (!b) return false;
+      try {
+        const data = await (await fetch(url)).arrayBuffer();
+        const key = `live:${lineId}`;
+        buffers.set(key, await b.ui.ctx.decodeAudioData(data));
+        sources.voiceLines[lineId as keyof typeof sources.voiceLines] = { url: key, durationMs };
+        live.add(lineId);
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    clearLines() {
+      if (!sources) return;
+      for (const lineId of live) {
+        const key = `live:${lineId}`;
+        buffers.delete(key);
+        delete sources.voiceLines[lineId as keyof typeof sources.voiceLines];
+      }
+      live.clear();
+    },
     async load() {
       if (!sources) return;
       const b = ensure();

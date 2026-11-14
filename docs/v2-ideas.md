@@ -23,3 +23,12 @@ Not in scope now. We build and use the frozen v1 first, then decide these from r
 ## What v1 does to keep these cheap
 
 Characters, objects and scene problems are data, not code, so a new cast or world shouldn't need the engine rewritten. A speaking character costs about 10 credits to prepare.
+
+## From the AI Storyteller (Nov 15, ticket 3)
+
+- **Show them something real.** Hold up a real mug, and a painted copy appears in the book. It depends on whether Quest Browser gives our page the passthrough camera inside XR, which hasn't been tested yet.
+- **You're in the cast.** With consent, a sample of your voice makes "the Giant", who speaks your lines in your voice.
+- **Characters on demand that really talk**: painted, rigged and voiced live. Asked about in session 2; the owner preferred room effects for now.
+- **The satchel follows your account** onto other devices (stored on the backend; needs a storage route and a contracts PR).
+- **A contents page of everything you've made,** printed in the book.
+- **They remember you between evenings** in the Storyteller: your name, and what you asked for last time (chapter-end memory already exists for chapter 1).
