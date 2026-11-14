@@ -9,6 +9,10 @@ import { puppetFiles } from '../puppet/puppet.ts';
 import { RoomSpec } from '../room/room.ts';
 import type { ShowManifest } from '../show/manifest.ts';
 import { wholeRef, type TexRef } from './texref.ts';
+import { WINDOW_ART } from '../room-fx/window.ts';
+
+/** Paintings the room effects use, loaded with the rest of the art. */
+const ROOM_FX_ART = [WINDOW_ART];
 
 export interface StageAssets {
   book: BookSpec;
@@ -97,6 +101,8 @@ export async function loadStageAssets(
   }
   for (const entry of manifest.cast) for (const file of puppetFiles(entry, rigs.get(entry.member.id)!)) files.add(`${entry.member.rig}/${file}`);
   for (const object of objects) if (object.art.kind === 'asset') files.add(object.art.path);
+  // Room effects' own paintings.
+  for (const file of ROOM_FX_ART) files.add(file);
   const drawerBase = dirOf(manifest.drawer);
   for (const part of [drawer.tray, drawer.front, drawer.side]) files.add(`${drawerBase}/${part.file}`);
   const satchelBase = dirOf(manifest.satchel);

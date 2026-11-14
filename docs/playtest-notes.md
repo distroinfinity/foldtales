@@ -168,3 +168,4 @@ Signed off by the owner in the headset after AI Storyteller session 2: "I actual
 - **Fireflies:** "can be improved. They do not look very good right now … their motion, their size, and subtleness. Maybe fireflies don't light up constantly. They go on and off like a breathing effect." *Changing:* each is dark most of the time and glows up and fades on its own slow rhythm, smaller, a little yellow-green, on slow wandering paths instead of orbits.
 - **Fireflies, second look** (breathing, smaller, slower): "fire flies look good."
 - The owner asked where the shadows went: the second link asked only for fireflies. Shadows play only when a beat or the Storyteller calls them (the owner's choice), so each review link names the effects it plays.
+- **Shadows and fireflies, together** (after the timing fix): "looking great. Fireflies are great. Proceed to the next." Both approved in the headset.

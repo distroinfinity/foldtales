@@ -30,6 +30,7 @@ import { createRoomMap } from './room-fx/room-map.ts';
 import { effectsOn } from './room-fx/state.ts';
 import { castShadows, createShadowPlay } from './room-fx/shadows.ts';
 import { createFireflies } from './room-fx/fireflies.ts';
+import { createWindowView, WINDOW_ART } from './room-fx/window.ts';
 import { createSoundEngine } from './sound/engine.ts';
 import narratorVoice from '../../art/voice/narrator.json';
 import { arrivalAt, OPEN_AT_MS } from './stage/arrival.ts';
@@ -190,6 +191,10 @@ async function prepare(world: World) {
   // Fireflies: the lantern's own glow, off the page and round your hand.
   const fireflies = createFireflies();
   world.scene.add(fireflies.mesh);
+  // Your window: the shore at night, with the lamp's beam turning out there.
+  const windowArt = assets.textures.get(WINDOW_ART);
+  const windowView = windowArt ? createWindowView(windowArt) : null;
+  if (windowView) world.scene.add(windowView.mesh);
   const runtime = createShowRuntime({
     manifest,
     spine: assets.spine,
@@ -319,7 +324,7 @@ async function prepare(world: World) {
     devRoom.forEach((effect, i) => {
       const at = Math.max(11_500, fromMs + 6_000) + i * 40_000;
       if (effect === 'hunt') runtime.addRoom({ do: 'room', withPrev: false, effect: 'hunt', what: 'object:kite', at: 'room:couch' }, at);
-      else if (effect === 'shadows' || effect === 'fireflies') {
+      else if (effect === 'shadows' || effect === 'fireflies' || effect === 'window') {
         runtime.addRoom({ do: 'room', withPrev: false, effect, what: null, at: null }, at);
         runtime.addRoom({ do: 'room', withPrev: false, effect: `${effect}-off`, what: null, at: null }, at + 35_000);
       }
@@ -342,11 +347,11 @@ async function prepare(world: World) {
       else away.requested = true;
     },
   });
-  return { manifest, assets, stage, dim, sound, clock, runtime, roomMap, shadowPlay, fireflies, devRoomTick, wash, ember, log, pause, controls, soft, review, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, directorOn, storyConfig, moreTargets };
+  return { manifest, assets, stage, dim, sound, clock, runtime, roomMap, shadowPlay, fireflies, windowView, devRoomTick, wash, ember, log, pause, controls, soft, review, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, directorOn, storyConfig, moreTargets };
 }
 
 function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom: Checkpoint | null, target: EnterTarget | null = null): void {
-  const { manifest, assets, stage, sound, clock, runtime, roomMap, shadowPlay, fireflies, devRoomTick, wash, ember, log, pause, controls, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, storyConfig, moreTargets } = show;
+  const { manifest, assets, stage, sound, clock, runtime, roomMap, shadowPlay, fireflies, windowView, devRoomTick, wash, ember, log, pause, controls, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, storyConfig, moreTargets } = show;
   // The AI Storyteller, when that's the door the reader chose on the landing page.
   const storyMode = target?.kind === 'storyteller' && storyConfig !== null;
   let story: StorySession | null = null;
@@ -412,7 +417,11 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
         return [...present].map((id) => ({ id, mark: marks.get(id) ?? null, holding: holding.get(id) ?? null }));
       },
       room: () => roomMap.forStory(stage.root),
-      roomFx: () => ({ on: roomFx.on, available: ROOM_EFFECTS_BUILT }),
+      roomFx: () => ({
+        on: roomFx.on,
+        // The window only where Space Setup found one.
+        available: [...ROOM_EFFECTS_BUILT, ...(show.windowView && roomMap.places().some((p) => p.label === 'window') ? (['window', 'window-off'] as const) : [])],
+      }),
       nowMs: () => clock.ms,
       log: (m) => console.info(m),
       onState: (state, who) => {
@@ -749,6 +758,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       hands: [controls.fingertip('left'), controls.fingertip('right')],
       onRise: (at) => sound.play('spark', at),
     });
+    windowView?.frame({ state: roomNow.window, nowMs, room: roomMap, bookOpen: controls.amount > 0.98 });
     // Which room effects are showing, each time that changes, so frame summaries can be read per effect.
     const fxOn = effectsOn(roomNow);
     const fxKey = fxOn.join(',');

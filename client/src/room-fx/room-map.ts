@@ -17,7 +17,7 @@ export interface Place {
   centre: Vector3;
   /** Up for a top, out of the wall for a face. */
   normal: Vector3;
-  /** Width and depth (or height, for a wall), metres. */
+  /** Width and depth, metres; for a wall, window or door, width and height. */
   sizeM: [number, number];
   /** Its outline on the floor plan, for a top. */
   outline: Array<{ x: number; z: number }>;
@@ -149,7 +149,10 @@ export function createRoomMap(): RoomMap {
         ids.set(plane, id);
       }
       const horizontal = plane.orientation === 'horizontal';
-      next.push({ id, label, raw, centre, normal, sizeM: [maxX - minX, maxZ - minZ], outline: horizontal ? corners.map((c) => ({ x: c.x, z: c.z })) : [], horizontal, standIn: false });
+      // A wall's size as width then height, whichever of its own axes stands upright.
+      const xUp = !horizontal && Math.abs(m[1]!) > 0.7;
+      const sizeM: [number, number] = xUp ? [maxZ - minZ, maxX - minX] : [maxX - minX, maxZ - minZ];
+      next.push({ id, label, raw, centre, normal, sizeM, outline: horizontal ? corners.map((c) => ({ x: c.x, z: c.z })) : [], horizontal, standIn: false });
     }
     found = next;
   }
