@@ -18,7 +18,9 @@ import { createObjectHands } from './objects/hands.ts';
 import type { RuntimeSnapshot } from './show/runtime.ts';
 import { createShowClock } from './show/clock.ts';
 import { createShowLog, indexedDbLogStore } from './show/log.ts';
-import { ShowManifest } from './show/manifest.ts';
+import { libraryOf, ShowManifest } from './show/manifest.ts';
+import { BackendError, estimateSpeechMs, linesOf, type ReadyBeat, type ShowObject } from '@tabletop/contracts';
+import { createDirector } from './director/director.ts';
 import { createPauseControl } from './show/pause.ts';
 import { createShowRuntime } from './show/runtime.ts';
 import { createSoundEngine } from './sound/engine.ts';
@@ -214,14 +216,55 @@ async function prepare(world: World) {
     },
   });
   if (review) runtime.setOverride(reviewOverride(manifest));
+
+  // The director: short live beats about what you do, offered to the scheduler, which plays them only if they're ready in time.
+  // Review builds can turn it off with `?director=off`, to play the authored chapter alone.
+  const originOf = new Map(assets.spine.scenes.flatMap((sc) => sc.objects.map((o) => [o.id, o.origin] as const)));
+  const showObjects = (): ShowObject[] =>
+    stage.objects.states().flatMap((s) => {
+      const def = defs.get(s.id);
+      return def && s.home.kind !== 'away' ? [{ id: s.id, def, owner: null, origin: originOf.get(s.id) ?? 'set', history: [] }] : [];
+    });
+  const answers: Array<{ id: number; ready: ReadyBeat | null }> = [];
+  const directorOn = reviewQuery('director') !== 'off';
+  const director = createDirector({
+    spine: assets.spine,
+    library: libraryOf(manifest, assets.objects),
+    onStage: manifest.onStage.map((o) => o.cast),
+    durationOf: runtime.durationOf,
+    objects: showObjects,
+    canon: () => [],
+    recent: () => log.recent(),
+    send: (id, _kind, request) => {
+      if (!directorOn) {
+        answers.push({ id, ready: null });
+        return;
+      }
+      const t = performance.now();
+      const done = (ready: ReadyBeat | null, outcome: 'ok' | BackendError['code']) => {
+        telemetry.record({ kind: 'ai_call', route: 'planBeat', ms: Math.round(performance.now() - t), outcome });
+        answers.push({ id, ready });
+      };
+      backendAccess
+        .withBackend((api) => api.planBeat(request))
+        .then((ready) => done(ready, ready ? 'ok' : 'upstream_failed'))
+        .catch((cause: unknown) => done(null, cause instanceof BackendError ? cause.code : 'upstream_failed'));
+    },
+    note: (what, detail) => console.info(`director ${what}: ${detail}`),
+  });
   // Review builds only: `?cue=beam` plays the lighthouse beam once the opening has finished, for P5.
   const devCue = reviewQuery('cue');
   if (devCue && manifest.cues.some((c) => c.id === devCue)) runtime.addCue(devCue, 11_500);
-  return { manifest, assets, stage, dim, sound, clock, runtime, wash, ember, log, pause, controls, soft, review, room, sizing, tableTop, hands, readAgain, initialObjects };
+  return { manifest, assets, stage, dim, sound, clock, runtime, wash, ember, log, pause, controls, soft, review, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects };
 }
 
 function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom: Checkpoint | null): void {
-  const { manifest, assets, stage, sound, clock, runtime, wash, ember, log, pause, controls, room, sizing, tableTop, hands, readAgain, initialObjects } = show;
+  const { manifest, assets, stage, sound, clock, runtime, wash, ember, log, pause, controls, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects } = show;
+  const startEpisode = () => {
+    log.forget();
+    director.reset();
+    log.append('episode.started', { spine: assets.spine, libraryVersion: manifest.libraryVersion, objects: showObjects(), players: [{ id: 'reader', name: 'Reader' }] });
+  };
   const series = manifest.libraryVersion;
   // Review builds only: `?speed=4` runs the show four times faster, to walk a whole episode in the emulator.
   const speed = Math.max(0.25, Math.min(16, Number(reviewQuery('speed') ?? 1) || 1));
@@ -358,6 +401,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       else {
         readAgain.requested = false;
         runtime.reset(initialObjects);
+        startEpisode();
         controls.lowerRibbon();
         clearCheckpoint(localStorage);
         writeProgress(localStorage, { seriesId: series, chapter: 1, state: 'started' });
@@ -371,7 +415,35 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
     // The book's own pull hides while the drawer is out: it rides on the drawer's front then.
     const bookPull = stage.book.root.getObjectByName('drawer-pull');
     if (bookPull) bookPull.visible = runtime.drawerAmount < 0.02;
+    // The director's answers become offers; then, at the start of a quiet beat, it may ask for a callback.
+    for (const a of answers.splice(0)) director.receive(runtime.scheduler, clock.ms, a.id, a.ready);
+    if (runtime.started && !runtime.ended) director.frame(runtime.scheduler, clock.ms);
     for (const e of runtime.drain()) {
+      if (e.type === 'gift') {
+        log.append('object.handed', { objectId: e.objectId, toCast: e.castId, playerId: 'reader' });
+        const o = e.outcome;
+        if (o.kind === 'rule' || o.kind === 'fallback') log.append('problem.attempted', { problemId: o.problemId, objectId: e.objectId, playerId: 'reader', ruleId: o.kind === 'rule' ? o.ruleId : null });
+        if (o.kind === 'rule' && o.outcome === 'solved') log.append('problem.resolved', { problemId: o.problemId, outcome: o.ruleId, objectId: e.objectId });
+        director.gift(runtime.scheduler, clock.ms, showObjects().find((x) => x.id === e.objectId) ?? null, e.castId, e.outcome);
+        continue;
+      }
+      if (e.type === 'cast.held' || e.type === 'cast.dropped') {
+        if (e.type === 'cast.held') log.append('entity.grabbed', { entity: `cast:${e.castId}`, playerId: 'reader' });
+        else log.append('entity.placed', { entity: `cast:${e.castId}`, playerId: 'reader', at: [0, 0, 0] });
+        if (e.type === 'cast.held') director.remember();
+        continue;
+      }
+      if (e.type === 'offer.admitted') {
+        // What the director has said goes in the log, so the next request knows not to say it again.
+        const beat = runtime.scheduler.beat(e.beatId);
+        log.append('beat.queued', { ready: { beat, voice: Object.fromEntries(linesOf(beat).map((l) => [l.lineId, { url: null, durationMs: estimateSpeechMs(l.text) }])) } });
+      }
+      if (e.type === 'offer.admitted' || e.type === 'offer.expired') {
+        console.info(`director ${e.type === 'offer.admitted' ? `plays ${e.kind} after ${Math.round(e.waitedMs)} ms` : `drops ${e.kind}: ${e.reason}`}`);
+        continue;
+      }
+      if (e.type === 'problem.ignored') log.append('problem.resolved', { problemId: e.problemId, outcome: 'ignored', objectId: null });
+      if (e.type === 'episode.ended') log.append('episode.ended', { outcome: 'resolved', durationMs: e.atMs });
       if (e.type === 'beat.started') log.append('beat.started', { beatId: e.beatId, fallback: null });
       else if (e.type === 'beat.completed') log.append('beat.completed', { beatId: e.beatId });
       else if (e.type === 'problem.opened' && e.opensDrawer) log.append('drawer.opened', { by: 'beat' });
@@ -436,6 +508,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
         sound.roomTone(true);
       } else if (!runtime.started) {
         runtime.start();
+        startEpisode();
         writeProgress(localStorage, { seriesId: series, chapter: 1, state: 'started' });
       }
     }

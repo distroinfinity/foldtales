@@ -67,6 +67,12 @@ export interface GiftResult {
   events: SchedulerEvent[];
 }
 
+/** What the runtime reports each frame: the scheduler's events, plus the reader's own doings. */
+export type RuntimeEvent =
+  | SchedulerEvent
+  | { type: 'gift'; objectId: string; castId: string; outcome: GiftOutcome; atMs: number }
+  | { type: 'cast.held' | 'cast.dropped'; castId: string; atMs: number };
+
 export interface ShowRuntime {
   scheduler: Scheduler;
   readonly started: boolean;
@@ -102,8 +108,10 @@ export interface ShowRuntime {
   /** A character picked up by the reader: the show holds still while you have them. */
   setHeld(castId: string | null): void;
   readonly drawerAmount: number;
-  /** Events for the log and telemetry, drained each frame. */
-  drain(): SchedulerEvent[];
+  /** Events for the log, the director and telemetry, drained each frame. */
+  drain(): RuntimeEvent[];
+  /** How long each action holds, as the scheduler times it. */
+  readonly durationOf: (action: import('@tabletop/contracts').StageAction) => number;
   /** The noticing character for a held object, if any. */
   notice(castId: string | null, objectId: string | null): void;
   /** Characters you could pick up now, with the top of each head in world space. */
@@ -212,7 +220,7 @@ export function createShowRuntime({ manifest, spine, defs, moods, views, clock }
   let wallMs = 0;
   const HOP_MS = 650;
   let endedAtMs: number | null = null;
-  const pending: SchedulerEvent[] = [];
+  const pending: RuntimeEvent[] = [];
   const speeches: Array<{ speech: Speech; atMs: number; text: string; endMs: number }> = [];
   let marks: SoundMark[] = [];
   /** Effects and sounds already applied, by key. Anything at or before a restored moment counts as done. */
@@ -413,6 +421,7 @@ export function createShowRuntime({ manifest, spine, defs, moods, views, clock }
     get drawerAmount() {
       return drawerAmount;
     },
+    durationOf,
     get pageInviting() {
       const e = scheduler.current();
       return scheduler.beat(e.beatId).actions.some((a) => a.do === 'cue' && kinds.get(a.cue) === 'page-invite') && clock.ms >= e.startMs + 400;
@@ -502,6 +511,7 @@ export function createShowRuntime({ manifest, spine, defs, moods, views, clock }
       if (!carried || carried.cast !== id) {
         heldCast = id;
         hopping.delete(id);
+        pending.push({ type: 'cast.held', castId: id, atMs: clock.ms });
         views.sound.play('gasp', views.puppets.get(id)?.root.getWorldPosition(new Vector3()), undefined, 'ui');
       }
       carried = { cast: id, point: (point ?? carried?.point ?? new Vector3()).clone() };
@@ -511,6 +521,7 @@ export function createShowRuntime({ manifest, spine, defs, moods, views, clock }
       const actor = views.actors.get(carried.cast);
       if (actor) hopping.set(carried.cast, { from: [actor.position.x, actor.position.y - views.book.pageY, actor.position.z], startMs: wallMs });
       views.sound.play('hop', actor?.getWorldPosition(new Vector3()), undefined, 'ui');
+      pending.push({ type: 'cast.dropped', castId: carried.cast, atMs: clock.ms });
       carried = null;
       heldCast = null;
     },
@@ -529,6 +540,7 @@ export function createShowRuntime({ manifest, spine, defs, moods, views, clock }
       const ms = clock.ms;
       const { outcome, events } = scheduler.gift(ms, objectId, def?.tags ?? [], castId);
       handleEvents(events);
+      pending.push({ type: 'gift', objectId, castId, outcome, atMs: ms });
       const light = lightObjects.get(objectId) === castId;
       const at = views.puppets.get(castId)!.root.getWorldPosition(new Vector3());
       if (light && (outcome.kind === 'rule' || outcome.kind === 'fallback')) {
@@ -947,6 +959,8 @@ export function createShowRuntime({ manifest, spine, defs, moods, views, clock }
             const speaker = mark.sound === 'narration' ? NARRATOR : mark.from!;
             const speech = views.sound.speak(speaker, mark.text!, speaker === NARRATOR ? undefined : at);
             if (speech) speeches.push({ speech, atMs: mark.atMs, text: mark.text!, endMs: mark.endMs ?? Infinity });
+            // A line with no voice yet (the director's, until live voices): a soft murmur from the speaker under the caption.
+            else if (speaker !== NARRATOR) views.sound.play('interested', at);
           } else views.sound.play(mark.sound, at);
         }
         // A line cut short by your gift stops at once, so the reaction isn't talked over.

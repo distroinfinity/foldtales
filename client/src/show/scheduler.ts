@@ -32,6 +32,8 @@ export interface Execution {
   suspended?: boolean;
   /** Where a suspended beat's entrances land if its remainder never plays (a gift took over). */
   hoistAtMs?: number;
+  /** Pauses in this beat play at this share of their length, when the chapter is running long. */
+  waitScale?: number;
   /** A director beat's way back: the rest of the beat it was spliced into. */
   resume?: { beatId: string; fromIndex: number; bindings: Bindings } | null;
 }
@@ -121,9 +123,13 @@ export interface Scheduler {
 
 const NO_BINDINGS: Bindings = { offered: null, receiver: null, giver: null };
 
-export function createScheduler(spine: Spine, durationOf: (action: StageAction) => number, restore?: SchedulerSnapshot): Scheduler {
+/** `probe` is a look ahead: it plays the rest straight, with no bridges. */
+export function createScheduler(spine: Spine, durationOf: (action: StageAction) => number, restore?: SchedulerSnapshot, probe = false): Scheduler {
   const beats = new Map<string, { beat: Beat; scene: number }>();
   spine.scenes.forEach((scene, i) => scene.beats.forEach((beat) => beats.set(beat.id, { beat, scene: i })));
+  // Bridges belong to no scene: each plays in whichever scene needs it, at most once.
+  for (const bridge of spine.bridges) beats.set(bridge.id, { beat: bridge, scene: -1 });
+  const minMs = spine.targetSeconds.min * 1000;
   const problemOf = (scene: number): SceneProblem | null => spine.scenes[scene]?.problem ?? null;
 
   const director: Beat[] = [];
@@ -157,7 +163,8 @@ export function createScheduler(spine: Spine, durationOf: (action: StageAction) 
   };
   /** Item indices stay the beat's own, so a remainder's actions keep their places. */
   const schedOf = (e: Execution) => {
-    const sched = scheduleBeat(bound(e), durationOf);
+    const scale = e.waitScale ?? 1;
+    const sched = scheduleBeat(bound(e), scale === 1 ? durationOf : (a) => (a.do === 'wait' ? durationOf(a) * scale : durationOf(a)));
     const from = e.fromIndex ?? 0;
     return from ? { ...sched, items: sched.items.map((i) => ({ ...i, index: i.index + from })) } : sched;
   };
@@ -165,8 +172,9 @@ export function createScheduler(spine: Spine, durationOf: (action: StageAction) 
   const endOf = (e: Execution): number => (e.cutMs !== null ? e.cutMs : naturalEnd(e) + e.holdMs);
 
   const start = (beatId: string, atMs: number, bindings: Bindings = NO_BINDINGS, extra: Partial<Execution> = {}): SchedulerEvent[] => {
-    const { scene } = lookup(beatId);
-    history.push({ beatId, scene, bindings, startMs: atMs, cutMs: null, holdMs: 0, ...extra });
+    const found = lookup(beatId);
+    const scene = found.scene >= 0 ? found.scene : (extra.scene ?? current().scene);
+    history.push({ beatId, bindings, startMs: atMs, cutMs: null, holdMs: 0, ...extra, scene });
     cache = null;
     const events: SchedulerEvent[] = [{ type: 'beat.started', beatId, atMs }];
     const problem = problemOf(scene);
@@ -235,30 +243,63 @@ export function createScheduler(spine: Spine, durationOf: (action: StageAction) 
     const cached = extraCache.get(problem.id);
     if (cached !== undefined) return cached;
     const ignored = chainMs(problem.ignored.beat);
-    const branches = [...problem.rules.map((r) => r.beat), problem.fallback.beat];
-    const worst = Math.max(0, ...branches.map((b) => chainMs(b) - ignored));
+    const solved = problem.rules.filter((r) => r.outcome === 'solved').map((r) => r.beat);
+    const wrong = [...problem.rules.filter((r) => r.outcome === 'partial').map((r) => r.beat), problem.fallback.beat];
+    // The slowest solve, or one wrong try before nobody helps, whichever is longer.
+    const worst = Math.max(0, ...solved.map((b) => chainMs(b) - ignored), ...wrong.map((b) => chainMs(b) - ignored));
     extraCache.set(problem.id, worst);
     return worst;
   };
 
+  /** When the chapter ends from here if nobody does anything more. */
+  function zeroEnd(nowMs: number): number {
+    const ahead = createScheduler(spine, durationOf, { v: 2, history, problems, ended, lastHoldMs: null, graceUsedMs, director: [...director] }, true);
+    ahead.tick(Math.max(nowMs, 0) + 3_600_000, false);
+    return ahead.ended ? ahead.timeline().reduce((m, i) => Math.max(m, i.endMs), 0) : Infinity;
+  }
+
+  /** A beat a gift started, before its first visible consequence: nothing may come between the gift and what it does. */
+  function giftUnsettled(e: Execution, atIndex: number): boolean {
+    if (!e.bindings.offered) return false;
+    const actions = lookup(e.beatId).beat.actions;
+    const first = actions.findIndex((a) => a.do === 'use' || a.do === 'cue');
+    return first >= atIndex;
+  }
+
+  /** Plays an unused bridge before `resume` if the chapter would otherwise end short. Only once the last spread's problem is settled, when the rest is exact. */
+  function tryBridge(atMs: number, resume: { beatId: string; fromIndex: number; bindings: Bindings }): SchedulerEvent[] | null {
+    const scene = current().scene;
+    if (scene !== spine.scenes.length - 1) return null;
+    const p = spine.scenes[scene]!.problem;
+    if (p && problems.find((x) => x.id === p.id)?.status !== 'solved' && problems.find((x) => x.id === p.id)?.status !== 'ignored') return null;
+    const bridge = spine.bridges.find((b) => !history.some((h) => h.beatId === b.id));
+    if (!bridge) return null;
+    // Where it would end if we went straight on: the beat about to start, then the rest.
+    const probeEnd = zeroEnd(atMs);
+    if (probeEnd >= minMs) return null;
+    return start(bridge.id, atMs, NO_BINDINGS, { resume, scene });
+  }
+
+  /**
+   * The end to admit a director beat against: nobody doing anything more, plus the slowest the problem open
+   * right now could still go. Later problems and holding are covered as they happen: a wrong try that would
+   * run over is wordless, and a chapter running long plays its pauses shorter.
+   */
   function projected(nowMs: number): number {
-    const probe = createScheduler(spine, durationOf, { v: 2, history, problems, ended, lastHoldMs: null, graceUsedMs, director: [...director] });
-    probe.tick(Math.max(nowMs, 0) + 3_600_000, false);
-    let end = probe.ended ? probe.timeline().reduce((m, i) => Math.max(m, i.endMs), 0) : Infinity;
-    for (let i = current().scene; i < spine.scenes.length; i++) {
-      const p = spine.scenes[i]!.problem;
-      const state = p ? problems.find((s) => s.id === p.id) : null;
-      if (p && (!state || state.status === 'open')) end += worstExtraMs(p);
-    }
-    return end + Math.max(0, EPISODE_GRACE_MS - graceUsedMs);
+    let end = zeroEnd(nowMs);
+    const open = problems.find((p) => p.status === 'open' && p.scene === current().scene);
+    const p = open ? spine.scenes[open.scene]!.problem : null;
+    if (p) end += worstExtraMs(p);
+    return end;
   }
 
   /** Starts a waiting director beat at `atMs`, with the way back. Null if none fits. */
-  function trySplice(atMs: number, resume: { beatId: string; fromIndex: number; bindings: Bindings }): SchedulerEvent[] | null {
+  function trySplice(atMs: number, resume: { beatId: string; fromIndex: number; bindings: Bindings }, callbacks = true): SchedulerEvent[] | null {
     const scene = current().scene;
     const sceneId = spine.scenes[scene]!.id;
     for (const offer of pendingOffers) {
       if (offer.offeredAtMs > atMs || offer.expiresAtMs < atMs || offer.beat.sceneId !== sceneId) continue;
+      if (offer.kind === 'callback' && !callbacks) continue;
       const lengthMs = scheduleBeat(offer.beat, durationOf).totalMs;
       if (projected(atMs) + lengthMs > maxMs - TIMEBOX_MARGIN_MS) continue;
       pendingOffers = pendingOffers.filter((o) => o !== offer);
@@ -289,10 +330,14 @@ export function createScheduler(spine: Spine, durationOf: (action: StageAction) 
       if (at < earliest || at <= checked) continue;
       // Never before an ask: its wait is the reader's, and a gift during it already gets a branch.
       if (ask && item.index >= ask.index) break;
+      // Never between a gift and what it does.
+      if (giftUnsettled(e, item.index)) continue;
       const prev = items[i - 1]!.action;
       const fresh = item.action.do === 'wait' || (quiet(item.action) && speakerOf(item.action) !== speakerOf(prev));
       if (!fresh) continue;
-      const events = trySplice(at, { beatId: e.beatId, fromIndex: item.index, bindings: e.bindings });
+      // A callback waits for talk: never in the middle of something happening.
+      const talkOnly = beat.actions.slice(i).every((a) => a.do === 'speak' || a.do === 'narrate' || a.do === 'emote' || a.do === 'wait');
+      const events = trySplice(at, { beatId: e.beatId, fromIndex: item.index, bindings: e.bindings }, talkOnly);
       if (events) {
         e.cutMs = at;
         e.suspended = true;
@@ -379,15 +424,31 @@ export function createScheduler(spine: Spine, durationOf: (action: StageAction) 
           break;
         }
         // Between two beats of a scene: a director beat waiting for its moment can go first.
-        if (!e.resume && lookup(e.beatId).beat.source !== 'director' && lookup(next).scene === e.scene && !isPageInvite(next)) {
+        const isDirector = lookup(e.beatId).beat.source === 'director';
+        const isBridge = lookup(e.beatId).beat.source === 'bridge';
+        if (!e.resume && !isDirector && !isBridge && lookup(next).scene === e.scene && !isPageInvite(next)) {
           const spliced = trySplice(end, { beatId: next, fromIndex: 0, bindings: NO_BINDINGS });
           if (spliced) {
             events.push(...spliced);
             continue;
           }
         }
+        // A quick reader finishes early: once nothing is left to ask, unused bridges fill the walk home.
+        if (!probe && !isDirector && lookup(next).scene === e.scene) {
+          const bridged = tryBridge(end, e.resume && isBridge ? e.resume : { beatId: next, fromIndex: 0, bindings: NO_BINDINGS });
+          if (bridged) {
+            events.push(...bridged);
+            continue;
+          }
+        }
         const resume = e.resume;
-        events.push(...start(next, end, resume?.bindings ?? NO_BINDINGS, resume && resume.fromIndex > 0 ? { fromIndex: resume.fromIndex } : {}));
+        const extra: Partial<Execution> = resume && resume.fromIndex > 0 ? { fromIndex: resume.fromIndex } : {};
+        // Running long: the pauses in the next beat get shorter, so the chapter still ends in time.
+        if (!probe && lookup(next).beat.actions.some((a) => a.do === 'wait')) {
+          const overrun = zeroEnd(end) - (maxMs - TIMEBOX_MARGIN_MS);
+          if (overrun > 0) extra.waitScale = 0.35;
+        }
+        events.push(...start(next, end, resume?.bindings ?? NO_BINDINGS, extra));
       }
       events.push(...spliceWithin(nowMs));
       events.push(...expire(nowMs));
@@ -413,10 +474,24 @@ export function createScheduler(spine: Spine, durationOf: (action: StageAction) 
         state.tried.push(objectId);
         return { outcome: { kind: 'repeat', problemId: state.id }, events };
       }
+      // A wrong try that would run the chapter past its limit gets the wordless "can't do that" instead.
+      if (!probe && !(pick.kind === 'rule' && pick.rule.outcome === 'solved')) {
+        const ahead = createScheduler(spine, durationOf, this.snapshot(), true);
+        ahead.gift(nowMs, objectId, tags, receiver);
+        ahead.tick(nowMs + 3_600_000, false);
+        const end = ahead.timeline().reduce((m, i) => Math.max(m, i.endMs), 0);
+        if (end > maxMs) {
+          state.tried.push(objectId);
+          return { outcome: { kind: 'repeat', problemId: state.id }, events };
+        }
+      }
       const e = current();
       e.cutMs = nowMs;
       dropResume(e, nowMs);
       events.push({ type: 'beat.preempted', beatId: e.beatId, atMs: nowMs });
+      // A new answer to the problem: reactions to earlier gifts are about a moment that has passed.
+      for (const o of pendingOffers) if (o.kind === 'reaction') events.push({ type: 'offer.expired', beatId: o.beat.id, kind: o.kind, atMs: nowMs, reason: 'preempted' });
+      pendingOffers = pendingOffers.filter((o) => o.kind !== 'reaction');
       if (pick.kind === 'rule' && pick.rule.outcome === 'solved') {
         state.status = 'solved';
         state.closedAtMs = nowMs;
@@ -439,7 +514,7 @@ export function createScheduler(spine: Spine, durationOf: (action: StageAction) 
       return [...events, ...this.tick(nowMs, false)];
     },
     timeline() {
-      const key = history.map((e) => `${e.beatId}:${e.startMs}:${e.cutMs}:${e.holdMs}:${e.fromIndex ?? 0}:${e.suspended ? 1 : 0}:${e.hoistAtMs ?? ''}`).join('|');
+      const key = history.map((e) => `${e.beatId}:${e.startMs}:${e.cutMs}:${e.holdMs}:${e.fromIndex ?? 0}:${e.suspended ? 1 : 0}:${e.hoistAtMs ?? ''}:${e.waitScale ?? 1}`).join('|');
       if (cache?.key === key) return cache.items;
       const items: Timed[] = [];
       history.forEach((e, n) => {

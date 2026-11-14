@@ -64,6 +64,7 @@ export function storyOf(request: BeatRequest): string[] {
     else if (e.type === 'entity.grabbed' && e.data.entity.startsWith('cast:')) out.push(`${at(e)}: the Reader picked ${nameOf(request, e.data.entity)} up in their giant hand`);
     else if (e.type === 'entity.grabbed') out.push(`${at(e)}: the Reader picked up ${nameOf(request, e.data.entity.slice(7))}`);
     else if (e.type === 'entity.placed' && e.data.entity.startsWith('cast:')) out.push(`${at(e)}: the Reader set ${nameOf(request, e.data.entity)} down again`);
+    else if (e.type === 'beat.queued') out.push(`${at(e)}: (already said about it: ${linesOf(e.data.ready.beat).map((l) => `${l.speaker}: "${l.text}"`).join(' ')})`);
   }
   return out;
 }
@@ -90,7 +91,7 @@ function promptOf(request: BeatRequest): string {
   } else {
     parts.push(
       `A quiet moment. Write a short callback: someone present remembers something the Reader did earlier (above), naturally, in the flow of the script around beat "${position.cursor ?? ''}". ` +
-        `Pick the most delightful thing to remember. If there's nothing worth remembering, a single small line is fine.`,
+        `Pick the most delightful thing to remember that hasn't already been talked about (lines marked "already said" were said; don't go back over them). If there's nothing new worth remembering, a single small line is fine.`,
     );
   }
   return parts.filter(Boolean).join('\n\n');

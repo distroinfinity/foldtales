@@ -2433,6 +2433,132 @@
       ],
       "next": null,
       "replaces": null
+    },
+    {
+      "id": "bridge-gap-small",
+      "source": "bridge",
+      "sceneId": null,
+      "estSeconds": 6,
+      "actions": [
+        {
+          "do": "narrate",
+          "withPrev": false,
+          "text": "Behind them, the gap was only a gap again, and the night felt a little smaller.",
+          "mood": "neutral"
+        },
+        {
+          "do": "wait",
+          "withPrev": false,
+          "seconds": 1
+        }
+      ],
+      "next": null,
+      "replaces": null
+    },
+    {
+      "id": "bridge-round",
+      "source": "bridge",
+      "sceneId": null,
+      "estSeconds": 6,
+      "actions": [
+        {
+          "do": "narrate",
+          "withPrev": false,
+          "text": "The steps went round and round, and the little light went round with them.",
+          "mood": "neutral"
+        },
+        {
+          "do": "wait",
+          "withPrev": false,
+          "seconds": 1
+        }
+      ],
+      "next": null,
+      "replaces": null
+    },
+    {
+      "id": "bridge-button",
+      "source": "bridge",
+      "sceneId": null,
+      "estSeconds": 6,
+      "actions": [
+        {
+          "do": "narrate",
+          "withPrev": false,
+          "text": "Out on the dark water, a lost button bobbed along, waiting its turn to come home.",
+          "mood": "neutral"
+        },
+        {
+          "do": "wait",
+          "withPrev": false,
+          "seconds": 1
+        }
+      ],
+      "next": null,
+      "replaces": null
+    },
+    {
+      "id": "bridge-sleeper",
+      "source": "bridge",
+      "sceneId": null,
+      "estSeconds": 6,
+      "actions": [
+        {
+          "do": "narrate",
+          "withPrev": false,
+          "text": "Somewhere in the house, someone turned over in their sleep, and did not wake.",
+          "mood": "neutral"
+        },
+        {
+          "do": "wait",
+          "withPrev": false,
+          "seconds": 1
+        }
+      ],
+      "next": null,
+      "replaces": null
+    },
+    {
+      "id": "bridge-creak",
+      "source": "bridge",
+      "sceneId": null,
+      "estSeconds": 6,
+      "actions": [
+        {
+          "do": "narrate",
+          "withPrev": false,
+          "text": "The old lighthouse creaked, the way old things do when they are pleased.",
+          "mood": "neutral"
+        },
+        {
+          "do": "wait",
+          "withPrev": false,
+          "seconds": 1
+        }
+      ],
+      "next": null,
+      "replaces": null
+    },
+    {
+      "id": "bridge-quiet",
+      "source": "bridge",
+      "sceneId": null,
+      "estSeconds": 6,
+      "actions": [
+        {
+          "do": "narrate",
+          "withPrev": false,
+          "text": "And for a while nobody said anything at all, which is sometimes the best thing to say.",
+          "mood": "neutral"
+        },
+        {
+          "do": "wait",
+          "withPrev": false,
+          "seconds": 1
+        }
+      ],
+      "next": null,
+      "replaces": null
     }
   ]
 }

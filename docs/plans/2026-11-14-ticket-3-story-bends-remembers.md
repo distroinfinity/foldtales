@@ -32,7 +32,7 @@ The authored chapter stays the spine: it always plays, and it alone decides the 
 - **Chapter 2, "The one who came looking"** (outline below), changes for real with canon: which keepsake comes back, the recap, how Pip faces the dark, and how they cross the gap.
 - **The contents page, behind the sage tab.** Pinch the sage tab and the story pauses, the pop-ups fold, and the spread shows the contents: every chapter you've played, every lost-thing story, "Tonight's lost thing", and "Start the book over" at the foot. Pinch a chapter to see its page: that chapter's own set with the cast where they ended and your keepsakes laid on it, and what lasts printed below. On a chapter's page: "Read it again", and beside each keepsake "Give it back", which undoes it, so the next chapter plays as if you'd never kept it. Pinch the sage tab again to go back to the story.
 - **"Start the book over"** asks once ("Pinch again to forget everything"), then deletes the log, the satchel, the canon and the saved place, on the headset and on the server's mirror.
-- **The landing page** follows: "Continue chapter 2" once chapter 1 is finished, "Read it again" choices on the contents page inside.
+- **The landing page** follows: "Continue chapter 2" once chapter 1 is finished, "Read it again" choices on the contents page inside. **The landing page itself belongs to the product workspace** (branch `product-front-door`, which owns `client/index.html` and `client/src/landing/`; coordinator, Nov 14). This ticket doesn't edit those files. What the landing needs to know (the chapters, where you are, whether a new story is ready) comes from one small read-only function in `client/src/show/progress.ts`, `libraryState()`, which the product workspace reads. Requests from it about the contents page or naming come into this plan.
 - **Survives reload.** Canon and satchel are derived from the event log in IndexedDB, mirrored to the backend's memory routes when it's reachable.
 
 ### 3. Tonight's lost thing
@@ -89,10 +89,17 @@ Engine code still knows no character names.
 Each phase ends playable, and gets judged in the emulator before the headset.
 
 ### Phase 1: the director in chapter 1 (thinnest playable)
-- [ ] Splicing in the scheduler, offers, expiry, time-box admission, snapshot.
-- [ ] Backend `planBeat` on Claude, with caching and fallbacks; validator; director client; reactions and callbacks.
-- [ ] Simulator with an injected director: hundreds of runs, every failure mode.
-- [ ] The gap's night sky; the ladder's hand-over.
+- [x] Splicing in the scheduler, offers, expiry, time-box admission, snapshot.
+- [x] Backend `planBeat` on Claude, with caching and fallbacks; validator; director client; reactions and callbacks.
+- [x] Simulator with an injected director: hundreds of runs, every failure mode (`node tools/director-sim.ts`).
+- [x] The gap's night sky; the ladder's hand-over.
+
+**Built and checked, Nov 14.**
+- **The simulator found holes in chapter 1 that predate the director.** A quick reader could finish in 4:31 (helping before being asked cuts long beats), and one who stacked wrong tries could reach 7:09. Fixed in the scheduler: unused narrator bridges fill the walk home once the last problem is settled and the rest is known to run short (six new bridge lines, captions until the chapter 2 voice run); a wrong try that would run past 7:00 gets the wordless "can't do that"; and when a beat starts with the chapter projected to run long, its pauses play shorter. Holding grace has an episode budget of 20 s.
+- **Time-box admission** is the chapter's end with nobody doing anything more, plus the slowest the open problem could still go. Stacking every future worst case refused most director beats; the pacing above protects 7:00 instead.
+- **Placement.** Reactions splice at the next fresh boundary (a pause, or a change of speaker), never between a gift and its consequence, never before an ask. Callbacks only go in front of talk, so nothing physical is interrupted. A problem gift drops reactions still waiting for earlier gifts. Each played director beat is logged as `beat.queued`, so later requests know what was already said.
+- **Simulator, 438 shows per seed across six director profiles** (off, instant, normal, slow, 30% failing, all failing): 0 failing; every path 5:00–6:55; about 75% of director beats offered get played.
+- **Emulator:** the kite handed to Pip while he asks for the wick gets "A kite? Oh, look at its patches. Somebody loved this kite very much…" about 5 s later; after the lantern, Wick: "Somebody big had a hand in that."; after the ladder: "Five little rungs, and not one of them wobbled. Well, only my knees." With the backend stopped, the chapter plays on with no gap. The ladder is handed over on the first try when held by its top (hand-over now measured along the whole object).
 - [ ] **Headset session 1:** hand odd things over and see what comes back; Wi-Fi off mid-chapter; the page turn by hand.
 
 ### Phase 2: memory and chapter 2
