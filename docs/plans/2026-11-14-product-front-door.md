@@ -489,3 +489,11 @@ GoDaddy records:
 - forwarding of `foldtales.xyz` to `https://www.foldtales.xyz`
 
 `www.foldtales.xyz` was added to the Pages project through the API. Neither CLI login may mint deploy tokens: Railway's GraphQL answers "Not Authorized", and the Cloudflare OAuth login has no token scope. So `RAILWAY_TOKEN` and `CLOUDFLARE_API_TOKEN` come from the dashboards.
+
+**Deploys by each platform's own GitHub link (owner, Nov 15).** The CLI logins can't mint deploy tokens, so instead of GitHub Actions deploying:
+- **Cloudflare Pages** is linked to the repo and builds main (project `foldtales`, Git-connected, previews off).
+- **Railway's `backend`** is linked to the repo and deploys main, after waiting for the CI check, and only when backend files change.
+
+The upload-only Pages project was deleted to free the name. CI now only runs `pnpm check`. Build settings live in the dashboards; the values are in the owner's step list (session of Nov 15), repeated here:
+- **Pages:** build `pnpm install --frozen-lockfile && pnpm --filter @tabletop/client build`, output `client/dist`, root blank. Variables: `NODE_VERSION=24`, `TT_PUBLIC_BACKEND_URL=https://api.foldtales.xyz`, `TT_PUBLIC_STORYTELLER=off`.
+- **Railway:** source repo `distroinfinity/tabletop-theatre`, branch `main`, Wait for CI on. Watch paths: `backend/**`, `contracts/**`, `package.json`, `pnpm-lock.yaml`, `railway.json`. Start command `pnpm --filter @tabletop/backend start`.
