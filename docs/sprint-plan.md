@@ -57,11 +57,11 @@ Why: AI lines spliced into the written chapter didn't land ("If a story is alrea
   - [ ] Shared show
 - [ ] **6. Ship**
 - [ ] **7. The product around the book** (added by the owner, Nov 14). Plan: `docs/plans/2026-11-14-product-front-door.md`
-  - [ ] Sign-in proved end to end (accounts, the phone code, Google)
-  - [ ] The page: the hero and the scroll that opens the book, on every device
-  - [ ] Your book on any headset
+  - [x] Sign-in built and proved on the Mac (accounts, the phone code, email codes; PR #11), and **switched off** by the owner's choice. Google waits for its client, at the "turn sign-in on" to-do below
+  - [x] The page: the hero and the scroll that opens the book, in the painted reading room, on every device (PR #11, merged Nov 15; the owner's look check: "Yes, move on")
+  - [x] Your book on any headset: the book snapshot follows the account (finished chapters, started ones); the exact place and keepsakes stay on the headset. Live when sign-in is switched on
   - [ ] **Later, once the product is nearly done: turn sign-in on and test it.** Built and tested on the Mac, switched off for now (owner, Nov 14). Set up Resend (needs a domain and its DNS records), a Google sign-in client, and the server's sign-in secrets (`BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `TT_CLIENT_HOST`). Then turn on `TT_ACCOUNTS=on` (server) and `TT_PUBLIC_ACCOUNTS=on` (site) together. Test on the Quest: Google in Quest Browser, the phone code, and a second headset.
-  - [ ] **Host it on foldtales.xyz** (owner, Nov 15): the site on Cloudflare Pages through the existing CI, and the backend on Railway at api.foldtales.xyz. The AI stays off in production for now. Steps in the plan's "Hosting on foldtales.xyz"; this also releases ticket 0's held hosting task.
+  - [x] **Host it on foldtales.xyz** (owner, Nov 15). Live: https://www.foldtales.xyz (Cloudflare Pages) and https://api.foldtales.xyz (Railway), each deploying main from GitHub. The AI is on in production behind the caps. Notes in PR #15: the site on Cloudflare Pages through the existing CI, and the backend on Railway at api.foldtales.xyz. The AI stays off in production for now. Steps in the plan's "Hosting on foldtales.xyz"; this also releases ticket 0's held hosting task.
   - [ ] **Foldtales as a complete product: every surface, flow and journey, planned end to end** (owner, Nov 15). For a fresh session: **plan first, the owner approves before any code**.
     - **Why:** the owner says the product doesn't yet feel like a finished whole. "The overhaul of user journeys and product journeys needs to be planned well and executed." The surfaces should be "presented well as a finished product to the customer". Examples:
       - The wrist quit menu is "very absurd right now".
