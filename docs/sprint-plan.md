@@ -62,6 +62,18 @@ Why: AI lines spliced into the written chapter didn't land ("If a story is alrea
   - [ ] Your book on any headset
   - [ ] **Later, once the product is nearly done: turn sign-in on and test it.** Built and tested on the Mac, switched off for now (owner, Nov 14). Set up Resend (needs a domain and its DNS records), a Google sign-in client, and the server's sign-in secrets (`BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `TT_CLIENT_HOST`). Then turn on `TT_ACCOUNTS=on` (server) and `TT_PUBLIC_ACCOUNTS=on` (site) together. Test on the Quest: Google in Quest Browser, the phone code, and a second headset.
   - [ ] **Host it on foldtales.xyz** (owner, Nov 15): the site on Cloudflare Pages through the existing CI, and the backend on Railway at api.foldtales.xyz. The AI stays off in production for now. Steps in the plan's "Hosting on foldtales.xyz"; this also releases ticket 0's held hosting task.
+  - [ ] **How someone chooses between a story and the AI Storyteller** (owner, Nov 15; for a fresh session, plan first). The product is now two ways to play: the written chapters of *Tales from the Table's Edge*, and the AI Storyteller. The page shows the book first and the Storyteller as a door further down.
+    - **The question to settle before any design: does the choice happen on the web page, or inside the book in XR?**
+      - **On the web page:** you choose before you enter. The page has to carry both without losing the polish of today's single hero.
+      - **Inside XR:** the book is the menu, as the design language says (`docs/design-language.md`, "The book is the only UI"). An opening spread or the contents page offers a written story or making one up, and the page keeps one action, "Open the book".
+    - **Constraints either way:**
+      - The Storyteller needs the microphone, and it must be granted on the page before XR: a first prompt inside XR ended the session (measured twice).
+      - A judge must still be one tap from something wonderful.
+      - Returning readers continue where they were.
+      - More chapters are coming, so there will be a shelf of stories somewhere.
+      - The AI is live in production: the keys are on Railway, and the site's build no longer switches the Storyteller door off.
+    - **Tried and rejected:** PR #16, closed. It put two equal doors in the hero and a second scrolling section for the Storyteller. The owner: "you have fucked up the landing page. It was very polished … don't try to cut-paste things and add them where they don't belong … the first question is: should the mode selection happen even on the landing page or after you have entered the XR experience?" Its branch, `product-two-ways`, is kept only as a reference.
+    - **Keep** today's page (PR #11) as it is until this is decided.
 - **Art library** (runs throughout)
   - [x] Book and first set for M1 (run 004, PR #1). Approved on the Mac
   - [x] Drawer objects for M2 (run 006, PR #2). Approved on the Mac and in Quest Browser
