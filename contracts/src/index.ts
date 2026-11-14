@@ -9,4 +9,5 @@ export * from './beats.ts';
 export * from './events.ts';
 export * from './telemetry.ts';
 export * from './relay.ts';
+export * from './storyteller.ts';
 export * from './api.ts';
