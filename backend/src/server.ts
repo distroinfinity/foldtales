@@ -2,6 +2,7 @@ import { randomBytes } from 'node:crypto';
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { serve } from '@hono/node-server';
+import { BackendError } from '@tabletop/contracts';
 import { createMockBackend, MOCK_PROFILES } from '@tabletop/contracts/mocks';
 import { readPorts } from '../../tools/ports.ts';
 import { createApp, resolveListen } from './app.ts';
@@ -54,6 +55,15 @@ const director =
           storyTurn(request, { anthropic, voices, moderate, log: (m) => console.log(m), paint: (sessionId, description, objectId) => painter.start({ sessionId, description, image: null }, objectId) }),
         paintProp: async (request: Parameters<typeof painter.start>[0]) => ({ jobId: painter.start(request) }),
         paintResult: async ({ jobId }: { jobId: string }) => painter.result(jobId),
+        // A single-use token for ElevenLabs' realtime speech to text: the headset listens without the key.
+        speechToken: async () => {
+          const apiKey = process.env.ELEVENLABS_API_KEY;
+          if (!apiKey) throw new BackendError('upstream_failed', 'listening is off', false);
+          const response = await fetch('https://api.elevenlabs.io/v1/single-use-token/realtime_scribe', { method: 'POST', headers: { 'xi-api-key': apiKey }, signal: AbortSignal.timeout(6000) });
+          const body = (await response.json().catch(() => ({}))) as { token?: string };
+          if (!response.ok || !body.token) throw new BackendError('upstream_failed', `token ${response.status}`, true);
+          return { provider: 'elevenlabs', token: body.token, expiresAt: new Date(Date.now() + 14 * 60_000).toISOString() };
+        },
         soundEffect: async ({ description, seconds }: { description: string; seconds: number }) => (await voices.sound(description, seconds)) ?? { url: null, durationMs: seconds * 1000 },
       }
     : {};

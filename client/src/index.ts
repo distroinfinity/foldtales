@@ -37,6 +37,7 @@ import { createSessionFlow } from './stage/session-flow.ts';
 import { createWristMenu } from './stage/wrist.ts';
 import { createLiveScheduler } from './storyteller/live.ts';
 import { createStorySession, type StorySession } from './storyteller/session.ts';
+import { createEars } from './storyteller/ears.ts';
 import { presentCast } from './director/director.ts';
 import { minTextSizeM, settleOnTable } from './stage/sizing.ts';
 import { warmUp } from './stage/warm-up.ts';
@@ -389,6 +390,22 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
     }
   }
   if (storyMode) beginStory();
+  // Listening: only with the microphone already allowed on the landing page (a first prompt inside XR has ended the session).
+  let micAllowed = false;
+  void navigator.permissions?.query({ name: 'microphone' as PermissionName }).then((p) => {
+    micAllowed = p.state === 'granted';
+    p.onchange = () => (micAllowed = p.state === 'granted');
+  }).catch(() => undefined);
+  const ears = createEars({
+    token: () => storyAccess.withBackend((api) => api.speechToken({})).then((t) => (t && t.provider !== 'mock' ? t.token : null)).catch(() => null),
+    heard: (text) => story?.heard(text),
+    // A few clear words while they're speaking: you're cutting in, so they stop and listen.
+    hearing: (text) => {
+      if (story && (story.state === 'performing' || story.state === 'thinking') && text.trim().split(/\s+/).length >= 4) story.interrupt();
+    },
+    log: (m) => console.info(m),
+  });
+  let earsOn = false;
   const startEpisode = () => {
     log.forget();
     director.reset();
@@ -568,6 +585,12 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
     for (const a of answers.splice(0)) director.receive(runtime.scheduler, clock.ms, a.id, a.ready);
     if (show.directorOn && runtime.started && !runtime.ended) director.frame(runtime.scheduler, clock.ms);
     story?.frame();
+    const listen = story !== null && runtime.started && !clock.paused && micAllowed;
+    if (listen !== earsOn) {
+      earsOn = listen;
+      if (listen) ears.start();
+      else ears.stop();
+    }
     for (const e of runtime.drain()) {
       if (e.type === 'gift' && story) {
         story.gift(e.objectId, e.castId);
