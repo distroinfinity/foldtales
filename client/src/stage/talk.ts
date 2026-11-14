@@ -25,37 +25,39 @@ export interface TalkTabDeps {
 
 export function createTalkTab(deps: TalkTabDeps) {
   const loader = new TextureLoader();
-  const gold = loader.load('./art/book/tab-gold.png');
-  gold.colorSpace = SRGBColorSpace;
   const paper = loader.load('./art/book/paper-tag.png');
   paper.colorSpace = SRGBColorSpace;
 
   const root = new Object3D();
   root.name = 'talk-tab';
   root.visible = false;
-  // On the right page's near edge, left of the ribbon, lying flat.
-  root.position.set(deps.pageW * 0.58, deps.pageY + 0.002, deps.pageD / 2 - 0.016);
-  root.rotation.x = -Math.PI / 2;
+  // On the right page's near edge, left of the ribbon, standing up toward you a little like a pop-up tab.
+  root.position.set(deps.pageW * 0.55, deps.pageY + 0.004, deps.pageD / 2 - 0.02);
+  root.rotation.x = -Math.PI / 2 + 0.6;
   deps.bookRoot.add(root);
 
-  const tabMaterial = new MeshBasicMaterial({ map: gold, transparent: true, side: DoubleSide, toneMapped: false });
-  const tab = new Mesh(new PlaneGeometry(0.04, 0.0225), tabMaterial);
-  tab.renderOrder = 500;
-  root.add(tab);
-  const scrap = new Mesh(new PlaneGeometry(0.062, 0.016), new MeshBasicMaterial({ map: paper, transparent: true, side: DoubleSide, toneMapped: false }));
-  scrap.position.set(0, -0.021, 0.0004);
-  scrap.renderOrder = 501;
-  root.add(scrap);
+  // One button: a piece of the book's paper with a gold rim, and the words printed on it.
+  const W = 0.078;
+  const H = 0.03;
+  const rimMaterial = new MeshBasicMaterial({ color: '#D4A23E', transparent: true, opacity: 0.85, side: DoubleSide, toneMapped: false });
+  const rim = new Mesh(new PlaneGeometry(W + 0.005, H + 0.005), rimMaterial);
+  rim.renderOrder = 500;
+  root.add(rim);
+  const face = new Mesh(new PlaneGeometry(W, H), new MeshBasicMaterial({ map: paper, side: DoubleSide, toneMapped: false }));
+  face.position.z = 0.0004;
+  face.renderOrder = 501;
+  root.add(face);
   const label = new Text();
   label.text = 'Hold to talk';
   label.font = captionFont;
-  label.fontSize = 0.0085;
+  label.fontSize = 0.011;
   label.color = INK;
   label.anchorX = 'center';
   label.anchorY = 'middle';
-  label.position.z = 0.0005;
+  label.position.z = 0.0009;
   label.sync();
-  scrap.add(label);
+  root.add(label);
+  const tab = root;
 
   let state: 'idle' | 'opening' | 'listening' | 'sending' = 'idle';
   let held: HandSide | null = null;
@@ -73,11 +75,10 @@ export function createTalkTab(deps: TalkTabDeps) {
     /** The ears' state: lifts while held, glows gold when listening. */
     setState(next: 'idle' | 'opening' | 'listening' | 'sending'): void {
       state = next;
-      const lift = next === 'idle' ? 0 : 0.006;
-      tab.position.z = lift;
-      tab.scale.setScalar(next === 'listening' ? 1.12 : 1);
-      tabMaterial.color.setScalar(next === 'listening' ? 1.35 : next === 'opening' ? 1.1 : 1);
-      label.text = next === 'listening' ? 'Listening… let go when done' : next === 'opening' ? 'Wait for the glow…' : next === 'sending' ? 'Sending…' : 'Hold to talk';
+      tab.scale.setScalar(next === 'listening' ? 1.1 : next === 'idle' ? 1 : 1.04);
+      rimMaterial.opacity = next === 'listening' ? 1 : 0.85;
+      rimMaterial.color.set(next === 'listening' ? '#F2C25A' : '#D4A23E');
+      label.text = next === 'listening' ? 'Listening… let go' : next === 'opening' ? 'Wait for the glow…' : next === 'sending' ? 'Sending…' : 'Hold to talk';
       label.sync();
     },
     get state() {
@@ -85,12 +86,13 @@ export function createTalkTab(deps: TalkTabDeps) {
     },
     targets(): ExtraTarget[] {
       if (!root.visible) return [];
-      tab.getWorldPosition(at);
+      face.getWorldPosition(at);
       return [
         {
-          proxy: { id: 'talk-tab', position: { x: at.x, y: at.y, z: at.z }, radiusM: 0.032, reachUpM: REACH_UP_M },
+          proxy: { id: 'talk-tab', position: { x: at.x, y: at.y, z: at.z }, radiusM: 0.042, reachUpM: REACH_UP_M },
           onGrab: (hand) => {
             held = hand;
+            console.info(`talk: held with ${hand}`);
             deps.hold();
           },
           onRelease: () => {
