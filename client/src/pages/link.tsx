@@ -80,7 +80,11 @@ function Link() {
     const result = yes ? await approveDevice(code) : await denyDevice(code);
     setBusy(false);
     if (result === 'ok') setStep(yes ? 'done' : 'declined');
-    else if (result === 'expired') setProblem('That code expired. Your headset shows a new one; start again with it.');
+    else if (result === 'expired') {
+      setProblem('That code expired. Your headset shows a new one: enter it here.');
+      setCode('');
+      setStep('code');
+    }
     else setProblem('Couldn’t reach the server. Try again.');
   };
 

@@ -8,10 +8,13 @@ export const WEB_ART: string[] = content.art;
 
 export const art = (file: string): string => `./web/${file}`;
 
-/** Resolves once every picture is decoded, or after `capMs`, whichever comes first. */
-export function preloadArt(capMs = 6000): Promise<void> {
+/** The hero's own pictures: the room, the table and the cover. The page reveals once these are ready. */
+export const HERO_ART = WEB_ART.slice(0, 5);
+
+/** Resolves once these pictures are decoded, or after `capMs`, whichever comes first. */
+export function preloadArt(files: string[] = WEB_ART, capMs = 6000): Promise<void> {
   const all = Promise.all(
-    WEB_ART.map(async (file) => {
+    files.map(async (file) => {
       const img = new Image();
       img.src = art(file);
       try {

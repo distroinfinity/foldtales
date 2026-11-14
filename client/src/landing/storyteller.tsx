@@ -86,7 +86,8 @@ function Door({ device, library, signedIn, onSignIn, enterStoryteller, storytell
         <p className="m-0 text-[15px] text-page/55">It needs an account and the internet. The chapters need neither.</p>
       </div>
     );
-  if (!library.storyteller.available || !enterStoryteller)
+  // Built and switched on in this build when ticket 3's side supplies the launcher (PR review 2).
+  if (!(library.storyteller.available || enterStoryteller) || !enterStoryteller)
     return <p className="m-0 max-w-[40ch] text-[16px] text-page/65">You’re signed in as {signedIn}. The AI Storyteller is on its way to this book, and it will open from here.</p>;
   // Never open it without the microphone: it's a conversation (owner, in the headset, Nov 14).
   if (mic !== 'granted')

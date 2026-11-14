@@ -279,6 +279,9 @@ export function pollDeviceSignIn(onUpdate: (status: DeviceSignInStatus) => void)
     if (answer?.status === 200 && typeof body?.access_token === 'string') {
       storeSession(body.access_token, null);
       await getSession();
+      // A stored session must always reach the reader change (a reload), even if Cancel came
+      // while it was being looked up: report it regardless of `stopped` (PR review 5).
+      stopped = false;
       return finish('approved');
     }
     const error = answer ? errorCode(answer) : 'offline';
@@ -491,12 +494,14 @@ async function sync(mine: LocalBook): Promise<{ book: LocalBook; outcome: 'synce
   const generation = readGeneration();
   for (let attempt = 0; attempt < 2; attempt++) {
     const server = await fetchBook();
+    if (readGeneration() !== generation) return { book: mine, outcome: 'offline' };
     if (server.kind !== 'ok') return { book: mine, outcome: server.kind === 'signed-out' ? 'signed-out' : 'offline' };
     const merged = mergeBooks(mine, local(server.book));
     if (sameBook(merged, server.book)) return { book: merged, outcome: 'synced' };
     // A different reader since this began: the write belongs to nobody now.
     if (readGeneration() !== generation) return { book: mine, outcome: 'offline' };
     const stored = await storeBook(server.book.rev, merged);
+    if (readGeneration() !== generation) return { book: mine, outcome: 'offline' };
     if (stored.kind === 'ok') return { book: mergeBooks(merged, local(stored.book)), outcome: 'synced' };
     if (stored.kind !== 'stale') return { book: mine, outcome: stored.kind === 'signed-out' ? 'signed-out' : 'offline' };
   }

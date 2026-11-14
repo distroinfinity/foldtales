@@ -24,7 +24,7 @@ function Sheet({ open, onClose, label, children }: { open: boolean; onClose: () 
       className="paper m-auto w-[min(560px,calc(100vw-32px))] rounded-[12px] border-0 p-0 backdrop:bg-[#15110e]/75 backdrop:backdrop-blur-[2px] open:animate-[sheet-in_.32s_ease-out]"
     >
       <div className="relative px-7 pb-7 pt-8 sm:px-10 sm:pt-10">
-        <button type="button" onClick={onClose} className="absolute right-3 top-3 grid size-12 cursor-pointer place-items-center rounded-full border-0 bg-transparent text-[26px] text-ink/60 hover:text-ink" aria-label="Close">
+        <button type="button" onClick={onClose} className="absolute right-3 top-3 grid size-12 cursor-pointer place-items-center rounded-full border-0 bg-transparent text-[26px] text-ink/75 hover:text-ink" aria-label="Close">
           ×
         </button>
         {children}
@@ -83,7 +83,7 @@ function PhoneCode({ onCancel }: { onCancel: () => void }) {
       <p className="m-0 mt-1 text-[21px] font-medium break-all text-ink">{where}</p>
       <p className="m-0 mt-3 text-[18px] text-ink/80">and enter</p>
       <p className="m-0 mt-1 min-h-[52px] text-[40px] font-medium tracking-[0.14em] tabular-nums text-navy">{code?.userCode ?? '· · · ·'}</p>
-      <p className="m-0 mt-3 min-h-6 text-[16px] text-ink/65" role="status">
+      <p className="m-0 mt-3 min-h-6 text-[16px] text-ink/75" role="status">
         {note ?? (code ? 'Waiting for your phone…' : 'Getting a code…')}
       </p>
       <button type="button" className={`${quietInk} mt-1`} onClick={onCancel}>
@@ -137,7 +137,7 @@ export function Bookplate({ open, onClose, signedIn }: { open: boolean; onClose:
           ) : (
             <>
               <p className="display m-0 text-[30px] leading-tight text-navy">This book belongs to {signedIn}</p>
-              <p className="m-0 mx-auto mt-3 max-w-[38ch] text-[17px] leading-relaxed text-ink/75">Your place in the book is kept with your account, on any headset. Keepsakes stay on the headset they were found on.</p>
+              <p className="m-0 mx-auto mt-3 max-w-[38ch] text-[17px] leading-relaxed text-ink/75">The chapters you’ve read follow you to any headset. Your exact place in a chapter, and the keepsakes you find, stay on the headset you used.</p>
               {offline ? (
                 <div className="mx-auto mt-6 flex max-w-[360px] flex-col gap-3">
                   <p className="m-0 text-[16px] text-ink/80" role="alert">You’re offline, so your last few minutes aren’t saved to your account. Sign out anyway?</p>
@@ -184,7 +184,7 @@ export function Bookplate({ open, onClose, signedIn }: { open: boolean; onClose:
           </>
         )}
       </div>
-      <p className="m-0 mt-4 text-center text-[14px] text-ink/55">
+      <p className="m-0 mt-4 text-center text-[14px] text-ink/75">
         We keep your name, email and place in the book. <a className="text-ink/70" href="./privacy/">Privacy</a>
       </p>
     </Sheet>
@@ -197,19 +197,19 @@ export function ChaptersSheet({ open, onClose, library }: { open: boolean; onClo
     <Sheet open={open} onClose={onClose} label="Chapters">
       <h2 className="display m-0 text-[32px] leading-tight text-navy">{BOOK_TITLE}</h2>
       <div className="mt-2 h-px bg-ink/20" />
-      <h3 className="m-0 mt-6 text-[15px] font-medium text-ink/60">Chapters</h3>
+      <h3 className="m-0 mt-6 text-[15px] font-medium text-ink/75">Chapters</h3>
       <ol className="m-0 mt-2 list-none p-0">
         {library.chapters.map((c) => (
           <li key={c.n} className="flex items-baseline gap-3 py-2 text-[20px]">
             <span className="w-6 text-ink/55">{c.n}</span>
             <span className="text-ink">{c.title}</span>
             <span aria-hidden className="mx-1 flex-1 translate-y-[-4px] border-b border-dotted border-ink/30" />
-            <span className="text-[16px] text-ink/60">{word[c.state]}</span>
+            <span className="text-[16px] text-ink/75">{word[c.state]}</span>
           </li>
         ))}
       </ol>
-      <p className="m-0 mt-2 text-[16px] text-ink/60">More chapters on the way.</p>
-      <h3 className="m-0 mt-7 text-[15px] font-medium text-ink/60">AI Storyteller</h3>
+      <p className="m-0 mt-2 text-[16px] text-ink/75">More chapters on the way.</p>
+      <h3 className="m-0 mt-7 text-[15px] font-medium text-ink/75">AI Storyteller</h3>
       <p className="m-0 mt-2 text-[17px] leading-relaxed text-ink/80">
         {library.storyteller.sessions.length > 0 ? `Your stories: ${library.storyteller.sessions.map((s) => s.title).join(' · ')}` : 'New stories, made up with you, out loud.'}
       </p>

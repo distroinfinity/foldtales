@@ -421,3 +421,19 @@ Codex re-read the plan, the code and ticket 3's branch at `90f9c2a`, with small 
 10. **P1. Saved AI stories were promised here but optional in ticket 3.** *Taken:* not promised. The door lists stories only if ticket 3 saves them.
 11. **P1. "No camera" contradicted the mug moment and ticket 3's room data.** *Taken:* the privacy page and the front page's copy follow what actually ships: room shapes described to the AI, the camera only with consent if it ships, and otherwise the voice-described mug.
 
+
+### PR review (Codex, once, read-only, in its own Superset terminal, Nov 14)
+
+On PR #11 at `7c37528`, with in-memory probes: no P0, six P1, five P2. I checked each one. All are real. Nine are fixed; finding 3 is resolved by changing what we promise, and finding 10 is half fixed.
+
+1. **P1. The old show's pagehide writer re-creates the saved place after a sign-out or delete.** *Fixed:* the reload carries a one-time flag, and `main.ts` clears the saved place again before the book reads it.
+2. **P1. The Storyteller door never opened,** because the shim always said "not available". *Fixed:* the door opens whenever ticket 3 supplies the launcher.
+3. **P1. The exact place in a chapter can't move to another headset:** the server's resume point has no show position. *Resolved by scope:* your finished chapters, and the fact you started one, follow you; the exact place stays on its headset. The bookplate says so.
+4. **P1. Reading progress was uploaded only at sign-in and sign-out.** *Fixed:* the page uploads whenever you come back from the book while signed in.
+5. **P1. Cancelling at the moment of approval left a session with no reader change.** *Fixed:* a stored session always reports `approved`, which reloads.
+6. **P1. A sync result could land after the reader changed.** *Fixed:* the generation is checked after every wait, and before the local write.
+7. **P2. The pull guard was set once and never cleared.** *Fixed:* it's keyed to the imported book and cleared once settled.
+8. **P2. An expired code on the phone's approve step was a dead end.** *Fixed:* the phone goes back to code entry.
+9. **P2. The hero waited for all 28 pictures.** *Fixed:* it waits only for its own five; the rest load straight after.
+10. **P2. A full re-render and a geometry read on every scroll frame.** *Half fixed:* the lamp is measured only once it's on the page. The re-render stays for now; the headset frame rate decides whether it needs motion values.
+11. **P2. Small text on paper and in the footer was under 4.5:1.** *Fixed:* raised to at least 75% ink and 60% paper.

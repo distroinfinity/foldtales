@@ -167,7 +167,8 @@ export function BookStage({ p, className = '', onLamp }: { p: number; className?
 
   const lastLamp = useRef('');
   useLayoutEffect(() => {
-    if (!onLamp || !lampMarker.current || !ref.current) return;
+    // Only once the lamp is on the page: a geometry read on every scroll frame isn't free (PR review 10).
+    if (!onLamp || !lampMarker.current || !ref.current || p < MARKS.lampRise[0]) return;
     const a = lampMarker.current.getBoundingClientRect();
     const b = ref.current.getBoundingClientRect();
     const lampX = (a.left + a.width / 2 - b.left) / b.width;

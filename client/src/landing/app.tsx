@@ -1,11 +1,11 @@
 import { motion, useReducedMotion } from 'motion/react';
 import { useEffect, useState, useSyncExternalStore, type ReactNode } from 'react';
-import { currentReader, pullBook } from './account-ui.ts';
+import { currentReader, pullBook, pushBook } from './account-ui.ts';
 import { OpenTheBook, PaintedRoomLink, SendToQuest } from './actions.tsx';
 import type { Device } from './device.ts';
 import { landingSnapshot, openingTap, subscribeLanding } from './landing.ts';
 import { BOOK_TITLE, libraryStateShim, type LibraryState } from './library.ts';
-import { preloadArt } from './preload.ts';
+import { HERO_ART, WEB_ART, preloadArt } from './preload.ts';
 import { Bookplate, ChaptersSheet } from './sheets.tsx';
 import { Story } from './story.tsx';
 import { Storyteller } from './storyteller.tsx';
@@ -38,12 +38,25 @@ export function App({ device }: { device: Device }) {
   const [reader, setReader] = useState<string | null>(null);
   const [sheet, setSheet] = useState<'plate' | 'chapters' | null>(null);
   const [artReady, setArtReady] = useState(false);
+  // Back from the book, signed in: save where you got to, so another headset knows.
+  const [wasInside, setWasInside] = useState(false);
+  useEffect(() => {
+    if (state.kind === 'inside') setWasInside(true);
+    else if (wasInside && state.kind === 'ready' && reader) {
+      setWasInside(false);
+      void pushBook();
+    }
+  }, [state.kind, wasInside, reader]);
   useEffect(() => {
     void currentReader().then((r) => {
       setReader(r?.name ?? null);
       if (r) void pullBook();
     });
-    void preloadArt().then(() => setArtReady(true));
+    // The hero waits only for its own pictures; the story's are fetched straight after, long before the scroll needs them.
+    void preloadArt(HERO_ART, 3500).then(() => {
+      setArtReady(true);
+      void preloadArt(WEB_ART.slice(HERO_ART.length), 15000);
+    });
   }, []);
 
   const action = (compact: boolean) =>
@@ -118,7 +131,7 @@ export function App({ device }: { device: Device }) {
               Open it here anyway
             </a>
           )}
-          <span className="text-[14px] text-page/35 md:ml-auto">Made for the Meta VR Start Developer Competition, 2026</span>
+          <span className="text-[14px] text-page/60 md:ml-auto">Made for the Meta VR Start Developer Competition, 2026</span>
         </nav>
       </footer>
 
