@@ -636,6 +636,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
     story?.frame();
     // The tab is there while the Storyteller's book is open and playing; a pause lets the microphone go.
     const canTalk = story !== null && runtime.started && !clock.paused && controls.amount > 0.98;
+    if (story) talk.frame({ left: controls.fingertip('left'), right: controls.fingertip('right') });
     if (canTalk !== earsOn) {
       earsOn = canTalk;
       talk.setShown(canTalk);

@@ -5,9 +5,9 @@ import type { ExtraTarget } from './controls.ts';
 import type { HandSide } from './gestures.ts';
 
 /**
- * The AI Storyteller's "Hold to talk": the book's gold tab, lying at the near edge of the right
- * page beside the ribbon, with the words printed on a scrap of the page. Pinch and hold it to
- * talk; it lifts while you hold, and glows once it's really listening; let go when you're done.
+ * The AI Storyteller's "Hold to talk": a paper button with a gold rim, lying on the table in front
+ * of the book. Press it with a fingertip (or pinch it) and keep holding while you talk; it glows
+ * once it's really listening; lift your finger when you're done.
  */
 
 const INK = '#2B2420';
@@ -31,9 +31,10 @@ export function createTalkTab(deps: TalkTabDeps) {
   const root = new Object3D();
   root.name = 'talk-tab';
   root.visible = false;
-  // On the right page's near edge, left of the ribbon, standing up toward you a little like a pop-up tab.
-  root.position.set(deps.pageW * 0.55, deps.pageY + 0.004, deps.pageD / 2 - 0.02);
-  root.rotation.x = -Math.PI / 2 + 0.6;
+  // On the table just in front of the book, under the right page: pressed with a fingertip, the
+  // finger stops on the real table, and it never covers the page's words.
+  root.position.set(deps.pageW * 0.5, 0.002, deps.pageD / 2 + 0.035);
+  root.rotation.x = -Math.PI / 2;
   deps.bookRoot.add(root);
 
   // One button: a piece of the book's paper with a gold rim, and the words printed on it.
@@ -61,14 +62,22 @@ export function createTalkTab(deps: TalkTabDeps) {
 
   let state: 'idle' | 'opening' | 'listening' | 'sending' = 'idle';
   let held: HandSide | null = null;
+  let pressedBy: HandSide | null = null;
   const at = new Vector3();
+  const local = new Vector3();
+  /** A fingertip on the button: within its edges (and a little over), and touching or nearly. */
+  const onButton = (tip: Vector3, margin: number, height: number) => {
+    root.worldToLocal(local.copy(tip));
+    return Math.abs(local.x) < W / 2 + margin && Math.abs(local.y) < H / 2 + margin && local.z < height && local.z > -0.03;
+  };
 
   return {
     root,
     setShown(on: boolean): void {
       root.visible = on;
-      if (!on && held) {
+      if (!on && (held || pressedBy)) {
         held = null;
+        pressedBy = null;
         deps.release();
       }
     },
@@ -84,6 +93,28 @@ export function createTalkTab(deps: TalkTabDeps) {
     get state() {
       return state;
     },
+    /** Pressed with a fingertip: held while the finger rests on it, let go when it lifts away. */
+    frame(tips: Record<HandSide, Vector3 | null>): void {
+      if (!root.visible) return;
+      if (pressedBy) {
+        const tip = tips[pressedBy];
+        if (!tip || !onButton(tip, 0.02, 0.045)) {
+          pressedBy = null;
+          if (!held) deps.release();
+        }
+        return;
+      }
+      if (held) return;
+      for (const side of ['right', 'left'] as const) {
+        const tip = tips[side];
+        if (tip && onButton(tip, 0.006, 0.022)) {
+          pressedBy = side;
+          console.info(`talk: pressed with ${side} fingertip`);
+          deps.hold();
+          return;
+        }
+      }
+    },
     targets(): ExtraTarget[] {
       if (!root.visible) return [];
       face.getWorldPosition(at);
@@ -91,15 +122,18 @@ export function createTalkTab(deps: TalkTabDeps) {
         {
           proxy: { id: 'talk-tab', position: { x: at.x, y: at.y, z: at.z }, radiusM: 0.042, reachUpM: REACH_UP_M },
           onGrab: (hand) => {
+            if (pressedBy) return;
             held = hand;
             console.info(`talk: held with ${hand}`);
             deps.hold();
           },
           onRelease: () => {
+            if (!held) return;
             held = null;
             deps.release();
           },
           onCancel: () => {
+            if (!held) return;
             held = null;
             deps.release();
           },
