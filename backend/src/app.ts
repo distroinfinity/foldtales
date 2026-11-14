@@ -1,4 +1,5 @@
 import {
+  AUTH_BASE_PATH,
   BackendError,
   CONTRACT_HEADER,
   CONTRACT_VERSION,
@@ -29,8 +30,13 @@ export function errorResponse(c: Context, error: BackendError): Response {
 type AnyMethod = (request: unknown) => Promise<unknown> | AsyncIterable<ReplyChunk>;
 
 export interface AppOptions {
+  /** CORS and the body limit. They run first on every `/v1/*` call. */
   beforeContract?: MiddlewareHandler[];
+  /** Better Auth's routes under `/v1/auth/*`. A browser's trip back from Google carries no contract header. */
+  auth?: (app: Hono) => void;
   afterContract?: MiddlewareHandler[];
+  /** App routes outside the contract's route table (the account's), behind the contract and device checks. */
+  routes?: (app: Hono) => void;
   extend?: (app: Hono) => void;
 }
 
@@ -41,10 +47,14 @@ export function createApp(api: BackendApi, log: (message: string, cause: unknown
   app.get('/healthz', (c) => c.json({ ok: true, contract: CONTRACT_VERSION }));
   options.extend?.(app);
 
-  // CORS must come first, because a browser's preflight carries no contract header.
+  // The order is the point: CORS first, because a browser's preflight carries no headers; then
+  // the auth routes, which a top-level navigation reaches without the contract header; then
+  // the contract and device checks for the app's own routes.
   for (const middleware of options.beforeContract ?? []) app.use('/v1/*', middleware);
+  options.auth?.(app);
 
   app.use('/v1/*', async (c, next) => {
+    if (c.req.path.startsWith(`${AUTH_BASE_PATH}/`)) return next();
     const sent = c.req.header(CONTRACT_HEADER);
     if (sent !== String(CONTRACT_VERSION)) {
       return errorResponse(c, new BackendError('contract_mismatch', `this server speaks contract ${CONTRACT_VERSION}`));
@@ -54,6 +64,7 @@ export function createApp(api: BackendApi, log: (message: string, cause: unknown
   });
 
   for (const middleware of options.afterContract ?? []) app.use('/v1/*', middleware);
+  options.routes?.(app);
 
   for (const [name, route] of Object.entries(routes)) {
     const method = api[name as keyof BackendApi] as AnyMethod;

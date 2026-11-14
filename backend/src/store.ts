@@ -18,6 +18,8 @@ export interface TelemetryRow {
 }
 
 export interface Store {
+  /** The one connection to the file. Accounts share it, so nothing ever waits on a second connection's lock. */
+  readonly db: DatabaseSync;
   countUse(day: string, scope: string, feature: string): number;
   appendEvents(deviceId: string, seriesId: string, events: ShowEvent[]): number | null;
   readEvents(deviceId: string, seriesId: string, afterSeq: number | null): ShowEvent[];
@@ -69,19 +71,23 @@ export function openStore(path: string): Store {
   let usageDay = '';
   let prunedAtMs = 0;
 
+  /** A savepoint, so it nests safely inside a transaction the accounts layer may have open on this connection. */
   function transaction<T>(work: () => T): T {
-    db.exec('BEGIN');
+    db.exec('SAVEPOINT store');
     try {
       const result = work();
-      db.exec('COMMIT');
+      db.exec('RELEASE store');
       return result;
     } catch (cause) {
-      db.exec('ROLLBACK');
+      db.exec('ROLLBACK TO store');
+      db.exec('RELEASE store');
       throw cause;
     }
   }
 
   return {
+    db,
+
     countUse(day, scope, feature) {
       if (day !== usageDay) {
         usageDay = day;
