@@ -149,12 +149,12 @@ describe('progress per chapter', () => {
     const s = storage();
     writeProgress(s, { seriesId: SERIES, chapter: 1, state: 'started' });
     writeCheckpoint(s, place('chapter-1', 1));
-    expect(libraryState(s, now, SERIES).chapters[0]).toEqual({ n: 1, title: 'The lamp goes out', state: 'started', canResume: true, where: 'Stopped on the shore.' });
+    expect(libraryState(s, now, SERIES).chapters[0]).toEqual({ n: 1, title: 'The night the light went out', state: 'started', canResume: true, where: 'Stopped on the shore.' });
     writeProgress(s, { seriesId: SERIES, chapter: 1, state: 'finished' });
     writeCheckpoint(s, place('chapter-1', 2));
     expect(libraryState(s, now, SERIES)).toMatchObject({ chapters: [{ state: 'finished', canResume: true, where: 'Stopped at the gap.' }], next: { n: 1, resume: true } });
     writeCheckpoint(s, place('chapter-1', 2, { ended: true }));
-    expect(libraryState(s, now, SERIES).chapters[0]).toEqual({ n: 1, title: 'The lamp goes out', state: 'finished', canResume: false });
+    expect(libraryState(s, now, SERIES).chapters[0]).toEqual({ n: 1, title: 'The night the light went out', state: 'finished', canResume: false });
   });
 });
 

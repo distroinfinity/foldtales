@@ -191,8 +191,12 @@ export function landingChoice(progress: Progress | null, canResume: boolean): { 
   return { label: 'Open the book', restartLabel: null, resume: false };
 }
 
-/** The chapters in this build. Titles as the product names them (product workspace, Nov 14). */
-export const CHAPTERS: ReadonlyArray<{ n: number; title: string; episodeId: string }> = [{ n: 1, title: 'The lamp goes out', episodeId: 'chapter-1' }];
+/**
+ * The chapters in this build, for the page, which reads them without loading any chapter. Each
+ * title is its episode's own (`title` in `episode-N.json`), as the cards and the end page print it;
+ * `tests/chapter-seam.test.ts` keeps the two the same.
+ */
+export const CHAPTERS: ReadonlyArray<{ n: number; title: string; episodeId: string }> = [{ n: 1, title: 'The night the light went out', episodeId: 'chapter-1' }];
 
 /** Whether the AI Storyteller is built and switched on in this build. Sign-in is checked by the landing page. */
 export const STORYTELLER_AVAILABLE = true;

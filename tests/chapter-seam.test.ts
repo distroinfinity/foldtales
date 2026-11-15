@@ -4,6 +4,7 @@ import { StageLibrary, type Spine } from '../contracts/src/index.ts';
 import { loadChapter } from '../client/src/show/chapters.ts';
 import { libraryOf } from '../client/src/show/manifest.ts';
 import { startingObjects } from '../client/src/stage/build.ts';
+import { CHAPTERS } from '../client/src/show/progress.ts';
 import { memoryLogStore } from '../client/src/show/log.ts';
 import { defs, manifest, spine } from './stage-harness.ts';
 
@@ -56,4 +57,11 @@ describe('every keeper starts with their light', () => {
 
 test('the library the director and the checks see is still a valid shared library', () => {
   expect(() => StageLibrary.parse(libraryOf(manifest, [...defs.values()]))).not.toThrow();
+});
+
+test("the page's chapter titles are each chapter's own", async () => {
+  for (const c of CHAPTERS) {
+    const ch = await loadChapter(c.n, { fetchJson: serve(), log: memoryLogStore() });
+    expect({ n: c.n, title: c.title, episodeId: c.episodeId }).toEqual({ n: ch.n, title: ch.title, episodeId: ch.episodeId });
+  }
 });
