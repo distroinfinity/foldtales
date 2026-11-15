@@ -6,7 +6,9 @@
 
 - **Plan approved as written,** in the build order below.
 - **Up to 180 Runway credits:** art runs 014 and 015 (at most 35 each) and sound run 016 (at most 110, free CC0 sounds first). A clear window on the shared account is confirmed before each run.
-- **The room storm plays in chapter 1's opening,** where the storm blows the lamp out. Chapter 1 is signed off, so this change is checked by the owner in the headset before it merges.
+- ~~The room storm plays in chapter 1's opening.~~ **Changed later on Nov 15:** chapter 1 isn't filled with room effects. They're a catalogue (`docs/room-effects.md`) for upcoming chapters and the AI Storyteller, and chapter 1 is only where they're tested, through review links.
+- **Storm without wall lighting** (Nov 15, after three looks): rain and thunder's sound only; no lightning light, no extra dark.
+- **The room map uses only the room the book is in, and the window opens in view** (Nov 15).
 - **Shadows only when the story asks,** never automatically.
 - **The seated hunt:** look at the hidden thing and pinch to call it to you, as well as walking over (default kept). Branch `ticket-4-room-comes-alive`, from main.
 
@@ -181,7 +183,7 @@ Each step ends with something you can see in the headset. Every step after 1 run
 | 2 | **The treasure hunt.** Beam finds the kite on your couch; walk over or look and pinch | None | Does the beam stopping on your couch land? Also: labels logged from your room, and one `?occlusion=on` look |
 | 3 | **Shadow play** | None | Does Pip's giant shadow on your wall feel like magic or like a glitch? |
 | 4 | **Fireflies** | None | Do they feel alive around your hand? |
-| 5 | **The storm:** rain, darkness, thunder, sound all around, and in chapter 1's opening storm | Runs 014 and 016 | Rain in your room, with and without occlusion; chapter 1's opening with the storm |
+| 5 | **The storm:** rain, darkness, thunder, sound all around | Runs 014 and 016 | Rain in your room, with and without occlusion |
 | 6 | **The night sky**, constellations, shooting star, the wish | Run 014 | Stars on your ceiling |
 | 7 | **Snow and fog** | Run 014 | Snow on your table and couch |
 | 8 | **The sea**, tide, paper boat, bottle, gulls | Runs 015 and 016 | The sea on your floor, lapping at your couch |
