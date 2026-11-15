@@ -9,6 +9,8 @@ export type LandingState =
       open: () => void;
       openRoom: (() => void) | null;
       label?: string;
+      /** The line under the button, when the book has something more exact to say than the library. */
+      detail?: string;
       restart?: { label: string; run: () => void } | null;
       /** The second way in: the AI Storyteller (ticket 3 wires it in index.ts). The page's door gates it on sign-in and the microphone. */
       storyteller?: { label: string; run: () => void } | null;

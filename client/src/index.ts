@@ -49,7 +49,9 @@ import { startPlacement } from './stage/placement-runtime.ts';
 import { createSessionFlow } from './stage/session-flow.ts';
 import { cardFor, cardShowing, choose, ended, holdsStory, initialMenu, restarted, ribbon as ribbonPinched, type MenuContext, type MenuEffect, type MenuState } from './stage/book-menu.ts';
 import { chapterEnding } from './book/end-sheet.ts';
-import { chooseEntry } from './landing/entry.ts';
+import { cancelEntry, chooseEntry, consumeEntry, pendingEntry, prepareEntry, type Entry } from './landing/entry.ts';
+import { primaryLabel, readLibrary } from './landing/library.ts';
+import { recordFinished, storytellerSnapshot, whereIn } from './stage/seams.ts';
 import type { ExtraTarget as CardExtra } from './stage/controls.ts';
 import { createLiveScheduler } from './storyteller/live.ts';
 import { createStorySession, type StorySession } from './storyteller/session.ts';
@@ -692,15 +694,14 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
   const chapterN = 1;
   const menuContext = (): MenuContext => {
     const library = libraryState(localStorage, Date.now(), series);
-    const sessions = (library.storyteller as { finished?: Array<{ title: string; lines: string[] }> }).finished ?? [];
     const storyTitle = (story as unknown as { title?: () => string | null } | null)?.title?.() ?? null;
     return {
       mode: storyMode ? 'storyteller' : 'chapter',
       heading: storyMode ? { over: null, title: storyTitle ?? 'The AI Storyteller' } : { over: `Chapter ${chapterN}`, title: canonData?.title ?? library.chapters.find((c) => c.n === chapterN)?.title ?? '' },
-      where: null,
+      where: storyMode || !runtime.started ? null : whereIn(assets.spine, runtime.scheduler.current().beatId),
       current: storyMode ? null : chapterN,
       chapters: library.chapters,
-      stories: sessions,
+      stories: storytellerSnapshot().finished,
       satchelCount: stage.objects.states().filter((o) => o.home.kind === 'satchel').length,
       soundOn: settings.soundOn,
       light: 'dimmer',
@@ -729,6 +730,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
     const result = own ? await own.call(story).catch(() => null) : null;
     if (gen !== host.generation) return;
     ending = { heading: result?.title ?? menuContext().heading.title, lines: result?.lines ?? [], things: result?.things ?? [...paintedTonight], next: null };
+    void recordFinished({ id: `story-${Date.now()}`, title: ending.heading, lines: ending.lines, things: ending.things });
     story?.dispose();
     setMenu(ended(menu));
   }
@@ -1364,8 +1366,31 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, world
         show.sound.unlock();
         world.launchXR();
       };
-      // Once the chapter has run, the landing page speaks for where it is now, not where it was at load.
-      const current = () => (ranMode === 'chapter' ? (show.runtime.ended ? { label: 'Read chapter 1 again', restartLabel: null, resume: false } : { label: 'Continue chapter 1', restartLabel: 'Start from the beginning', resume: true }) : choice);
+      /**
+       * Where the reader asked to go from inside the book (or the page), kept across putting the book away
+       * and a reload. This page load prepared the book for it, so one tap opens it once any prerequisite
+       * (the microphone, for the Storyteller) is met. This build holds chapter 1 only.
+       */
+      const thisChapter = 1;
+      let entry: Entry | null = fresh ? null : pendingEntry();
+      let entryProblem: string | null = null;
+      if (entry?.target.kind === 'chapter' && entry.target.n !== thisChapter) {
+        entryProblem = `Chapter ${entry.target.n} couldn't open.`;
+        cancelEntry();
+        entry = null;
+      } else if (entry) prepareEntry();
+      const backLabel = (back: Entry['back']): string => (back?.kind === 'storyteller' ? 'Back to the AI Storyteller' : `Back to chapter ${back?.kind === 'chapter' ? back.n : thisChapter}`);
+      /** The one button speaks for the library (the agreed seam), or for the waiting entry. */
+      const current = (): { label: string; detail: string; restartLabel: string | null; resume: boolean; mode: 'chapter' | 'story' } => {
+        if (entry?.target.kind === 'storyteller') return { label: 'Open the AI Storyteller', detail: 'You talk to the characters out loud, and the story is made up as you go.', restartLabel: null, resume: false, mode: 'story' };
+        if (entry?.target.kind === 'chapter') {
+          const resume = entry.target.from === 'resume';
+          return { label: `${resume ? 'Continue' : 'Open'} chapter ${entry.target.n}`, detail: 'About six minutes. You only need your hands.', restartLabel: null, resume, mode: 'chapter' };
+        }
+        const p = primaryLabel(readLibrary(localStorage));
+        const resume = p.target.kind === 'chapter' && p.target.from === 'resume';
+        return { label: p.label, detail: entryProblem ? `${entryProblem} ${p.detail}` : p.detail, restartLabel: p.secondary, resume, mode: 'chapter' };
+      };
       /**
        * The AI Storyteller needs your voice, so its door asks for the microphone first, on this page (a first
        * prompt inside VR has ended the session). Entering VR needs a fresh tap, so once you've allowed it the
@@ -1404,12 +1429,27 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, world
       };
       const ready = (): LandingState => {
         const now = current();
+        const waiting = entry;
         return {
           kind: 'ready',
-          open: () => enter(now.resume),
-          openRoom: arSupported && enterRoom ? () => enterRoom() : null,
-          label: now.label,
-          restart: now.restartLabel ? { label: now.restartLabel, run: () => enter(false) } : null,
+          open: () => (now.mode === 'story' ? openStoryteller() : enter(now.resume)),
+          openRoom: arSupported && enterRoom ? () => enterRoom(now.mode) : null,
+          label: now.mode === 'story' && micState !== 'granted' ? 'Let them hear you' : now.label,
+          detail: now.detail,
+          restart: waiting
+            ? {
+                label: backLabel(waiting.back),
+                run: () => {
+                  // Back to where you were: the choice is forgotten, and the page shows your place again.
+                  cancelEntry();
+                  entry = null;
+                  if (ranMode && ranMode !== 'chapter' && waiting.back?.kind === 'chapter') location.reload();
+                  else setLandingState(ready());
+                },
+              }
+            : now.restartLabel
+              ? { label: now.restartLabel, run: () => enter(false) }
+              : null,
           storyteller: STORYTELLER_AVAILABLE ? { label: storyDoorLabel(), run: openStoryteller } : null,
         };
       };
@@ -1423,7 +1463,22 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, world
       setLandingState(ready());
       world.visibilityState.subscribe((state) => {
         // An XR session started some other way (the browser's own prompt, the emulator) takes the button's default.
-        if (state !== VisibilityState.NonImmersive && !ran()) begin(choice.resume);
+        if (state !== VisibilityState.NonImmersive && !ran()) begin(current().resume, current().mode);
+        // Inside, the mode it asked for has started: the choice is done.
+        if (state !== VisibilityState.NonImmersive && entry && ran()) {
+          consumeEntry();
+          entry = null;
+        }
+        if (state === VisibilityState.NonImmersive && ranMode) {
+          // Put away to go somewhere else: a choice for the other mode needs a fresh page load, made now,
+          // so the next tap opens it straight away.
+          const next = pendingEntry();
+          if (next && (next.target.kind === 'storyteller') !== (ranMode === 'story')) {
+            location.reload();
+            return;
+          }
+          entry = next;
+        }
         setLandingState(state === VisibilityState.NonImmersive ? ready() : { kind: 'inside' });
       });
     })

@@ -349,17 +349,17 @@ export function createBookControls({ world, stageRoot, book, sound, pause, glow,
       if (listening !== frame.session && (onGazeSelect || onHeadSelect || cardGaze)) {
         listening = frame.session;
         const slot = (source: XRInputSource): HandSide | 'gaze' => (source.handedness === 'left' || source.handedness === 'right' ? source.handedness : 'gaze');
-        /** The ray a look-and-pinch aims along: the eyes' gaze where there is one, else where your head points. */
-        const ray = (): { origin: Vector3; direction: Vector3 } =>
-          gaze.valid ? { origin: gaze.origin.clone(), direction: gaze.direction.clone() } : { origin: world.camera.getWorldPosition(new Vector3()), direction: world.camera.getWorldDirection(new Vector3()) };
+        /**
+         * The card answers a look-and-pinch only where there's real gaze (VR Glasses). On a Quest 3 the head's
+         * direction would make a pinch in the air choose whatever line you happen to face, so there the hands choose.
+         */
         // The pinch arrives on the gaze source, or (in the glasses emulator) on the pinching hand. A hand's
         // pinch counts only if it didn't take hold of something within reach, so a near grab never also fires at what you look at.
         frame.session.addEventListener('selectstart', (event) => {
           const side = event.inputSource.handedness;
           if (side === 'left' || side === 'right') grabbedThisPinch[side] = false;
           // The card's choice is fixed when the pinch starts; looking away before letting go doesn't change it.
-          const r = ray();
-          gazeChoice[slot(event.inputSource)] = enabledNow && cardGaze ? cardGaze.pick(r.origin, r.direction) : null;
+          gazeChoice[slot(event.inputSource)] = enabledNow && cardGaze && gaze.valid ? cardGaze.pick(gaze.origin.clone(), gaze.direction.clone()) : null;
         });
         frame.session.addEventListener('selectend', (event) => {
           // Released without a select (tracking lost, or the system took the pinch): nothing is chosen.
