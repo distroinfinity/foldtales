@@ -15,7 +15,7 @@ const FLAKE_KINDS = 10;
 const FLAKE_COUNT = 900;
 const RADIUS_M = 3.2;
 /** How long it takes to settle fully, and to melt. */
-const SETTLE_MS = 30_000;
+const SETTLE_MS = 15_000;
 const MELT_MS = 6000;
 /** What snow settles on. The floor only near you. */
 const SETTLES_ON = new Set(['table', 'couch', 'bed', 'floor']);

@@ -343,36 +343,36 @@ async function prepare(world: World) {
   const devRoomState = { scheduled: false, lastMs: 0 };
   const scheduleDevRoom = (fromMs: number): void => {
     runtime.clearReviewRoom();
-    // Each in turn: snow takes a minute to settle, the rest about 35 s, with a short gap between.
-    const slots = devRoom.map((effect) => (effect === 'snow' ? 65_000 : 40_000));
+    // Each in turn, quickly (owner: don't make me wait): snow about 12 s, the rest about 16 s, a short gap between.
+    const slots = devRoom.map((effect) => (effect === 'snow' ? 14_000 : 20_000));
     devRoom.forEach((effect, i) => {
       const at = Math.max(11_500, fromMs + 6_000) + slots.slice(0, i).reduce((a, b) => a + b, 0);
       if (effect === 'hunt') runtime.addRoom({ do: 'room', withPrev: false, effect: 'hunt', what: 'object:kite', at: 'room:couch' }, at);
       else if (effect === 'window-wall') {
         // The window effect on a wall, as in a room with no window.
         runtime.addRoom({ do: 'room', withPrev: false, effect: 'window', what: null, at: 'room:wall' }, at);
-        runtime.addRoom({ do: 'room', withPrev: false, effect: 'window-off', what: null, at: null }, at + 35_000);
+        runtime.addRoom({ do: 'room', withPrev: false, effect: 'window-off', what: null, at: null }, at + 16_000);
       }
       else if (effect === 'sky') {
         // The night sky: stars and the moon, the Lantern named, a shooting star, the Fox, then day.
         const step = (e: import('@tabletop/contracts').RoomEffect, ms: number) => runtime.addRoom({ do: 'room', withPrev: false, effect: e, what: null, at: null }, at + ms);
         step('night-sky', 0);
-        step('stars-lantern', 8_000);
-        step('shooting-star', 15_000);
-        step('stars-fox', 21_000);
-        step('day', 35_000);
+        step('stars-lantern', 4_000);
+        step('shooting-star', 8_000);
+        step('stars-fox', 11_000);
+        step('day', 16_000);
       } else if (effect === 'snow' || effect === 'fog') {
         // Snow for a minute, so it has time to settle; fog for 35 s.
         runtime.addRoom({ do: 'room', withPrev: false, effect, what: null, at: null }, at);
-        runtime.addRoom({ do: 'room', withPrev: false, effect: 'clear', what: null, at: null }, at + (effect === 'snow' ? 60_000 : 35_000));
+        runtime.addRoom({ do: 'room', withPrev: false, effect: 'clear', what: null, at: null }, at + (effect === 'snow' ? 12_000 : 16_000));
       } else if (effect === 'rain') {
         // A storm: rain, then three rolls of thunder, then it clears.
         runtime.addRoom({ do: 'room', withPrev: false, effect: 'rain', what: null, at: null }, at);
-        for (const t of [9_000, 18_000, 27_000]) runtime.addRoom({ do: 'room', withPrev: false, effect: 'thunder', what: null, at: null }, at + t);
-        runtime.addRoom({ do: 'room', withPrev: false, effect: 'clear', what: null, at: null }, at + 35_000);
+        for (const t of [4_000, 8_000, 12_000]) runtime.addRoom({ do: 'room', withPrev: false, effect: 'thunder', what: null, at: null }, at + t);
+        runtime.addRoom({ do: 'room', withPrev: false, effect: 'clear', what: null, at: null }, at + 16_000);
       } else if (effect === 'shadows' || effect === 'fireflies' || effect === 'window') {
         runtime.addRoom({ do: 'room', withPrev: false, effect, what: null, at: null }, at);
-        runtime.addRoom({ do: 'room', withPrev: false, effect: `${effect}-off`, what: null, at: null }, at + 35_000);
+        runtime.addRoom({ do: 'room', withPrev: false, effect: `${effect}-off`, what: null, at: null }, at + 16_000);
       }
     });
     devRoomState.scheduled = true;
