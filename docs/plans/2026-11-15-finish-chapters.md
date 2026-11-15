@@ -776,7 +776,23 @@ Lane C does **data, art, voices and sound only**. Everything the engine needs fo
 | `use` that pulls a room object | The hunt's own return (built) brings the logbook to the book; `log-return` becomes Pip picking it up there (`emote take object:logbook`), with the same lines |
 | The `stair` exit mark | Wick walks to `stair`, placed behind the lamp room's painted glass, so the set hides him; no new code |
 | Wick's logbook part hidden while the object is out (linked part) | The hunt finds Wick's old **brass key** instead (`object:brass-key`, rule `shiny`): "Wick's key! The key to the lamp room!" In `across`, Wick hands Pip the key: "The lamp, and the key, and all of it. They're yours, keeper." |
-| The hunt fails its headset walk (lane B owns the pass or fail, in the owner's Nov 16 session) | `place object:logbook at pip-step` plus `cue beam`: it glints on the page and the reader picks it up there |
+| The hunt fails its headset walk (lane B owns the pass or fail, in the owner's Nov 16 session) | The page version below |
+
+**Pip's paw stays free** (lane C's review item 1, approved by lane B): after `frost-wipe`, Pip sets the gift down (`cue set-down object:$offered`); after `log-found` or `log-return`, he pockets the logbook (`cue pocket object:logbook`) before the beacon and the crossing; in `across` he takes it out and hands it over (`use pip logbook`, then `give pip wick logbook`). Lane C checks consecutive gifts in one continuous emulator run, with the carried kite and ladder.
+
+**The hunt's ignored path keeps `use`:** `log-return` waits for the hunt's own return (28 s, built) and Pip collects the logbook with `use pip logbook`, which moves it to his paw from wherever it is (the room, drifting home, or beside the book). Its completion state: the logbook in Pip's paw, then pocketed. Checked on the zero-input, late-wrong and holding paths.
+
+**The hunt's page version.** Lane B owns the pass or fail, in the owner's Nov 16 session, before lane C's voice freeze. If the hunt fails or that session can't happen in time, chapter 3 uses this version. **Lane C voices both** (seven more lines, about 7 credits):
+
+| Beat | Room version (the draft) | Page version |
+|---|---|---|
+| `the-snow` | `room hunt object:logbook at room:couch`. **Narrator**: "Then something glinted. Not on the page, but out in the Reader's room." | `place object:logbook at pip-step` with `cue beam`. **Narrator**: "Then something glinted, half buried in the snow at the foot of the steps." |
+| `glint-ask` | **Pip**: "There! Can you bring it to me?" | **Pip**: "There, in the snow! Can you reach it for me?" |
+| `glint-puzzled` | **Pip**: "Thank you. But it's the shiny thing I need, the one the light found." | **Pip**: "Thank you. But it's the shiny thing I need, there in the snow." |
+| `log-return` | **Narrator**: "And the light, being a lighthouse light, brought it the rest of the way home." | **Narrator**: "So the little fox dug it out of the snow himself." (`use pip logbook`; no hunt return to wait for, so the ask waits 18 s) |
+| `across` | **Pip**: "You dropped this. The light found it, all the way out in the Reader's room." | **Pip**: "You dropped this. It was in the snow at the bottom of the steps." |
+| Canon `logbook` = reader | "The Reader found Wick's logbook out in the room." Page line: "You found Wick's logbook out in your room." | "The Reader found Wick's logbook in the snow." Page line: "You found Wick's logbook in the snow." |
+| Canon `logbook` = beam (page: `pip`) | "The beam found Wick's logbook and brought it home." Page line: "The lighthouse beam found Wick's logbook for you." | "Pip dug Wick's logbook out of the snow." Page line: "Pip dug Wick's logbook out of the snow, with you beside him." |
 
 Lane C's own list: `client/public/show/episode-3.json`, `.canon.json` and `.carry.json` from the drafts here (titles, ids and lines as written; trims allowed, new lines through the sprint master); snowy page art (runs 020–022, its own plan); chapter 3's voices (76 new lines; Thimble's voice is chosen in run 017/019) and sound (snow underfoot, a frost tinkle, a sleepy chair creak, if wanted); the chapter's `CHAPTERS` row in `progress.ts` (one line, which lane B leaves ready); the headset run.
 
