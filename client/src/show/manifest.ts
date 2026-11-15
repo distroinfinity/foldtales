@@ -73,8 +73,23 @@ export const ShowManifest = z.strictObject({
   extraObjects: z.array(ObjectDef),
   drawer: z.string().min(1),
   satchel: z.string().min(1),
-  /** The episode's spine. */
+  /** The episode's spine: chapter 1's, kept while the host still reads it. */
   episode: z.string().min(1),
+  /**
+   * The chapters in this build, in order. Each names its episode file, who stands where as its
+   * first spread opens, and where each spread is in the reader's words. Absent: chapter 1 only,
+   * from `episode` and `onStage`.
+   */
+  chapters: z
+    .array(
+      z.strictObject({
+        n: z.number().int().positive(),
+        episode: z.string().min(1),
+        onStage: z.array(z.strictObject({ cast: Id, mark: Id })),
+        where: z.array(z.string().min(1)).optional(),
+      }),
+    )
+    .optional(),
   cues: z.array(
     Cue.extend({
       kind: CueKind,

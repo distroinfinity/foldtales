@@ -24,6 +24,8 @@ export interface ChapterData {
   next: number | null;
   /** Keepsakes carried in from the chapter before, with their histories, for the host to put in the satchel. */
   satchel: ShowObject[];
+  /** Who stands on which mark as the first spread opens (amendment 2): what `manifest.onStage` is for chapter 1. */
+  onStage: ReadonlyArray<{ cast: string; mark: string }>;
   /** Where the reader is, for "Stopped on the shore.", from a beat id; null when unknown. */
   where(beatId: string): string | null;
 }
@@ -38,9 +40,9 @@ export function whereIn(episodeId: string, sceneIndex: number): string | null {
   return WHERE[episodeId]?.[sceneIndex] ?? null;
 }
 
-/** The chapters in this build, in order: their episode files beside `show/manifest.json`. */
-function episodesOf(manifest: ShowManifest): string[] {
-  return [manifest.episode];
+/** The chapters in this build, in order, from the manifest's list (or chapter 1 alone, from before it had one). */
+function chaptersOf(manifest: ShowManifest): NonNullable<ShowManifest['chapters']> {
+  return manifest.chapters?.length ? [...manifest.chapters].sort((a, b) => a.n - b.n) : [{ n: 1, episode: manifest.episode, onStage: manifest.onStage }];
 }
 
 type Fetch = (url: string) => Promise<{ ok: boolean; status: number; json(): Promise<unknown> }>;
@@ -60,9 +62,10 @@ export async function loadChapter(n: number, deps: ChapterDeps = {}): Promise<Ch
     return response.json();
   };
   const manifest = ShowManifest.parse(await get('./show/manifest.json'));
-  const episodes = episodesOf(manifest);
-  const path = Number.isInteger(n) && n >= 1 ? episodes[n - 1] : undefined;
-  if (!path) throw new Error(`there is no chapter ${n} in this build`);
+  const chapters = chaptersOf(manifest);
+  const entry = chapters.find((c) => c.n === n);
+  if (!entry) throw new Error(`there is no chapter ${n} in this build`);
+  const path = entry.episode;
   const episode = Spine.parse(await get(`./${path}`));
   // A chapter without a canon file still plays; it just records nothing at its end.
   const canon = await get(`./${path.replace(/\.json$/, '.canon.json')}`)
@@ -76,11 +79,12 @@ export async function loadChapter(n: number, deps: ChapterDeps = {}): Promise<Ch
     episodeId: episode.id,
     episode,
     canon,
-    next: n < episodes.length ? n + 1 : null,
+    next: chapters.find((c) => c.n > n)?.n ?? null,
     satchel,
+    onStage: entry.onStage,
     where: (beatId) => {
       const scene = sceneOf.get(beatId);
-      return scene === undefined ? null : whereIn(episode.id, scene);
+      return scene === undefined ? null : (entry.where?.[scene] ?? whereIn(episode.id, scene));
     },
   };
 }
