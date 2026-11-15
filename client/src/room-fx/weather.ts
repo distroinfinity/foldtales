@@ -9,7 +9,7 @@ import type { Lasting, Weather } from './state.ts';
  */
 
 /** The painted rain strokes, side by side in one strip (from run 014's weather sheet). */
-export const RAIN_ART = 'fx/weather/rain-strokes.png';
+export const RAIN_ART = 'room-fx/weather/rain-strokes.png';
 const RAIN_STROKES = 8;
 const RAIN_COUNT = 1800;
 /** Around you, this far out. Real walls hide what's beyond them (the room's depth). */

@@ -9,7 +9,7 @@ import type { RoomNow } from './state.ts';
  * (owner, Nov 15: busy things on the floor didn't look good).
  */
 
-export const SEA_ART = { water: 'fx/sea/water.png', boat: 'objects/paper-boat/paper-boat.png' } as const;
+export const SEA_ART = { water: 'room-fx/sea/water.png', boat: 'objects/paper-boat/paper-boat.png' } as const;
 /** The water's ring round you, metres: from here out to the tide line. */
 const INNER_M = 0.9;
 const LOW_TIDE_M = 1.8;

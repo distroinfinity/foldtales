@@ -10,7 +10,7 @@ import { amountOf } from './weather.ts';
  * when it clears. It lights nothing and darkens nothing (owner, Nov 15: lit walls looked wrong).
  */
 
-export const SNOW_ART = { flakes: 'fx/weather/snow-flakes.png', cover: 'fx/weather/snow-cover.png' } as const;
+export const SNOW_ART = { flakes: 'room-fx/weather/snow-flakes.png', cover: 'room-fx/weather/snow-cover.png' } as const;
 const FLAKE_KINDS = 10;
 const FLAKE_COUNT = 900;
 const RADIUS_M = 3.2;

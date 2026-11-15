@@ -10,7 +10,7 @@ import type { RoomNow } from './state.ts';
  * darkened walls looked wrong), so it's the ceiling that changes, nothing else.
  */
 
-export const SKY_ART = { stars: 'fx/sky/stars.png', moon: 'fx/sky/moon.png', shooting: 'fx/sky/shooting-star.png' } as const;
+export const SKY_ART = { stars: 'room-fx/sky/stars.png', moon: 'room-fx/sky/moon.png', shooting: 'room-fx/sky/shooting-star.png' } as const;
 const STAR_KINDS = 6;
 const STAR_COUNT = 70;
 /** Round you on the ceiling, this far out. */

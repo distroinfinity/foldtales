@@ -15,7 +15,7 @@ import type { Lasting } from './state.ts';
  */
 
 /** The window's painting, made for free from the shore's layers (`art/tools/make_window_night.py`). */
-export const WINDOW_ART = 'fx/window-night.png';
+export const WINDOW_ART = 'room-fx/window-night.png';
 /** The part of the painting a window shows: inside the sky's painted edge, the moon, rocks and sea. */
 const VIEW = { u0: 0.2, u1: 0.92, v0: 0.0, v1: 0.88 };
 /** Where a tall window's slice is kept: round the moon above the sea. */

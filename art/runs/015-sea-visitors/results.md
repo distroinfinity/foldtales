@@ -8,12 +8,12 @@
 
 `make_pieces.py` rebuilds all of it from this folder, for no credits, reusing run 014's tools.
 
-- **`art/fx/sea/waves.png`**: six curling wave crests, in one strip of 512 x 320 px cells.
-- **`art/fx/sea/foam-1..4.png`**: four strips of lacy foam.
-- **`art/fx/sea/water.png`**: the night sea seen from above, made to repeat.
+- **`art/room-fx/sea/waves.png`**: six curling wave crests, in one strip of 512 x 320 px cells.
+- **`art/room-fx/sea/foam-1..4.png`**: four strips of lacy foam.
+- **`art/room-fx/sea/water.png`**: the night sea seen from above, made to repeat.
 - **`art/objects/paper-boat/`**: the paper boat, side-on and turned.
 - **`art/objects/bottle/bottle.png`**: a green glass bottle with a cork and a rolled message tied inside.
-- **`art/fx/gulls/`**: a herring gull perched, wings up and wings down.
+- **`art/room-fx/gulls/`**: a herring gull perched, wings up and wings down.
 - `contact.png`: everything on night navy.
 
 ## What we learned

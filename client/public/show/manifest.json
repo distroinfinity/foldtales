@@ -16,7 +16,8 @@
     "sound/m1",
     "room",
     "sound/m2",
-    "sets/the-lamp"
+    "sets/the-lamp",
+    "room-fx"
   ],
   "book": "book/book.json",
   "room": "room/room.json",

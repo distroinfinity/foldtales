@@ -1,12 +1,12 @@
 """Run 015: cuts the sea and visitors sheets into finished pieces, for no credits.
 Run from the repo root: python3 art/runs/015-sea-visitors/make_pieces.py
 Reuses run 014's cutting, cleaning, checks and tiling (which reuse runs 004 and 006). Writes:
-  art/fx/sea/waves.png              6 curling wave crests in one strip (512 x 320 px cells)
-  art/fx/sea/foam-1..4.png          4 strips of lacy foam
-  art/fx/sea/water.png              the night water, made to repeat (1024 px square)
+  art/room-fx/sea/waves.png              6 curling wave crests in one strip (512 x 320 px cells)
+  art/room-fx/sea/foam-1..4.png          4 strips of lacy foam
+  art/room-fx/sea/water.png              the night water, made to repeat (1024 px square)
   art/objects/paper-boat/paper-boat.png, paper-boat-turned.png
   art/objects/bottle/bottle.png     the bottle with its message
-  art/fx/gulls/gull-perched.png, gull-up.png, gull-down.png
+  art/room-fx/gulls/gull-perched.png, gull-up.png, gull-down.png
 and contact sheets in this run's folder. The pieces keep their thin white paper edge, as run 014's stars."""
 import importlib.util
 import sys
@@ -49,10 +49,10 @@ def sea():
     if pieces is None:
         return
     waves, foam = pieces[:6], pieces[6:]
-    (ART / "fx" / "sea").mkdir(parents=True, exist_ok=True)
-    r14.strip(waves, 512, 320).save(ART / "fx" / "sea" / "waves.png", optimize=True)
+    (ART / "room-fx" / "sea").mkdir(parents=True, exist_ok=True)
+    r14.strip(waves, 512, 320).save(ART / "room-fx" / "sea" / "waves.png", optimize=True)
     for i, f in enumerate(foam):
-        save(f, ART / "fx" / "sea" / f"foam-{i + 1}.png")
+        save(f, ART / "room-fx" / "sea" / f"foam-{i + 1}.png")
 
 
 def water():
@@ -65,8 +65,8 @@ def water():
     y, x = np.mgrid[0:1024, 0:1024] / 1023.0
     w = (np.sin(np.pi * x) * np.sin(np.pi * y))[..., None] ** 0.6
     out = (a * w + shifted * (1 - w)).clip(0, 255).astype(np.uint8)
-    (ART / "fx" / "sea").mkdir(parents=True, exist_ok=True)
-    Image.fromarray(out).save(ART / "fx" / "sea" / "water.png", optimize=True)
+    (ART / "room-fx" / "sea").mkdir(parents=True, exist_ok=True)
+    Image.fromarray(out).save(ART / "room-fx" / "sea" / "water.png", optimize=True)
 
 
 def visitors():
@@ -78,14 +78,14 @@ def visitors():
     save(boat_turned, ART / "objects" / "paper-boat" / "paper-boat-turned.png")
     save(bottle, ART / "objects" / "bottle" / "bottle.png")
     for name, a in (("gull-perched", perched), ("gull-up", up), ("gull-down", down)):
-        save(a, ART / "fx" / "gulls" / f"{name}.png")
+        save(a, ART / "room-fx" / "gulls" / f"{name}.png")
 
 
 def contact():
     sheet = Image.new("RGBA", (1600, 900), (31, 42, 68, 255))
-    files = [ART / "fx" / "sea" / "waves.png", *(ART / "fx" / "sea" / f"foam-{i}.png" for i in range(1, 5)),
+    files = [ART / "room-fx" / "sea" / "waves.png", *(ART / "room-fx" / "sea" / f"foam-{i}.png" for i in range(1, 5)),
              ART / "objects" / "paper-boat" / "paper-boat.png", ART / "objects" / "bottle" / "bottle.png",
-             *(ART / "fx" / "gulls" / f"{n}.png" for n in ("gull-perched", "gull-up", "gull-down"))]
+             *(ART / "room-fx" / "gulls" / f"{n}.png" for n in ("gull-perched", "gull-up", "gull-down"))]
     x, y, row_h = 20, 20, 0
     for f in files:
         if not f.exists():

@@ -8,7 +8,7 @@ import { amountOf } from './weather.ts';
  * hidden behind real furniture by the room's depth. Like snow, it lights and darkens nothing.
  */
 
-export const FOG_ART = ['fx/weather/fog-1.png', 'fx/weather/fog-2.png', 'fx/weather/fog-3.png', 'fx/weather/fog-4.png'] as const;
+export const FOG_ART = ['room-fx/weather/fog-1.png', 'room-fx/weather/fog-2.png', 'room-fx/weather/fog-3.png', 'room-fx/weather/fog-4.png'] as const;
 const WISPS = 12;
 /** Round you, between these distances. Never at your feet in a wall of white. */
 const NEAR_M = 0.9;

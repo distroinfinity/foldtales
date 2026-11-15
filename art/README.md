@@ -18,7 +18,8 @@ Generated art is a product asset, not a temp file. Credits are only spent on pla
 - `cast/<who>/`: finished puppet pieces and each character's `rig.json`. These are product assets.
 - `book/`: the book's cover, spine, page edge, ribbon, tabs and drawer pull, with `book.json` saying where each goes.
 - `sets/<set>/`: a set's layers and printed ground, with `set.json` giving hinges, sizes and anchors in stage space.
-- `fx/`: small effect pieces such as smoke and leaves. `fx/weather/` and `fx/sky/` hold the room effects' rain, snow, fog, stars and moon (run 014); `fx/window-night.png` is the window's view, made free from the shore set.
+- `fx/`: small effect pieces such as smoke and leaves.
+- `room-fx/`: the room effects' paintings (`weather/`, `sky/`, `sea/`, `gulls/`, runs 014 and 015) and `window-night.png`, the window's view made free from the shore set. Kept apart from `fx/` so that folder's build stays quick.
 - `m1-proof.html`: the M1 moment with the real pieces, in CSS 3D. Reference only.
 - `cast/prototype.html`: the approved acting for all three characters. Reference only.
 - `book/drawer/`: the drawer's tray, front and side, with `drawer.json` saying where it slides and where each drawer object stands.

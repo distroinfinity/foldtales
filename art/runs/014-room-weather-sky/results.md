@@ -6,11 +6,11 @@
 
 `make_pieces.py` rebuilds all of it from this folder, for no credits.
 
-- **`art/fx/weather/rain-strokes.png`**: eight raindrop streaks, stood upright (the drop at the bottom), in one strip of 64 x 512 px cells. The storm draws 1,400 of them.
-- **`art/fx/weather/snow-flakes.png`**: ten snowflakes, five soft puffs and five six-armed, in one strip of 128 px cells.
-- **`art/fx/weather/fog-1..4.png`**: four long soft wisps of fog.
-- **`art/fx/weather/snow-cover.png`**: fresh snow seen from above, made to repeat (1024 px square).
-- **`art/fx/sky/stars.png`** (six stars in one strip), **`moon.png`** (a crescent with a sleepy storybook face) and **`shooting-star.png`**.
+- **`art/room-fx/weather/rain-strokes.png`**: eight raindrop streaks, stood upright (the drop at the bottom), in one strip of 64 x 512 px cells. The storm draws 1,400 of them.
+- **`art/room-fx/weather/snow-flakes.png`**: ten snowflakes, five soft puffs and five six-armed, in one strip of 128 px cells.
+- **`art/room-fx/weather/fog-1..4.png`**: four long soft wisps of fog.
+- **`art/room-fx/weather/snow-cover.png`**: fresh snow seen from above, made to repeat (1024 px square).
+- **`art/room-fx/sky/stars.png`** (six stars in one strip), **`moon.png`** (a crescent with a sleepy storybook face) and **`shooting-star.png`**.
 - Contact sheets on night navy: `contact-weather.png`, `contact-sky.png`.
 
 ## What changed after painting

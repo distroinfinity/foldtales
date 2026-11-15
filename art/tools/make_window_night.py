@@ -38,5 +38,5 @@ a = land.getchannel('A').filter(ImageFilter.MinFilter(41)).filter(ImageFilter.Ga
 land.putalpha(a)
 out.alpha_composite(land, (0, 0))
 out = out.resize((W // 2, H // 2), Image.LANCZOS)
-out.convert('RGB').save('art/fx/window-night.png', optimize=True)
-print('art/fx/window-night.png', out.size)
+out.convert('RGB').save('art/room-fx/window-night.png', optimize=True)
+print('art/room-fx/window-night.png', out.size)

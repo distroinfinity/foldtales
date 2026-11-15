@@ -9,7 +9,7 @@ import type { Lasting } from './state.ts';
  * Called off, they fly away the way they came. Scenery, not cast: no voices, no lines.
  */
 
-export const GULL_ART = { perched: 'fx/gulls/gull-perched.png', up: 'fx/gulls/gull-up.png', down: 'fx/gulls/gull-down.png' } as const;
+export const GULL_ART = { perched: 'room-fx/gulls/gull-perched.png', up: 'room-fx/gulls/gull-up.png', down: 'room-fx/gulls/gull-down.png' } as const;
 const GULLS = 2;
 /** A gull stands about this tall perched. */
 const HEIGHT_M = 0.24;

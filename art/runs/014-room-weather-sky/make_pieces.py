@@ -1,11 +1,11 @@
 """Run 014: cuts the weather and sky sheets into finished pieces, for no credits.
 Run from the repo root: python3 art/runs/014-room-weather-sky/make_pieces.py
 Reuses run 004's cutter and finishing and run 006's checks (merged and closed). Writes:
-  art/fx/weather/rain-strokes.png  8 raindrop streaks, upright, side by side in one strip (64 x 512 px cells)
-  art/fx/weather/snow-flakes.png   10 snowflakes in one strip (128 px cells)
-  art/fx/weather/fog-1..4.png      4 fog wisps
-  art/fx/weather/snow-cover.png    the snow cover, made to repeat
-  art/fx/sky/stars.png             6 stars in one strip (128 px cells); moon.png; shooting-star.png
+  art/room-fx/weather/rain-strokes.png  8 raindrop streaks, upright, side by side in one strip (64 x 512 px cells)
+  art/room-fx/weather/snow-flakes.png   10 snowflakes in one strip (128 px cells)
+  art/room-fx/weather/fog-1..4.png      4 fog wisps
+  art/room-fx/weather/snow-cover.png    the snow cover, made to repeat
+  art/room-fx/sky/stars.png             6 stars in one strip (128 px cells); moon.png; shooting-star.png
 and contact sheets in this run's folder."""
 import sys
 from pathlib import Path
@@ -108,7 +108,7 @@ def weather():
     if counts != [10, 10, 4]:
         PROBLEMS.append(f"weather sheet: rows {counts}, expected [10, 10, 4]")
         return
-    out = ART / "fx" / "weather"
+    out = ART / "room-fx" / "weather"
     out.mkdir(parents=True, exist_ok=True)
     rain = []
     for i, (a, *_ ) in enumerate(grouped[0]):
@@ -159,7 +159,7 @@ def sky():
     if counts != [6, 2]:
         PROBLEMS.append(f"sky sheet: rows {counts}, expected [6, 2]")
         return
-    out = ART / "fx" / "sky"
+    out = ART / "room-fx" / "sky"
     out.mkdir(parents=True, exist_ok=True)
     stars = []
     for i, (a, *_ ) in enumerate(grouped[0]):
@@ -196,8 +196,8 @@ def snow_cover():
     # 1 in the middle, 0 at every edge: the middle keeps the painting, the edges take the shifted copy.
     w = (np.sin(np.pi * x) * np.sin(np.pi * y))[..., None] ** 0.6
     out = (a * w + shifted * (1 - w)).clip(0, 255).astype(np.uint8)
-    (ART / "fx" / "weather").mkdir(parents=True, exist_ok=True)
-    Image.fromarray(out).save(ART / "fx" / "weather" / "snow-cover.png", optimize=True)
+    (ART / "room-fx" / "weather").mkdir(parents=True, exist_ok=True)
+    Image.fromarray(out).save(ART / "room-fx" / "weather" / "snow-cover.png", optimize=True)
 
 
 def main():
