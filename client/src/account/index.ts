@@ -182,6 +182,15 @@ let access: BackendAccess | null = null;
 const deviceAccess = (): BackendAccess =>
   (access ??= createBackendAccess({ baseUrl: BASE, fetch: send, storage, now: () => Date.now() }));
 
+/** The backend for app routes, with the device token and, when signed in, the session beside it (the Storyteller's provider). */
+export const readerBackend = (): BackendAccess => deviceAccess();
+
+/** Who this browser last knew was signed in, without asking the server. Null for a guest. */
+export function cachedReader(): AccountUser | null {
+  if (!sessionToken()) return null;
+  return userFrom(readJson(USER_KEY));
+}
+
 /** An app route under `/v1/me/*`: the contract header, the device token as always, and the session beside it. */
 async function meRequest(path: string, method: string, body?: unknown): Promise<Answer | null> {
   const session = sessionToken();
