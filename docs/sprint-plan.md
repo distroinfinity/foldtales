@@ -4,7 +4,7 @@
 
 ## Progress
 
-*Last updated Nov 15, 2026. A workstream is ticked when it's merged to main, and a milestone when the owner signs it off in the headset. ⏸ means held by the owner's choice. **Now: M3 signed off (the AI Storyteller, PR #9). The owner writes more chapters; "Your room comes alive" builds room effects for both the chapters and the Storyteller.***
+*Last updated Nov 15, 2026. A workstream is ticked when it's merged to main, and a milestone when the owner signs it off in the headset. ⏸ means held by the owner's choice. **Now: M3 signed off (the AI Storyteller, PR #9). The owner writes more chapters; "Your room comes alive" is merged (PR #13), a catalogue of room effects for both the chapters and the Storyteller.***
 
 **The product is two ways (owner, Nov 14, after ticket 3's first headset session):**
 1. **Defined stories:** authored chapters and books, theatrical experiences. Chapter 1 is the first. The owner writes more, in parallel.
@@ -46,11 +46,11 @@ Why: AI lines spliced into the written chapter didn't land ("If a story is alrea
   - [x] Memory and satchel: chapter-end memory recorded; the Storyteller keeps everything painted for you in your satchel, per device (carrying into later chapters follows the owner's new chapters)
   - [x] Stop the show: the wrist tag (pause, start again, put the book away)
   - Moved on: "your room" to **Your room comes alive** below; "show them something real" (the camera) and "you're in the cast" (voice cloning) to `docs/v2-ideas.md`
-- [ ] **Your room comes alive** ← next (Superset workspace "Ticket 4: Your room comes alive", branch `ticket-4-room-comes-alive`, started Nov 15). Effects that act on the real room, for the chapters and the Storyteller: weather in the room, shadow play on the wall, a treasure hunt with the beam, the night sky on the ceiling, the sea on the floor, things that leave the page, the window as the story's window. Plan: `docs/plans/2026-11-15-room-comes-alive.md`, approved by the owner on Nov 15. A catalogue for upcoming chapters and the Storyteller, not added to chapter 1: `docs/room-effects.md`. Draft PR #13
+- [x] **Your room comes alive** (Superset workspace "Ticket 4: Your room comes alive", branch `ticket-4-room-comes-alive`, started Nov 15). Effects that act on the real room, for the chapters and the Storyteller: weather in the room, shadow play on the wall, a treasure hunt with the beam, the night sky on the ceiling, the sea on the floor, things that leave the page, the window as the story's window. Plan: `docs/plans/2026-11-15-room-comes-alive.md`, approved by the owner on Nov 15. A catalogue for upcoming chapters and the Storyteller, not added to chapter 1: `docs/room-effects.md`. PR #13, merged Nov 15 on emulator checks at the owner's choice; gulls, the bottle, the walking hunt and the room sound mix get their first headset look later
   - [x] Contracts: the `room` stage action (PR #14, merged Nov 15)
-  - [ ] The room-effects layer and the chapter side (room map, room state, the dim's spot: built, in PR #13)
-  - [ ] The effects: shadow play ✅, fireflies ✅, window ✅, rain ✅, night sky ✅, snow ✅, sea and paper boat ✅; gulls, the bottle and the treasure hunt built and checked in the emulator, to see in the headset; fog dropped. Room sound from run 016 (61 credits)
-  - [ ] The storyteller's `ROOM` step (built for the hunt), and its room rule widened to list the effects
+  - [x] The room-effects layer and the chapter side (room map, room state, the dim's spot)
+  - [x] The effects: shadow play ✅, fireflies ✅, window ✅, rain ✅, night sky ✅, snow ✅, sea and paper boat ✅; gulls, the bottle and the treasure hunt built and checked in the emulator, to see in the headset; fog dropped. Room sound from run 016 (61 credits)
+  - [x] The storyteller's `ROOM` step, offered every built effect whose art loaded and this room supports
 - [ ] **Defined stories: more chapters** (the owner, in parallel, Nov 14)
 - [ ] **4. Voices and Talk**
   - [x] Voice audition (run 005): full cast chosen from measurements, since the owner delegated it. Not yet compared by ear. Plan: `docs/superpowers/plans/2026-11-09-voice-audition.md`

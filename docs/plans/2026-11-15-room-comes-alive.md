@@ -1,6 +1,6 @@
 # Your room comes alive (room effects)
 
-**Status:** Approved by the owner on Nov 15. Reviewed once by Codex (ten findings, all taken in). Building, starting with the contracts PR.
+**Status:** Done, merged Nov 15 (PR #13; contracts in PR #14). Approved by the owner on Nov 15 and reviewed once by Codex (ten findings, all taken in). Shadows, fireflies, window, rain, night sky, snow and the sea approved in the headset; gulls, the bottle and the walking hunt checked in the emulator; fog dropped. Catalogue: `docs/room-effects.md`.
 
 ## Decisions made with the owner (Nov 15)
 
