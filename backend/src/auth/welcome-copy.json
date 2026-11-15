@@ -9,5 +9,7 @@
     "When you’re ready, open www.foldtales.xyz on your Quest and pinch “Open the book”. Your place is kept, and so are the stories you make."
   ],
   "signature": "Manu",
-  "why": "You’re getting this because you signed in to Foldtales. It’s the only welcome we send; sign-in codes come only when you ask for one."
+  "why": "You’re getting this because you signed in to Foldtales. It’s the only welcome we send; sign-in codes come only when you ask for one.",
+  "button": "Open Foldtales",
+  "buttonNote": "On your Quest? Open the same link in its browser."
 }

@@ -2,7 +2,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { Hono } from 'hono';
 import { describe, expect, test } from 'vitest';
 import { openAccounts, type AuthSettings } from '../src/auth/index.ts';
-import { WELCOME_MARK, firstNameOf, renderWelcome, type SendWelcome, type WelcomeEmail } from '../src/auth/welcome.ts';
+import { WELCOME_MARK, firstNameOf, renderWelcome, welcomeLink, type SendWelcome, type WelcomeEmail } from '../src/auth/welcome.ts';
 
 const API = 'https://api.foldtales.xyz';
 const SITE = 'https://www.foldtales.xyz';
@@ -106,4 +106,14 @@ describe('what it says', () => {
     // Escaped: a name can't inject markup.
     expect(renderWelcome({ name: '<b>x</b>' }).html).not.toContain('<b>x</b>');
   });
+});
+
+test('one button to the site, tagged; the address in the words and the footer are links; the text part has the URL on its own line', () => {
+  const { html, text } = renderWelcome({ name: null });
+  const hrefs = [...html.matchAll(/href="([^"]+)"/g)].map((m) => m[1]!.replaceAll('&amp;', '&')).filter((h) => h.startsWith('https://www.foldtales.xyz/?'));
+  expect(hrefs).toEqual([welcomeLink('body'), welcomeLink(), welcomeLink('footer')]);
+  expect(welcomeLink()).toBe('https://www.foldtales.xyz/?utm_source=welcome-email&utm_medium=email&utm_campaign=welcome');
+  expect(html).toContain('>Open Foldtales</a>');
+  expect(html).toContain('On your Quest? Open the same link in its browser.');
+  expect(text.split('\n')).toContain(welcomeLink());
 });

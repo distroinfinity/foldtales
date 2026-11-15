@@ -46,3 +46,4 @@ Characters, objects and scene problems are data, not code, so a new cast or worl
 - **Read your AI stories on the phone or desktop page** (cut, Nov 15). The stories are already on the account, so this is a page that reads them.
 - **A SOUND step in the Storyteller** for live sound effects, such as the teapot's broken whistle. The `soundEffect` route exists, and is budgeted at zero until it's used.
 - **Facebook Login,** once Meta business verification is done (app 1124471020437890 exists; its secret is on Railway).
+- **Move live voices off gpt-4o-mini-tts before Jan 6, 2027**, when OpenAI shuts it down. Its named successor is Realtime-only.

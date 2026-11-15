@@ -13,6 +13,9 @@ import type { DatabaseSync } from 'node:sqlite';
 
 const SITE = 'https://www.foldtales.xyz';
 export const WELCOME_MARK = `${SITE}/email/mark-128.png`;
+/** The site, tagged so the welcome's visits can be told apart (owner, Nov 16). */
+export const welcomeLink = (content?: 'body' | 'footer'): string =>
+  `${SITE}/?utm_source=welcome-email&utm_medium=email&utm_campaign=welcome${content ? `&utm_content=${content}` : ''}`;
 
 const C = {
   navy: '#1F2A44',
@@ -49,14 +52,25 @@ export const WELCOME_COPY = JSON.parse(readFileSync(new URL('./welcome-copy.json
   preheader: string;
   headline: string;
   paragraphs: string[];
+  button: string;
+  buttonNote: string;
   signature: string;
   why: string;
 };
 
 export function renderWelcome({ name }: { name: string | null }): WelcomeEmail {
   const greeting = name ? `Hi ${name},` : 'Hello,';
+  // The site's address in the words is a real link.
+  const linked = (text: string) =>
+    escape(text).replace('www.foldtales.xyz', `<a href="${escape(welcomeLink('body'))}" style="color:${C.navy};text-decoration:underline;">www.foldtales.xyz</a>`);
   const para = (text: string) =>
-    `<p style="margin:0 0 18px 0;font-family:${SANS};font-size:16px;line-height:1.6;color:${C.ink};">${escape(text)}</p>`;
+    `<p style="margin:0 0 18px 0;font-family:${SANS};font-size:16px;line-height:1.6;color:${C.ink};">${linked(text)}</p>`;
+  // A table-cell button: the cell carries the fill, so Outlook shows it too (with square corners).
+  const button = `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:6px 0 10px 0;"><tr>
+      <td align="center" bgcolor="${C.navy}" style="background-color:${C.navy};border-radius:8px;">
+        <a href="${escape(welcomeLink())}" style="display:inline-block;padding:12px 26px;font-family:${SANS};font-size:16px;line-height:20px;font-weight:700;color:${C.page};text-decoration:none;border-radius:8px;">${escape(WELCOME_COPY.button)}</a>
+      </td></tr></table>
+    <p style="margin:0 0 6px 0;font-family:${SANS};font-size:13px;line-height:1.5;color:${C.soft};">${escape(WELCOME_COPY.buttonNote)}</p>`;
   const rule = [C.navy, C.gold, C.rust, C.sage]
     .map((colour, i) => `<td width="${[34, 22, 16, 28][i]}%" height="3" style="height:3px;line-height:3px;font-size:0;background-color:${colour};" bgcolor="${colour}">&nbsp;</td>`)
     .join('');
@@ -88,13 +102,14 @@ export function renderWelcome({ name }: { name: string | null }): WelcomeEmail {
     <h1 class="ft-title" style="margin:28px 0 22px 0;font-family:${SERIF};font-size:34px;line-height:1.15;font-weight:600;color:${C.navy};">${escape(WELCOME_COPY.headline)}</h1>
     ${para(greeting)}
     ${WELCOME_COPY.paragraphs.map(para).join('\n    ')}
+    ${button}
     <p style="margin:26px 0 30px 0;font-family:${SERIF};font-size:22px;line-height:1.2;font-weight:600;color:${C.navy};">${escape(WELCOME_COPY.signature)}</p>
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>${rule}</tr></table>
   </td></tr>
   <tr><td align="center" style="padding:30px 24px 8px 24px;">
     <img src="${WELCOME_MARK}" width="32" height="32" alt="" style="display:block;width:32px;height:32px;border:0;border-radius:8px;margin:0 auto;">
     <p style="margin:12px 0 2px 0;font-family:${SERIF};font-size:18px;font-weight:600;color:${C.page};">Foldtales</p>
-    <p style="margin:0 0 14px 0;font-family:${SANS};font-size:13px;"><a href="${SITE}" style="color:${C.gold};text-decoration:none;">foldtales.xyz</a></p>
+    <p style="margin:0 0 14px 0;font-family:${SANS};font-size:13px;"><a href="${escape(welcomeLink('footer'))}" style="color:${C.gold};text-decoration:none;">foldtales.xyz</a></p>
     <p style="margin:0;font-family:${SANS};font-size:12px;line-height:1.5;color:${C.footer};">${escape(WELCOME_COPY.why)}</p>
   </td></tr>
   </table>
@@ -109,10 +124,15 @@ export function renderWelcome({ name }: { name: string | null }): WelcomeEmail {
     greeting,
     '',
     ...WELCOME_COPY.paragraphs.flatMap((p) => [p, '']),
+    `${WELCOME_COPY.button}:`,
+    welcomeLink(),
+    WELCOME_COPY.buttonNote,
+    '',
     WELCOME_COPY.signature,
     '',
     '—',
-    'Foldtales · foldtales.xyz',
+    'Foldtales',
+    welcomeLink('footer'),
     WELCOME_COPY.why,
     '',
   ].join('\n');
