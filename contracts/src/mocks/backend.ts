@@ -1,5 +1,5 @@
 import { BackendError, type BackendApi, type BeatRequest, type ReplyChunk, type SpineRequest } from '../api.ts';
-import type { StoryTurnRequest, TurnEvent } from '../storyteller.ts';
+import type { StoryRecord, StoryTurnRequest, StorytellerAvailability, TurnEvent } from '../storyteller.ts';
 import { estimateSpeechMs, linesOf, lineIdOf, type Beat, type ReadyBeat, type Spine } from '../beats.ts';
 import type { ShowEvent } from '../events.ts';
 import type { CastMember, StageLibrary } from '../library.ts';
@@ -176,9 +176,31 @@ export function createMockBackend(options: MockOptions = {}): BackendApi {
     yield { kind: 'final', line: { who, text, mood: 'warm' }, voice: { url: null, durationMs: estimateSpeechMs(text) }, changesScene: false };
   }
 
-  /** One voiced beat from someone on the spread, then the cast turns to listen. */
+  /** The mock's stories, as the backend keeps them: three a day, forty turns each, a turn id once. */
+  const STORIES_PER_DAY = 3;
+  const stories = new Map<string, { record: StoryRecord; turns: number; titled: boolean }>();
+  const startedBy = new Map<string, string>();
+  const turnIds = new Set<string>();
+  const nextMidnight = () => {
+    const d = new Date();
+    return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + 1)).toISOString();
+  };
+  const availability = (): StorytellerAvailability => {
+    const left = Math.max(0, STORIES_PER_DAY - stories.size);
+    return { status: left > 0 ? 'ready' : 'used-today', storiesLeftToday: left, resetsAt: nextMidnight() };
+  };
+
+  /** One voiced beat from someone on the spread, then the cast turns to listen. The close ends the story. */
   async function* turn(request: StoryTurnRequest): AsyncGenerator<TurnEvent> {
     await latency('storyTurn');
+    const story = stories.get(request.storyId);
+    const turnKey = `${request.storyId}/${request.turnId}`;
+    if (story && turnIds.has(turnKey)) {
+      yield { kind: 'recover' };
+      return;
+    }
+    turnIds.add(turnKey);
+    if (story) story.turns += 1;
     const failure = failureOf('storyTurn');
     if (failure === 'moderated') {
       const text = 'The narrator turned the page, rather quickly.';
@@ -197,6 +219,15 @@ export function createMockBackend(options: MockOptions = {}): BackendApi {
       : [{ do: 'narrate', withPrev: false, text: freshLine('narrator', 'The narrator', used), mood: 'neutral' }];
     counter += 1;
     yield { kind: 'beat', ready: ready({ id: `mock-turn-${counter}`, source: 'director', sceneId: null, estSeconds: 4, actions, next: null, replaces: null }) };
+    if (request.input.kind === 'close') {
+      yield { kind: 'ending', title: story?.record.title ?? 'Tonight\'s story', summary: 'The mock story came to a gentle end.' };
+      return;
+    }
+    if (story && !story.titled && request.phase === 'welcome' && request.input.kind !== 'open') {
+      story.titled = true;
+      story.record = { ...story.record, title: `Mock story ${counter}`, updatedAt: new Date().toISOString() };
+      yield { kind: 'titled', title: story.record.title };
+    }
     yield { kind: 'listen', who: speaker?.id ?? null };
   }
   const jobs = new Map<string, string>();
@@ -224,11 +255,42 @@ export function createMockBackend(options: MockOptions = {}): BackendApi {
     reactToObject: (request) => reply('reactToObject', request.castId, nameOf(request.library, request.castId)),
     replyAsCharacter: (request) => reply('replyAsCharacter', request.castId, nameOf(request.library, request.castId)),
     speakLine: (request) => run('speakLine', () => ({ url: null, durationMs: estimateSpeechMs(request.text) })),
+    storytellerAvailability: () => run('storytellerAvailability', availability),
+    startStory: (request) =>
+      run('startStory', () => {
+        const known = startedBy.get(request.requestId);
+        if (!known) {
+          if (stories.size >= STORIES_PER_DAY) throw new BackendError('quota_exceeded', "tonight's stories are told");
+          counter += 1;
+          const id = `mock-story-${counter}`;
+          const now = new Date().toISOString();
+          stories.set(id, { record: { id, title: "Tonight's story", summary: null, things: [], startedAt: now, endedAt: null, updatedAt: now }, turns: 0, titled: false });
+          startedBy.set(request.requestId, id);
+        }
+        const storyId = startedBy.get(request.requestId)!;
+        return { storyId, allowance: { turns: 40 - stories.get(storyId)!.turns, paintings: 6 }, availability: availability() };
+      }),
     storyTurn: (request) => turn(request),
+    endStory: (request) =>
+      run('endStory', () => {
+        const story = stories.get(request.storyId);
+        if (!story) throw new BackendError('bad_request', 'no such story');
+        if (!story.record.endedAt) {
+          const now = new Date().toISOString();
+          story.record = { ...story.record, ...request.page, endedAt: now, updatedAt: now };
+        }
+        return { record: story.record };
+      }),
+    listStories: () =>
+      run('listStories', () => ({
+        stories: [...stories.values()]
+          .map((s) => s.record)
+          .filter((r) => r.endedAt !== null || r.title !== "Tonight's story")
+          .reverse(),
+      })),
     paintProp: (request) =>
       run('paintProp', () => {
-        counter += 1;
-        const jobId = `mock-paint-${counter}`;
+        const jobId = `mock-paint-${request.storyId}-${request.objectId}`;
         jobs.set(jobId, request.description);
         return { jobId };
       }),

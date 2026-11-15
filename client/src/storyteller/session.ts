@@ -111,13 +111,15 @@ export function createStorySession(deps: SessionDeps) {
     }
     const { light, lampLit } = lightNow();
     const request: StoryTurnRequest = {
-      sessionId,
+      storyId: sessionId,
+      turnId: `turn-${crypto.randomUUID().slice(0, 12)}`,
+      phase: 'middle',
+      activeSeconds: Math.max(0, deps.nowMs() / 1000),
       library: deps.library,
       stage: { setId: deps.live.setId, cast: deps.cast(), objects: deps.objects(), light, lampLit, ...(deps.roomFx ? { roomFx: deps.roomFx() } : {}) },
       room: deps.room(),
       input,
       history: history.slice(-120),
-      canon: [],
     };
     const started = performance.now();
     let first = true;
@@ -156,6 +158,9 @@ export function createStorySession(deps: SessionDeps) {
           return;
         } else if (event.kind === 'listen') {
           toListening(event.who);
+          return;
+        } else if (event.kind === 'ending' || event.kind === 'recover') {
+          toListening(null);
           return;
         } else if (event.kind === 'error') {
           deps.log?.(`storyteller turn failed: ${event.code}`);

@@ -4,7 +4,7 @@ import { CanonEntry, ShowEvent } from './events.ts';
 import { StageLibrary } from './library.ts';
 import { ShowObject } from './objects.ts';
 import { ErrorCode, Id, Mood, type RouteName } from './primitives.ts';
-import { PaintRequest, PaintResult, StoryTurnRequest, TurnEvent, isTurnEnd } from './storyteller.ts';
+import { EndStoryRequest, EndStoryResponse, ListStoriesResponse, PaintRequest, PaintResult, StartStoryRequest, StartStoryResponse, StoryTurnRequest, StorytellerAvailability, TurnEvent, isTurnEnd } from './storyteller.ts';
 import { TelemetryBatch } from './telemetry.ts';
 import { CONTRACT_VERSION } from './version.ts';
 
@@ -115,12 +115,18 @@ export const routes = {
   planSpine: { path: '/v1/director/spine', request: SpineRequest, response: Spine },
   reactToObject: { path: '/v1/objects/react', request: ObjectReactRequest, stream: ReplyChunk },
   replyAsCharacter: { path: '/v1/characters/reply', request: CharacterReplyRequest, stream: ReplyChunk },
+  /** The door's view, for the signed-in reader. Reserves nothing. */
+  storytellerAvailability: { path: '/v1/storyteller/availability', request: empty, response: StorytellerAvailability },
+  startStory: { path: '/v1/storyteller/start', request: StartStoryRequest, response: StartStoryResponse },
   storyTurn: { path: '/v1/storyteller/turn', request: StoryTurnRequest, stream: TurnEvent },
+  endStory: { path: '/v1/storyteller/end', request: EndStoryRequest, response: EndStoryResponse },
+  /** The reader's shelf. */
+  listStories: { path: '/v1/storyteller/stories', request: empty, response: ListStoriesResponse },
   paintProp: { path: '/v1/storyteller/paint', request: PaintRequest, response: z.strictObject({ jobId: Id }) },
   paintResult: { path: '/v1/storyteller/paint/result', request: z.strictObject({ jobId: Id }), response: PaintResult },
   soundEffect: {
     path: '/v1/storyteller/sound',
-    request: z.strictObject({ sessionId: Id, description: z.string().min(1).max(200), seconds: z.number().min(0.5).max(6) }),
+    request: z.strictObject({ storyId: Id, description: z.string().min(1).max(200), seconds: z.number().min(0.5).max(6) }),
     response: VoiceAsset,
   },
   speakLine: {
