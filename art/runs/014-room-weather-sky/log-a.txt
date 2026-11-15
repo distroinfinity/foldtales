@@ -1,0 +1,6 @@
+Run 014-room-weather-sky: Can rain, snow, fog, stars, the moon and a shooting star be painted pieces in the book's watercolour style that still read when they fill the reader's real room?
+balance 110803, cap 35
+done weather-sheet: 121s, 9 credits
+done sky-sheet: 137s, 9 credits
+done snow-cover: 115s, 5 credits
+finished, total spent 23

@@ -1,0 +1,24 @@
+{
+  "id": "bottle",
+  "name": "bottle with a message",
+  "description": "An old green glass bottle with a cork, and a rolled-up paper message tied with string inside.",
+  "tags": [
+    "message",
+    "floats",
+    "holds-water",
+    "fragile",
+    "opens"
+  ],
+  "art": {
+    "kind": "asset",
+    "path": "objects/bottle/bottle.png"
+  },
+  "size": {
+    "heightM": 0.05
+  },
+  "pivot": [
+    50.0,
+    50.0
+  ],
+  "provenance": "library"
+}

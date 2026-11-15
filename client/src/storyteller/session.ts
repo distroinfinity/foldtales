@@ -28,6 +28,8 @@ export interface SessionDeps {
   /** Who is on the spread showing now, and at which mark, holding what. */
   cast(): StageNow['cast'];
   room(): RoomPlace[];
+  /** Room effects showing now, and the ones this room and build can show. */
+  roomFx?(): NonNullable<StageNow['roomFx']>;
   /** The show clock. */
   nowMs(): number;
   log?(message: string): void;
@@ -96,7 +98,7 @@ export function createStorySession(deps: SessionDeps) {
     const request: StoryTurnRequest = {
       sessionId,
       library: deps.library,
-      stage: { setId: deps.live.setId, cast: deps.cast(), objects: deps.objects(), light, lampLit },
+      stage: { setId: deps.live.setId, cast: deps.cast(), objects: deps.objects(), light, lampLit, ...(deps.roomFx ? { roomFx: deps.roomFx() } : {}) },
       room: deps.room(),
       input,
       history: history.slice(-120),

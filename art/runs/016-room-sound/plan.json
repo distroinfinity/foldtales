@@ -1,0 +1,62 @@
+{
+  "id": "016-room-sound",
+  "question": "Can Runway's sound effects give the room effects (rain, thunder, the sea, gulls, the bottle, a shooting star) real sound that loops cleanly and sits under the story without crowding it?",
+  "why": "Room comes alive (docs/plans/2026-11-15-room-comes-alive.md): rain and thunder play synthesized stand-ins, and the sea, gulls, the bottle and the shooting star are silent. The look bar asks for a sound with every action. Owner approved up to 180 credits for the ticket's art and sound on Nov 15 (46 spent on art) and said to go ahead on this run.",
+  "sameAcrossJobs": "Sound effects through POST /v1/sound_effect, model eleven_text_to_sound_v2, at 1 credit a second. The two lasting sounds ask for a loop (loop: true). Quiet, far, soft: these sit under the narrator, never over him. Every clip is levelled by finish.mjs as runs 009 and 010 were.",
+  "decideBy": [
+    "Each clip decodes and comes back at its requested length; the loops have no audible seam when repeated (checked by ear on the Mac and by the seam's level jump in finish.mjs).",
+    "The owner judges them on the Quest's speakers in ?room=rain, ?room=sea and ?room=gulls,bottle."
+  ],
+  "learnEvenIfRejected": "Whether eleven_text_to_sound_v2's loop flag gives a seamless 20 s ambience bed, which every later weather or place needs.",
+  "reusableOutput": "A room sound library in art/sound/room/: rain and sea beds, two thunder rolls, gull calls, a bottle washing up, a shooting star. Any chapter or the Storyteller's room effects play them.",
+  "estimateCredits": 61,
+  "capNote": "61 seconds of sound. The cap leaves room to redo one loop.",
+  "capCredits": 85,
+  "soundJobs": [
+    {
+      "id": "rain-loop",
+      "durationS": 20,
+      "loop": true,
+      "use": "rain falling all round the room",
+      "promptText": "Steady gentle rain falling outside at night, heard from inside a cozy room: soft even patter on a window and a roof, a little dripping. Calm and continuous, no thunder, no wind gusts, no music."
+    },
+    {
+      "id": "thunder-a",
+      "durationS": 6,
+      "use": "a roll of thunder from far off",
+      "promptText": "A distant roll of thunder far away over the sea at night, a soft low rumble that rolls and fades slowly. Not sharp, no crack, no rain."
+    },
+    {
+      "id": "thunder-b",
+      "durationS": 6,
+      "use": "a second roll of thunder, so it isn't the same twice",
+      "promptText": "Far-off thunder at night, a gentle deep grumble that builds a little and rolls away into the distance. Soft, no close crack, no rain."
+    },
+    {
+      "id": "sea-loop",
+      "durationS": 20,
+      "loop": true,
+      "use": "the sea in a ring round the reader",
+      "promptText": "Calm sea at night: slow gentle waves washing up a sandy shore and drawing back, soft foam fizzing, a quiet steady rhythm. Peaceful, close, no wind, no gulls, no music."
+    },
+    {
+      "id": "gull-calls",
+      "durationS": 3,
+      "use": "gulls arriving and calling now and then",
+      "promptText": "Two seagulls calling to each other a little way off by the sea, a few short soft cries. Clear, not shrill, no waves."
+    },
+    {
+      "id": "bottle-wash",
+      "durationS": 3,
+      "use": "a bottle washing up at the reader's feet",
+      "promptText": "A small wave washes a corked glass bottle up onto wet sand, a soft splash and hiss of foam, then a gentle glassy clink as it settles. Close and quiet."
+    },
+    {
+      "id": "shooting-star",
+      "durationS": 3,
+      "use": "a shooting star crosses the ceiling",
+      "promptText": "A soft magical shimmer like a shooting star crossing the night sky, a faint airy whoosh with tiny delicate glassy sparkles, fading away. Gentle and quiet."
+    }
+  ],
+  "voiceJobs": []
+}

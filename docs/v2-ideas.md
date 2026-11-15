@@ -32,3 +32,8 @@ Characters, objects and scene problems are data, not code, so a new cast or worl
 - **The satchel follows your account** onto other devices (stored on the backend; needs a storage route and a contracts PR).
 - **A contents page of everything you've made,** printed in the book.
 - **They remember you between evenings** in the Storyteller: your name, and what you asked for last time (chapter-end memory already exists for chapter 1).
+
+## From the room effects plan, Nov 15
+
+- **Ask for Space Setup from inside the book.** The browser can start Space Setup once per session (`initiateRoomCapture`). A reader with no Space Setup could be offered it before a room effect, instead of only getting fallbacks.
+- **Match your real lamps.** Light estimation isn't offered by IWSDK today. If it comes, the room dim could follow how bright your room really is.
