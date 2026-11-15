@@ -95,14 +95,28 @@ describe('a story without a word', () => {
     expect(h.played.some((p) => p.kind === 'beat' && p.beat.actions.some((a) => a.do === 'cue' && a.cue === 'beam'))).toBe(true);
   });
 
-  test('with every turn failing (and no story reserved), it still reaches its ending, from the headset', async () => {
+  test('with the service failing (no story reserved), it greets once from the recording, then rests and ends: no repeated filler', async () => {
     const h = harness({ mock: MOCK_PROFILES.fail });
     h.session.open();
     await h.run(SHAPE.hardStopS + 5);
     expect(h.session.ended).toBe(true);
     expect(h.ended[0]).toMatchObject({ title: UNTITLED });
     expect(h.ended[0]!.lines).toHaveLength(3);
-    expect(h.said()).toContain(RECORDED['welcome-fallback'].text);
+    expect(h.said().filter((t) => t === RECORDED['welcome-fallback'].text)).toHaveLength(1);
+    expect(h.said()).toContain(RECORDED.resting.text);
+    // It rests after three tries, long before the clock would have ended it.
+    expect(h.requests.length).toBe(0);
+  });
+
+  test('offline from the start: said once, then quiet; the clock still brings the ending', async () => {
+    const h = harness({ api: { ...createMockBackend(), startStory: () => Promise.reject(Object.assign(new Error('network failure: offline'), { code: 'upstream_failed' })) } as BackendApi });
+    h.session.open();
+    await h.run(SHAPE.hardStopS + 5);
+    expect(h.session.ended).toBe(true);
+    const said = h.said();
+    expect(said.filter((t) => t === RECORDED['welcome-fallback'].text)).toHaveLength(1);
+    expect(said.filter((t) => t === RECORDED.offline.text)).toHaveLength(0);
+    expect(said).not.toContain(RECORDED.resting.text);
   });
 
   test('with speech recognition down, the same story still ends: nothing in it needs speech', async () => {

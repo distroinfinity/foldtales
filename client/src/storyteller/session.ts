@@ -153,6 +153,16 @@ export function createStorySession(deps: SessionDeps) {
   const whileAwake = (): Promise<void> => (suspended ? new Promise((resolve) => resumeWaiters.push(resolve)) : Promise.resolve());
 
   /** A recorded line, played as a beat that speaks its words (the sound engine has its clip under the same line id). */
+  /** The last failure line said, until something real is heard again: a failure line never repeats as filler. */
+  let lastFailureLine: RecordedId | null = null;
+  /** Failures to start the story in a row (the service, not the connection). */
+  let startFailures = 0;
+  /** Says a failure line, once: the same one again, with nothing real in between, is silence (PRD: never repeat filler). */
+  const sayOnce = (id: RecordedId): void => {
+    if (lastFailureLine === id) return;
+    lastFailureLine = id;
+    say(id);
+  };
   const say = (id: RecordedId): void => {
     const line = deps.recorded?.[id];
     if (!line) return;
@@ -255,12 +265,22 @@ export function createStorySession(deps: SessionDeps) {
       return true;
     }
     if (/could not be reached|network failure|offline/i.test(message)) {
-      if (!offline) say(opening ? 'welcome-fallback' : 'offline');
+      // Offline: said once; the story waits, quietly, and the clock still brings its ending.
+      if (!offline) sayOnce(opening ? 'welcome-fallback' : 'offline');
       offline = true;
       return false;
     }
-    // At the very start the cast still greets you and asks, from the recording.
-    say(opening ? 'welcome-fallback' : 'slow');
+    if (opening) {
+      // The service itself won't start a story: after three tries it rests, properly, instead of looping.
+      startFailures += 1;
+      if (startFailures >= 3) {
+        finish(endingOf(null, null), { recorded: 'resting', announce: true, forced: true });
+        return true;
+      }
+      sayOnce('welcome-fallback');
+      return false;
+    }
+    sayOnce('slow');
     return false;
   }
 
@@ -274,6 +294,7 @@ export function createStorySession(deps: SessionDeps) {
         return false;
       }
       storyId = started.storyId;
+      startFailures = 0;
       return true;
     } catch (cause) {
       const e = cause as { code?: string; message?: string };
@@ -369,6 +390,7 @@ export function createStorySession(deps: SessionDeps) {
             deps.log?.(`storyteller: first beat ${Math.round(performance.now() - started)} ms after the turn began`);
           }
           for (const l of linesOf(beat)) history.push({ who: l.speaker, text: l.text });
+          lastFailureLine = null;
           deps.live.enqueue(beat);
           setState('performing');
         } else if (event.kind === 'set') {

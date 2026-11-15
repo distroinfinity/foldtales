@@ -857,7 +857,10 @@ Run in the IWSDK emulator (Quest 3 profile, hands only) on this workspace's dev 
 - **Sign-in by phone code:** "Sign in to start" opens the bookplate, and "Use your phone" shows the code (`emu/01-bookplate-code.png`). I played the phone by script: email-code sign-in, then approve. The headset came back signed in, scrolled to the door.
 - **Microphone, then into the book:** "Let them hear you", then "Start the AI Storyteller". The book landed on the room's table with the cast and the satchel (`emu/02-welcome.png`). The welcome turn ran, first beat in 141 ms, captions only.
 - **Zero input, first try:** 17 quiet turns in a row (thinking, performing, listening, about every 20 s), then my own client edits hot-reloaded the page mid-run. That run doesn't count. Rule from now on: no client edits while a whole-story run is going.
-- **Zero input, second try:** running (from 01:56).
+- **Zero input, second try: passed.** 28 quiet turns, the close at exactly 600 s, the closing light and beam, and the ending printed on the page (`emu/03-zero-input-end.png`). The page was saved and acknowledged: the shelf holds it, and nothing is left waiting. One 401 on the first `/end` was healed by its retry. It's dev-only: a backend restart in dev picks a new token secret, so the device token renews once.
+- **AI failing (mock `fail` profile):** the start failed with 502, the cast greeted from the recording, and the story ended on its own at 600 s with the recorded close.
+  - **Found:** every quiet turn retried the start, about 20 times, and each failure replayed the welcome recording. That's the repeated filler the PRD forbids.
+  - **Fixed:** a failure line never repeats without a real line in between. After three failed starts (the service, not the connection), the story rests with the recorded line and ends. Offline, it's said once and then stays quiet until the clock ends the story. Tests in `tests/storyteller-session.test.ts`.
 
 The screenshots are in the session scratchpad's `emu/` folder: `/private/tmp/claude-501/-Users-manu--superset-worktrees-tabletop-theater-finish-ai-storyteller/18aa207a-25cb-4520-992b-31acb6af3ac6/scratchpad/emu/`.
 
