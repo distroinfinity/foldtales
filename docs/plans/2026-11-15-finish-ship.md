@@ -156,6 +156,33 @@ This lane makes what the other lanes build submittable and production-ready. It 
   `reviewQuery` returns null outside review builds, so production never sees any of it.
 - **The client's side, on `finish-ship` once #32 merges:** `client/src/telemetry.ts` counts frames over 16.7 ms and the slowest frame per window. `scripts/telemetry-report.ts` then reads per test case, drops each session's first window (the transition into the fixture), and checks the observed `room_fx` against the case.
 
+### The owner's device script, Nov 17
+
+Run once, after the lanes' HEADSET GREENs, on the build that will be submitted: the live link once the lanes are merged, otherwise the review build over USB. **About 70 minutes of headset time, in two sittings.** Telemetry and the Mac watch the rest, so the owner only plays and says what they notice. Each line is one thing to do, and what to look or listen for.
+
+**Sitting 1, about 40 minutes: the must-pass list, as a judge would meet it.** Controllers in a drawer for all of it.
+
+1. **Cold start** (2 min). Clear Quest Browser's data for the site, then open `www.foldtales.xyz` on ordinary home Wi-Fi. Say when the page appears, and when "Open the book" stops saying "Getting the book ready". The agent times it from telemetry.
+2. **Chapter 1, first-time reader, at a table** (7 min). Hands only. The lantern back, both page turns by hand, something from the drawer at the gap, to the end. Look for anything that's hard to reach, or that needs a second try.
+3. **Either hand** (3 min). Start again. Do the lantern and the first page turn with **the left hand only**, then the drawer with **the right hand only**. Then open the book's menu (lane A's controls) with each hand alone. Say if anything needs both hands.
+4. **Pause in the middle of things** (4 min).
+   - Close the cover **while holding** the lantern: it stays in your hand or goes home, never floats.
+   - Close the cover **while a character is speaking**: the line stops, and picks up when you open it.
+   - Take the headset off for 20 s, then put it back on: same moment, same place.
+5. **A reload** (2 min). Mid-chapter, reload the page in Quest Browser. The page offers to continue, and continuing lands on the same beat.
+6. **On a lap or tray, seated low, no table** (5 min). Open the book with no table in reach. It sits within reach; everything works within 2 feet. The seated treasure hunt (a review link from lane E): look at the hidden kite and pinch to call it back without standing.
+7. **No Space Setup, or a room the headset has never seen** (5 min). In a room without Space Setup, or after clearing it: the book still finds a surface or falls back in front of you, and no room effect appears in mid-air.
+8. **A dim room** (3 min). Lights low: hand tracking holds, captions stay readable, and the room dim doesn't swallow the book.
+9. **Backend and AI down** (5 min). The agent stops the review build's backend (or the owner turns off Wi-Fi after the page loads). Chapter 1 plays to the end with voices. The Storyteller's door says it's unavailable instead of failing.
+10. **Offline, twice** (4 min).
+    - After a full visit, fully close Quest Browser, turn on airplane mode, and open `www.foldtales.xyz` again. The page and chapter 1 open from the offline cache.
+    - **Look at your hands:** IWSDK fetches the hand and controller models from a CDN (jsdelivr), and troika its fallback glyphs, so say if hands or any letters look different offline.
+
+**Sitting 2, about 30 minutes: frame rate and the video's sound.**
+
+11. **The frame-rate fixtures** (about 20 min): 21 review links (`?perf=<id>`, listed in `client/src/review/perf-cases.ts`), about 60 s each, seated, just watching. Telemetry tags each one, and the agent prints a table per scene and effect. Needs PR #32 and lane A's hook merged.
+12. **A 30-second test recording, with sound** (5 min). Meta button, camera, Record video, during a spoken line and an effect. The agent pulls it over USB and checks that the app's layer and the voices are both in it, before any filming for the video.
+
 ## 1. The deadline
 
 **Wednesday, Nov 18, 2026, at 12:00:00 PM PT (Pacific Standard Time, UTC−8).** That's 20:00 UTC, and **Thursday, Nov 19, at 1:30 AM in India**.
