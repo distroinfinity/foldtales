@@ -474,6 +474,7 @@ Check: `pnpm check`. Then a note to the sprint master with the diff. This lane r
    - The return URL carries `go=storyteller`, and the phone-code wait keeps it in `sessionStorage`, so after the reload the landing opens on the door.
    - `auth/return/` names the provider in its messages.
    - The bookplate and `link/` gain "Continue with Facebook" beside Google, in lane A's layout, as a request through the sprint master. Lane D adds the behaviour.
+   - **Facebook has its own switch, `TT_PUBLIC_FACEBOOK=on`, off by default** and separate from `TT_PUBLIC_ACCOUNTS` (sprint master, Nov 15: the Facebook app isn't Live yet). Off, no Facebook button appears anywhere: not on the bookplate, `link/` or the door, and not in the sign-in-failed state's choices. Google and the phone code ship without it. The backend mounts the provider whenever its pair is set, so the switch is the client's alone. A test confirms that with it off, nothing on any page names Facebook.
 
    *Files:*
    - `backend/src/auth/index.ts`, `backend/src/auth/email.ts`
@@ -484,7 +485,7 @@ Check: `pnpm check`. Then a note to the sprint master with the diff. This lane r
    *Checks:*
    - `backend/test/app.test.ts` gains: provider start for both; an unknown provider is a 404; `return` off the client's origin is refused; a done with no session returns `error`.
    - Local, Mac: Google, the email code and the phone code against this workspace's backend, with screenshots of each page state.
-   - Headset over USB: Google, Facebook and the phone code (needs the two owner asks below).
+   - Headset over USB: Google and the phone code; Facebook too if the test app below exists, with `TT_PUBLIC_FACEBOOK=on` in this workspace only.
 
 3. **Stories on the server.** Backend:
    - A new `backend/src/storyteller/stories.ts` with these tables in the store's SQLite file:
@@ -670,14 +671,20 @@ Check: `pnpm check`. Then a note to the sprint master with the diff. This lane r
     - Codex reviews once.
     - The owner tests in this workspace.
     - After the sprint master merges, with lane E's OK, set these together: `TT_ACCOUNTS=on` on Railway; `TT_PUBLIC_ACCOUNTS=on` and `TT_PUBLIC_STORYTELLER` removed on Pages.
-    - Then a live check on `www.foldtales.xyz` in the headset: Google, Facebook, the phone code and one story.
+    - Then a live check on `www.foldtales.xyz` in the headset: Google, the phone code and one story.
     - If sign-in fails live, both flags go back off at once, and the sprint master gets a card: fix, or escalate to the owner.
+    - **Facebook, separately,** once the owner has the app Live:
+      1. deploy the backend that reads the pair, if it hasn't been already;
+      2. prove the redirect URI and Live mode on the real link: open `https://api.foldtales.xyz/v1/auth/facebook/start?return=https://www.foldtales.xyz/`, sign in, and land back signed in;
+      3. then set `TT_PUBLIC_FACEBOOK=on` on Pages, so the button appears.
+
+      If the app never goes Live by the freeze, the switch stays off and nothing else changes.
 
 ### Owner asks for the headset tests (after the checklist)
 
 Sign-in in the headset over USB comes back through `localhost`, so the cookie stays on one host. The Quest reaches the Mac's two ports through `adb reverse`. Two small additions:
 - **Google:** add the redirect URI `http://localhost:5121/v1/auth/callback/google` to the `Foldtales web` client. The `127.0.0.1` one stays, for the Mac.
-- **Facebook:** in the Facebook app, **App menu → Create test app**, named `Foldtales test`. A test app stays in Development mode, where `localhost` redirects are allowed and you, with a role on it, can sign in. Put its App ID and secret into Railway's variables as `FACEBOOK_TEST_CLIENT_ID` and `FACEBOOK_TEST_CLIENT_SECRET`. Railway doesn't use them; I copy them into `.env.workspace` as this workspace's Facebook pair, without showing them. The live app stays for `api.foldtales.xyz`.
+- **Facebook (optional):** in the Facebook app, **App menu → Create test app**, named `Foldtales test`. A test app stays in Development mode, where `localhost` redirects are allowed and you, with a role on it, can sign in. Put its App ID and secret into Railway's variables as `FACEBOOK_TEST_CLIENT_ID` and `FACEBOOK_TEST_CLIENT_SECRET`. Railway doesn't use them; I copy them into `.env.workspace` as this workspace's Facebook pair, without showing them. The live app stays for `api.foldtales.xyz`.
 
 This workspace's `.env.workspace` then gets `BETTER_AUTH_URL=http://localhost:5121`.
 
@@ -700,6 +707,7 @@ This workspace's `.env.workspace` then gets `BETTER_AUTH_URL=http://localhost:51
 | Risk | What happens then |
 |---|---|
 | The line check adds noticeable latency | It runs alongside voicing. If the median first voice goes over 4 s, batch the first two lines into one check, and measure again |
+| The Facebook app isn't Live by the freeze (business verification) | `TT_PUBLIC_FACEBOOK` stays off: Google and the phone code ship, and no Facebook button is shown |
 | Better Auth's Facebook needs an email, and a reader has none | The clear "no email" return, with Google and the phone code as the other ways |
 | Lane A's slots land late | The provider and the end page data are built and tested first. The door keeps today's look until lane A's lands |
 | The spend ceilings are sized wrong | They're variables on Railway, changed without a deploy of code |
