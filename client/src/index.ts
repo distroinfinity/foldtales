@@ -26,6 +26,17 @@ import { createDirector } from './director/director.ts';
 import { ChapterCanon, recordChapterEnd } from './memory/memory.ts';
 import { createPauseControl } from './show/pause.ts';
 import { createShowRuntime } from './show/runtime.ts';
+import { createRoomMap } from './room-fx/room-map.ts';
+import { effectsOn } from './room-fx/state.ts';
+import { castShadows, createShadowPlay } from './room-fx/shadows.ts';
+import { createFireflies } from './room-fx/fireflies.ts';
+import { createWindowView, WINDOW_ART } from './room-fx/window.ts';
+import { createWeather, RAIN_ART } from './room-fx/weather.ts';
+import { createRoomDepth } from './room-fx/occluders.ts';
+import { createNightSky, SKY_ART } from './room-fx/sky.ts';
+import { createSnow, SNOW_ART } from './room-fx/snow.ts';
+import { createSea, SEA_ART } from './room-fx/sea.ts';
+import { createGulls, GULL_ART } from './room-fx/gulls.ts';
 import { createSoundEngine } from './sound/engine.ts';
 import narratorVoice from '../../art/voice/narrator.json';
 import { arrivalAt, OPEN_AT_MS } from './stage/arrival.ts';
@@ -47,6 +58,9 @@ import { minTextSizeM, settleOnTable } from './stage/sizing.ts';
 import { warmUp } from './stage/warm-up.ts';
 import { buildEmber, buildWash } from './stage/wash.ts';
 import { createTelemetry } from './telemetry.ts';
+
+/** Room effects this build can show. Each joins as it's built, and the storyteller hears of only these. */
+const ROOM_EFFECTS_BUILT: import('@tabletop/contracts').RoomEffect[] = ['hunt', 'shadows', 'shadows-off', 'fireflies', 'fireflies-off', 'rain', 'thunder', 'clear', 'night-sky', 'stars-lantern', 'stars-kite', 'stars-fox', 'shooting-star', 'day', 'snow', 'sea', 'tide-in', 'tide-out', 'boat', 'sea-off', 'gulls', 'gulls-off', 'bottle'];
 
 const FLUSH_EVERY_MS = 10_000;
 const FRAMEBUFFER_SCALE = 1.4;
@@ -173,12 +187,48 @@ async function prepare(world: World) {
   await sound.load();
   const clock = createShowClock();
   const defs = new Map(assets.objects.map((o) => [o.id, o]));
+  // Your real room, from Space Setup, for room effects and the storyteller.
+  const roomMap = createRoomMap();
+  stage.objects.setRoom((place) => roomMap.byId(place)?.centre.clone() ?? null);
+  // Shadow play: the cast's own cards make their shadows on your wall.
+  const shadowPlay = createShadowPlay();
+  world.scene.add(shadowPlay.mesh);
+  for (const puppet of stage.puppets.values()) castShadows(puppet.root);
+  // Fireflies: the lantern's own glow, off the page and round your hand.
+  const fireflies = createFireflies();
+  world.scene.add(fireflies.mesh);
+  // Your window: the shore at night, with the lamp's beam turning out there.
+  const windowArt = assets.textures.get(WINDOW_ART);
+  const windowView = windowArt ? createWindowView(windowArt) : null;
+  if (windowView) world.scene.add(windowView.mesh);
+  // Weather: painted rain all round you, the room greying, and thunder on your walls.
+  const weather = createWeather(assets.textures.get(RAIN_ART) ?? null);
+  world.scene.add(weather.rain);
+  // Your real walls and furniture, invisibly, so room effects hide behind them.
+  const roomDepth = createRoomDepth();
+  world.scene.add(roomDepth.root);
+  // The night sky on your ceiling: paper stars, the moon, a constellation, a shooting star.
+  const skyArt = { stars: assets.textures.get(SKY_ART.stars), moon: assets.textures.get(SKY_ART.moon), shooting: assets.textures.get(SKY_ART.shooting) };
+  const nightSky = skyArt.stars && skyArt.moon && skyArt.shooting ? createNightSky({ stars: skyArt.stars, moon: skyArt.moon, shooting: skyArt.shooting }) : null;
+  if (nightSky) for (const mesh of nightSky.meshes) world.scene.add(mesh);
+  // Snow that falls and settles on your table and couch.
+  const snowArt = { flakes: assets.textures.get(SNOW_ART.flakes), cover: assets.textures.get(SNOW_ART.cover) };
+  const snow = snowArt.flakes && snowArt.cover ? createSnow({ flakes: snowArt.flakes, cover: snowArt.cover }) : null;
+  if (snow) world.scene.add(snow.root);
+  // The sea in a ring round you on the floor, its tide, and the paper boat.
+  const seaWater = assets.textures.get(SEA_ART.water);
+  const sea = seaWater ? createSea({ water: seaWater, boat: assets.textures.get(SEA_ART.boat) ?? null }) : null;
+  if (sea) for (const mesh of sea.meshes) world.scene.add(mesh);
+  // Gulls that fly in and perch on a shelf or the couch.
+  const gullArt = { perched: assets.textures.get(GULL_ART.perched), up: assets.textures.get(GULL_ART.up), down: assets.textures.get(GULL_ART.down) };
+  const gulls = gullArt.perched && gullArt.up && gullArt.down ? createGulls({ perched: gullArt.perched, up: gullArt.up, down: gullArt.down }) : null;
+  if (gulls) for (const mesh of gulls.meshes) world.scene.add(mesh);
   const runtime = createShowRuntime({
     manifest,
     spine: assets.spine,
     defs,
     moods: assets.set.moods,
-    views: { stageRoot: stage.root, book: stage.book, puppets: stage.puppets, actors: stage.actors, heads: stage.heads, dim, leaves: stage.leaves, caption: stage.caption, endPage: stage.endPage, sound, objects: stage.objects, drawer: stage.drawer, satchel: stage.satchel, spark: stage.spark, spans: stage.spans },
+    views: { stageRoot: stage.root, book: stage.book, puppets: stage.puppets, actors: stage.actors, heads: stage.heads, dim, leaves: stage.leaves, caption: stage.caption, endPage: stage.endPage, sound, objects: stage.objects, drawer: stage.drawer, satchel: stage.satchel, spark: stage.spark, spans: stage.spans, room: roomMap },
     clock,
   });
   const initialObjects = stage.objects.snapshot();
@@ -211,6 +261,10 @@ async function prepare(world: World) {
   /** "Put the book away" from the wrist: the book closes, then the session ends. */
   const away = { requested: false };
   const hands = createObjectHands({
+    roomBelow: (world) => {
+      const place = roomMap.below(world);
+      return place ? { kind: 'room', place: place.id, offset: [world.x - place.centre.x, world.z - place.centre.z] } : null;
+    },
     objects: stage.objects,
     runtime,
     book: stage.book,
@@ -236,6 +290,7 @@ async function prepare(world: World) {
     onMoved: () => undefined,
     extras: () => [...hands.targets(), ...moreTargets.flatMap((f) => f())],
     onGazeSelect: (origin, direction) => hands.gazeSelect(origin, direction),
+    onHeadSelect: (origin, direction) => hands.headSelect(origin, direction),
     // A new size keeps the printed lines at least 1° tall.
     onResized: (scale) => {
       sizing.userScale = scale;
@@ -287,6 +342,70 @@ async function prepare(world: World) {
   // Review builds only: `?cue=beam` plays the lighthouse beam once the opening has finished, for P5.
   const devCue = reviewQuery('cue');
   if (devCue && manifest.cues.some((c) => c.id === devCue)) runtime.addCue(devCue, 11_500);
+  // Review builds only: `?room=shadows,fireflies` plays each room effect in turn, starting a few
+  // seconds after the show does (fresh or resumed), 35 s each and 40 s apart, so they can be checked
+  // in one sitting. `hunt` hides the kite on your couch; `window-wall` opens the window on a wall. Scheduled again after "Start from the beginning".
+  const devRoom = (reviewQuery('room') ?? '').split(',').filter(Boolean);
+  const devRoomState = { scheduled: false, lastMs: 0 };
+  const scheduleDevRoom = (fromMs: number): void => {
+    runtime.clearReviewRoom();
+    // Each in turn, quickly (owner: don't make me wait): snow about 12 s, the rest about 16 s, a short gap between.
+    const slots = devRoom.map((effect) => (effect === 'snow' ? 14_000 : effect === 'sea' ? 26_000 : 20_000));
+    devRoom.forEach((effect, i) => {
+      const at = Math.max(11_500, fromMs + 6_000) + slots.slice(0, i).reduce((a, b) => a + b, 0);
+      if (effect === 'hunt') runtime.addRoom({ do: 'room', withPrev: false, effect: 'hunt', what: 'object:kite', at: 'room:couch' }, at);
+      else if (effect === 'window-wall') {
+        // The window effect on a wall, as in a room with no window.
+        runtime.addRoom({ do: 'room', withPrev: false, effect: 'window', what: null, at: 'room:wall' }, at);
+        runtime.addRoom({ do: 'room', withPrev: false, effect: 'window-off', what: null, at: null }, at + 16_000);
+      }
+      else if (effect === 'sky') {
+        // The night sky: stars and the moon, the Lantern named, a shooting star, the Fox, then day.
+        const step = (e: import('@tabletop/contracts').RoomEffect, ms: number) => runtime.addRoom({ do: 'room', withPrev: false, effect: e, what: null, at: null }, at + ms);
+        step('night-sky', 0);
+        step('stars-lantern', 4_000);
+        step('shooting-star', 8_000);
+        step('stars-fox', 11_000);
+        step('day', 16_000);
+      } else if (effect === 'gulls') {
+        runtime.addRoom({ do: 'room', withPrev: false, effect: 'gulls', what: null, at: null }, at);
+        runtime.addRoom({ do: 'room', withPrev: false, effect: 'gulls-off', what: null, at: null }, at + 16_000);
+      } else if (effect === 'bottle') {
+        // The bottle isn't in chapter 1: it joins the stage for the review, then washes up at your feet.
+        const def = defs.get('bottle');
+        const art = def?.art.kind === 'asset' ? assets.textures.get(def.art.path) : undefined;
+        if (def && art && !stage.objects.get('bottle')) stage.objects.add(def, art, { kind: 'away' });
+        runtime.addRoom({ do: 'room', withPrev: false, effect: 'bottle', what: 'object:bottle', at: null }, at);
+      } else if (effect === 'sea') {
+        // The sea washes in, the boat sails, the tide rises and falls, the sea goes out.
+        const step = (e: import('@tabletop/contracts').RoomEffect, ms: number) => runtime.addRoom({ do: 'room', withPrev: false, effect: e, what: null, at: null }, at + ms);
+        step('sea', 0);
+        step('boat', 4_000);
+        step('tide-in', 8_000);
+        step('tide-out', 15_000);
+        step('sea-off', 21_000);
+      } else if (effect === 'snow') {
+        // Snow, long enough to settle.
+        runtime.addRoom({ do: 'room', withPrev: false, effect, what: null, at: null }, at);
+        runtime.addRoom({ do: 'room', withPrev: false, effect: 'clear', what: null, at: null }, at + 12_000);
+      } else if (effect === 'rain') {
+        // A storm: rain, then three rolls of thunder, then it clears.
+        runtime.addRoom({ do: 'room', withPrev: false, effect: 'rain', what: null, at: null }, at);
+        for (const t of [4_000, 8_000, 12_000]) runtime.addRoom({ do: 'room', withPrev: false, effect: 'thunder', what: null, at: null }, at + t);
+        runtime.addRoom({ do: 'room', withPrev: false, effect: 'clear', what: null, at: null }, at + 16_000);
+      } else if (effect === 'shadows' || effect === 'fireflies' || effect === 'window') {
+        runtime.addRoom({ do: 'room', withPrev: false, effect, what: null, at: null }, at);
+        runtime.addRoom({ do: 'room', withPrev: false, effect: `${effect}-off`, what: null, at: null }, at + 16_000);
+      }
+    });
+    devRoomState.scheduled = true;
+  };
+  /** Each frame: schedule once the show starts, and again whenever its clock goes back to the start. */
+  const devRoomTick = (): void => {
+    if (!devRoom.length || !runtime.started) return;
+    if (!devRoomState.scheduled || clock.ms < devRoomState.lastMs - 1000) scheduleDevRoom(clock.ms);
+    devRoomState.lastMs = clock.ms;
+  };
   const wrist = createWristMenu({
     parent: world.scene,
     sound,
@@ -297,11 +416,11 @@ async function prepare(world: World) {
       else away.requested = true;
     },
   });
-  return { manifest, assets, stage, dim, sound, clock, runtime, wash, ember, log, pause, controls, soft, review, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, directorOn, storyConfig, moreTargets };
+  return { manifest, assets, stage, dim, sound, clock, runtime, roomMap, shadowPlay, fireflies, windowView, weather, roomDepth, nightSky, snow, sea, gulls, devRoomTick, wash, ember, log, pause, controls, soft, review, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, directorOn, storyConfig, moreTargets };
 }
 
 function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom: Checkpoint | null, target: EnterTarget | null = null): void {
-  const { manifest, assets, stage, sound, clock, runtime, wash, ember, log, pause, controls, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, storyConfig, moreTargets } = show;
+  const { manifest, assets, stage, sound, clock, runtime, roomMap, shadowPlay, fireflies, windowView, weather, roomDepth, nightSky, snow, sea, gulls, devRoomTick, wash, ember, log, pause, controls, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, storyConfig, moreTargets } = show;
   // The AI Storyteller, when that's the door the reader chose on the landing page.
   const storyMode = target?.kind === 'storyteller' && storyConfig !== null;
   let story: StorySession | null = null;
@@ -366,7 +485,12 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
         const holding = new Map(stage.objects.states().flatMap((o) => (o.home.kind === 'paw' ? [[o.home.cast, o.id] as const] : [])));
         return [...present].map((id) => ({ id, mark: marks.get(id) ?? null, holding: holding.get(id) ?? null }));
       },
-      room: () => [],
+      room: () => roomMap.forStory(stage.root),
+      roomFx: () => ({
+        on: roomFx.on,
+        // The window opens on a real window, or a wall, or a stand-in wall: anywhere, once its painting has loaded.
+        available: [...ROOM_EFFECTS_BUILT, ...(show.windowView ? (['window', 'window-off'] as const) : [])],
+      }),
       nowMs: () => clock.ms,
       log: (m) => console.info(m),
       onState: (state, who) => {
@@ -514,6 +638,14 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
   // Review builds only: `?speed=4` runs the show four times faster, to walk a whole episode in the emulator.
   const speed = Math.max(0.25, Math.min(16, Number(reviewQuery('speed') ?? 1) || 1));
   const head = new Vector3();
+  const bookAt = new Vector3();
+  const lightningAt = new Vector3();
+  /** The room effects showing now, for telemetry and the storyteller. */
+  const roomFx: { on: import('@tabletop/contracts').RoomEffect[] } = { on: [] };
+  let roomFxKey = '';
+  /** The show time of the last thunder heard, so each one plays once. */
+  let thunderAt = -Infinity;
+  let shootingAt = -Infinity;
   const forward = new Vector3();
   const up = new Vector3();
   const spot = new Vector3();
@@ -607,6 +739,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
   function beginSession(session: XRSession): void {
     warmedSession = session;
     vr = session.environmentBlendMode === 'opaque' && !!room;
+    roomMap.reset();
     roomPlaced = false;
     sessionFrames = 0;
     if (room) room.root.visible = vr;
@@ -675,7 +808,77 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
         wasEnded = false;
       }
     }
-    const { unfold } = runtime.frame(deltaMs * speed, nowMs, head, { fold: controls.fold(), ribbon: controls.ribbonLift() }, { left: controls.pinchPoint('left'), right: controls.pinchPoint('right') });
+    const { unfold, room: roomNow } = runtime.frame(deltaMs * speed, nowMs, head, { fold: controls.fold(), ribbon: controls.ribbonLift() }, { left: controls.pinchPoint('left'), right: controls.pinchPoint('right') });
+    devRoomTick();
+    shadowPlay.frame({
+      renderer: world.renderer,
+      scene: world.scene,
+      shadows: roomNow.shadows,
+      bookOpen: controls.amount > 0.98,
+      bookRoot: stage.book.root,
+      pageY: stage.book.pageY,
+      cast: [...stage.puppets.values()].map((p) => p.root).filter((r) => { for (let o: import('@iwsdk/core').Object3D | null = r; o; o = o.parent) if (!o.visible) return false; return true; }),
+      room: roomMap,
+      lift: (at, radiusM, strength) => show.dim.lift(head, { at, radiusM, strength }),
+    });
+    fireflies.frame({
+      state: roomNow.fireflies,
+      deltaMs,
+      nowMs,
+      bookOpen: controls.amount > 0.98,
+      bookRoot: stage.book.root,
+      pageY: stage.book.pageY,
+      hands: [controls.fingertip('left'), controls.fingertip('right')],
+      onRise: (at) => sound.play('spark', at),
+    });
+    const sky = weather.frame({ weather: roomNow.weather, thunderMs: roomNow.thunderMs, nowMs, head, floorY: roomMap.floorY(), ceilingY: roomMap.ceilingY(), bookOpen: controls.amount > 0.98 });
+    // Lightning and its thunder come from your window's side (the room's nearest window), or far off ahead.
+    const lightningWindow = roomMap.resolve('room:window', 'face');
+    const lightningFrom = lightningWindow?.label === 'window' ? lightningWindow.centre : lightningAt.copy(head).addScaledVector(forward, 6).setY(head.y + 1.5);
+    // The storm leaves your walls alone: no lightning light, no extra dark (owner, Nov 15: "walls
+    // illumination can skip, rain is okay"). Thunder is heard, not seen.
+    show.dim.weather({ storm: 0, night: 0, flash: 0, window: null });
+    // The storm's sound: rain all round you, and each thunder once.
+    sound.ambience('rain', sky.storm);
+    // The sea's wash all round you while it's in, easing in and out with it.
+    const seaSince = Math.min(1, roomNow.sea.sinceMs / 4000);
+    sound.ambience('sea', (roomNow.sea.on ? seaSince : 1 - seaSince) * (controls.amount > 0.98 ? 1 : 0));
+    // A shooting star's shimmer, once, from overhead.
+    if (roomNow.shootingStarMs !== null && roomNow.shootingStarMs < 400) {
+      const startedAt = Math.round(clock.ms - roomNow.shootingStarMs);
+      if (Math.abs(startedAt - shootingAt) > 1000) {
+        shootingAt = startedAt;
+        sound.play('shooting', head.clone().addScaledVector(forward, 2).setY(roomMap.ceilingY()));
+      }
+    }
+    if (roomNow.thunderMs !== null && roomNow.thunderMs < 400) {
+      const startedAt = Math.round(clock.ms - roomNow.thunderMs);
+      if (Math.abs(startedAt - thunderAt) > 1000) {
+        thunderAt = startedAt;
+        sound.thunder(lightningFrom.clone());
+      }
+    }
+    roomDepth.frame(roomNow.weather.on || roomNow.weather.sinceMs < 6000 || roomNow.sea.on || roomNow.sea.sinceMs < 5000, roomMap);
+    gulls?.frame({ state: roomNow.gulls, nowMs, room: roomMap, head, book: stage.root.visible ? stage.root.getWorldPosition(bookAt) : null, bookOpen: controls.amount > 0.98, onCall: (at) => sound.play('gull', at) });
+    sea?.frame({ now: roomNow, nowMs, head, floorY: roomMap.floorY(), bookOpen: controls.amount > 0.98 });
+    snow?.frame({ weather: roomNow.weather, nowMs, head, room: roomMap, bookOpen: controls.amount > 0.98 });
+    nightSky?.frame({ now: roomNow, nowMs, room: roomMap, head, book: stage.root.visible ? stage.root.getWorldPosition(bookAt) : null, bookOpen: controls.amount > 0.98 });
+    windowView?.frame({ state: roomNow.window, nowMs, room: roomMap, bookOpen: controls.amount > 0.98, head, forward, book: stage.root.visible ? stage.root.getWorldPosition(bookAt) : null });
+    // Which room effects are showing, each time that changes, so frame summaries can be read per effect.
+    const fxOn = effectsOn(roomNow);
+    const fxKey = fxOn.join(',');
+    if (fxKey !== roomFxKey) {
+      roomFxKey = fxKey;
+      roomFx.on = fxOn;
+      telemetry.record({ kind: 'room_fx', on: fxOn });
+    }
+    // Review builds: what's out in the room, for checks without pictures.
+    if (REVIEW_HOOKS) {
+      const seen = roomMap.seenLabels().join(',');
+      if (seen && document.documentElement.dataset.roomLabels !== seen) document.documentElement.dataset.roomLabels = seen;
+      const out = stage.objects.states().flatMap((o) => (o.home.kind === 'room' ? [`${o.id}@${o.home.place}`] : [])).join(',');
+      if (document.documentElement.dataset.roomObjects !== out) document.documentElement.dataset.roomObjects = out;
+    }
     unfoldDim = unfold.dim;
     // The book's own pull hides while the drawer is out: it rides on the drawer's front then.
     const bookPull = stage.book.root.getObjectByName('drawer-pull');
@@ -821,6 +1024,10 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       world.camera.getWorldDirection(forward);
       up.set(0, 1, 0).applyQuaternion(world.camera.quaternion);
       sound.setListener(head, forward, up);
+      // Your room, read from Space Setup now and then, and where the book stands in it.
+      const space = world.xrReferenceSpace;
+      if (space) roomMap.frame(frame, space, head, forward);
+      roomMap.setBookAt(stage.root.visible ? stage.root.getWorldPosition(bookAt) : null);
       // Stage two of preloading: draw everything once, out of sight, so the XR shader variants compile now.
       if (frame.session !== warmedSession) {
         beginSession(frame.session);

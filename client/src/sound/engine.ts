@@ -21,7 +21,7 @@ export interface Speech {
   readonly playing: boolean;
 }
 
-export type SoundCall = SoundName | 'thump' | 'bloom' | 'tap' | 'rustle' | 'settle' | 'felt' | 'pleased' | 'puzzled' | 'interested' | 'drawer' | 'grab';
+export type SoundCall = SoundName | 'thump' | 'bloom' | 'tap' | 'rustle' | 'settle' | 'felt' | 'pleased' | 'puzzled' | 'interested' | 'drawer' | 'grab' | 'thunder' | 'gull' | 'wash' | 'shooting';
 
 /**
  * Where a sound plays. The show bus freezes with the story when it pauses; the ui bus never does,
@@ -59,6 +59,10 @@ export interface SoundEngine {
   roomTone(on: boolean): void;
   /** A faint warm hum while the ember searches. */
   hum(on: boolean): void;
+  /** A room effect's lasting sound (rain or the sea all round you), at a level from 0 to 1, eased. Its looping clip from run 016; rain has a synthesized stand-in, the sea is silent without its clip. */
+  ambience(name: 'rain' | 'sea', level: number): void;
+  /** A roll of thunder from far off, in the direction `at`. A clip named `thunder` is used if there is one. */
+  thunder(at: Vector3): void;
 }
 
 interface Bus {
@@ -82,6 +86,7 @@ export function createSoundEngine(sources?: SoundSources): SoundEngine {
   let showRunning: ReturnType<typeof createSuspender> | null = null;
   let tone: GainNode | null = null;
   let humming: { gain: GainNode; clip: boolean } | null = null;
+  const ambiences = new Map<string, GainNode>();
   let voiceIn: AudioNode | null = null;
   const buffers = new Map<string, AudioBuffer>();
   const turns = new Map<string, number>();
@@ -453,6 +458,71 @@ export function createSoundEngine(sources?: SoundSources): SoundEngine {
         }
       }
       tone.gain.setTargetAtTime(on ? 1 : 0, bus.ctx.currentTime, 0.8);
+    },
+    ambience(name, level) {
+      const b = ensure();
+      if (!b) return;
+      const bus = b.show;
+      let gain = ambiences.get(name);
+      if (!gain && level <= 0) return;
+      if (!gain) {
+        gain = new GainNode(bus.ctx, { gain: 0 });
+        gain.connect(bus.master);
+        const file = sources?.sounds[name]?.files[0];
+        const clip = file ? buffers.get(file) : null;
+        if (clip) {
+          const source = new AudioBufferSourceNode(bus.ctx, { buffer: clip, loop: true });
+          source.connect(gain);
+          source.start();
+        } else if (name === 'rain') {
+          // A stand-in if run 016's clip didn't load: a soft hiss of rain, and a brighter patter over it.
+          const hiss = new AudioBufferSourceNode(bus.ctx, { buffer: bus.noise, loop: true });
+          const high = new BiquadFilterNode(bus.ctx, { type: 'highpass', frequency: 500 });
+          const low = new BiquadFilterNode(bus.ctx, { type: 'lowpass', frequency: 5200 });
+          const hissLevel = new GainNode(bus.ctx, { gain: 0.05 });
+          hiss.connect(high).connect(low).connect(hissLevel).connect(gain);
+          const patter = new AudioBufferSourceNode(bus.ctx, { buffer: bus.noise, loop: true, loopStart: 0.37, playbackRate: 1.7 });
+          const band = new BiquadFilterNode(bus.ctx, { type: 'bandpass', frequency: 3200, Q: 1.4 });
+          const patterLevel = new GainNode(bus.ctx, { gain: 0.03 });
+          patter.connect(band).connect(patterLevel).connect(gain);
+          hiss.start();
+          patter.start();
+        }
+        ambiences.set(name, gain);
+      }
+      gain.gain.setTargetAtTime(Math.max(0, Math.min(1, level)), bus.ctx.currentTime, 0.6);
+    },
+    thunder(at) {
+      const b = ensure();
+      if (!b) return;
+      const file = sources?.sounds.thunder?.files[0];
+      if (file && buffers.get(file)) {
+        this.play('thunder', at);
+        return;
+      }
+      // A stand-in until sound run 016's clips: a short crack, then a long low rumble rolling away.
+      const bus = b.show;
+      const now = bus.ctx.currentTime;
+      const panner = out(bus, at);
+      const rumble = new AudioBufferSourceNode(bus.ctx, { buffer: bus.noise, loop: true, playbackRate: 0.6 });
+      const deep = new BiquadFilterNode(bus.ctx, { type: 'lowpass', frequency: 160, Q: 0.9 });
+      const rumbleLevel = new GainNode(bus.ctx, { gain: 0 });
+      rumbleLevel.gain.setValueAtTime(0, now);
+      rumbleLevel.gain.linearRampToValueAtTime(0.9, now + 0.15);
+      rumbleLevel.gain.setTargetAtTime(0.35, now + 0.4, 0.5);
+      rumbleLevel.gain.setTargetAtTime(0, now + 1.4, 1.1);
+      rumble.connect(deep).connect(rumbleLevel).connect(panner);
+      const crack = new AudioBufferSourceNode(bus.ctx, { buffer: bus.noise });
+      const bright = new BiquadFilterNode(bus.ctx, { type: 'highpass', frequency: 900 });
+      const crackLevel = new GainNode(bus.ctx, { gain: 0 });
+      crackLevel.gain.setValueAtTime(0.25, now);
+      crackLevel.gain.setTargetAtTime(0, now + 0.02, 0.09);
+      crack.connect(bright).connect(crackLevel).connect(panner);
+      rumble.start(now);
+      crack.start(now);
+      rumble.stop(now + 6);
+      crack.stop(now + 1);
+      rumble.onended = () => panner.disconnect();
     },
     hum(on) {
       const b = ensure();

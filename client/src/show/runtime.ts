@@ -16,6 +16,9 @@ import { combineUnfold } from '../stage/book-control.ts';
 import { castAt, type CastPlace } from './cast-state.ts';
 import type { ShowClock } from './clock.ts';
 import { beamAt, gustAt, lightOutAt, unfoldAt, type Unfold } from './cues.ts';
+import { HUNT_FADE_MS, HUNT_RETURN_MS, HUNT_REVEAL_MS, huntAt } from '../room-fx/hunt.ts';
+import type { RoomMap } from '../room-fx/room-map.ts';
+import { roomAt, type RoomNow } from '../room-fx/state.ts';
 import type { LeavesView } from './leaves.ts';
 import { markOf, voiceMsOf, type CastEntry, type CueKind, type ShowManifest } from './manifest.ts';
 import { actionDuration } from './schedule.ts';
@@ -41,6 +44,8 @@ export interface ShowViews {
   satchel: SatchelView;
   spark: Sprite;
   spans: Map<string, Mesh>;
+  /** The reader's real room, for room effects. Null where there's none to act on. */
+  room: RoomMap | null;
 }
 
 /** Dev only: drives every character through the acting list, for the cast review. */
@@ -89,9 +94,13 @@ export interface ShowRuntime {
   /** Rebuilds from a checkpoint, at its show time, without replaying any sound. */
   restore(snapshot: RuntimeSnapshot, ms: number): void;
   snapshot(): RuntimeSnapshot;
-  frame(deltaMs: number, nowMs: number, head: Vector3 | null, hands: { fold: Unfold; ribbon: number }, handPoints: Record<HandSide, Vector3 | null>): { state: StageState; unfold: Unfold };
+  frame(deltaMs: number, nowMs: number, head: Vector3 | null, hands: { fold: Unfold; ribbon: number }, handPoints: Record<HandSide, Vector3 | null>): { state: StageState; unfold: Unfold; room: RoomNow };
   setOverride(override: ActingOverride | null): void;
   addCue(id: string, atMs: number): void;
+  /** Review builds: forget the room effects added with `addRoom`. */
+  clearReviewRoom(): void;
+  /** Review builds: a room effect at a show time, outside the story's timeline. */
+  addRoom(action: Extract<import('@tabletop/contracts').StageAction, { do: 'room' }>, atMs: number): void;
   /** The reader let go of an object near a character. */
   gift(objectId: string, castId: string): GiftResult | null;
   /** Can this character take something now? */
@@ -203,6 +212,14 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
   let lastMs = -1;
   let override: ActingOverride | null = null;
   const extraCues: Array<{ id: string; atMs: number }> = [];
+  const extraRoom: Array<{ action: Extract<import('@tabletop/contracts').StageAction, { do: 'room' }>; startMs: number; key: string }> = [];
+  /** The hunt's lost thing while it's out in the room, and when (wall time) it was found, for the beam's fade. */
+  let huntHidden: string | null = null;
+  let huntFoundAt: number | null = null;
+  const huntTarget = new Vector3();
+  /** Your head, as of the last frame, for things that come to you (the bottle washes up at your feet). */
+  const lastHead = new Vector3(0, 1.2, 0);
+  const lampProbe = new Vector3();
   let overlays: Overlay[] = [];
   let drawerWanted = false;
   let drawerAmount = 0;
@@ -326,6 +343,37 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
     } else if (a.do === 'place' && a.what.startsWith('object:')) {
       const at = markOf(manifest, setOfScene(scheduler.scene()), a.at);
       if (at) views.objects.send(a.what.slice(7), { kind: 'page', at }, nowMs, 400, 0.02);
+    } else if (a.do === 'room' && a.effect === 'bottle') {
+      // It washes up at your feet: just in front of you, toward the book, sliding in from further out.
+      const id = objectOf(a.what);
+      if (id && views.objects.get(id) && views.room) {
+        const book = views.book.root.getWorldPosition(new Vector3());
+        const toward = book.clone().sub(lastHead).setY(0);
+        if (toward.lengthSq() < 1e-4) toward.set(0, 0, -1);
+        toward.normalize();
+        const side = new Vector3(-toward.z, 0, toward.x);
+        // By your feet, to one side: not under the table the book stands on.
+        const spot = lastHead.clone().addScaledVector(toward, 0.3).addScaledVector(side, 0.35);
+        spot.y = views.room.floorY() + 0.05;
+        const place = views.room.below(spot);
+        if (place) {
+          const from = spot.clone().addScaledVector(toward, 1.6).addScaledVector(side, 0.6).setY(views.room.floorY() + 0.03);
+          views.objects.setVisible(id, true);
+          // Washed up for you: yours to pick up and hand over, like anything on the page.
+          const state = views.objects.get(id);
+          if (state) state.grabbable = true;
+          views.sound.play('wash', spot);
+          views.objects.send(id, { kind: 'room', place: place.id, offset: [spot.x - place.centre.x, spot.z - place.centre.z] }, nowMs, 3200, 0.04, from);
+        }
+      }
+    } else if (a.do === 'room' && a.effect === 'hunt') {
+      // The lost thing slips off to a place in your room, unseen until the beam finds it.
+      const id = objectOf(a.what);
+      const place = views.room?.resolve(a.at, 'rest') ?? null;
+      if (id && place && views.objects.get(id)) {
+        views.objects.setVisible(id, false);
+        views.objects.send(id, { kind: 'room', place: place.id, offset: [0, 0] }, nowMs, 0);
+      }
     }
   }
 
@@ -497,6 +545,12 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
     addCue(id, atMs) {
       extraCues.push({ id, atMs });
     },
+    clearReviewRoom() {
+      extraRoom.length = 0;
+    },
+    addRoom(action, atMs) {
+      extraRoom.push({ action, startMs: atMs, key: `room-review-${extraRoom.length}` });
+    },
     setOverride(next) {
       override = next;
     },
@@ -618,6 +672,7 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
     },
     frame(deltaMs, nowMs, head, hands, handPoints) {
       wallMs = nowMs;
+      if (head) lastHead.copy(head);
       if (started && !heldCast && !pageHold) clock.advance(deltaMs);
       // Picked up mid-line, a character stops talking with the story, and picks up the line where it left off.
       const handsHold = heldCast !== null || pageHold !== null;
@@ -635,14 +690,15 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
       // Effects that happen once, as their action starts. A gift starts its beat at this very moment, so
       // keys, not times, decide what has already happened.
       if (started) {
-        for (const item of timeline) {
-          const key = item.key ?? String(item.index);
+        for (const item of [...timeline, ...extraRoom]) {
+          const key = item.key ?? String((item as { index: number }).index);
           if (item.startMs <= ms && !applied.has(key)) {
             applied.add(key);
             applyStart(item, ms);
           }
         }
       }
+      const room = roomAt([...timeline, ...extraRoom], ms);
 
       // The book: opening, the page turn, and your hands on it.
       const openCue = cueOf(state, 'unfold');
@@ -927,12 +983,47 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
       const beamCue = cueOf(state, 'beam');
       let beam = beamCue ? beamAt(beamCue.localMs) : null;
       if (beam && beamCue && outCue && outCue.localMs < beamCue.localMs) beam = { ...beam, strength: beam.strength * clamp01(1 - outCue.localMs / 700) };
-      views.book.setBeam(beam?.azimuth ?? 0, (beam?.strength ?? 0) * (bookOpen ? 1 : 0));
-      if (views.dim && head) {
-        views.book.root.getWorldPosition(bookCentre);
-        const lampAt = beam ? views.book.lampWorld(lamp) : null;
-        views.dim.update(head, bookCentre, 0.42 * worldScale.x, unfold.dim, beam && lampAt && bookOpen ? { lamp: lampAt, azimuth: beam.azimuth + views.stageRoot.rotation.y, strength: beam.strength } : null);
+      views.book.root.getWorldPosition(bookCentre);
+      // A set without a lighthouse lamp sends the hunt's beam from just above the book.
+      const lampAt = views.book.lampWorld(lamp) ?? lamp.copy(bookCentre).add(scratch.set(0, 0.15 * worldScale.y, 0));
+      let worldBeam = beam && bookOpen && views.book.lampWorld(lampProbe) ? { lamp: lampAt, azimuth: beam.azimuth + views.stageRoot.rotation.y, strength: beam.strength } : null;
+      let spot: { at: Vector3; radiusM: number; strength: number } | null = null;
+
+      // The treasure hunt: the beam sweeps your room and stops where the lost thing waits.
+      const hunt = room.hunt;
+      const hidden = hunt ? views.objects.get(hunt.what) : undefined;
+      if (hunt && hidden?.home.kind === 'room') {
+        huntHidden = hunt.what;
+        huntFoundAt = null;
+      } else if (hunt && huntHidden === hunt.what) {
+        huntHidden = null;
+        huntFoundAt = nowMs;
+        views.objects.setVisible(hunt.what, true);
       }
+      const huntFound = hidden?.home.kind === 'room' ? null : huntFoundAt !== null ? nowMs - huntFoundAt : null;
+      if (hunt && hidden && views.room && (hidden.home.kind === 'room' || (huntFound !== null && huntFound < HUNT_FADE_MS))) {
+        const place = hidden.home.kind === 'room' ? views.room.byId(hidden.home.place) : null;
+        if (place) huntTarget.copy(place.centre);
+        const look = huntAt(hunt.sinceMs, Math.atan2(huntTarget.x - lampAt.x, huntTarget.z - lampAt.z), huntFound);
+        if (hidden.home.kind === 'room') {
+          views.objects.setVisible(hunt.what, look.revealed);
+          // The lamp finds it: a small bright sound from where it waits.
+          if (lastMs >= 0 && hunt.sinceMs - (ms - lastMs) < HUNT_REVEAL_MS && hunt.sinceMs >= HUNT_REVEAL_MS) views.sound.play('spark', huntTarget);
+          // Nobody fetched it: it drifts back to the book along the beam.
+          if (hunt.sinceMs >= HUNT_RETURN_MS) {
+            views.objects.setVisible(hunt.what, true);
+            views.objects.send(hunt.what, { kind: 'page', at: [0.05, 0, 0.08] }, nowMs, 2600, 0.35 * worldScale.y);
+            views.sound.play('whoosh', huntTarget);
+          }
+        }
+        views.book.setLamp(true);
+        views.book.setBeam(look.azimuth - views.stageRoot.rotation.y, look.strength * (bookOpen ? 1 : 0));
+        if (bookOpen) {
+          worldBeam = { lamp: lampAt, azimuth: look.azimuth, strength: look.strength };
+          spot = { at: huntTarget, radiusM: 0.45, strength: look.spot };
+        }
+      }
+      if (views.dim && head) views.dim.update(head, bookCentre, 0.42 * worldScale.x, unfold.dim, worldBeam, spot);
       views.leaves.update(gust, views.book.pageY, 0.21);
 
       // Captions on the band, and at the end, the chapter's last words with "Read it again".
@@ -993,7 +1084,7 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
         for (let i = speeches.length - 1; i >= 0; i--) if (!speeches[i]!.speech.playing) speeches.splice(i, 1);
         lastMs = ms;
       }
-      return { state, unfold };
+      return { state, unfold, room };
     },
   };
   return runtime;

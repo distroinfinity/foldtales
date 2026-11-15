@@ -25,6 +25,8 @@ export const stageLook = {
   poolStrength: { value: 0 },
   poolColor: { value: new Color(1, 0.74, 0.42) },
   pageColor: { value: new Color('#F6EFE2') },
+  /** 1 while the cast is drawn as dark silhouettes, for their shadows on your wall. */
+  silhouette: { value: 0 },
 };
 
 export type MaterialConfig = 'blend' | 'coverage';
@@ -96,6 +98,7 @@ export function cardMaterial(map: Texture, { face = 'front', config = defaultCon
       uPoolStrength: stageLook.poolStrength,
       uPoolColor: stageLook.poolColor,
       uPageColor: stageLook.pageColor,
+      uSilhouette: stageLook.silhouette,
     });
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', '#include <common>\nvarying vec3 vStageWorld;')
@@ -112,11 +115,12 @@ export function cardMaterial(map: Texture, { face = 'front', config = defaultCon
     shader.fragmentShader = shader.fragmentShader
       .replace(
         '#include <common>',
-        '#include <common>\nvarying vec3 vStageWorld;\nuniform vec3 uTint;\nuniform vec3 uPoolPos;\nuniform float uPoolRadius;\nuniform float uPoolStrength;\nuniform vec3 uPoolColor;\nuniform vec3 uPageColor;',
+        '#include <common>\nvarying vec3 vStageWorld;\nuniform vec3 uTint;\nuniform vec3 uPoolPos;\nuniform float uPoolRadius;\nuniform float uPoolStrength;\nuniform vec3 uPoolColor;\nuniform vec3 uPageColor;\nuniform float uSilhouette;',
       )
       .replace('#include <map_fragment>', `float cardOcclusion = diffuseColor.a / max(opacity, 0.0001);\n\t#include <map_fragment>${occlusion}${back}`)
-      .replace('vec3 outgoingLight = reflectedLight.indirectDiffuse;', `vec3 outgoingLight = reflectedLight.indirectDiffuse;\n\toutgoingLight *= uTint;${light}`);
+      .replace('vec3 outgoingLight = reflectedLight.indirectDiffuse;', `vec3 outgoingLight = reflectedLight.indirectDiffuse;\n\toutgoingLight *= uTint;${light}\n\toutgoingLight *= 1.0 - uSilhouette;`);
   };
+  material.userData.card = true;
   material.customProgramCacheKey = () => `card:${face}:${solid ? 'solid' : config}:${pool ? 'pool' : 'flat'}`;
   return material;
 }
