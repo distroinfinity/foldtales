@@ -154,7 +154,9 @@ function contextOf(request: StoryTurnRequest): string {
           ? `The reader handed the ${stage.objects.find((o) => o.id === input.objectId)?.def.name ?? input.objectId} to ${input.castId}.`
           : input.kind === 'arrived'
             ? `The ${stage.objects.find((o) => o.id === input.objectId)?.def.name ?? input.objectId} has just arrived on the page (newly painted, or the reader took it out of their satchel). Use it.`
-            : `The reader has been quiet for ${Math.round(input.seconds)} seconds. Carry the story on a little, then invite them again.`;
+            : input.kind === 'quiet'
+              ? `The reader has been quiet for ${Math.round(input.seconds)} seconds. Carry the story on a little, then invite them again.`
+              : 'Time to end the story: bring it to a warm, complete ending in a few lines, then LISTEN.';
   return [
     `Cast:\n${cast.join('\n')}`,
     `Sets:\n${sets.join('\n')}\nMarks on the set showing now: ${marks}`,
@@ -164,7 +166,6 @@ function contextOf(request: StoryTurnRequest): string {
     stage.roomFx?.available.length
       ? `Room effects you can use tonight (ROOM): ${stage.roomFx.available.map((e) => `${e}: ${ROOM_HELP[e]}`).join('; ')}.${stage.roomFx.on.length ? ` Showing in the room now: ${stage.roomFx.on.join(', ')}.` : ''}`
       : 'No room effects tonight.',
-    request.canon.length ? `From earlier stories:\n${request.canon.map((c) => `- ${c.text}`).join('\n')}` : '',
     history.length ? `The evening so far:\n${history.slice(-40).map((h) => `${h.who}: ${h.text}`).join('\n')}` : '',
     `NOW: ${what}`,
   ]
@@ -313,7 +314,7 @@ export interface TurnDeps {
   /** Is what the reader said fit for the book? Runs alongside the turn. */
   moderate?: (text: string) => Promise<boolean>;
   /** Starts painting something new; returns the job id at once. */
-  paint?: (sessionId: string, description: string, objectId: string) => string;
+  paint?: (storyId: string, description: string, objectId: string) => string;
 }
 
 /** The turn as a stream of events, ending in exactly one of listen, redirect or error. */
@@ -408,7 +409,7 @@ export async function* storyTurn(request: StoryTurnRequest, deps: TurnDeps): Asy
       if (!deps.paint) return;
       const paint = deps.paint;
       // Painting costs credits: it only starts once moderation has passed the turn.
-      enqueue(fit.then((ok) => (ok ? { kind: 'paint' as const, jobId: paint(request.sessionId, step.description, step.objectId), objectId: step.objectId, description: step.description } : null)));
+      enqueue(fit.then((ok) => (ok ? { kind: 'paint' as const, jobId: paint(request.storyId, step.description, step.objectId), objectId: step.objectId, description: step.description } : null)));
     } else listened = step.who;
   };
 

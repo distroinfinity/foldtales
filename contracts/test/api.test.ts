@@ -10,6 +10,7 @@ import {
 import { fixtureLibrary } from '../src/mocks/fixtures.ts';
 import { ROUTE_NAMES } from '../src/primitives.ts';
 import { CONTRACT_VERSION } from '../src/version.ts';
+import { StoryPage, StoryTurnRequest, type TurnEvent } from '../src/storyteller.ts';
 
 const speakReq = { speaker: 'bramble', text: 'Hello', mood: 'warm' } as const;
 const reactReq = { objectId: 'string', castId: 'bramble', problem: null, library: fixtureLibrary(), objects: [], canon: [] };
@@ -160,4 +161,57 @@ test('every route path is unique and starts with /v1/', () => {
 test('exactly the two reply routes and the storyteller turn stream', () => {
   const streaming = Object.entries(routes).filter(([, r]) => 'stream' in r).map(([name]) => name);
   expect(streaming.sort()).toEqual(['reactToObject', 'replyAsCharacter', 'storyTurn']);
+});
+
+describe('the storyteller over HTTP', () => {
+  const turnReq = {
+    storyId: 'story-1',
+    turnId: 'turn-1',
+    phase: 'closing' as const,
+    activeSeconds: 600,
+    library: fixtureLibrary(),
+    stage: { setId: fixtureLibrary().sets[0]!.id, cast: [], objects: [], light: 'dusk' as const, lampLit: false },
+    room: [],
+    input: { kind: 'close' as const, reason: 'time' as const },
+    history: [],
+  };
+  const events = async (stream: AsyncIterable<TurnEvent>) => {
+    const out: TurnEvent[] = [];
+    for await (const e of stream) out.push(e);
+    return out;
+  };
+
+  test.each([
+    ['ending', { kind: 'ending', title: 'The odd sock', summary: 'It found its pair.' }],
+    ['recover', { kind: 'recover' }],
+  ])('a turn stops at %s', async (_name, last) => {
+    const titled = JSON.stringify({ kind: 'titled', title: 'The odd sock' });
+    const got = await events(backendReturning(sseOf(titled, JSON.stringify(last), titled)).storyTurn(turnReq));
+    expect(got).toEqual([JSON.parse(titled), last]);
+  });
+
+  test('end and list round-trip their shapes', async () => {
+    const record = { id: 'story-1', title: 'The odd sock', summary: null, things: ['paper boat'], startedAt: '2026-11-16T10:00:00.000Z', endedAt: '2026-11-16T10:10:00.000Z', updatedAt: '2026-11-16T10:10:00.000Z' };
+    const seen: { url?: string } = {};
+    expect(await backendReturning(json({ record }), seen).endStory({ storyId: 'story-1', reason: 'time', page: { title: 'The odd sock', summary: null, things: ['paper boat'] } })).toEqual({ record });
+    expect(seen.url).toBe('http://x/v1/storyteller/end');
+    expect(await backendReturning(json({ stories: [record] })).listStories({})).toEqual({ stories: [record] });
+  });
+
+  test('availability says when it resets, and nothing else', async () => {
+    const body = { status: 'ready', storiesLeftToday: 3, resetsAt: '2026-11-17T00:00:00.000Z' };
+    expect(await backendReturning(json(body)).storytellerAvailability({})).toEqual(body);
+    await expect(backendReturning(json({ ...body, extra: 1 })).storytellerAvailability({})).rejects.toMatchObject({ code: 'invalid_output' });
+  });
+
+  test('a turn request is strict: no client session ids or canon', () => {
+    expect(StoryTurnRequest.safeParse(turnReq).success).toBe(true);
+    expect(StoryTurnRequest.safeParse({ ...turnReq, sessionId: 'x' }).success).toBe(false);
+    expect(StoryTurnRequest.safeParse({ ...turnReq, canon: [] }).success).toBe(false);
+  });
+
+  test('a saved page has a title, and at most 12 things', () => {
+    expect(StoryPage.safeParse({ title: '', summary: null, things: [] }).success).toBe(false);
+    expect(StoryPage.safeParse({ title: 'A', summary: null, things: Array.from({ length: 13 }, () => 'x') }).success).toBe(false);
+  });
 });
