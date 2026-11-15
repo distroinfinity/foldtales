@@ -12,17 +12,17 @@ Chapter 1's bar, from the brief: about six minutes, hands only, a hand moment on
 - **Each spread a new place.** "The shore felt like a new place" was what landed.
 - **The help must feel needed.** Every hand moment is something a character truly can't do alone, and what you give changes how it's done.
 - **Lines are written against 1.3× the caption estimate** (run 010). The timings below use that.
-- **Room effects are spent, not sprinkled.** The owner wouldn't fill chapter 1 with them; each later chapter gets one family of effects that belongs to its story.
+- **One signature moment per chapter** (owner, Nov 15). In chapter 1 the lighthouse beam sweeping your real room is *the* wow, the moment that ties the theatre to your real world. Each later chapter gets one moment like it, built around its story and saved for its peak. Anything else in the room is supporting and quieter, never of equal weight. Each chapter names its signature below: what it is, when it lands, why it belongs to the story, and whether it's built or new.
 
 ## The arc across the book
 
 *Tales from the Table's Edge* has one arc, written in the design language: **Pip learns the dark, and Wick learns to hand over the lamp.** Each chapter moves both halves one step.
 
-| | Pip and the dark | Wick and the lamp | The room |
+| | Pip and the dark | Wick and the lamp | Signature moment |
 |---|---|---|---|
-| **1. The night the light went out** (built) | Goes into the dark, **carrying his light**, to bring the wick home | Admits his eyes "aren't what they were". Calls Pip "keeper", half in jest | The beam sweeps the room |
-| **2. The night the sea came in** | Stands in the dark **without his light**, so someone lost can see it | Can't read a letter. Sends Pip down as "my eyes", and has him write in the keeper's log | The sea floods your floor; a bottle washes up at your feet; a lost boat circles you; glow-worms rise |
-| **3. The longest night** | Goes into the longest night to bring **Wick** home, and becomes "bigger than the dark" | Gets lost himself. Hands Pip the lamp and the log for good, and names Pip's star | Snow falls round you; a lost thing hides in your room; Pip's shadow fills your wall; the stars come out on your ceiling, then the dawn |
+| **1. The night the light went out** (built) | Goes into the dark, **carrying his light**, to bring the wick home | Admits his eyes "aren't what they were". Calls Pip "keeper", half in jest | **The lighthouse beam sweeps your room** |
+| **2. The night the sea came in** | Stands in the dark **without his light**, so someone lost can see it | Can't read a letter. Sends Pip down as "my eyes", and has him write in the keeper's log | **The sea across your floor**, and the lost boat on it turning for home |
+| **3. The longest night** | Goes into the longest night to bring **Wick** home, and becomes "bigger than the dark" | Gets lost himself. Hands Pip the lamp and the log for good, and names Pip's star | **The stars on your ceiling**, and Pip's own star among them |
 
 **The thread that ties them:** "every lost thing follows the light home." Chapter 1 ends with "something lost turned toward the light, and started for home." Chapter 2 is that something: **Thimble**, a field mouse from the sewing basket Pip found on the shore ("Somebody's whole sewing basket washes up down here"), lost at sea in a paper boat. Chapter 3 turns it round: the keeper himself is the lost thing, and the light Pip keeps brings him home.
 
@@ -79,12 +79,17 @@ A chapter played without the one before still works: every variant has a default
 | Spread | Set | Hand moment | Room | Clock (quick reader) |
 |---|---|---|---|---|
 | 1. The letter | The lamp | Pick up the bottle from **your floor** and pass it up | The sea floods your floor (0:42); a bottle washes up at your feet (0:52) | 0:00–2:05 |
-| 2. The light on the water | The shore path, night | Help Pip get his light **up high** where Thimble can see it | A paper boat sails, lost, in a circle round you | 2:05–3:50 |
-| 3. The landing | The landing (new) | Bring Thimble in off the rocks before her paper boat sinks | The tide; the sea goes back out; glow-worms rise into the room; the beam | 3:50–5:40 |
+| 2. The light on the water | The shore path, night | Help Pip get his light **up high** where Thimble can see it | **Signature peak:** Thimble's boat, lost, circles you on the sea; when the light goes up it turns and sails across your floor into the book | 2:05–3:50 |
+| 3. The landing | The landing (new) | Bring Thimble in off the rocks before her paper boat sinks | The tide; the beam; the sea slips back out of your room | 3:50–5:40 |
 
-**The wow by minute 1:** the beam at 0:05 as in chapter 1, then at about 0:42 the sea washes in across the reader's real floor, and at 0:52 a bottle bumps against their feet. It has never happened in chapter 1, and it belongs to this story.
+**Signature moment: the sea across your floor.**
+- **What:** the night sea washes in across the reader's real floor and stays for the chapter. Its peak is Thimble's lost paper boat circling the reader on it, then, once Pip's light goes up, breaking out of its circle and sailing across the floor into the book.
+- **When:** it arrives at about 0:42 (the wow by minute 1, as chapter 1's beam opens its chapter) and peaks at about 3:15, in `she-sees`. It leaves at about 5:10, when the sea slips back out past the edge of the table.
+- **Why this story:** it's the night the sea came in. The lost thing is out on that water, so the reader is sitting in the very sea Thimble is lost on, and watches the light bring her home across their own room.
+- **Built or new:** the sea, the tide and the circling boat are built and approved in the headset ("boat and sea look nice"). The peak needs one new call: the boat leaves its circle and sails into the book (`boat-home`). That's a contracts change (`ROOM_EFFECTS`), so it's its own small PR, sent to the sprint master first, at stage 2. Code only, no credits. Without it the boat fades out as the narrator turns it home, which is weaker.
+- **Supporting, quieter:** the bottle washing up at your feet (part of the same sea), the tide, and the beam, which stays chapter 1's. No other room effect.
 
-**The payoff:** Thimble steps onto dry land, Pip writes her into the keeper's log because Wick can't, the sea draws back out of your room, and glow-worms (the fireflies effect) rise off the page to see who came home, under the beam.
+**The payoff:** Thimble steps onto dry land, Pip writes her into the keeper's log because Wick can't, the beam sweeps, and the sea slips quietly back out of your room.
 
 ### Spread 1: The letter (the lamp)
 
@@ -162,7 +167,7 @@ On the sand, **still where the tide left them**: the kite and the spool, unless 
 **Beat `high-moth`** (nobody helped, or nothing worked). **Narrator** (silly): "Now, if there's one thing a moth knows, it's how to get close to a light." *Moth takes the lantern's handle and flutters straight up with it, high over the shore. Pip is left in the dark.* **Pip** (tense): "Moth! Where are you taking my... oh!" **Pip** (relief): "Oh, Moth. You clever, clever moth." → `she-sees`
 
 **Beat `she-sees`** (about 30 s)
-- **Narrator** (wonder): "Far out on the water, the little boat stopped going round. And turned. And came, slowly, toward the light."
+- **Narrator** (wonder): "Far out on the water, the little boat stopped going round. And turned. And came, slowly, toward the light." *With it:* `room boat-home`, the signature's peak: the boat leaves its circle round you and sails across your floor into the book.
 - **Pip** (tense): "It's very dark down here. But she can see the light. That's what matters."
 - *Pip looks up at you.* **Pip** (sad, to reader): "I'm still a little bit scared. Is that all right?"
 - **Narrator** (warm): "It was. Being a little bit scared is mostly what brave is made of."
@@ -215,7 +220,6 @@ On the sand, **still where the tide left them**: the kite and the spool, unless 
 **Beat `homecoming`** (about 35 s)
 - `cue beam` (the lamp's beam sweeps the room), and `room tide-out`.
 - **Narrator** (warm): "And the sea, its work done, slipped quietly back out past the edge of the table." *With it:* `room sea-off`.
-- `room fireflies`. **Narrator** (wonder): "And all along the shore, the glow-worms came out, to see who had come home."
 - *Thimble looks up at you.* **Thimble** (wonder): "Is that the Reader? The one who reaches down from the sky?"
 - **Pip** (warm): "That's them. They helped bring you in."
 - **Thimble** (warm, to reader): "Much obliged, Reader. Truly."
@@ -224,7 +228,7 @@ On the sand, **still where the tide left them**: the kite and the spool, unless 
 **Beat `chapter-end`**
 - `cue keep`. **Narrator** (warm): "And whatever the Reader gave that night, the book kept safe, for another time." *(chapter 1's line, already voiced)*
 - **Narrator** (wonder): "But the nights were growing longer, and the old keeper's eyes were growing dimmer. And the longest night of all was on its way."
-- `room fireflies-off`, `cue chapter-end`.
+- `cue chapter-end`.
 
 ### Chapter 2's bridges (narrator, for a late beat)
 
@@ -236,7 +240,7 @@ On the sand, **still where the tide left them**: the kite and the spool, unless 
 
 **What you hand over:** the bottle, from your own floor (or it drifts up by itself); something to lift the light (the kite on the sand, a ladder or a key from the drawer, or what you kept in your satchel; or nothing, and Moth does it); something to bring Thimble in (the spool, Wick's rope, the ladder, the paper boat, the bottle, a kite; or nothing, and the tide does it).
 
-**Branches:** 4 opening variants (by chapter 1) × 3 at the bottle × 5 at the light × 7 at the rocks. Every path ends with Thimble home, the log written and the glow-worms.
+**Branches:** 4 opening variants (by chapter 1) × 3 at the bottle × 5 at the light × 7 at the rocks. Every path ends with Thimble home, the log written and the sea gone back out.
 
 **What it records** (`episode-2.canon.json`):
 
@@ -250,7 +254,7 @@ On the sand, **still where the tide left them**: the kite and the spool, unless 
 
 History for kept things: the bottle ("Washed up at the Reader's feet with Thimble's letter inside, the night the sea came in."), the spool ("Thimble's grandmother's thread. It pulled her in off the rocks."), and one each for the kite, ladder, key, paper boat and rope when used.
 
-**Room effects used** (all built and approved): `sea`, `bottle`, `boat`, `tide-in` (the tide path only), `tide-out`, `sea-off`, `fireflies`, `fireflies-off`, plus the lamp's own `beam` cue. One big effect at a time (the sea), so the app's rules never fade anything early. No weather: chapter 1 had the storm, chapter 3 has the snow.
+**Room effects used:** the sea family only: `sea`, `bottle`, `boat`, `boat-home` (new call, see the signature), `tide-in` (the tide path only), `tide-out`, `sea-off`, plus the lamp's own `beam` cue. One big effect at a time, so the app's rules never fade anything early. No weather: chapter 1 had the storm, chapter 3 has the snow.
 
 **What it needs**
 
@@ -260,9 +264,9 @@ History for kept things: the bottle ("Washed up at the Reader's feet with Thimbl
 | Set | **The landing**: printed ground and two standing layers (the steps and near rocks; the far rocks), with the shore's sky and headland | New (about 30 credits) |
 | Sets | The lamp, the shore path (new marks: Moth at the lamp, the water's edge, Wick's exit) | Reused |
 | Objects | `bottle`, `paper-boat`, `kite`, `spool` (plus a `thread` tag), `ladder`, `brass-key`, `rope-coil`, `odd-sock`; Wick's logbook as an object (from his rig's part) | Reused. The umbrella from run 013 joins only if it passes the look bar as is |
-| Cues | Lift the light (kite, ladder, key's glint, Moth carrying it); a paper boat going soft; crossings with Thimble as the traveller, from a mark on the water to the step; a boat rowed in; the bottle drifting up to the page; Thimble tucked at Pip's side | New engine work, mostly built on chapter 1's crossings |
+| Cues | Lift the light (kite, ladder, key's glint, Moth carrying it); a paper boat going soft; crossings with Thimble as the traveller, from a mark on the water to the step; a boat rowed in; the room's boat sailing home into the book (`boat-home`, with its contracts PR); the bottle drifting up to the page; Thimble tucked at Pip's side | New engine work, mostly built on chapter 1's crossings |
 | Sound | A soggy-paper squelch, a small splash, Thimble's shiver; the sea's wash and the bottle's clink exist (run 016) | About 8 credits |
-| Voices | About 71 new lines with the bridges (Pip 37, narrator 17, Wick 10, Thimble 7), 5 reused from chapter 1 | About 71 credits |
+| Voices | About 70 new lines with the bridges (Pip 37, narrator 16, Wick 10, Thimble 7), 5 reused from chapter 1 | About 70 credits |
 
 ---
 
@@ -277,10 +281,17 @@ Lane C builds this chapter on lane B's engine. Every line is here; the build, ti
 | Spread | Set | Hand moment | Room | Clock (quick reader) |
 |---|---|---|---|---|
 | 1. The frost | The lamp | Wipe the frost off the lamp's glass so the light can get out | Snow falls round you and settles on your table (0:15) | 0:00–2:00 |
-| 2. Lost in the snow | The landing | Find what glints **in your room**, and bring it back | The beam hunts your room for Wick's logbook; Pip's shadow fills your wall | 2:00–3:40 |
-| 3. Home by the light | The gap | Help Pip get Wick across the gap | The snow clears; stars, the Lantern, the Kite and a new Fox come out on your ceiling; a shooting star; then the dawn | 3:40–6:00 |
+| 2. Lost in the snow | The landing | Find what glints **in your room**, and bring it back | The beam hunts your room for Wick's logbook | 2:00–3:40 |
+| 3. Home by the light | The gap | Help Pip get Wick across the gap | **Signature:** the snow clears and the stars come out on your ceiling; Wick names them by heart, and a new one, the Fox, is Pip's; then the dawn | 3:40–6:00 |
 
-**The wow by minute 1:** snow falling round you and settling on your real table while the beam sweeps (approved: "Ring of snow, it looks very nice"). **The payoff:** the stars on your ceiling, Wick naming them by heart, Pip's own star, and the room going to dawn as the new keeper puts out the lamp.
+**Signature moment: the stars on your ceiling, and Pip's star.**
+- **What:** the room goes dark, paper stars and the moon come out across the reader's real ceiling, and the constellations light one by one as Wick names them: the Lantern, the Kite, and a new one, the Fox, which is Pip's. A shooting star crosses. The sky then gives way to dawn.
+- **When:** at the chapter's peak, about 4:40, straight after Wick hands Pip the lamp and the log (`the-sky`), and nothing before it uses the ceiling. Dawn at about 5:40 closes it.
+- **Why this story:** Wick has lost his sight, but he doesn't need eyes for the stars; he knows them by heart. It's the one thing he can still show Pip, and the moment he hands over is the moment he gives Pip a star of his own. The keeper's light is the beam; the keeper's star is on your ceiling.
+- **Built or new:** built and approved in the headset ("roof stars and moon look good"), including the three constellations (`stars-lantern`, `stars-kite`, `stars-fox`) and the shooting star. No credits.
+- **Supporting, quieter:** the snow (the wow by minute 1, falling round you and settling on your table, approved), which has to clear for the sky to open, so it's the night the stars wait behind; and the treasure hunt, which is chapter 1's beam doing a small job. Shadow play is left out, so nothing else stands up next to the stars.
+
+**The payoff:** the stars on your ceiling, Pip's own star, and the room going to dawn as the new keeper puts out the lamp.
 
 ### Spread 1: The frost (the lamp, snowy)
 
@@ -345,11 +356,8 @@ Lane C builds this chapter on lane B's engine. Every line is here; the build, ti
 **Beat `lost`** (about 40 s)
 - **Pip** (sad): "He's lost. Wick's lost, out in the snow."
 - **Pip** (tense): "Every lost thing follows the light home. But how can he follow it, if he can't see it?"
-- *Pip stands tall and raises the lantern.* **Pip** (warm): "Then I'll just have to be bigger than the dark."
-- `room shadows`. **Narrator** (wonder): "And on the Reader's wall, the little fox's shadow stood up, tall as a lighthouse."
-- *Pip turns to look at the wall.* **Pip** (wonder): "Is that me? I'm enormous!"
-- *Pip raises the lantern high.* **Pip** (tense): "Wick! Wick! Over here!"
-- `room shadows-off` as the corner lifts.
+- *Pip stands tall and raises the lantern as high as it goes.* **Pip** (warm): "Then I'll just have to be bigger than the dark."
+- **Pip** (tense): "Wick! Wick! Follow my light!"
 
 **Beat `page-two`:** turn the page.
 
@@ -359,7 +367,7 @@ Pip comes in on the lighthouse side this time (the far side), and Wick is on the
 
 **Beat `the-edge`** (about 35 s)
 - *Pip in at the far side; Moth; Wick at the near edge.*
-- **Wick** (wonder): "Pip? I saw you, lad! A great big fox, right across the sky!"
+- **Wick** (wonder): "Pip? Is that your light, lad? Brightest little light I ever saw."
 - **Narrator** (tense): "The old keeper stood at the edge of the gap, with the snow coming down, and no way to tell where the ground stopped."
 - **Wick** (sad): "Forty winters on this shore, and tonight I can't find my own way home."
 - *Pip looks up at you.* **Pip** (warm, to reader): "I got over this gap once, with help. Now it's Wick's turn."
@@ -421,7 +429,7 @@ Pip comes in on the lighthouse side this time (the far side), and Wick is on the
 
 **What it records:** `frost` (reader / thimble), `log` (found / beam), `wick-across` (rope / ladder / kite / snow), and `keeper` = `pip` ("Wick handed Pip the lamp and the log, and Pip got his own star.").
 
-**Room effects used:** `snow`, `clear`, `hunt` (with the logbook, at `room:couch`), `shadows`, `shadows-off`, `night-sky`, `stars-lantern`, `stars-kite`, `stars-fox`, `shooting-star`, `day`. Snow ends with `clear` before the night sky, so the app's "snow puts the stars away" rule never fights the story. At most one big effect at a time.
+**Room effects used:** `snow`, `clear`, `hunt` (with the logbook, at `room:couch`), `night-sky`, `stars-lantern`, `stars-kite`, `stars-fox`, `shooting-star`, `day`. Snow ends with `clear` before the night sky, so the app's "snow puts the stars away" rule never fights the story. At most one big effect at a time.
 
 **What it needs (lane C's call, from its own 150 credits)**
 
@@ -430,15 +438,15 @@ Pip comes in on the lighthouse side this time (the far side), and Wick is on the
 | Character | Thimble | Lane B's art, already in the library |
 | Sets | The lamp, the landing, the gap, all snowy | Free with run 014's `snow-cover.png` over the page, or repaints |
 | Objects | Wick's logbook as an object (`log` tag), the odd sock (`soft`, `warm`) | Reused. The logbook is lane B's (chapter 2 uses it too) |
-| Cues | Frost on the lamp's glass and wiping it; Wick walking off the page; crossings with Wick as the traveller; Wick walking over a filled gap; Pip turning to his shadow; lamp-out at dawn | The frost needs a small painting or a procedural tint |
-| Voices | About 72 new lines with the bridges, 2 reused | Thimble's voice is chosen in chapter 2 |
+| Cues | Frost on the lamp's glass and wiping it; Wick walking off the page; crossings with Wick as the traveller; Wick walking over a filled gap; lamp-out at dawn | The frost needs a small painting or a procedural tint |
+| Voices | About 70 new lines with the bridges, 2 reused | Thimble's voice is chosen in chapter 2 |
 
 ---
 
 ## Things to settle at stage 2 (no decision needed now)
 
-- **No contracts change is needed for the story.** Carries are data beside each episode (like `episode-1.canon.json`), read by the client; tags like `thread` and `log` are object data. If stage 2 finds otherwise, it stops and reports first.
+- **One contracts change: `boat-home`,** for chapter 2's signature peak (a new entry in `ROOM_EFFECTS`). Its own small PR, sent to the sprint master first. Nothing else in the story needs contracts: carries are data beside each episode (like `episode-1.canon.json`), read by the client, and tags like `thread` and `log` are object data.
 - **The chapter titles.** `CHAPTERS` in `progress.ts` calls chapter 1 "The lamp goes out", and the episode calls it "The night the light went out". The new ones are "The night the sea came in" and "The longest night". Lane A presents them; which one chapter 1 uses is the sprint master's call.
 - **The bottle for a seated reader.** It washes up at your feet. Seated at a table, the floor is a long reach, so it must also come to you by look and pinch, as the hunt's lost thing does. Checked in the emulator in stage 3; if it can't, Pip asks and the tide brings it, which is already the ignored path.
-- **Spending.** Chapter 2's estimate is about 120 credits (Thimble 10, the landing 30, sound 8, voices 71), under lane B's 150 with room for one repaint.
+- **Spending.** Chapter 2's estimate is about 120 credits (Thimble 10, the landing 30, sound 8, voices 70), under lane B's 150 with room for one repaint.
 - **Length.** Counted from the lines at 1.3× the caption estimate, the quick path is about 5:30 and the slowest (every ask answered wrongly at the last moment) about 6:50. That's close to 7:00, so stage 3's simulator decides, and the first trims are the `who-goes` and `ashore` beats. Stage 2 writes the run plans (017–019) and stops for approval before any spend.
