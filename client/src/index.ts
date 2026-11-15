@@ -33,6 +33,7 @@ import { createFireflies } from './room-fx/fireflies.ts';
 import { createWindowView, WINDOW_ART } from './room-fx/window.ts';
 import { createWeather, RAIN_ART } from './room-fx/weather.ts';
 import { createRoomDepth } from './room-fx/occluders.ts';
+import { createNightSky, SKY_ART } from './room-fx/sky.ts';
 import { createSoundEngine } from './sound/engine.ts';
 import narratorVoice from '../../art/voice/narrator.json';
 import { arrivalAt, OPEN_AT_MS } from './stage/arrival.ts';
@@ -56,7 +57,7 @@ import { buildEmber, buildWash } from './stage/wash.ts';
 import { createTelemetry } from './telemetry.ts';
 
 /** Room effects this build can show. Each joins as it's built, and the storyteller hears of only these. */
-const ROOM_EFFECTS_BUILT: import('@tabletop/contracts').RoomEffect[] = ['hunt', 'shadows', 'shadows-off', 'fireflies', 'fireflies-off', 'rain', 'thunder', 'clear'];
+const ROOM_EFFECTS_BUILT: import('@tabletop/contracts').RoomEffect[] = ['hunt', 'shadows', 'shadows-off', 'fireflies', 'fireflies-off', 'rain', 'thunder', 'clear', 'night-sky', 'stars-lantern', 'stars-kite', 'stars-fox', 'shooting-star', 'day'];
 
 const FLUSH_EVERY_MS = 10_000;
 const FRAMEBUFFER_SCALE = 1.4;
@@ -203,6 +204,10 @@ async function prepare(world: World) {
   // Your real walls and furniture, invisibly, so room effects hide behind them.
   const roomDepth = createRoomDepth();
   world.scene.add(roomDepth.root);
+  // The night sky on your ceiling: paper stars, the moon, a constellation, a shooting star.
+  const skyArt = { stars: assets.textures.get(SKY_ART.stars), moon: assets.textures.get(SKY_ART.moon), shooting: assets.textures.get(SKY_ART.shooting) };
+  const nightSky = skyArt.stars && skyArt.moon && skyArt.shooting ? createNightSky({ stars: skyArt.stars, moon: skyArt.moon, shooting: skyArt.shooting }) : null;
+  if (nightSky) for (const mesh of nightSky.meshes) world.scene.add(mesh);
   const runtime = createShowRuntime({
     manifest,
     spine: assets.spine,
@@ -337,7 +342,15 @@ async function prepare(world: World) {
         runtime.addRoom({ do: 'room', withPrev: false, effect: 'window', what: null, at: 'room:wall' }, at);
         runtime.addRoom({ do: 'room', withPrev: false, effect: 'window-off', what: null, at: null }, at + 35_000);
       }
-      else if (effect === 'rain') {
+      else if (effect === 'sky') {
+        // The night sky: stars and the moon, the Lantern named, a shooting star, the Fox, then day.
+        const step = (e: import('@tabletop/contracts').RoomEffect, ms: number) => runtime.addRoom({ do: 'room', withPrev: false, effect: e, what: null, at: null }, at + ms);
+        step('night-sky', 0);
+        step('stars-lantern', 8_000);
+        step('shooting-star', 15_000);
+        step('stars-fox', 21_000);
+        step('day', 35_000);
+      } else if (effect === 'rain') {
         // A storm: rain, then three rolls of thunder, then it clears.
         runtime.addRoom({ do: 'room', withPrev: false, effect: 'rain', what: null, at: null }, at);
         for (const t of [9_000, 18_000, 27_000]) runtime.addRoom({ do: 'room', withPrev: false, effect: 'thunder', what: null, at: null }, at + t);
@@ -365,11 +378,11 @@ async function prepare(world: World) {
       else away.requested = true;
     },
   });
-  return { manifest, assets, stage, dim, sound, clock, runtime, roomMap, shadowPlay, fireflies, windowView, weather, roomDepth, devRoomTick, wash, ember, log, pause, controls, soft, review, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, directorOn, storyConfig, moreTargets };
+  return { manifest, assets, stage, dim, sound, clock, runtime, roomMap, shadowPlay, fireflies, windowView, weather, roomDepth, nightSky, devRoomTick, wash, ember, log, pause, controls, soft, review, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, directorOn, storyConfig, moreTargets };
 }
 
 function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom: Checkpoint | null, target: EnterTarget | null = null): void {
-  const { manifest, assets, stage, sound, clock, runtime, roomMap, shadowPlay, fireflies, windowView, weather, roomDepth, devRoomTick, wash, ember, log, pause, controls, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, storyConfig, moreTargets } = show;
+  const { manifest, assets, stage, sound, clock, runtime, roomMap, shadowPlay, fireflies, windowView, weather, roomDepth, nightSky, devRoomTick, wash, ember, log, pause, controls, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, storyConfig, moreTargets } = show;
   // The AI Storyteller, when that's the door the reader chose on the landing page.
   const storyMode = target?.kind === 'storyteller' && storyConfig !== null;
   let story: StorySession | null = null;
@@ -796,6 +809,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       }
     }
     roomDepth.frame(roomNow.weather.on || roomNow.weather.sinceMs < 3000, roomMap);
+    nightSky?.frame({ now: roomNow, nowMs, room: roomMap, head, book: stage.root.visible ? stage.root.getWorldPosition(bookAt) : null, bookOpen: controls.amount > 0.98 });
     windowView?.frame({ state: roomNow.window, nowMs, room: roomMap, bookOpen: controls.amount > 0.98, head, forward, book: stage.root.visible ? stage.root.getWorldPosition(bookAt) : null });
     // Which room effects are showing, each time that changes, so frame summaries can be read per effect.
     const fxOn = effectsOn(roomNow);
