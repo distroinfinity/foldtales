@@ -35,6 +35,29 @@ export function writeProgress(store: Store, progress: Omit<Progress, 'v' | 'upda
   } catch {
     // The landing page simply greets you as new.
   }
+  notifyLibrary();
+}
+
+const libraryListeners = new Set<() => void>();
+
+/** Calls every listener; one that throws doesn't stop the rest. */
+function notifyLibrary(): void {
+  for (const listener of [...libraryListeners]) {
+    try {
+      listener();
+    } catch {
+      // A page that failed to redraw shouldn't stop the show writing its progress.
+    }
+  }
+}
+
+/**
+ * Called whenever progress changes (and, once lane D's provider lands, whenever the Storyteller's
+ * snapshot does), so both doors on the page update live. Returns the unsubscribe.
+ */
+export function subscribeLibrary(listener: () => void): () => void {
+  libraryListeners.add(listener);
+  return () => void libraryListeners.delete(listener);
 }
 
 /** What the landing page's one button says. Continuing needs a saved place to continue from. */
@@ -52,7 +75,8 @@ export const STORYTELLER_AVAILABLE = true;
 
 /** What the landing page shows: every chapter, what its one button does, and the AI Storyteller's door. Read-only. */
 export interface LibraryState {
-  chapters: Array<{ n: number; title: string; state: 'unread' | 'started' | 'finished'; canResume: boolean }>;
+  /** `where` is the saved place in the reader's words ("Stopped on the shore."), when there is one. */
+  chapters: Array<{ n: number; title: string; state: 'unread' | 'started' | 'finished'; canResume: boolean; where?: string }>;
   next: { kind: 'chapter'; n: number; resume: boolean };
   storyteller: { available: boolean; sessions: Array<{ id: string; title: string; updatedAt: string }> };
 }
