@@ -7,7 +7,7 @@ import { ObjectDef } from '../src/objects.ts';
 import { Rig } from '../src/rig.ts';
 
 const ART = fileURLToPath(new URL('../../art', import.meta.url));
-const casts = ['pip', 'wick', 'moth'];
+const casts = ['pip', 'wick', 'moth', 'thimble'];
 
 function rawRig(who: string): unknown {
   return JSON.parse(readFileSync(join(ART, 'cast', who, 'rig.json'), 'utf8'));
@@ -72,8 +72,9 @@ const BINDINGS: Record<string, CastMember['anatomy']> = {
     wings: [],
   },
   moth: { torso: 'body', grip: null, held: null, arms: [], tail: null, wings: ['lowerWing', 'upperWing'] },
+  thimble: { torso: 'body', grip: { part: 'arm', at: [42, 87] }, held: null, arms: ['arm'], tail: 'tail', wings: [] },
 };
-const HEADS: Record<string, CastMember['actingHeads']> = { pip: { scared: 'scared' }, wick: { grumble: 'grumpy' }, moth: {} };
+const HEADS: Record<string, CastMember['actingHeads']> = { pip: { scared: 'scared' }, wick: { grumble: 'grumpy' }, moth: {}, thimble: { scared: 'scared', look: 'up', turn: 'profile', examine: 'profile' } };
 
 function castFor(who: string, anatomy = BINDINGS[who]!, actingHeads = HEADS[who]!): CastMember {
   return {
