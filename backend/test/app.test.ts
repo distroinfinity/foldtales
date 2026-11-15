@@ -53,14 +53,18 @@ const callers: Record<RouteName, (api: BackendApi) => Promise<unknown>> = {
   replyAsCharacter: (api) => collect(api.replyAsCharacter(replyReq)),
   speakLine: (api) => api.speakLine({ speaker: 'bramble', text: 'Hi', mood: 'warm' }),
   speechToken: (api) => api.speechToken({}),
+  storytellerAvailability: (api) => api.storytellerAvailability({}),
+  startStory: (api) => api.startStory({ requestId: 'r1' }),
   storyTurn: async (api) => {
     const events: unknown[] = [];
-    for await (const event of api.storyTurn({ sessionId: 's', library: fixtureLibrary(), stage: { setId: fixtureLibrary().sets[0]!.id, cast: [], objects: [], light: 'dusk', lampLit: false }, room: [], input: { kind: 'open' }, history: [], canon: [] })) events.push(event);
+    for await (const event of api.storyTurn({ storyId: 's', turnId: 't1', phase: 'welcome', activeSeconds: 0, library: fixtureLibrary(), stage: { setId: fixtureLibrary().sets[0]!.id, cast: [], objects: [], light: 'dusk', lampLit: false }, room: [], input: { kind: 'open' }, history: [] })) events.push(event);
     return events;
   },
-  paintProp: (api) => api.paintProp({ sessionId: 's', description: 'a teapot', image: null }),
+  endStory: async (api) => api.endStory({ storyId: (await api.startStory({ requestId: 'r-end' })).storyId, reason: 'time', page: { title: 'A story', summary: null, things: [] } }),
+  listStories: (api) => api.listStories({}),
+  paintProp: (api) => api.paintProp({ storyId: 's', objectId: 'teapot', description: 'a teapot', image: null }),
   paintResult: (api) => api.paintResult({ jobId: 'mock-paint-1' }),
-  soundEffect: (api) => api.soundEffect({ sessionId: 's', description: 'a broken whistle', seconds: 1 }),
+  soundEffect: (api) => api.soundEffect({ storyId: 's', description: 'a broken whistle', seconds: 1 }),
   memoryAppend: (api) => api.memoryAppend({ seriesId: 's', events: [event] }),
   memoryRead: (api) => api.memoryRead({ seriesId: 's', afterSeq: null }),
   memoryDelete: (api) => api.memoryDelete({ seriesId: 's' }),

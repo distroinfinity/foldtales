@@ -141,14 +141,14 @@ export function createPainter(deps: PainterDeps) {
     start(request: PaintRequest, objectId: string | null = null): string {
       prune();
       const jobId = `paint-${randomUUID().slice(0, 12)}`;
-      const count = perEvening.get(request.sessionId) ?? 0;
+      const count = perEvening.get(request.storyId) ?? 0;
       if (!deps.runwayKey || !deps.claude) jobs.set(jobId, { result: { status: 'failed', reason: 'painting is off' }, at: Date.now() });
       else if (count >= PER_EVENING) jobs.set(jobId, { result: { status: 'failed', reason: 'enough painting for one evening' }, at: Date.now() });
       else if (spent + CREDITS_PER_PAINTING > deps.creditCap) jobs.set(jobId, { result: { status: 'failed', reason: 'the painting budget is spent' }, at: Date.now() });
       else {
         // Reserved now, before the job starts, so paintings started together can't pass the cap.
         spent += CREDITS_PER_PAINTING;
-        perEvening.set(request.sessionId, count + 1);
+        perEvening.set(request.storyId, count + 1);
         jobs.set(jobId, { result: { status: 'pending' }, at: Date.now() });
         void run(jobId, request, objectId);
       }

@@ -7,6 +7,7 @@ import { fixtureLibrary, fixtureSpine } from '../src/mocks/fixtures.ts';
 import type { StageLibrary } from '../src/library.ts';
 import type { ShowObject } from '../src/objects.ts';
 import { ROUTE_NAMES, type RouteName } from '../src/primitives.ts';
+import { isTurnEnd, type StoryPhase, type StoryTurnRequest, type TurnEvent, type TurnInput } from '../src/storyteller.ts';
 
 function requestWith(library: StageLibrary, over: Partial<BeatRequest> = {}): BeatRequest {
   return {
@@ -36,6 +37,18 @@ async function collect(stream: AsyncIterable<ReplyChunk>): Promise<ReplyChunk[]>
   return chunks;
 }
 
+const turnReq = (input: TurnInput, ids: { storyId?: string; turnId?: string; phase?: StoryPhase } = {}): StoryTurnRequest => ({
+  storyId: ids.storyId ?? 's',
+  turnId: ids.turnId ?? `t-${Math.random().toString(36).slice(2, 10)}`,
+  phase: ids.phase ?? 'welcome',
+  activeSeconds: 0,
+  library: fixtureLibrary(),
+  stage: { setId: fixtureLibrary().sets[0]!.id, cast: [], objects: [], light: 'dusk', lampLit: false },
+  room: [],
+  input,
+  history: [],
+});
+
 const callers: Record<RouteName, (api: BackendApi) => Promise<unknown>> = {
   issueDevice: (api) => api.issueDevice({}),
   planBeat: (api) => api.planBeat(requestWith(fixtureLibrary())),
@@ -44,14 +57,18 @@ const callers: Record<RouteName, (api: BackendApi) => Promise<unknown>> = {
   replyAsCharacter: (api) => collect(api.replyAsCharacter(replyReq)),
   speakLine: (api) => api.speakLine({ speaker: 'bramble', text: 'Hi', mood: 'warm' }),
   speechToken: (api) => api.speechToken({}),
+  storytellerAvailability: (api) => api.storytellerAvailability({}),
+  startStory: (api) => api.startStory({ requestId: 'r1' }),
   storyTurn: async (api) => {
     const events: unknown[] = [];
-    for await (const event of api.storyTurn({ sessionId: 's', library: fixtureLibrary(), stage: { setId: fixtureLibrary().sets[0]!.id, cast: [], objects: [], light: 'dusk', lampLit: false }, room: [], input: { kind: 'open' }, history: [], canon: [] })) events.push(event);
+    for await (const event of api.storyTurn(turnReq({ kind: 'open' }))) events.push(event);
     return events;
   },
-  paintProp: (api) => api.paintProp({ sessionId: 's', description: 'a teapot', image: null }),
+  endStory: async (api) => api.endStory({ storyId: (await api.startStory({ requestId: 'r-end' })).storyId, reason: 'time', page: { title: 'A story', summary: null, things: [] } }),
+  listStories: (api) => api.listStories({}),
+  paintProp: (api) => api.paintProp({ storyId: 's', objectId: 'teapot', description: 'a teapot', image: null }),
   paintResult: (api) => api.paintResult({ jobId: 'mock-paint-1' }),
-  soundEffect: (api) => api.soundEffect({ sessionId: 's', description: 'a broken whistle', seconds: 1 }),
+  soundEffect: (api) => api.soundEffect({ storyId: 's', description: 'a broken whistle', seconds: 1 }),
   memoryAppend: (api) => api.memoryAppend({ seriesId: 's', events: [] }),
   memoryRead: (api) => api.memoryRead({ seriesId: 's', afterSeq: null }),
   memoryDelete: (api) => api.memoryDelete({ seriesId: 's' }),
@@ -206,5 +223,55 @@ describe('memory', () => {
     const api = createMockBackend();
     await api.memoryAppend({ seriesId: 'one', events: [event('a', 1)] });
     expect((await api.memoryRead({ seriesId: 'two', afterSeq: null })).events).toEqual([]);
+  });
+});
+
+describe('the mock storyteller', () => {
+  const events = async (stream: AsyncIterable<TurnEvent>) => {
+    const out: TurnEvent[] = [];
+    for await (const e of stream) out.push(e);
+    return out;
+  };
+
+  test('a start id returns the same story, and a fourth story today is refused', async () => {
+    const api = createMockBackend();
+    const a = await api.startStory({ requestId: 'r1' });
+    expect((await api.startStory({ requestId: 'r1' })).storyId).toBe(a.storyId);
+    await api.startStory({ requestId: 'r2' });
+    const third = await api.startStory({ requestId: 'r3' });
+    expect(third.availability).toMatchObject({ status: 'used-today', storiesLeftToday: 0 });
+    await expect(api.startStory({ requestId: 'r4' })).rejects.toMatchObject({ code: 'quota_exceeded' });
+    expect(await api.storytellerAvailability({})).toMatchObject({ status: 'used-today' });
+  });
+
+  test('a turn id runs once: the repeat is recover', async () => {
+    const api = createMockBackend();
+    const { storyId } = await api.startStory({ requestId: 'r1' });
+    const first = await events(api.storyTurn(turnReq({ kind: 'open' }, { storyId, turnId: 't1' })));
+    expect(first.at(-1)?.kind).toBe('listen');
+    expect(await events(api.storyTurn(turnReq({ kind: 'open' }, { storyId, turnId: 't1' })))).toEqual([{ kind: 'recover' }]);
+  });
+
+  test('the premise titles the story, the close ends it, and the shelf shows the saved page', async () => {
+    const api = createMockBackend();
+    const { storyId } = await api.startStory({ requestId: 'r1' });
+    const premise = await events(api.storyTurn(turnReq({ kind: 'heard', text: 'a cat who fears water', to: null }, { storyId })));
+    expect(premise.some((e) => e.kind === 'titled')).toBe(true);
+    const close = await events(api.storyTurn(turnReq({ kind: 'close', reason: 'time' }, { storyId, phase: 'closing' })));
+    expect(close.at(-1)?.kind).toBe('ending');
+    expect(close.filter(isTurnEnd)).toHaveLength(1);
+    const { record } = await api.endStory({ storyId, reason: 'time', page: { title: 'The cat', summary: 'It sailed.', things: ['paper boat'] } });
+    expect(record).toMatchObject({ title: 'The cat', things: ['paper boat'] });
+    expect(record.endedAt).not.toBeNull();
+    // Ending twice keeps the first page.
+    expect((await api.endStory({ storyId, reason: 'left', page: { title: 'Other', summary: null, things: [] } })).record.title).toBe('The cat');
+    expect((await api.listStories({})).stories.map((r) => r.id)).toEqual([storyId]);
+  });
+
+  test('asking to paint the same thing twice gives one job', async () => {
+    const api = createMockBackend();
+    const a = await api.paintProp({ storyId: 's', objectId: 'teapot', description: 'a teapot', image: null });
+    const b = await api.paintProp({ storyId: 's', objectId: 'teapot', description: 'a teapot', image: null });
+    expect(a.jobId).toBe(b.jobId);
   });
 });
