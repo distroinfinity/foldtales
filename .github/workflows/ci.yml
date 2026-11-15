@@ -1,7 +1,14 @@
 name: CI
 
-# Every branch and PR head arrives as a push, so this one trigger covers both without running twice.
-on: push
+# Runs on main only (owner, Nov 16: Actions minutes). Lanes run `pnpm check` locally before every
+# push and before opening a PR. Railway waits for this check on main before deploying the backend.
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-main
+  cancel-in-progress: true
 
 jobs:
   check:
@@ -17,4 +24,4 @@ jobs:
       - run: pnpm check
 
 # Deploys aren't done here: Cloudflare Pages and Railway are linked to this repo and build main
-# themselves on every push (owner, Nov 15). Railway waits for this check to pass first.
+# themselves on every push (owner, Nov 15).
