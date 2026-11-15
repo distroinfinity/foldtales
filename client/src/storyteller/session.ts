@@ -1,12 +1,39 @@
-import { linesOf, type BackendApi, type Beat, type LightMood, type ObjectDef, type RoomPlace, type ShowObject, type StageLibrary, type StageNow, type StoryTurnRequest, type TurnEvent, type TurnInput } from '@tabletop/contracts';
+import {
+  NO_STORY,
+  SIGN_IN_REQUIRED,
+  STORIES_TODAY_USED,
+  STORY_OVER,
+  STORYTELLER_RESTING,
+  linesOf,
+  type BackendApi,
+  type EndReason,
+  type LightMood,
+  type ObjectDef,
+  type RoomPlace,
+  type ShowObject,
+  type StageAction,
+  type StageLibrary,
+  type StageNow,
+  type StoryPhase,
+  type StoryTurnRequest,
+  type TurnEvent,
+  type TurnInput,
+} from '@tabletop/contracts';
 import type { SoundEngine } from '../sound/engine.ts';
 import type { LiveScheduler } from './live.ts';
+import { RECORDED, type RecordedId } from './recorded.ts';
 
 /**
- * One evening with the AI Storyteller, as a turn state machine: listening, then thinking (the turn
+ * One story with the AI Storyteller, as a turn state machine: listening, then thinking (the turn
  * is being written), then performing (its beats play), then listening again. Anything you do while
  * they think or perform starts a new generation: everything from the old one is dropped, so a late
  * line can never play over your interruption.
+ *
+ * The story has a shape, and the app owns its end (stage 2 of lane D's plan). It has about ten
+ * active minutes, measured on the show clock (closing the book stops it). It winds down from 8:00
+ * or turn 32. The close comes at 10:00 or turn 40, with a time bound. At 11:00 it stops, whatever
+ * is still playing. The ending never needs the network: if the AI's close doesn't come, the
+ * headset builds the page from what it already knows.
  */
 
 export type StoryState = 'opening' | 'listening' | 'thinking' | 'performing';
@@ -19,12 +46,24 @@ export interface StoryEnding {
 }
 
 /** The title a story has before the cast names it. */
-export const UNTITLED = 'Tonight\'s story';
+export const UNTITLED = "Tonight's story";
 
-/** Quiet this long while they listen, and the story carries itself on a little. */
-const QUIET_MS = 28_000;
-/** At most this many quiet turns in a row, then they simply wait. */
-const QUIET_TURNS = 2;
+/** The story's shape, in active seconds and turns (owner, Nov 15: about 10 minutes, ending by turn 40). */
+export const SHAPE = {
+  closingAtS: 8 * 60,
+  closeAtS: 10 * 60,
+  hardStopS: 11 * 60,
+  closingTurn: 32,
+  /** The backend's limit, the close included: the close is sent once the turns before it are spent. */
+  closeTurn: 40,
+  /** How long the AI's close may take before the headset ends it itself. */
+  closeBoundMs: 12_000,
+  /** With nothing said this long into a turn, the recorded "where were we?" plays and the turn is dropped. */
+  slowMs: 20_000,
+  /** Quiet this long while they listen, and the story carries on by itself: at the welcome, and after. */
+  quietWelcomeMs: 30_000,
+  quietMs: 20_000,
+} as const;
 
 export interface SessionDeps {
   /** Calls the backend, or null when it can't be reached. */
@@ -40,12 +79,12 @@ export interface SessionDeps {
   room(): RoomPlace[];
   /** Room effects showing now, and the ones this room and build can show. */
   roomFx?(): NonNullable<StageNow['roomFx']>;
-  /** The show clock. */
+  /** The show clock. It stops while the book is closed. */
   nowMs(): number;
   log?(message: string): void;
   /** A painting the story asked for. */
   onPaint?(job: { jobId: string; objectId: string; description: string }): void;
-  /** A turn failed: a guest's "sign in" (401), no connection, or the story slipped. */
+  /** A turn failed: a reader who must sign in again (401), no connection, a limit, or the story slipped. */
   onError?(code: string, message: string): void;
   /** Someone turned to you because you said or gave something: a small sound from them. */
   onAcknowledge?(who: string): void;
@@ -53,25 +92,70 @@ export interface SessionDeps {
   onState?(state: StoryState, who: string | null): void;
   /** The story ended by itself (its time ran out, the connection was lost, tonight's limit). Not called for `end()`. */
   onEnded?(ending: StoryEnding): void;
+  /** The set a redirect turns the page to: somewhere cozier. Defaults to the story's first set. */
+  cozySet?: string;
 }
 
+const CLOSING_LIGHT: StageAction[] = [
+  { do: 'light', withPrev: false, mood: 'gold', seconds: 2 },
+  { do: 'cue', withPrev: true, cue: 'lamp-lit', target: null },
+  { do: 'cue', withPrev: false, cue: 'beam', target: null },
+];
+
+/** Up to three sentences of a summary, as the end card's lines. */
+function sentencesOf(text: string): string[] {
+  return (text.match(/[^.!?…]+[.!?…]+["”']?/g) ?? [text]).map((s) => s.trim()).filter(Boolean).slice(0, 3);
+}
+
+const listOf = (names: string[]): string => (names.length <= 1 ? (names[0] ?? '') : `${names.slice(0, -1).join(', ')} and ${names.at(-1)}`);
+
 export function createStorySession(deps: SessionDeps) {
+  /** Until the backend gives the story its id, the client's own (nothing paid is sent under it). */
   const sessionId = `ev-${crypto.randomUUID().slice(0, 12)}`;
+  const requestId = `req-${crypto.randomUUID()}`;
+  let storyId: string | null = null;
   let state: StoryState = 'opening';
   let generation = 0;
   let listener: string | null = null;
   let listeningSinceMs = 0;
-  let quietTurns = 0;
   const history: StoryTurnRequest['history'] = [];
 
   let disposed = false;
+  let ended = false;
+  let closing = false;
   let suspended = false;
+  let resumeWaiters: Array<() => void> = [];
   let storyTitle: string | null = null;
-  let ending: Promise<StoryEnding> | null = null;
+  let turns = 0;
+  let startedAtMs: number | null = null;
+  let offline = false;
+  let redirects = 0;
+  /** Names of things painted for this story that arrived on the page (not keepsakes from earlier stories). */
+  const arrivedThings: string[] = [];
+  const paintedIds = new Set<string>();
+  let endingPromise: Promise<StoryEnding> | null = null;
+  let resolveEnding: ((ending: StoryEnding) => void) | null = null;
+
   const setState = (next: StoryState, who: string | null = listener) => {
-    if (disposed) return;
+    if (disposed || ended) return;
     state = next;
     deps.onState?.(next, who);
+  };
+
+  const activeS = (): number => (startedAtMs === null ? 0 : Math.max(0, (deps.nowMs() - startedAtMs) / 1000));
+  const phase = (): StoryPhase => (storyTitle === null && turns < 3 ? 'welcome' : activeS() >= SHAPE.closingAtS || turns >= SHAPE.closingTurn ? 'closing' : 'middle');
+
+  /** Holds the turn while the book is suspended; resolves at once otherwise. */
+  const whileAwake = (): Promise<void> => (suspended ? new Promise((resolve) => resumeWaiters.push(resolve)) : Promise.resolve());
+
+  /** A recorded line, played as a beat that speaks its words (the sound engine has its clip under the same line id). */
+  const say = (id: RecordedId): void => {
+    const line = RECORDED[id];
+    const spoken: StageAction =
+      line.speaker === 'narrator' || !deps.library.cast.some((c) => c.id === line.speaker)
+        ? { do: 'narrate', withPrev: false, text: line.text, mood: 'warm' }
+        : { do: 'speak', withPrev: false, who: line.speaker, text: line.text, mood: 'warm', to: 'reader' };
+    deps.live.enqueue({ id: `recorded-${id}-${generation}-${Math.random().toString(36).slice(2, 6)}`, source: 'director', sceneId: null, estSeconds: 4, actions: [spoken], next: null, replaces: null });
   };
 
   /** The light and the lamp as the timeline last left them. */
@@ -89,16 +173,115 @@ export function createStorySession(deps: SessionDeps) {
     return { light, lampLit: lit };
   };
 
-  async function turn(input: TurnInput): Promise<void> {
-    if (disposed) return;
-    const mine = ++generation;
-    // A listen left over from the last turn mustn't end this one.
-    pendingListen = false;
-    if (input.kind === 'heard') {
-      history.push({ who: 'reader', text: input.text });
-      quietTurns = 0;
+  const castNames = (): string => listOf(deps.library.cast.filter((c) => c.voice !== null).map((c) => c.name));
+
+  /** The end card's page from what the headset knows; the AI's summary when it came. */
+  function endingOf(summary: string | null, title: string | null): StoryEnding {
+    const name = title ?? storyTitle ?? UNTITLED;
+    const things = [...new Set(arrivedThings)].slice(0, 12);
+    const lines = summary
+      ? sentencesOf(summary)
+      : [
+          name === UNTITLED ? `Tonight, ${castNames()} made up a story with you.` : `Tonight, ${castNames()} told “${name}” with you.`,
+          things.length ? `Painted for it: ${listOf(things)}.` : 'Every word of it was made up as it went.',
+          'It ends here, tucked into the book for another night.',
+        ];
+    return { title: name, lines: lines.length >= 2 ? lines : [...lines, 'It ends here, tucked into the book for another night.'], things };
+  }
+
+  /** The story is over: nothing more is heard or sent; the closing light and the beam play; the ending is told. */
+  function finish(ending: StoryEnding, how: { recorded?: RecordedId; announce: boolean }): StoryEnding {
+    if (ended) return ending;
+    ended = true;
+    generation += 1;
+    resumeWaiters.splice(0).forEach((r) => r());
+    if (how.recorded) say(how.recorded);
+    deps.live.enqueue({ id: `story-end-${generation}`, source: 'director', sceneId: null, estSeconds: 6, actions: CLOSING_LIGHT, next: null, replaces: null });
+    deps.log?.(`storyteller: the story ended (${turns} turns, ${Math.round(activeS())} s)`);
+    resolveEnding?.(ending);
+    if (how.announce) deps.onEnded?.(ending);
+    return ending;
+  }
+
+  /** The AI's close, bounded in time; the headset's own ending if it doesn't come. */
+  async function close(reason: EndReason, announce: boolean): Promise<void> {
+    if (closing || ended) return;
+    closing = true;
+    let aiEnding: { title: string; summary: string | null } | null = null;
+    let heardAny = false;
+    const bound = new Promise<'late'>((resolve) => setTimeout(() => resolve('late'), SHAPE.closeBoundMs));
+    const result = await Promise.race([
+      turn({ kind: 'close', reason }, (e) => {
+        if (e.kind === 'ending') aiEnding = { title: e.title, summary: e.summary };
+        if (e.kind === 'beat') heardAny = true;
+      }),
+      bound,
+    ]);
+    if (ended) return;
+    const got = aiEnding as { title: string; summary: string | null } | null;
+    if (result === 'late' || !got) {
+      finish(endingOf(null, null), { recorded: heardAny ? undefined : 'close-fallback', announce });
+      return;
     }
-    if (input.kind !== 'quiet') quietTurns = 0;
+    finish(endingOf(got.summary, got.title === UNTITLED ? null : got.title), { announce });
+  }
+
+  /** Handles a refusal or failure, in story. True when the story has ended because of it. */
+  function failed(code: string, message: string, opening = false): boolean {
+    deps.onError?.(code, message);
+    if (code === 'unauthorized' && message === SIGN_IN_REQUIRED) {
+      finish(endingOf(null, null), { announce: true });
+      return true;
+    }
+    if (message === STORY_OVER) {
+      finish(endingOf(null, null), { recorded: 'close-time', announce: true });
+      return true;
+    }
+    if (message === STORYTELLER_RESTING || message === STORIES_TODAY_USED || code === 'quota_exceeded' || message === NO_STORY) {
+      finish(endingOf(null, null), { recorded: 'resting', announce: true });
+      return true;
+    }
+    if (/could not be reached|network failure|offline/i.test(message)) {
+      if (!offline) say(opening ? 'welcome-fallback' : 'offline');
+      offline = true;
+      return false;
+    }
+    // At the very start the cast still greets you and asks, from the recording.
+    say(opening ? 'welcome-fallback' : 'slow');
+    return false;
+  }
+
+  /** Reserves the story on the backend before its first turn. */
+  async function begin(): Promise<boolean> {
+    if (storyId) return true;
+    try {
+      const started = await deps.withBackend((api) => api.startStory({ requestId }));
+      if (!started) {
+        failed('upstream_failed', 'the backend could not be reached', true);
+        return false;
+      }
+      storyId = started.storyId;
+      return true;
+    } catch (cause) {
+      const e = cause as { code?: string; message?: string };
+      failed(e.code ?? 'upstream_failed', e.message ?? String(cause), true);
+      return false;
+    }
+  }
+
+  /** The close needs a turn of its own, so ordinary turns stop one short of the limit. */
+  const turnsLeftForStory = (): boolean => turns < SHAPE.closeTurn - 1;
+
+  async function turn(input: TurnInput, watch?: (e: TurnEvent) => void): Promise<void> {
+    if (disposed || (ended && input.kind !== 'close')) return;
+    if (input.kind !== 'close' && !turnsLeftForStory()) {
+      endingPromise ??= new Promise((resolve) => (resolveEnding = resolve));
+      void close('turns', true);
+      return;
+    }
+    const mine = ++generation;
+    pendingListen = false;
+    if (input.kind === 'heard') history.push({ who: 'reader', text: input.text });
     setState('thinking');
     // At once, before the turn is written: whoever you spoke to turns to you, interested.
     if (input.kind === 'heard' || input.kind === 'gift') {
@@ -109,34 +292,56 @@ export function createStorySession(deps: SessionDeps) {
         deps.onAcknowledge?.(who);
       }
     }
+    if (!(await begin()) || mine !== generation) {
+      if (mine === generation) toListening(null);
+      return;
+    }
     const { light, lampLit } = lightNow();
     const request: StoryTurnRequest = {
-      storyId: sessionId,
-      turnId: `turn-${crypto.randomUUID().slice(0, 12)}`,
-      phase: 'middle',
-      activeSeconds: Math.max(0, deps.nowMs() / 1000),
+      storyId: storyId!,
+      turnId: `turn-${crypto.randomUUID()}`,
+      phase: phase(),
+      activeSeconds: activeS(),
       library: deps.library,
       stage: { setId: deps.live.setId, cast: deps.cast(), objects: deps.objects(), light, lampLit, ...(deps.roomFx ? { roomFx: deps.roomFx() } : {}) },
       room: deps.room(),
       input,
       history: history.slice(-120),
     };
+    turns += 1;
     const started = performance.now();
     let first = true;
+    // Nothing heard for too long: the recorded line, and the turn is let go.
+    const slow = setTimeout(() => {
+      if (mine !== generation || !first || ended || input.kind === 'close') return;
+      generation += 1;
+      say('slow');
+      toListening(null);
+    }, SHAPE.slowMs);
     const events = deps.stream(request);
     if (!events) {
-      if (mine === generation) toListening(null);
+      clearTimeout(slow);
+      if (mine === generation) {
+        failed('upstream_failed', 'the backend could not be reached');
+        toListening(null);
+      }
       return;
     }
     try {
       for await (const event of events) {
-        if (mine !== generation) return; // Interrupted: this turn is no longer the story.
+        await whileAwake();
+        if (mine !== generation && !(input.kind === 'close' && !ended)) return; // Interrupted: this turn is no longer the story.
+        watch?.(event);
+        if (offline && event.kind === 'beat') {
+          offline = false;
+          say('online');
+        }
         if (event.kind === 'beat') {
           const beat = event.ready.beat;
           // Voiced before it's queued, so the beat is timed by its real audio.
           const voiced = await Promise.all(linesOf(beat).map((l) => (event.ready.voice[l.lineId]?.url ? deps.sound.addLine(l.lineId, event.ready.voice[l.lineId]!.url!, event.ready.voice[l.lineId]!.durationMs) : Promise.resolve(false))));
           if (voiced.some((ok) => !ok)) deps.log?.('storyteller: a line has no voice (captions only)');
-          if (mine !== generation) return;
+          if (mine !== generation && input.kind !== 'close') return;
           if (first) {
             first = false;
             deps.log?.(`storyteller: first beat ${Math.round(performance.now() - started)} ms after the turn began`);
@@ -147,32 +352,41 @@ export function createStorySession(deps: SessionDeps) {
         } else if (event.kind === 'set') {
           deps.live.enqueueSet(event.setId, deps.cast().map((c) => c.id));
         } else if (event.kind === 'paint') {
+          paintedIds.add(event.objectId);
           deps.onPaint?.(event);
+        } else if (event.kind === 'titled') {
+          storyTitle = event.title;
         } else if (event.kind === 'redirect') {
-          const beat: Beat = { id: `redirect-${generation}`, source: 'director', sceneId: null, estSeconds: 4, actions: [{ do: 'narrate', withPrev: false, text: event.text, mood: 'warm' }], next: null, replaces: null };
-          const line = linesOf(beat)[0]!;
-          if (event.voice.url) await deps.sound.addLine(line.lineId, event.voice.url, event.voice.durationMs);
-          if (mine !== generation) return;
-          deps.live.enqueue(beat);
+          // The words that led here leave the history, so they don't come back; the page really turns.
+          if (input.kind === 'heard' && history.at(-1)?.who === 'reader') history.pop();
+          say(redirects++ % 2 === 0 ? 'redirect-a' : 'redirect-b');
+          const cozy = deps.cozySet ?? deps.library.sets[0]?.id;
+          if (cozy && cozy !== deps.live.setId) deps.live.enqueueSet(cozy, deps.cast().map((c) => c.id));
           toListening(null);
           return;
         } else if (event.kind === 'listen') {
           toListening(event.who);
           return;
-        } else if (event.kind === 'ending' || event.kind === 'recover') {
+        } else if (event.kind === 'ending') {
+          return;
+        } else if (event.kind === 'recover') {
+          // This turn id already ran: nothing is performed again.
+          say('slow');
           toListening(null);
           return;
         } else if (event.kind === 'error') {
           deps.log?.(`storyteller turn failed: ${event.code}`);
-          deps.onError?.(event.code, event.message);
-          toListening(null);
+          if (input.kind !== 'close' && !failed(event.code, event.message, input.kind === 'open')) toListening(null);
           return;
         }
       }
     } catch (cause) {
       deps.log?.(`storyteller stream broke: ${String(cause)}`);
+      if (input.kind !== 'close') say('slow');
+    } finally {
+      clearTimeout(slow);
     }
-    if (mine === generation) toListening(null);
+    if (mine === generation && input.kind !== 'close') toListening(null);
   }
 
   function toListening(who: string | null): void {
@@ -187,33 +401,52 @@ export function createStorySession(deps: SessionDeps) {
 
   return {
     sessionId,
+    /** The backend's id for this story, once it has one. */
+    get storyId() {
+      return storyId;
+    },
     get state() {
       return state;
     },
     get listener() {
       return listener;
     },
+    /** True once the story has ended: nothing more is heard, sent or played from it. */
+    get ended() {
+      return ended;
+    },
+    /** The book has opened: the story's clock starts, and the cast greets you. */
     open(): void {
+      startedAtMs ??= deps.nowMs();
       void turn({ kind: 'open' });
     },
     /** The reader said something. Interrupts whatever is playing. */
     heard(text: string, to: string | null = null): void {
       const t = text.trim();
-      if (t.length < 2) return;
+      if (t.length < 2 || ended || closing) return;
       if (state !== 'listening') deps.live.interrupt(deps.nowMs());
       void turn({ kind: 'heard', text: t.slice(0, 600), to });
     },
-    /** You handed something over: it becomes the turn, even if they were mid-thought. */
+    /** You handed something over: it becomes the turn, even if they were mid-thought. At the welcome, it's the premise. */
     gift(objectId: string, castId: string): void {
+      if (ended || closing) return;
       void turn({ kind: 'gift', objectId, castId });
     },
     /** Something painted has arrived: told as soon as they're listening, never over a scene. */
     arrived(objectId: string): void {
+      if (ended) return;
+      const thing = deps.objects().find((o) => o.id === objectId);
+      if (thing && paintedIds.has(objectId)) arrivedThings.push(thing.def.name);
       if (state === 'listening') void turn({ kind: 'arrived', objectId });
       else arrivals.push(objectId);
     },
+    /** A painting didn't come (it failed, or failed the look check): Moth comes back empty-handed. */
+    paintMissed(): void {
+      if (!ended) say('moth-empty');
+    },
     /** Stop them mid-flow (a pinch on anyone): what's queued goes, and they listen. */
     interrupt(): void {
+      if (ended) return;
       generation += 1;
       deps.live.interrupt(deps.nowMs());
       toListening(listener);
@@ -225,39 +458,54 @@ export function createStorySession(deps: SessionDeps) {
     /** Play what was held, in order. */
     resume(): void {
       suspended = false;
+      resumeWaiters.splice(0).forEach((r) => r());
     },
-    /** "End the story here": ends locally, with no network needed, and resolves with its ending. */
+    /** "End the story here": ends at once, on the headset, with no network needed, and resolves with its ending. */
     end(): Promise<StoryEnding> {
-      ending ??= Promise.resolve({ title: storyTitle ?? UNTITLED, lines: ['The story was gathered up, and tucked into the book for another night.'], things: [] });
-      generation += 1;
-      return ending;
+      if (endingPromise) return endingPromise;
+      endingPromise = new Promise((resolve) => (resolveEnding = resolve));
+      if (ended) return endingPromise;
+      finish(endingOf(null, null), { recorded: 'close-fallback', announce: false });
+      return endingPromise;
     },
-    /** The story's title once it has one, or null. */
+    /** The story's title once it has one (for the pause card), or null. */
     title(): string | null {
       return storyTitle;
     },
-    /** This evening is over (started again, or left): nothing from it plays or answers any more. */
+    /** This story is over (started again, or left): nothing from it plays or answers any more. */
     dispose(): void {
       disposed = true;
       generation += 1;
+      resumeWaiters.splice(0).forEach((r) => r());
     },
     frame(): void {
-      if (disposed || suspended) return;
+      if (disposed || ended || suspended) return;
       const now = deps.nowMs();
+      // The app owns the end: the hard stop first, then the close.
+      if (startedAtMs !== null && activeS() >= SHAPE.hardStopS) {
+        deps.live.interrupt(now);
+        finish(endingOf(null, null), { recorded: 'close-time', announce: true });
+        return;
+      }
       if (pendingListen && state === 'performing' && deps.live.idle) {
         setState('listening', listener);
         listeningSinceMs = now;
+      }
+      if (state === 'listening' && !closing && (activeS() >= SHAPE.closeAtS || !turnsLeftForStory())) {
+        const reason: EndReason = turnsLeftForStory() ? 'time' : 'turns';
+        endingPromise ??= new Promise((resolve) => (resolveEnding = resolve));
+        void close(reason, true);
+        return;
       }
       if (state === 'listening' && arrivals.length) {
         void turn({ kind: 'arrived', objectId: arrivals.shift()! });
         return;
       }
-      if (state === 'listening') {
+      if (state === 'listening' && !closing) {
         pendingListen = false;
-        if (now - listeningSinceMs > QUIET_MS && quietTurns < QUIET_TURNS) {
-          quietTurns += 1;
-          void turn({ kind: 'quiet', seconds: (now - listeningSinceMs) / 1000 });
-        }
+        // Silence is a whole way to play: every question has a timed default.
+        const quiet = phase() === 'welcome' ? SHAPE.quietWelcomeMs : SHAPE.quietMs;
+        if (now - listeningSinceMs > quiet) void turn({ kind: 'quiet', seconds: (now - listeningSinceMs) / 1000 });
       }
     },
     /** Objects the backend painted, as defs, for the stage to register. */
