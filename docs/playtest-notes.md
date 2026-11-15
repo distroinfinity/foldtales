@@ -185,3 +185,7 @@ Signed off by the owner in the headset after AI Storyteller session 2: "I actual
   - **Snow, settled:** "snow in itself, we have, I think, cracked. Ring of snow, it looks very nice." Approved (the falling ring round the reader).
 - **The wall-lighting fix, confirmed:** "walls look fine now." Go-ahead for art run 015.
 - **Sea and paper boat:** "boat and sea look nice." Approved.
+
+## Room comes alive, headset session 2, Nov 15
+
+- Gulls and the bottle (`?room=gulls,bottle`): "fine for now". Merged and moved on; the rain and sea sound mix and the walking treasure hunt weren't looked at.
