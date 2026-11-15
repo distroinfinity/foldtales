@@ -56,6 +56,7 @@ import type { ExtraTarget } from './stage/controls.ts';
 import { presentCast } from './director/director.ts';
 import { minTextSizeM, settleOnTable } from './stage/sizing.ts';
 import { warmUp } from './stage/warm-up.ts';
+import { createCardView, type CardSpec } from './book/card-view.ts';
 import { buildEmber, buildWash } from './stage/wash.ts';
 import { createTelemetry } from './telemetry.ts';
 
@@ -252,7 +253,9 @@ async function prepare(world: World) {
     },
   });
   /** A size chosen by hand, or restored after a crash. */
-  const sizing: { userScale: number | null } = { userScale: null };
+  // Review builds: `?bookscale=0.6` starts the book at that size (the card proof checks the smallest).
+  const reviewScale = Number(reviewQuery('bookscale'));
+  const sizing: { userScale: number | null } = { userScale: reviewScale > 0 ? reviewScale : null };
   /** The scanned table under the book, for settling things you let go of. */
   const tableTop: { outline: Array<{ x: number; z: number }> | null } = { outline: null };
   const readAgain = { requested: false };
@@ -628,6 +631,20 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
     release: () => ears.release(),
   });
   moreTargets.push(() => talk.targets());
+  // The pop-up card the book's printed pages stand on. Review builds: `?card=pause` or `?card=busiest`
+  // opens one once the book is open and writes how it reads from your eyes to data-card-report.
+  const card = createCardView({ bookRoot: stage.book.root, pageY: stage.book.pageY, pageD: assets.book.closedSizeM[1], scene: world.scene });
+  const cardProof = reviewQuery('card');
+  const PROOF_CARDS: Record<string, CardSpec> = {
+    pause: { over: 'Chapter 1', title: 'The night the light went out', choices: [{ id: 'carry-on', label: 'Carry on' }, { id: 'again', label: 'Start again' }, { id: 'contents', label: 'Contents' }, { id: 'away', label: 'Put the book away' }] },
+    busiest: {
+      title: 'The teapot who wanted to keep the lighthouse',
+      lines: ['A chipped teapot washed up on the shore.', 'The keeper named it and wrote it in the log.', 'Someone small tried to sleep inside it.'],
+      note: 'Painted for you: the dragon kite, a teapot called Shubham Mishra',
+      choices: [{ id: 'another', label: 'Tell another' }, { id: 'stories', label: 'Your stories' }, { id: 'contents', label: 'Contents' }, { id: 'away', label: 'Put the book away' }],
+    },
+  };
+  let cardProofAt: number | null = null;
   let earsOn = false;
   const startEpisode = () => {
     log.forget();
@@ -776,6 +793,22 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
 
   let wasEnded = runtime.ended;
   const storyStep = guard('runtime', (deltaMs: number) => {
+    card.frame(deltaMs, head);
+    if (cardProof && PROOF_CARDS[cardProof] && runtime.started && controls.amount > 0.98) {
+      if (cardProofAt === null) {
+        cardProofAt = nowMs;
+        pause.set('ribbon', true);
+        void card.open(PROOF_CARDS[cardProof]!, head);
+      } else if (card.ready && nowMs - cardProofAt > 1500) {
+        const report = card.measure(head, stage.book.root.getWorldPosition(new Vector3()));
+        const bookAt = stage.root.getWorldPosition(new Vector3());
+        const json = JSON.stringify({ card: cardProof, bookScale: stage.root.scale.x, bookAt: [bookAt.x, bookAt.y, bookAt.z].map((v) => +v.toFixed(3)), head: [head.x, head.y, head.z].map((v) => +v.toFixed(3)), ...report });
+        if (document.documentElement.dataset.cardReport !== json) {
+          document.documentElement.dataset.cardReport = json;
+          console.info(`card proof ${json}`);
+        }
+      }
+    }
     // Put the book away: it closes, the place is kept, and the immersive session ends. The landing page offers "Continue".
     if (away.requested) {
       if (controls.amount > 0.001) controls.close();
