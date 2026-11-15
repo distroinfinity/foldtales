@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "node --env-file-if-exists=../.env.local --watch src/server.ts --dev",
+    "dev": "node --env-file-if-exists=../.env.local --env-file-if-exists=../.env.workspace --watch src/server.ts --dev",
     "start": "node --env-file-if-exists=../.env.local src/server.ts",
     "typecheck": "tsc -p ."
   },
