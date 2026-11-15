@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import type { DatabaseSync } from 'node:sqlite';
 
 /**
@@ -11,7 +12,7 @@ import type { DatabaseSync } from 'node:sqlite';
  */
 
 const SITE = 'https://www.foldtales.xyz';
-export const WELCOME_MARK = `${SITE}/email/pip-128.png`;
+export const WELCOME_MARK = `${SITE}/email/mark-128.png`;
 
 const C = {
   navy: '#1F2A44',
@@ -42,18 +43,14 @@ export function firstNameOf(name: string | null | undefined, email: string): str
   return first.length > 40 ? null : first;
 }
 
-/** The words, drafted for the owner's approval. */
-export const WELCOME_COPY = {
-  subject: 'Your book is ready',
-  preheader: "Thank you for being one of Foldtales' first readers.",
-  headline: 'Your book is ready.',
-  paragraphs: [
-    'Thank you for signing in to Foldtales. You are one of its very first readers, and that really means a lot to me.',
-    'Foldtales is a pop-up storybook that opens on your real table. Pip, Wick and Moth live in it, at the Lost and Found at the edge of the table, and the AI Storyteller makes up tonight’s story with you, out loud.',
-    'When you’re ready, open www.foldtales.xyz on your Quest and pinch “Open the book”. Your place is kept, and so are the stories you make.',
-  ],
-  signature: 'Manu',
-  why: 'You’re getting this because you signed in to Foldtales. It’s the only welcome we send; sign-in codes come only when you ask for one.',
+/** The words, drafted for the owner's approval, in `welcome-copy.json`. */
+export const WELCOME_COPY = JSON.parse(readFileSync(new URL('./welcome-copy.json', import.meta.url), 'utf8')) as {
+  subject: string;
+  preheader: string;
+  headline: string;
+  paragraphs: string[];
+  signature: string;
+  why: string;
 };
 
 export function renderWelcome({ name }: { name: string | null }): WelcomeEmail {
