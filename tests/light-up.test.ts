@@ -78,3 +78,19 @@ test("chapter 3's beacon: the kite kept in the satchel comes out to Pip and carr
   const kite = s.objects.get('kite')!.home;
   expect(kite.kind === 'page' && kite.at[1] > hi[1]).toBe(true);
 });
+
+test("on the landing (chapter 3's beacon): the kite from the satchel carries the light up to the landing's own light-high", () => {
+  const landingHi = markOf(manifest, 'the-landing', 'light-high')!;
+  const spine = lifting('kite');
+  const scene = spine.scenes[0]!;
+  scene.setId = 'the-landing';
+  scene.beats[0]!.actions = scene.beats[0]!.actions.map((a) =>
+    a.do === 'use' ? ({ do: 'place', withPrev: false, what: 'object:kite', at: 'pip-step' } as StageAction) : a.do === 'place' && a.what === 'cast:moth' ? ({ ...a, at: 'moth-landing' } as StageAction) : a,
+  );
+  const s = stage(spine);
+  s.objects.send('kite', { kind: 'satchel' }, 0);
+  playTo(s, 7000);
+  expect(s.objects.get('lantern')!.home).toMatchObject({ kind: 'page', at: [landingHi[0], landingHi[1], landingHi[2]] });
+  playTo(s, 11_000);
+  expect(s.objects.get('lantern')!.home).toEqual({ kind: 'carried', cast: 'pip' });
+});
