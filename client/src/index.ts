@@ -1452,7 +1452,7 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, world
             : now.restartLabel
               ? { label: now.restartLabel, run: () => enter(false) }
               : null,
-          storyteller: STORYTELLER_AVAILABLE ? { label: storyDoorLabel(), run: openStoryteller } : null,
+          storyteller: STORYTELLER_AVAILABLE ? { label: storyDoorLabel(), run: openStoryteller, byHand: () => enter(false, 'story') } : null,
         };
       };
       void navigator.xr

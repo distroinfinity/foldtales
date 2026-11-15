@@ -15,6 +15,7 @@
 import type { ShowObject, Spine } from '@tabletop/contracts';
 import type { ChapterCanon } from '../memory/memory.ts';
 import { askForMicrophone } from '../landing/microphone.ts';
+import { reviewQuery } from '../dev.ts';
 
 // ---- lane B: chapters ------------------------------------------------------------------------
 
@@ -108,6 +109,9 @@ export function subscribeStoryteller(listener: () => void): () => void {
  * permission. Lane D's provider adds sign-in, the session and tonight's limit.
  */
 export async function refreshStoryteller(): Promise<void> {
+  // Review builds: `?door=mic-refused` (any state) shows that door, for the page's proofs.
+  const forced = reviewQuery('door') as DoorState['kind'] | null;
+  if (forced) return publish({ ...snapshot, door: forced === 'unavailable' ? { kind: 'unavailable', why: 'offline' } : forced === 'limit-reached' ? { kind: 'limit-reached', until: null } : ({ kind: forced } as DoorState) });
   const nav = globalThis.navigator as Navigator | undefined;
   if (nav && nav.onLine === false) return publish({ ...snapshot, door: { kind: 'unavailable', why: 'offline' } });
   let mic: PermissionState | 'unknown' = 'unknown';

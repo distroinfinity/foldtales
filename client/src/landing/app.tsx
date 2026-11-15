@@ -101,6 +101,9 @@ export function App({ device }: { device: Device }) {
           signedIn={reader}
           onSignIn={() => setSheet('plate')}
           enterStoryteller={state.kind === 'ready' && state.storyteller ? () => openingTap(state.storyteller!.run) : null}
+          playByHand={state.kind === 'ready' && state.storyteller?.byHand ? () => openingTap(state.storyteller!.byHand!) : null}
+          openBook={state.kind === 'ready' ? () => openingTap(state.open) : null}
+          onStories={() => setSheet('chapters')}
           storytellerLabel={state.kind === 'ready' ? (state.storyteller?.label ?? null) : null}
         />
 
