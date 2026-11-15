@@ -305,6 +305,34 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
         const who = castOfTarget(a.target);
         const objectId = [...lightObjects].find(([, c]) => c === who)?.[0];
         if (objectId && who) views.objects.send(objectId, { kind: 'carried', cast: who }, nowMs, 0);
+      } else if (kind === 'light-up') {
+        // The keeper's light rises to the set's light-high mark. A thing that flies holds it from above;
+        // anything else (a ladder) stands under it. A flier who carries it is walked up there by the beat itself.
+        const hi = markOf(manifest, setOfScene(scheduler.scene()), 'light-high');
+        const entry = [...lightObjects].find(([id]) => views.objects.get(id)?.home.kind === 'carried');
+        if (hi && entry) {
+          const [lightId, keeper] = entry;
+          const from = views.puppets.get(keeper)?.lightWorldPosition(new Vector3()) ?? undefined;
+          views.objects.send(lightId, { kind: 'page', at: [hi[0], hi[1], hi[2]] }, nowMs, 1500, 0.03, from);
+          const id = objectOf(a.target);
+          if (id && views.objects.get(id)) {
+            const flies = defs.get(views.objects.get(id)!.def?.id ?? id)?.tags.includes('flies') ?? false;
+            views.objects.send(id, { kind: 'page', at: flies ? [hi[0] + 0.006, hi[1] + 0.04, hi[2] - 0.004] : [hi[0], 0, hi[2] - 0.004] }, nowMs, 1500, flies ? 0.05 : 0.02);
+          }
+        }
+      } else if (kind === 'light-down') {
+        const hi = markOf(manifest, setOfScene(scheduler.scene()), 'light-high');
+        for (const [lightId, keeper] of lightObjects) {
+          const s = views.objects.get(lightId);
+          if (s?.home.kind !== 'page' || !hi || Math.hypot(s.home.at[0] - hi[0], s.home.at[2] - hi[2]) > 0.001) continue;
+          views.objects.send(lightId, { kind: 'carried', cast: keeper }, nowMs, 900, 0.02);
+          // Whatever held it up comes down to the keeper's feet, still given (kept at the end).
+          const [x, , z] = footOf(keeper);
+          for (const o of views.objects.states()) {
+            if (o.id === lightId || o.home.kind !== 'page' || Math.hypot(o.home.at[0] - hi[0], o.home.at[2] - hi[2]) > 0.012) continue;
+            views.objects.send(o.id, { kind: 'page', at: [x + 0.035, 0, Math.min(z + 0.02, views.book.frontHingeZ - 0.006)] }, nowMs, 900, 0.03);
+          }
+        }
       } else if (kind === 'set-down') {
         const id = objectOf(a.target);
         const holder = id ? [...views.puppets.keys()].find((c) => { const s = views.objects.get(id)?.home; return s?.kind === 'paw' && s.cast === c; }) : null;

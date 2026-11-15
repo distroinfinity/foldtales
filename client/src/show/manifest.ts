@@ -33,6 +33,10 @@ export const CueKind = z.enum([
   'beam',
   'drop-held',
   'relight',
+  /** A keeper's light goes up to the set's light-high mark: on a kite above it, atop a ladder standing under it, or carried by a flier (target `cast:<id>`). */
+  'light-up',
+  /** The light comes back down to its keeper's paw, and what held it is set down at their feet. */
+  'light-down',
   'set-down',
   'wear',
   'page-invite',
