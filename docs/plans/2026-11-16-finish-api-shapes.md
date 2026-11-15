@@ -32,6 +32,8 @@ export interface ChapterData {
   canon: unknown | null;
   /** The next chapter's number, or null for the last one in this build. */
   next: number | null;
+  /** Keepsakes carried in from earlier chapters, for the host to put in the satchel (amendment 1, Nov 16). */
+  satchel: ShowObject[];
   /** Where the reader is, for "Stopped on the shore." From a beat id; null when unknown. */
   where(beatId: string): string | null;
 }
@@ -155,3 +157,10 @@ export function cancelEntry(): EnterTarget | null;   // returns back, which the 
 - B: `loadChapter(1)` returns today's chapter; `libraryState()` with `subscribeLibrary` fires on `writeProgress`.
 - D: a session with a controlled stream: `suspend()` during a turn holds its beats; `resume()` plays them in order; `dispose()` after `suspend()` drops them; `end()` with the network off resolves a local ending.
 - A: the host's generation test: a painting, a keepsake and a turn resolved after leave, switch, restart or reader change write nothing to the stage.
+
+## Amendment 1 (sprint master, Nov 16)
+
+- **`ChapterData.satchel: ShowObject[]`** added (above): the keepsakes carried in from earlier chapters. The host (A) puts them in the satchel when the chapter starts.
+- **Files no lane owned go to lane B:** `client/src/show/manifest.ts`, `client/src/show/checkpoint.ts`, `client/src/objects/objects.ts`, `client/src/room-fx/state.ts`, `client/src/room-fx/sea.ts`, `client/src/puppet/`.
+- **`client/src/objects/hands.ts` stays with lane A** (menu-entry input cancellation). Lane B's changes there are small named patches, agreed with lane A through the sprint master.
+- **Guest reset** clears lane B's new per-chapter keys: a one-line change in lane D's `client/src/account/index.ts`, made by lane D.
