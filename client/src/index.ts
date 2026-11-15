@@ -591,6 +591,8 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
   /** The room effects showing now, for telemetry and the storyteller. */
   const roomFx: { on: import('@tabletop/contracts').RoomEffect[] } = { on: [] };
   let roomFxKey = '';
+  /** The show time of the last thunder heard, so each one plays once. */
+  let thunderAt = -Infinity;
   const forward = new Vector3();
   const up = new Vector3();
   const spot = new Vector3();
@@ -778,6 +780,16 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
     });
     const sky = weather.frame({ weather: roomNow.weather, thunderMs: roomNow.thunderMs, nowMs, head, floorY: roomMap.floorY(), ceilingY: roomMap.ceilingY(), bookOpen: controls.amount > 0.98 });
     show.dim.weather({ storm: sky.storm, night: 0, flash: sky.flash });
+    // The storm's sound: rain all round you, and each thunder once, from your window or far off ahead.
+    sound.ambience('rain', sky.storm);
+    if (roomNow.thunderMs !== null && roomNow.thunderMs < 400) {
+      const startedAt = Math.round(clock.ms - roomNow.thunderMs);
+      if (Math.abs(startedAt - thunderAt) > 1000) {
+        thunderAt = startedAt;
+        const window = roomMap.places().find((p) => p.label === 'window');
+        sound.thunder(window ? window.centre.clone() : head.clone().addScaledVector(forward, 6).setY(head.y + 2));
+      }
+    }
     roomDepth.frame(roomNow.weather.on || roomNow.weather.sinceMs < 3000, roomMap);
     windowView?.frame({ state: roomNow.window, nowMs, room: roomMap, bookOpen: controls.amount > 0.98, head, forward, book: stage.root.visible ? stage.root.getWorldPosition(bookAt) : null });
     // Which room effects are showing, each time that changes, so frame summaries can be read per effect.
