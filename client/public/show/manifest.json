@@ -19,7 +19,8 @@
     "sets/the-lamp",
     "room-fx",
     "sound/room",
-    "sets/the-landing"
+    "sets/the-landing",
+    "cast/thimble"
   ],
   "book": "book/book.json",
   "room": "room/room.json",
@@ -182,6 +183,56 @@
       "shadow": {
         "widthM": 0.05,
         "depthM": 0.02
+      },
+      "flip": false
+    },
+    {
+      "member": {
+        "id": "thimble",
+        "name": "Thimble",
+        "description": "A young field mouse in a knitted navy sailor's jersey, with a brass sewing thimble worn as a hat.",
+        "persona": "From the sewing basket, and a sailor at heart. Small, bright and brave, with old-fashioned manners: much obliged.",
+        "voice": "thimble",
+        "rig": "cast/thimble",
+        "acting": [
+          "idle",
+          "look",
+          "scared",
+          "raise",
+          "hop",
+          "turn",
+          "examine"
+        ],
+        "heightM": 0.07,
+        "facing": "left",
+        "anatomy": {
+          "torso": "body",
+          "grip": {
+            "part": "arm",
+            "at": [
+              42,
+              87
+            ]
+          },
+          "held": null,
+          "arms": [
+            "arm"
+          ],
+          "tail": "tail",
+          "wings": []
+        },
+        "actingHeads": {
+          "scared": "scared",
+          "look": "up",
+          "turn": "profile",
+          "examine": "profile"
+        }
+      },
+      "variants": {},
+      "light": null,
+      "shadow": {
+        "widthM": 0.04,
+        "depthM": 0.016
       },
       "flip": false
     }
