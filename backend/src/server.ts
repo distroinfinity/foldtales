@@ -63,7 +63,7 @@ const director =
     ? {
         planBeat: createPlanBeat(claude),
         storyTurn: (request: Parameters<typeof storyTurn>[0]) =>
-          storyTurn(request, { anthropic, voices, moderate, log: (m) => console.log(m), paint: (sessionId, description, objectId) => painter.start({ sessionId, description, image: null }, objectId) }),
+          storyTurn(request, { anthropic, voices, moderate, log: (m) => console.log(m), paint: (storyId, description, objectId) => painter.start({ storyId, objectId, description, image: null }, objectId) }),
         paintProp: async (request: Parameters<typeof painter.start>[0]) => ({ jobId: painter.start(request) }),
         paintResult: async ({ jobId }: { jobId: string }) => painter.result(jobId),
         // A single-use token for ElevenLabs' realtime speech to text: the headset listens without the key.
