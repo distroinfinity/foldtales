@@ -24,9 +24,100 @@ export function readListenPrompt(path: string): string | null {
   }
 }
 
-/** About how many seconds a clip is, before it's heard: Opus at about 32 kbps (4 KB a second), never under Groq's minimum. */
-export function billedSecondsOf(base64Length: number): number {
-  return Math.max(MIN_BILLED_S, Math.ceil((base64Length * 0.75) / 4000));
+/** The longest hold heard, as the client cuts it off, with a little room for the container's rounding. */
+export const MAX_HOLD_S = 30.5;
+
+/** Seconds billed for a clip this long: never under Groq's minimum. */
+export function billedSecondsOf(seconds: number): number {
+  return Math.max(MIN_BILLED_S, Math.ceil(seconds));
+}
+
+const OPUS_RATE = 48_000;
+
+/** An Ogg Opus file's length: the last page's granule position, less the codec's pre-skip, at 48 kHz. */
+function oggOpusSeconds(b: Buffer): number | null {
+  const head = b.indexOf('OpusHead');
+  if (head < 0 || head + 12 > b.length) return null;
+  const preSkip = b.readUInt16LE(head + 10);
+  let granule = -1n;
+  for (let at = b.indexOf('OggS'); at >= 0 && at + 14 <= b.length; at = b.indexOf('OggS', at + 4)) {
+    const g = b.readBigInt64LE(at + 6);
+    if (g >= 0n && g > granule) granule = g;
+  }
+  return granule < 0n ? null : Math.max(0, Number(granule - BigInt(preSkip)) / OPUS_RATE);
+}
+
+/** An EBML variable-length integer: its value (with the length marker removed, unless it's an id), length, and "unknown size". */
+function vint(b: Buffer, at: number, keepMarker: boolean): { value: number; length: number; unknown: boolean } | null {
+  const first = b[at];
+  if (first === undefined || first === 0) return null;
+  let length = 1;
+  while (length <= 8 && !(first & (0x80 >> (length - 1)))) length += 1;
+  if (length > 8 || at + length > b.length) return null;
+  let value = keepMarker ? first : first & (0xff >> length);
+  let allOnes = (first & (0xff >> length)) === 0xff >> length;
+  for (let i = 1; i < length; i++) {
+    value = value * 256 + b[at + i]!;
+    if (b[at + i] !== 0xff) allOnes = false;
+  }
+  return { value, length, unknown: !keepMarker && allOnes };
+}
+
+const SEGMENT = 0x18538067;
+const CLUSTER = 0x1f43b675;
+const BLOCK_GROUP = 0xa0;
+const INFO = 0x1549a966;
+const TIMECODE = 0xe7;
+const TIMECODE_SCALE = 0x2ad7b1;
+const SIMPLE_BLOCK = 0xa3;
+const BLOCK = 0xa1;
+
+/**
+ * A WebM Opus file's length, from its blocks: the latest block's time (cluster time plus its own
+ * offset) and one 20 ms frame. Walks the elements flat, so a browser's live recording (clusters of
+ * unknown size, no Duration) reads as well as a finished file.
+ */
+function webmOpusSeconds(b: Buffer): number | null {
+  if (b.indexOf('A_OPUS') < 0) return null;
+  let at = 0;
+  let scale = 1_000_000;
+  let cluster = 0;
+  let latest = -1;
+  while (at < b.length) {
+    const id = vint(b, at, true);
+    if (!id) return null;
+    const size = vint(b, at + id.length, false);
+    if (!size) return null;
+    const start = at + id.length + size.length;
+    const end = size.unknown ? b.length : Math.min(b.length, start + size.value);
+    if (id.value === SEGMENT || id.value === CLUSTER || id.value === BLOCK_GROUP || id.value === INFO) {
+      if (id.value === CLUSTER) cluster = 0;
+      at = start;
+      continue;
+    }
+    if (size.unknown) return null;
+    if (id.value === TIMECODE || id.value === TIMECODE_SCALE) {
+      let v = 0;
+      for (let i = start; i < end; i++) v = v * 256 + b[i]!;
+      if (id.value === TIMECODE) cluster = v;
+      else scale = v;
+    } else if ((id.value === SIMPLE_BLOCK || id.value === BLOCK) && end - start >= 4) {
+      const track = vint(b, start, false);
+      if (track && start + track.length + 2 <= end) latest = Math.max(latest, cluster + b.readInt16BE(start + track.length));
+    }
+    at = end;
+  }
+  return latest < 0 ? null : (latest * scale) / 1e9 + 0.02;
+}
+
+/**
+ * How long a hold's clip really is, read from the container: only Opus in Ogg or WebM (what the
+ * headset records) is heard. Null for anything else, or a clip that can't be read.
+ */
+export function opusSeconds(mime: TranscribeRequest['audio']['mime'], bytes: Buffer): number | null {
+  if (mime === 'audio/ogg') return oggOpusSeconds(bytes);
+  if (mime === 'audio/webm') return webmOpusSeconds(bytes);
+  return null;
 }
 
 export interface Transcriber {

@@ -104,7 +104,8 @@ export interface Reservation {
 export interface StoryRow {
   id: string;
   userId: string;
-  status: 'active' | 'ended';
+  /** `expired`: left too long, still waiting for its page (one reconciliation). `ended`: its page is saved. */
+  status: 'active' | 'expired' | 'ended';
   turns: number;
   paints: number;
   title: string | null;
@@ -122,6 +123,8 @@ export interface Stories {
   /** The story's checked title and its private plan. */
   setTitle(storyId: string, title: string, plan: string | null): void;
   setPlan(storyId: string, plan: string): void;
+  /** The reader's saved record of a story, or null. */
+  record(userId: string, storyId: string): StoryRecord | null;
   /** Ends the story with its checked page. Idempotent: a second call returns the saved record. */
   end(userId: string, storyId: string, reason: EndReason, page: StoryPage): StoryRecord;
   list(userId: string): StoryRecord[];
@@ -129,13 +132,15 @@ export interface Stories {
   recent(userId: string, n: number): Array<{ title: string; summary: string | null }>;
   /** A painting for (story, object): the existing job, or a new one with its credits reserved. */
   claimPaint(userId: string, storyId: string, objectId: string): { jobId: string; fresh: boolean };
-  /** Runway never took the job: its credits go back to the pool, and the story's count too. */
+  /** Runway never took the job (never submitted, or definitively refused): its credits go back, and the story's count. */
   refundPaint(jobId: string): void;
+  /** Runway may have taken the job (the answer was lost): its credits stay spent, and it's marked so. */
+  paintUnknown(jobId: string): void;
   /** The finished painting's name, so a saved page only names things that really arrived. */
   paintArrived(jobId: string, name: string): void;
   paintOwner(jobId: string): string | null;
-  /** A hold of the tab to be heard: needs a story in progress, and is counted per reader per day. */
-  claimHold(userId: string): void;
+  /** A hold of the tab to be heard: needs that story, the reader's own, in progress; counted per reader per day. */
+  claimHold(userId: string, storyId: string): void;
   reserveSpend(kind: SpendKind, units: number): Reservation | null;
   settleSpend(reservation: Reservation, actualUnits: number | null): void;
   /** What one story used, by kind (voice characters, Claude tokens), to measure a story's cost. Anonymous: kept after deletion. */
@@ -178,15 +183,15 @@ export function openStories(db: DatabaseSync, limits: StoryLimits, now: () => Da
     insert: db.prepare("INSERT INTO stories (id, user_id, request_id, day, status, started_at, updated_at) VALUES (?, ?, ?, ?, 'active', ?, ?)"),
     get: db.prepare('SELECT id, user_id, status, turns, paints, title, plan, started_at FROM stories WHERE id = ? AND user_id = ?'),
     full: db.prepare('SELECT * FROM stories WHERE id = ? AND user_id = ?'),
-    stale: db.prepare("UPDATE stories SET status = 'ended', ended_at = ?, updated_at = ?, end_reason = 'left' WHERE status = 'active' AND started_at < ?"),
+    stale: db.prepare("UPDATE stories SET status = 'expired', ended_at = ?, updated_at = ?, end_reason = 'left' WHERE status = 'active' AND started_at < ?"),
     claimTurn: db.prepare('INSERT OR IGNORE INTO story_turns (story_id, turn_id, user_id) VALUES (?, ?, ?)'),
     bumpTurns: db.prepare('UPDATE stories SET turns = turns + 1, updated_at = ? WHERE id = ?'),
     setTitle: db.prepare('UPDATE stories SET title = ?, plan = COALESCE(?, plan), updated_at = ? WHERE id = ?'),
     setPlan: db.prepare('UPDATE stories SET plan = ?, updated_at = ? WHERE id = ?'),
-    end: db.prepare("UPDATE stories SET status = 'ended', ended_at = ?, updated_at = ?, end_reason = ?, title = ?, summary = ?, things = ? WHERE id = ? AND status = 'active'"),
+    end: db.prepare("UPDATE stories SET status = 'ended', ended_at = ?, updated_at = ?, end_reason = ?, title = ?, summary = ?, things = ? WHERE id = ? AND status IN ('active', 'expired')"),
     list: db.prepare("SELECT * FROM stories WHERE user_id = ? AND title IS NOT NULL ORDER BY started_at DESC LIMIT 30"),
-    recent: db.prepare("SELECT title, summary FROM stories WHERE user_id = ? AND status = 'ended' AND title IS NOT NULL ORDER BY started_at DESC LIMIT ?"),
-    hasActive: db.prepare("SELECT 1 FROM stories WHERE user_id = ? AND status = 'active' LIMIT 1"),
+    recent: db.prepare("SELECT title, summary FROM stories WHERE user_id = ? AND status IN ('ended', 'expired') AND title IS NOT NULL ORDER BY started_at DESC LIMIT ?"),
+    activeStory: db.prepare("SELECT 1 FROM stories WHERE id = ? AND user_id = ? AND status = 'active'"),
     jobFor: db.prepare('SELECT job_id FROM paint_jobs WHERE story_id = ? AND object_id = ?'),
     jobsReaderDay: db.prepare("SELECT COUNT(*) AS n FROM paint_jobs WHERE user_id = ? AND day = ? AND status != 'refunded'"),
     insertJob: db.prepare("INSERT INTO paint_jobs (job_id, story_id, object_id, user_id, day, status) VALUES (?, ?, ?, ?, ?, 'pending')"),
@@ -244,7 +249,7 @@ export function openStories(db: DatabaseSync, limits: StoryLimits, now: () => Da
   }
 
   function rowOf(raw: unknown): StoryRow {
-    const r = raw as { id: string; user_id: string; status: 'active' | 'ended'; turns: number; paints: number; title: string | null; plan: string | null; started_at: string };
+    const r = raw as { id: string; user_id: string; status: StoryRow['status']; turns: number; paints: number; title: string | null; plan: string | null; started_at: string };
     return { id: r.id, userId: r.user_id, status: r.status, turns: Number(r.turns), paints: Number(r.paints), title: r.title, plan: r.plan, startedAt: r.started_at };
   }
 
@@ -297,12 +302,15 @@ export function openStories(db: DatabaseSync, limits: StoryLimits, now: () => Da
     },
 
     get(userId, storyId) {
+      // A story left an hour reads as expired, however it's looked at.
+      expire(now());
       const raw = q.get.get(storyId, userId);
       return raw ? rowOf(raw) : null;
     },
 
     claimTurn(userId, storyId, turnId) {
       return savepoint(() => {
+        expire(now());
         const row = owned(userId, storyId);
         if (row.status !== 'active') throw new BackendError('quota_exceeded', STORY_OVER);
         // A repeat is told to recover before the limit is checked, so a retried last turn recovers.
@@ -325,7 +333,8 @@ export function openStories(db: DatabaseSync, limits: StoryLimits, now: () => Da
     end(userId, storyId, reason, page) {
       return savepoint(() => {
         const row = owned(userId, storyId);
-        if (row.status === 'active') {
+        // Active, or expired and still waiting for its page: saved once. Already ended: the saved record.
+        if (row.status !== 'ended') {
           // Only things painted for this story that really arrived are named on its page.
           const arrived = new Set((q.arrivedNames.all(storyId) as Array<{ name: string }>).map((r) => r.name));
           const things = page.things.filter((t) => arrived.has(t)).slice(0, 12);
@@ -334,6 +343,11 @@ export function openStories(db: DatabaseSync, limits: StoryLimits, now: () => Da
         }
         return recordOf(q.full.get(storyId, userId));
       });
+    },
+
+    record(userId, storyId) {
+      const raw = q.full.get(storyId, userId);
+      return raw ? recordOf(raw) : null;
     },
 
     list(userId) {
@@ -374,6 +388,10 @@ export function openStories(db: DatabaseSync, limits: StoryLimits, now: () => Da
       });
     },
 
+    paintUnknown(jobId) {
+      q.jobStatus.run('unknown', null, jobId);
+    },
+
     paintArrived(jobId, name) {
       q.jobStatus.run('arrived', name, jobId);
     },
@@ -382,10 +400,10 @@ export function openStories(db: DatabaseSync, limits: StoryLimits, now: () => Da
       return (q.job.get(jobId) as { user_id: string } | undefined)?.user_id ?? null;
     },
 
-    claimHold(userId) {
+    claimHold(userId, storyId) {
       savepoint(() => {
         expire(now());
-        if (!q.hasActive.get(userId)) throw new BackendError('bad_request', NO_STORY);
+        if (!q.activeStory.get(storyId, userId)) throw new BackendError('bad_request', NO_STORY);
         const day = dayOf(now());
         const used = Number((q.tokens.get(userId, day) as { count: number } | undefined)?.count ?? 0);
         if (used >= limits.holdsPerReaderDay) throw new BackendError('quota_exceeded', 'listening has reached its daily limit');

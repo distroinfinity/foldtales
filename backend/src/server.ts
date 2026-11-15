@@ -91,6 +91,7 @@ const director =
           checkLine,
           transcriber,
           storyVoices: (storyId) => spendingVoices(liveVoices, stories, storyId),
+          aiOn: storytellerOn,
           paintsLeft: (story) => (paintingOn() && process.env.RUNWAYML_API_SECRET ? Math.max(0, limits.paintsPerStory - story.paints) : 0),
           log: (m) => console.log(m),
         }),

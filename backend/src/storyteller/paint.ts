@@ -37,7 +37,7 @@ export interface PainterDeps {
   /** The style reference, Figure 1 (run 013). */
   styleRefPath: string;
   /** Jobs, per-story and per-reader limits, and the lifetime credit pool, kept in the database. */
-  stories: Pick<Stories, 'claimPaint' | 'refundPaint' | 'paintArrived'>;
+  stories: Pick<Stories, 'claimPaint' | 'refundPaint' | 'paintUnknown' | 'paintArrived'>;
   /** The look check on the finished picture. Fails closed. Painting never ships without it. */
   checkPicture: (png: Buffer, description: string) => Promise<boolean>;
   /** The check on the painting's generated name, before it can reach a saved page. Fails closed. */
@@ -45,7 +45,18 @@ export interface PainterDeps {
   /** Live painting is switched on (TT_PAINTING=on). */
   enabled: () => boolean;
   log?: (m: string) => void;
+  /** For tests: Runway's API. */
+  fetch?: typeof fetch;
+  /** For tests: the wait between checks on a painting in progress. */
+  pollMs?: number;
 }
+
+/**
+ * Where a painting's submission to Runway stands, so its credits are refunded only when Runway
+ * certainly didn't take it: never sent, or refused outright. A lost answer (a network error, a
+ * server error, an unreadable reply) may have been a job, so it keeps its credits.
+ */
+type Submission = 'unsent' | 'refused' | 'unknown' | 'accepted';
 
 export function createPainter(deps: PainterDeps) {
   const jobs = new Map<string, { result: PaintResult; at: number }>();
@@ -86,19 +97,35 @@ export function createPainter(deps: PainterDeps) {
   }
 
   /** `job.charged` turns true once Runway has accepted the job (its credits are really spent then). */
-  async function paint(thing: string, job: { charged: boolean }): Promise<Buffer> {
-    const r = await fetch(`${API}/text_to_image`, {
-      method: 'POST',
-      headers: headers(),
-      body: JSON.stringify({ model: MODEL, ratio: '1024:1024', promptText: template(thing), referenceImages: [{ uri: ref() }] }),
-    });
-    const made = (await r.json()) as { id?: string };
-    if (!r.ok || !made.id) throw new Error(`runway refused (${r.status})`);
-    job.charged = true;
+  const send = deps.fetch ?? fetch;
+  const pollMs = deps.pollMs ?? 2500;
+
+  async function paint(thing: string, job: { submission: Submission }): Promise<Buffer> {
+    let r: Response;
+    job.submission = 'unknown';
+    try {
+      r = await send(`${API}/text_to_image`, {
+        method: 'POST',
+        headers: headers(),
+        body: JSON.stringify({ model: MODEL, ratio: '1024:1024', promptText: template(thing), referenceImages: [{ uri: ref() }] }),
+        signal: AbortSignal.timeout(20_000),
+      });
+    } catch (cause) {
+      // The request may have reached Runway before the answer was lost.
+      throw new Error(`runway didn't answer (${String(cause).slice(0, 60)})`);
+    }
+    // A client error is a definite refusal; a server error may still have made a job.
+    if (r.status >= 400 && r.status < 500) {
+      job.submission = 'refused';
+      throw new Error(`runway refused (${r.status})`);
+    }
+    const made = (await r.json().catch(() => ({}))) as { id?: string };
+    if (!r.ok || !made.id) throw new Error(`runway's answer was unclear (${r.status})`);
+    job.submission = 'accepted';
     for (let i = 0; i < 30; i++) {
-      await new Promise((resolve) => setTimeout(resolve, 2500));
-      const task = (await fetch(`${API}/tasks/${made.id}`, { headers: headers() }).then((x) => x.json()).catch(() => ({ status: 'UNKNOWN' }))) as { status: string; output?: string[] };
-      if (task.status === 'SUCCEEDED' && task.output?.[0]) return Buffer.from(await (await fetch(task.output[0])).arrayBuffer());
+      await new Promise((resolve) => setTimeout(resolve, pollMs));
+      const task = (await send(`${API}/tasks/${made.id}`, { headers: headers() }).then((x) => x.json()).catch(() => ({ status: 'UNKNOWN' }))) as { status: string; output?: string[] };
+      if (task.status === 'SUCCEEDED' && task.output?.[0]) return Buffer.from(await (await send(task.output[0])).arrayBuffer());
       if (task.status === 'FAILED' || task.status === 'CANCELLED') throw new Error(`runway ${task.status.toLowerCase()}`);
     }
     throw new Error('runway took too long');
@@ -106,11 +133,13 @@ export function createPainter(deps: PainterDeps) {
 
   async function run(jobId: string, request: PaintRequest, objectId: string | null): Promise<void> {
     const started = Date.now();
-    const job = { charged: false };
+    const job: { submission: Submission } = { submission: 'unsent' };
     try {
       const named = await name(request);
       if (!named.fit) throw new Error('not for this book');
-      if (!(await deps.checkLine(named.name))) throw new Error('its name failed the check');
+      // Fail closed: the generated name and description are saved with the keepsake and read in later prompts.
+      const [nameOk, descriptionOk] = await Promise.all([deps.checkLine(named.name).catch(() => false), deps.checkLine(named.description).catch(() => false)]);
+      if (!nameOk || !descriptionOk) throw new Error('its name or description failed the check');
       const image = await paint(named.paint, job);
       const cut = await cutOut(image);
       if (!cut.ok) throw new Error(cut.reason);
@@ -132,8 +161,9 @@ export function createPainter(deps: PainterDeps) {
       deps.stories.paintArrived(jobId, def.name);
       deps.log?.(`painted "${named.name}" in ${Date.now() - started} ms`);
     } catch (cause) {
-      // Never reached Runway (or it refused): the reserved credits go back to the pool.
-      if (!job.charged) deps.stories.refundPaint(jobId);
+      // Credits go back only when Runway certainly didn't take the job; a lost answer keeps them.
+      if (job.submission === 'unsent' || job.submission === 'refused') deps.stories.refundPaint(jobId);
+      else if (job.submission === 'unknown') deps.stories.paintUnknown(jobId);
       deps.log?.(`painting failed after ${Date.now() - started} ms: ${String(cause)}`);
       jobs.set(jobId, { result: { status: 'failed', reason: String(cause).slice(0, 120) }, at: Date.now() });
     }

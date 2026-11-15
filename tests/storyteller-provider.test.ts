@@ -160,12 +160,13 @@ describe('a finished story', () => {
     expect(s.pending.items.size).toBe(0);
   });
 
-  test("another reader's waiting story is never sent under this reader", async () => {
+  test("another reader's waiting story is never sent under this reader, nor shown; it waits for its own reader", async () => {
     const s = setup();
     await s.pending.put({ id: 'st-bob', readerId: 'bob', page: { title: "Bob's", summary: null, things: [] }, endedAt: '2026-11-16T19:00:00.000Z' });
     await s.provider.refresh();
     expect(s.ends).not.toContain('st-bob');
-    expect(s.pending.items.has('st-bob')).toBe(false);
+    expect(s.provider.snapshot().finished.map((f) => f.id)).not.toContain('st-bob');
+    expect(s.pending.items.has('st-bob')).toBe(true);
   });
 
   test('a story the server never knew is let go', async () => {

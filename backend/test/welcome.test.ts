@@ -35,7 +35,7 @@ async function accounts(sendWelcome: SendWelcome) {
 describe('the welcome email', () => {
   test('goes once per account, however many times they sign in', async () => {
     const sent: Array<{ to: string; email: WelcomeEmail }> = [];
-    const { acc, signIn } = await accounts(async (to, email) => void sent.push({ to, email }));
+    const { acc, signIn } = await accounts(async (to, email) => (sent.push({ to, email }), 'sent' as const));
     await signIn('reader@example.com');
     await signIn('reader@example.com');
     await Promise.all([signIn('reader@example.com'), signIn('reader@example.com')]);
@@ -59,8 +59,9 @@ describe('the welcome email', () => {
     let fail = true;
     const sent: string[] = [];
     const { acc, signIn } = await accounts(async (to) => {
-      if (fail) throw new Error('Resend answered 500');
+      if (fail) return 'failed' as const;
       sent.push(to);
+      return 'sent' as const;
     });
     expect((await signIn('flaky@example.com')).status).toBe(200);
     await acc.welcomer.settled();
@@ -73,7 +74,7 @@ describe('the welcome email', () => {
 
   test('deleting the account removes its record', async () => {
     const sent: string[] = [];
-    const { acc, signIn, call } = await accounts(async (to) => void sent.push(to));
+    const { acc, signIn, call } = await accounts(async (to) => (sent.push(to), 'sent' as const));
     const { token } = await signIn('gone@example.com');
     await acc.welcomer.settled();
     expect((await call('/v1/auth/delete-user', {}, { authorization: `Bearer ${token}` })).status).toBe(200);
@@ -116,4 +117,34 @@ test('one button to the site, tagged; the address in the words and the footer ar
   expect(html).toContain('>Open Foldtales</a>');
   expect(html).toContain('On your Quest? Open the same link in its browser.');
   expect(text.split('\n')).toContain(welcomeLink());
+});
+
+describe('review 13: a lost answer never sends a second welcome', () => {
+  test("an accepted send whose answer was lost is retried with the same delivery id, so the provider keeps one email", async () => {
+    const ids: string[] = [];
+    let outcome: 'unknown' | 'sent' = 'unknown';
+    const { acc, signIn } = await accounts(async (_to, _email, deliveryId) => (ids.push(deliveryId), outcome));
+    await signIn('lost@example.com');
+    await acc.welcomer.settled();
+    outcome = 'sent';
+    await signIn('lost@example.com');
+    await acc.welcomer.settled();
+    await signIn('lost@example.com');
+    await acc.welcomer.settled();
+    expect(ids).toHaveLength(2);
+    expect(ids[0]).toBe(ids[1]);
+  });
+
+  test("Resend is asked with the delivery id as its Idempotency-Key; a lost connection or a server error is 'unknown', a refusal 'failed'", async () => {
+    const { resendWelcome } = await import('../src/auth/welcome.ts');
+    const seen: Array<Record<string, string>> = [];
+    const answer = (r: () => Response) => resendWelcome({ resendKey: 're_test', from: 'Foldtales <stories@foldtales.xyz>', fetch: (async (_u: unknown, init?: RequestInit) => (seen.push(init!.headers as Record<string, string>), r())) as typeof fetch });
+    const email = renderWelcome({ name: null });
+    expect(await answer(() => new Response('{}'))('a@example.com', email, 'd-1')).toBe('sent');
+    expect(seen[0]!['Idempotency-Key']).toBe('welcome/d-1');
+    expect(await answer(() => new Response('', { status: 503 }))('a@example.com', email, 'd-1')).toBe('unknown');
+    expect(await answer(() => new Response('', { status: 422 }))('a@example.com', email, 'd-1')).toBe('failed');
+    expect(await resendWelcome({ resendKey: 'k', from: 'f', fetch: (async () => Promise.reject(new Error('reset'))) as typeof fetch })('a@example.com', email, 'd-1')).toBe('unknown');
+    expect(seen.every((h) => !('reply_to' in h))).toBe(true);
+  });
 });

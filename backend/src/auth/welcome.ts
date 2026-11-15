@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import type { DatabaseSync } from 'node:sqlite';
 
@@ -139,18 +140,31 @@ export function renderWelcome({ name }: { name: string | null }): WelcomeEmail {
   return { subject: WELCOME_COPY.subject, html, text };
 }
 
-export type SendWelcome = (to: string, email: WelcomeEmail) => Promise<void>;
+/**
+ * Sends one welcome. `deliveryId` is the account's durable delivery id, sent as the provider's
+ * idempotency key, so a retry after a lost answer is the same email, not a second one. `sent`:
+ * accepted. `failed`: certainly not sent (a refusal). `unknown`: the answer was lost.
+ */
+export type SendWelcome = (to: string, email: WelcomeEmail, deliveryId: string) => Promise<'sent' | 'failed' | 'unknown'>;
 
 /** Sends through Resend, from RESEND_FROM. A reply-to only if WELCOME_REPLY_TO is set (it isn't: owner, Nov 16). */
-export function resendWelcome({ resendKey, from, replyTo }: { resendKey: string; from: string; replyTo?: string | undefined }): SendWelcome {
-  return async (to, email) => {
-    const response = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: { authorization: `Bearer ${resendKey}`, 'content-type': 'application/json' },
-      body: JSON.stringify({ from, to: [to], subject: email.subject, html: email.html, text: email.text, ...(replyTo ? { reply_to: replyTo } : {}) }),
-      signal: AbortSignal.timeout(10_000),
-    });
-    if (!response.ok) throw new Error(`Resend answered ${response.status}`);
+export function resendWelcome({ resendKey, from, replyTo, fetch: send = fetch }: { resendKey: string; from: string; replyTo?: string | undefined; fetch?: typeof fetch }): SendWelcome {
+  return async (to, email, deliveryId) => {
+    let response: Response;
+    try {
+      response = await send('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: { authorization: `Bearer ${resendKey}`, 'content-type': 'application/json', 'Idempotency-Key': `welcome/${deliveryId}` },
+        body: JSON.stringify({ from, to: [to], subject: email.subject, html: email.html, text: email.text, ...(replyTo ? { reply_to: replyTo } : {}) }),
+        signal: AbortSignal.timeout(10_000),
+      });
+    } catch {
+      // It may have been accepted before the answer was lost.
+      return 'unknown';
+    }
+    if (response.ok) return 'sent';
+    // A server error may still have sent it; a client error (bad request, rate limit) certainly didn't.
+    return response.status >= 500 ? 'unknown' : 'failed';
   };
 }
 
@@ -166,30 +180,44 @@ export interface Welcomer {
 /** Only accounts this new get a welcome, so readers from before this shipped aren't surprised by one. */
 const NEW_ACCOUNT_MS = 7 * 24 * 60 * 60 * 1000;
 
+/**
+ * Once per account, durably: each account has one delivery id, and its state. `sending` while a
+ * send is in flight; `sent` once accepted; `unknown` when the answer was lost, retried at the next
+ * sign-in with the same id (the provider keeps one email per id); a definite failure releases it.
+ */
 export function createWelcomer(db: DatabaseSync, send: SendWelcome | null, log: (message: string) => void, now: () => Date = () => new Date()): Welcomer {
-  db.exec('CREATE TABLE IF NOT EXISTS welcome_sent (user_id TEXT PRIMARY KEY, sent_at TEXT NOT NULL)');
-  const claim = db.prepare('INSERT OR IGNORE INTO welcome_sent (user_id, sent_at) VALUES (?, ?)');
-  const release = db.prepare('DELETE FROM welcome_sent WHERE user_id = ?');
+  db.exec("CREATE TABLE IF NOT EXISTS welcome_delivery (user_id TEXT PRIMARY KEY, delivery_id TEXT NOT NULL, state TEXT NOT NULL, at TEXT NOT NULL)");
+  const read = db.prepare('SELECT delivery_id, state FROM welcome_delivery WHERE user_id = ?');
+  const claimNew = db.prepare("INSERT OR IGNORE INTO welcome_delivery (user_id, delivery_id, state, at) VALUES (?, ?, 'sending', ?)");
+  const claimRetry = db.prepare("UPDATE welcome_delivery SET state = 'sending', at = ? WHERE user_id = ? AND state = 'unknown'");
+  const mark = db.prepare('UPDATE welcome_delivery SET state = ?, at = ? WHERE user_id = ?');
+  const release = db.prepare('DELETE FROM welcome_delivery WHERE user_id = ?');
   // Prepared on first use: Better Auth creates its `user` table after this runs.
   let user: ReturnType<DatabaseSync['prepare']> | null = null;
   const userRow = (id: string) => (user ??= db.prepare('SELECT name, email, createdAt FROM user WHERE id = ?')).get(id);
   const inFlight = new Set<Promise<void>>();
+
+  /** Claims this account's send, in one write: the delivery id to send under, or null when it's sent or in flight. */
+  function claim(userId: string): string | null {
+    const at = now().toISOString();
+    const known = read.get(userId) as { delivery_id: string; state: string } | undefined;
+    if (!known) return claimNew.run(userId, randomUUID(), at).changes === 1 ? (read.get(userId) as { delivery_id: string }).delivery_id : null;
+    if (known.state === 'unknown' && claimRetry.run(at, userId).changes === 1) return known.delivery_id;
+    return null;
+  }
 
   async function welcome(userId: string): Promise<void> {
     const row = userRow(userId) as { name: string | null; email: string; createdAt: string | number } | undefined;
     if (!row?.email) return;
     const created = new Date(typeof row.createdAt === 'number' ? row.createdAt : String(row.createdAt)).getTime();
     if (Number.isFinite(created) && now().getTime() - created > NEW_ACCOUNT_MS) return;
-    // Claimed first, in one write: two sign-ins at once can't both send.
-    if (claim.run(userId, now().toISOString()).changes !== 1) return;
-    try {
-      await send!(row.email, renderWelcome({ name: firstNameOf(row.name, row.email) }));
-      log('welcome email sent');
-    } catch (cause) {
-      // Let a later sign-in try again; sign-in itself never knew.
-      release.run(userId);
-      log(`welcome email failed: ${String(cause).slice(0, 120)}`);
-    }
+    const deliveryId = claim(userId);
+    if (!deliveryId) return;
+    const outcome = await send!(row.email, renderWelcome({ name: firstNameOf(row.name, row.email) }), deliveryId).catch(() => 'unknown' as const);
+    if (outcome === 'sent') mark.run('sent', now().toISOString(), userId);
+    else if (outcome === 'unknown') mark.run('unknown', now().toISOString(), userId);
+    else release.run(userId);
+    log(`welcome email ${outcome}`);
   }
 
   return {

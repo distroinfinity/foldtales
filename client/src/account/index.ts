@@ -10,6 +10,7 @@ import {
 } from '@tabletop/contracts';
 import { SESSION_KEY, createBackendAccess, withDeadline, type BackendAccess } from '../backend.ts';
 import { ACCOUNTS_ON } from '../landing/flags.ts';
+import { forgetReaderPending } from '../storyteller/pending.ts';
 import { mergeBooks, sameBook, type LocalBook } from './merge.ts';
 
 export { mergeBooks, type LocalBook } from './merge.ts';
@@ -134,6 +135,17 @@ function readerKeys(): string[] {
 function clearReader(): void {
   for (const key of [SESSION_KEY, USER_KEY, LAPSED_KEY, PROGRESS_KEY, CHECKPOINT_KEY, ...readerKeys()]) storage.removeItem(key);
   bumpGeneration();
+}
+
+/**
+ * A reader leaves this headset (sign-out, deletion): the generation changes first, so a write
+ * still in flight notices and drops itself, then their private pages waiting for the server are
+ * deleted, and that deletion is awaited. The shared keepsakes stay (owner's policy).
+ */
+async function leaveReader(): Promise<void> {
+  const readerId = userFrom(readJson(USER_KEY))?.id ?? null;
+  clearReader();
+  if (readerId) await forgetReaderPending(readerId);
 }
 
 /** True when this headset was signed in and the server no longer knows the session: "Sign in again to keep your book in sync". */
@@ -616,7 +628,7 @@ export async function signOut({ force = false }: { force?: boolean } = {}): Prom
   } catch {
     if (!force) return 'offline';
   }
-  clearReader();
+  await leaveReader();
   return 'ok';
 }
 
@@ -631,7 +643,7 @@ export async function deleteAccount(): Promise<'ok' | 'needs-fresh-sign-in' | 'f
     const answer = await request(`${AUTH}/delete-user`, { method: 'POST', body: {}, headers: bearer(token) });
     if (!answer) return 'failed';
     if (answer.status === 200) {
-      clearReader();
+      await leaveReader();
       return 'ok';
     }
     if (answer.status === 401 || errorCode(answer) === 'SESSION_EXPIRED') return 'needs-fresh-sign-in';

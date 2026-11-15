@@ -17,8 +17,19 @@ export interface AskOptions<T> {
   timeoutMs: number;
   /** A picture to look at with the words. */
   image?: { mime: 'image/jpeg' | 'image/png'; base64: string };
-  /** Which fixed estimate to reserve in the spend ledger before the call (the planner's beats use `turn`). */
+  /** Kept for the log: what kind of call this is. The reservation is computed from the call itself. */
   estimate?: SpendEstimate;
+}
+
+/** A picture's input tokens, at most, for a cut-out of up to 1024 x 1024 (about width x height / 750). */
+const IMAGE_TOKENS = 1_600;
+
+/**
+ * An upper bound on a call's tokens, reserved before it's made: every character of the prompt as a
+ * token at most one in three (English runs about four), the picture, and the whole output allowed.
+ */
+export function tokenBound(system: string, user: string, maxTokens: number, image: boolean): number {
+  return Math.ceil((system.length + user.length) / 3) + (image ? IMAGE_TOKENS : 0) + maxTokens;
 }
 
 export interface Claude {
@@ -33,7 +44,7 @@ export type SpendEstimate = 'turn' | 'checkLine' | 'checkInput' | 'name' | 'visi
  * isn't known, which keeps the whole reservation.
  */
 export interface SpendGate {
-  reserve(estimate: SpendEstimate): unknown | null;
+  reserve(tokens: number): unknown | null;
   settle(reservation: unknown, tokens: number | null): void;
 }
 
@@ -41,9 +52,9 @@ export interface SpendGate {
 export function createClaude(apiKey: string, log: (message: string, cause?: unknown) => void = console.error, spend: SpendGate | null = null): Claude {
   const client = new Anthropic({ apiKey, maxRetries: 0 });
   return {
-    async ask({ model, system, user, schema, parse, maxTokens, timeoutMs, image, estimate = 'turn' }) {
+    async ask({ model, system, user, schema, parse, maxTokens, timeoutMs, image }) {
       const started = Date.now();
-      const reservation = spend ? spend.reserve(estimate) : null;
+      const reservation = spend ? spend.reserve(tokenBound(system, user, maxTokens, Boolean(image))) : null;
       if (spend && reservation === null) throw new BackendError('quota_exceeded', 'the day\'s spending is used up');
       let response: Anthropic.Beta.BetaMessage;
       try {

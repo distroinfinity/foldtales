@@ -14,6 +14,9 @@ import { BackendError, SIGN_IN_REQUIRED, StoryPage, type BackendApi, type StoryR
 import { cachedReader, getSession, readGeneration, readerBackend, sessionLapsed } from '../account/index.ts';
 import { ACCOUNTS_ON, STORYTELLER_ON } from '../landing/flags.ts';
 import { createKeepsakes } from './keepsakes.ts';
+import { indexedPending, type PendingStore, type PendingStory } from './pending.ts';
+
+export type { PendingStore, PendingStory } from './pending.ts';
 import type { StoryEnding } from './session.ts';
 
 export type DoorState =
@@ -63,20 +66,6 @@ export interface ProviderDeps {
   online(): boolean;
   storage: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
   pending: PendingStore;
-}
-
-/** Finished stories waiting for the server, under their reader. */
-export interface PendingStore {
-  put(item: PendingStory): Promise<void>;
-  all(): Promise<PendingStory[]>;
-  remove(id: string): Promise<void>;
-}
-
-export interface PendingStory {
-  id: string;
-  readerId: string;
-  page: StoryPage;
-  endedAt: string;
 }
 
 const SHELF_KEY = (readerId: string) => `tt.storyteller.shelf.${readerId}`;
@@ -137,29 +126,34 @@ export function createStorytellerProvider(deps: ProviderDeps) {
 
   /** Sends what's pending for this reader; drops anything left by another reader (their sign-out dropped it). */
   async function flush(readerId: string, generation: number): Promise<void> {
+    const same = () => deps.generation() === generation && deps.cachedReader()?.id === readerId;
     for (const item of await deps.pending.all().catch(() => [] as PendingStory[])) {
-      if (deps.generation() !== generation) return;
+      if (!same()) return;
       if (item.readerId !== readerId) {
-        await deps.pending.remove(item.id).catch(() => {});
+        // Another reader's page: theirs to send. Their sign-out or deletion removes it.
         continue;
       }
-      const saved = await deps.backend((api) => api.endStory({ storyId: item.id, reason: 'time', page: item.page })).catch((cause: unknown) => {
-        // A story the server doesn't know (deleted, or never reserved) can't ever be saved: let it go.
+      const answer = await deps.backend((api) => api.endStory({ storyId: item.id, reason: 'time', page: item.page })).catch((cause: unknown) => {
+        // A story the server will never know (deleted, or never reserved) can't ever be saved: let it go.
         if (cause instanceof BackendError && cause.code === 'bad_request') return 'gone' as const;
         return null;
       });
-      if (saved) await deps.pending.remove(item.id).catch(() => {});
+      if (!same()) return;
+      // Removed only on the server's answer: the saved record, or a story it will never have.
+      if (answer === 'gone' || (answer && answer.record.id === item.id)) await deps.pending.remove(item.id).catch(() => {});
     }
   }
 
   async function doRefresh(): Promise<void> {
     const generation = deps.generation();
-    const stale = () => deps.generation() !== generation;
+    const known = deps.cachedReader()?.id ?? null;
+    /** Still the same reader as when this refresh began: checked after every wait, before every write or publish. */
+    const same = (readerId: string | null = known) => deps.generation() === generation && (deps.cachedReader()?.id ?? null) === readerId;
     if (!deps.built()) {
       door = { kind: 'unavailable', why: 'service' };
       return publish();
     }
-    if (!deps.cachedReader()) {
+    if (!known) {
       door = deps.lapsed() ? { kind: 'session-expired' } : { kind: 'signed-out' };
       finished = [];
       return publish();
@@ -169,37 +163,46 @@ export function createStorytellerProvider(deps: ProviderDeps) {
       publish();
     }
     const who = deps.online() ? await deps.session() : 'failed';
-    if (stale()) return;
     if (who === null) {
+      if (deps.generation() !== generation) return;
       door = deps.lapsed() ? { kind: 'session-expired' } : { kind: 'signed-out' };
       finished = [];
       return publish();
     }
-    const readerId = who === 'failed' ? deps.cachedReader()!.id : who.id;
-    finished = readShelf(readerId);
+    const readerId = who === 'failed' ? known : who.id;
+    if (!same(readerId)) return;
     if (who === 'failed') {
+      const waiting = (await deps.pending.all().catch(() => [] as PendingStory[])).filter((p) => p.readerId === readerId);
+      if (!same(readerId)) return;
+      finished = merge(waiting, readShelf(readerId));
       door = deps.online() ? { kind: 'auth-failed' } : { kind: 'unavailable', why: 'offline' };
-      finished = merge((await deps.pending.all().catch(() => [] as PendingStory[])).filter((p) => p.readerId === readerId), finished);
       return publish();
     }
 
     await flush(readerId, generation);
-    if (stale()) return;
+    if (!same(readerId)) return;
     const [availability, shelf] = await Promise.all([
       deps.backend((api) => api.storytellerAvailability({})).catch((cause: unknown) => (cause instanceof BackendError && cause.message === SIGN_IN_REQUIRED ? ('signed-out' as const) : null)),
       deps.backend((api) => api.listStories({})).catch(() => null),
     ]);
-    if (stale()) return;
-    const pending = (await deps.pending.all().catch(() => [] as PendingStory[])).filter((p) => p.readerId === readerId);
+    if (!same(readerId)) return;
+    const waiting = (await deps.pending.all().catch(() => [] as PendingStory[])).filter((p) => p.readerId === readerId);
+    if (!same(readerId)) return;
+    let nextDoor: DoorState;
+    if (availability === 'signed-out') nextDoor = { kind: 'session-expired' };
+    else if (!availability) nextDoor = { kind: 'unavailable', why: deps.online() ? 'service' : 'offline' };
+    else {
+      const mic = await deps.mic();
+      if (!same(readerId)) return;
+      nextDoor = doorFor(availability, mic);
+    }
+    // Every wait is behind us: the reader is still the one this refresh began with.
     if (shelf) {
-      const saved = shelf.stories.map(toFinished).filter((s): s is FinishedStory => s !== null);
+      const saved = shelf.stories.map(toFinished).filter((x): x is FinishedStory => x !== null);
       writeShelf(readerId, saved);
-      finished = merge(pending, saved);
-    } else finished = merge(pending, finished);
-
-    if (availability === 'signed-out') door = { kind: 'session-expired' };
-    else if (!availability) door = { kind: 'unavailable', why: deps.online() ? 'service' : 'offline' };
-    else door = doorFor(availability, await deps.mic());
+      finished = merge(waiting, saved);
+    } else finished = merge(waiting, readShelf(readerId));
+    door = nextDoor;
     publish();
   }
 
@@ -250,14 +253,20 @@ export function createStorytellerProvider(deps: ProviderDeps) {
       const reader = deps.cachedReader();
       if (!reader) return;
       const generation = deps.generation();
+      const same = () => deps.generation() === generation && deps.cachedReader()?.id === reader.id;
       const summary = story.lines.join(' ').slice(0, 400);
       const parsed = StoryPage.safeParse({ title: story.title.slice(0, 80) || "Tonight's story", summary: summary.length ? summary : null, things: story.things.map((t) => t.slice(0, 60)).slice(0, 12) });
       if (!parsed.success) return;
       const item: PendingStory = { id: story.id, readerId: reader.id, page: parsed.data, endedAt: new Date().toISOString() };
       await deps.pending.put(item).catch(() => {});
+      // The reader changed while it was written (sign-out, deletion): it never stays behind.
+      if (!same()) {
+        await deps.pending.remove(item.id).catch(() => {});
+        return;
+      }
       finished = merge([item], finished);
       publish();
-      if (deps.generation() === generation) void flush(reader.id, generation).then(() => self.refresh());
+      void flush(reader.id, generation).then(() => (same() ? self.refresh() : undefined));
     },
   };
   return self;
@@ -289,40 +298,6 @@ const localStore: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'> = {
     }
   },
 };
-
-/** IndexedDB, its own database, so the keepsakes' store never needs a version change. */
-function indexedPending(): PendingStore {
-  const DB = 'tabletop-storyteller-pending';
-  const STORE = 'finished';
-  let opened: Promise<IDBDatabase | null> | null = null;
-  const db = () =>
-    (opened ??= new Promise((resolve) => {
-      try {
-        const request = indexedDB.open(DB, 1);
-        request.onupgradeneeded = () => request.result.createObjectStore(STORE, { keyPath: 'id' });
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => resolve(null);
-      } catch {
-        resolve(null);
-      }
-    }));
-  const tx = async <T>(mode: IDBTransactionMode, work: (store: IDBObjectStore) => IDBRequest<T> | void): Promise<T | undefined> => {
-    const d = await db();
-    if (!d) return undefined;
-    return new Promise((resolve) => {
-      const t = d.transaction(STORE, mode);
-      const request = work(t.objectStore(STORE));
-      t.oncomplete = () => resolve(request ? (request.result as T) : undefined);
-      t.onerror = () => resolve(undefined);
-      t.onabort = () => resolve(undefined);
-    });
-  };
-  return {
-    put: async (item) => void (await tx('readwrite', (s) => s.put(item))),
-    all: async () => ((await tx('readonly', (s) => s.getAll())) as PendingStory[] | undefined) ?? [],
-    remove: async (id) => void (await tx('readwrite', (s) => s.delete(id))),
-  };
-}
 
 async function micPermission(): Promise<Mic> {
   try {

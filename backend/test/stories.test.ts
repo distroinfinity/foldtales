@@ -138,14 +138,35 @@ describe('stories', () => {
     expect(() => stories.claimPaint('ann', s2, 'd')).toThrow(PAINTINGS_USED);
   });
 
-  test('a speech token needs a story in progress, and is capped per reader a day', () => {
+  test('a hold needs that exact story, the reader\'s own and in progress, and is capped per reader a day', () => {
     const { stories } = setup({ holdsPerReaderDay: 2 });
-    expect(() => stories.claimHold('ann')).toThrow(NO_STORY);
+    expect(() => stories.claimHold('ann', 'st-none')).toThrow(NO_STORY);
     const { storyId } = stories.start('ann', 'a');
-    stories.claimHold('ann');
-    stories.claimHold('ann');
-    expect(() => stories.claimHold('ann')).toThrow(/daily limit/);
-    stories.end('ann', storyId, 'time', page());
+    expect(() => stories.claimHold('bob', storyId)).toThrow(NO_STORY);
+    stories.claimHold('ann', storyId);
+    stories.claimHold('ann', storyId);
+    expect(() => stories.claimHold('ann', storyId)).toThrow(/daily limit/);
+  });
+
+  test('review 12: a hold for an ended story is refused, even while another story is in progress', () => {
+    const { stories } = setup();
+    const a = stories.start('ann', 'a').storyId;
+    stories.end('ann', a, 'time', page());
+    const b = stories.start('ann', 'b').storyId;
+    expect(() => stories.claimHold('ann', a)).toThrow(NO_STORY);
+    stories.claimHold('ann', b);
+  });
+
+  test('review 6: an expired story still takes its page once, with its summary; after that the page is kept', () => {
+    const { stories, clock } = setup();
+    const { storyId } = stories.start('ann', 'a');
+    stories.setTitle(storyId, 'The paper boat', 'plan');
+    clock.at = new Date(clock.at.getTime() + 61 * 60_000);
+    expect(stories.get('ann', storyId)?.status).toBe('expired');
+    expect(() => stories.claimTurn('ann', storyId, 't1')).toThrow(STORY_OVER);
+    const saved = stories.end('ann', storyId, 'time', { title: 'The paper boat', summary: 'It sailed home.', things: [] });
+    expect(saved).toMatchObject({ title: 'The paper boat', summary: 'It sailed home.' });
+    expect(stories.end('ann', storyId, 'time', { title: 'Other', summary: 'Other.', things: [] }).summary).toBe('It sailed home.');
   });
 
   test('spend: reserve before, refuse at the ceiling, settle to the real usage, keep it when unknown', () => {
@@ -166,7 +187,7 @@ describe('stories', () => {
     const { storyId } = stories.start('ann', 'a');
     stories.claimTurn('ann', storyId, 't1');
     stories.claimPaint('ann', storyId, 'teapot');
-    stories.claimHold('ann');
+    stories.claimHold('ann', storyId);
     stories.reserveSpend('claude', 100);
     stories.forget('ann');
     for (const table of ['stories', 'story_turns', 'paint_jobs', 'speech_tokens']) {

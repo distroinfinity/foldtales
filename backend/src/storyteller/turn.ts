@@ -36,6 +36,14 @@ const CUES = ['gust', 'beam', 'lamp-lit', 'lamp-out', 'spark', 'set-down', 'wear
 const MAX_STEPS = 18;
 const MAX_LINES = 6;
 const MAX_PAINTS = 1;
+/** The most a turn may write. */
+export const TURN_MAX_TOKENS = 1500;
+/**
+ * The most a turn's prompt may be, in characters (the rules plus the stage, the room, the story
+ * and 40 lines of history). A real turn is about 12,000; past this the request is refused before
+ * anything is paid for, so no request can buy an unbounded prompt.
+ */
+export const TURN_MAX_PROMPT_CHARS = 40_000;
 
 /** What each room effect does, in the words the storyteller reads. Only the ones the client says it can show are offered. */
 const ROOM_HELP: Record<RoomEffect, string> = {
@@ -390,7 +398,7 @@ export async function* storyTurn(request: StoryTurnRequest, deps: TurnDeps): Asy
   const stream = deps.anthropic.messages.stream(
     {
       model: MODEL,
-      max_tokens: 1500,
+      max_tokens: TURN_MAX_TOKENS,
       system: [{ type: 'text', text: RULES, cache_control: { type: 'ephemeral' } }],
       messages: [{ role: 'user', content: contextOf(request, ctx) }],
       thinking: { type: 'between_tools' },
@@ -428,19 +436,21 @@ export async function* storyTurn(request: StoryTurnRequest, deps: TurnDeps): Asy
     queue.push(entry);
   };
 
-  /** Checks and voices a line at once (in parallel with the next being written); it's released only if the check passed. */
+  /**
+   * Checks a line first, then voices it: a line that fails its check (or whose check fails) is
+   * never sent to the voice provider. Lines still check and voice in parallel with the next being
+   * written, so the first words go out while the rest of the turn is written.
+   */
   const voiced = async (beat: Beat): Promise<Ready> => {
     const lineList = linesOf(beat);
-    const voice: Record<string, VoiceAsset> = {};
-    const [checks] = await Promise.all([
-      Promise.all(lineList.map((l) => check(l.text).catch(() => false))),
-      Promise.all(
-        lineList.map(async (l) => {
-          voice[l.lineId] = (await deps.voices.speak(l.speaker, l.text).catch(() => null)) ?? { url: null, durationMs: estimateSpeechMs(l.text) };
-        }),
-      ),
-    ]);
+    const checks = await Promise.all(lineList.map((l) => check(l.text).catch(() => false)));
     if (checks.some((ok) => !ok)) return BLOCKED;
+    const voice: Record<string, VoiceAsset> = {};
+    await Promise.all(
+      lineList.map(async (l) => {
+        voice[l.lineId] = (await deps.voices.speak(l.speaker, l.text).catch(() => null)) ?? { url: null, durationMs: estimateSpeechMs(l.text) };
+      }),
+    );
     const ready: ReadyBeat = { beat, voice };
     return { kind: 'beat', ready };
   };

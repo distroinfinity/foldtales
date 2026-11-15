@@ -194,7 +194,7 @@ describe('a turn id runs once, through the handlers', () => {
     const h = storytellerHandlers({ stories, anthropic: fake.anthropic, voices, painter, checkLine: async () => true, transcriber: { transcribe: async () => ({ text: '', seconds: null }) } });
     await guardTestCaller('ann', async () => {
       const { storyId } = await h.startStory({ requestId: 'r1' });
-      stories.reserveSpend('claude', 11_000);
+      stories.reserveSpend('claude', 19_000);
       const events = await all(h.storyTurn(request({ kind: 'open' }, { storyId })));
       expect(events).toEqual([expect.objectContaining({ kind: 'error', message: 'the storyteller is resting' })]);
       expect(fake.calls.n).toBe(0);

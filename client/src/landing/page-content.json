@@ -17,6 +17,7 @@
     "title": "Or make up a new story, out loud.",
     "line": "Tell Pip, Wick and Moth what tonight's story is about, or hand them something lost. They make it up with you in their own voices, on your table and around your room, and it ends on a page you keep.",
     "under": "About 10 minutes · your voice or your hands · needs sign-in and the internet",
+    "voicesNote": "The cast’s voices in the AI Storyteller are made by AI, not people.",
     "door": {
       "signed-out": {"button": "Sign in to start", "note": "The AI Storyteller needs an account, so your stories are kept."},
       "auth-loading": {"button": "Checking your sign-in…", "note": null},
@@ -44,6 +45,6 @@
   },
   "about": {
     "book": "Tales from the Table’s Edge is set in the Lost and Found, where everything lost in a house drifts home to a lighthouse at the edge of the table. Pip is a young fox, afraid of the dark, who quietly wants to be the next keeper. Wick is the grumpy old keeper, secretly losing his sight. Moth flies at anything bright, and brings odd finds.",
-    "storyteller": "Tell Pip, Wick and Moth what tonight's story is about, or hand them something lost, and they make it up with you, out loud. They answer in their own voices, paint the things you ask for, and bring the weather, the stars or the sea into your room. Each story ends on a page in your book, and they remember it next time. It needs an account and the internet."
+    "storyteller": "Tell Pip, Wick and Moth what tonight's story is about, or hand them something lost, and they make it up with you, out loud. They answer in their own voices, paint the things you ask for, and bring the weather, the stars or the sea into your room. Each story ends on a page in your book, and they remember it next time. Their voices are AI-generated, not people. It needs an account and the internet."
   }
 }

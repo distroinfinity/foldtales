@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
 import { LISTENING_BUSY, NO_STORY } from '@tabletop/contracts';
 import { describe, expect, test } from 'vitest';
@@ -97,8 +98,8 @@ describe('listening (Groq)', () => {
   });
 
   test('a hold is billed at least 10 seconds, and more for a long one', () => {
-    expect(billedSecondsOf(100)).toBe(10);
-    expect(billedSecondsOf(160_000)).toBe(30);
+    expect(billedSecondsOf(2.4)).toBe(10);
+    expect(billedSecondsOf(28.2)).toBe(29);
   });
 });
 
@@ -116,7 +117,7 @@ describe('the transcribe route', () => {
     });
     return { h, stories };
   }
-  const audio = { mime: 'audio/webm' as const, base64: 'AAAA' };
+  const audio = { mime: 'audio/webm' as const, base64: readFileSync(new URL('./fixtures/hold.webm', import.meta.url)).toString('base64') };
 
   test("hears a hold for the reader's own story in progress, counts it, and measures its seconds", async () => {
     const { h, stories } = handlers(async () => ({ text: 'a kite', seconds: 3.2 }));

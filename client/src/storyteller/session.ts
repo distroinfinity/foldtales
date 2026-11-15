@@ -135,8 +135,10 @@ export function createStorySession(deps: SessionDeps) {
   /** Names of things painted for this story that arrived on the page (not keepsakes from earlier stories). */
   const arrivedThings: string[] = [];
   const paintedIds = new Set<string>();
+  /** The story's one ending, once it has ended: every way of ending settles it, and `end()` returns it. */
   let endingPromise: Promise<StoryEnding> | null = null;
-  let resolveEnding: ((ending: StoryEnding) => void) | null = null;
+  /** A forced stop (end(), the hard stop, a limit, a late close): nothing queued or still decoding plays after it. */
+  let forced = false;
 
   const setState = (next: StoryState, who: string | null = listener) => {
     if (disposed || ended) return;
@@ -193,17 +195,24 @@ export function createStorySession(deps: SessionDeps) {
   }
 
   /** The story is over: nothing more is heard or sent; the closing light and the beam play; the ending is told. */
-  function finish(ending: StoryEnding, how: { recorded?: RecordedId; announce: boolean }): StoryEnding {
-    if (ended) return ending;
+  /**
+   * The story is over. `forced` (end(), the hard stop, a limit, a late close) clears whatever is
+   * queued at once; the AI's own closing lines, already queued, drain instead. Either way the
+   * closing light and the beam play last, and the one ending is settled.
+   */
+  function finish(ending: StoryEnding, how: { recorded?: RecordedId; announce: boolean; forced: boolean }): Promise<StoryEnding> {
+    if (ended) return endingPromise ?? Promise.resolve(ending);
     ended = true;
+    forced = how.forced;
     generation += 1;
     resumeWaiters.splice(0).forEach((r) => r());
+    if (how.forced) deps.live.interrupt(deps.nowMs());
     if (how.recorded) say(how.recorded);
     deps.live.enqueue({ id: `story-end-${generation}`, source: 'director', sceneId: null, estSeconds: 6, actions: CLOSING_LIGHT, next: null, replaces: null });
     deps.log?.(`storyteller: the story ended (${turns} turns, ${Math.round(activeS())} s)`);
-    resolveEnding?.(ending);
+    endingPromise = Promise.resolve(ending);
     if (how.announce) deps.onEnded?.(ending);
-    return ending;
+    return endingPromise;
   }
 
   /** The AI's close, bounded in time; the headset's own ending if it doesn't come. */
@@ -223,25 +232,26 @@ export function createStorySession(deps: SessionDeps) {
     if (ended) return;
     const got = aiEnding as { title: string; summary: string | null } | null;
     if (result === 'late' || !got) {
-      finish(endingOf(null, null), { recorded: heardAny ? undefined : 'close-fallback', announce });
+      // Late or failed: the close is cut where it is, and the headset ends it.
+      finish(endingOf(null, null), { recorded: heardAny ? undefined : 'close-fallback', announce, forced: true });
       return;
     }
-    finish(endingOf(got.summary, got.title === UNTITLED ? null : got.title), { announce });
+    finish(endingOf(got.summary, got.title === UNTITLED ? null : got.title), { announce, forced: false });
   }
 
   /** Handles a refusal or failure, in story. True when the story has ended because of it. */
   function failed(code: string, message: string, opening = false): boolean {
     deps.onError?.(code, message);
     if (code === 'unauthorized' && message === SIGN_IN_REQUIRED) {
-      finish(endingOf(null, null), { announce: true });
+      finish(endingOf(null, null), { announce: true, forced: true });
       return true;
     }
     if (message === STORY_OVER) {
-      finish(endingOf(null, null), { recorded: 'close-time', announce: true });
+      finish(endingOf(null, null), { recorded: 'close-time', announce: true, forced: true });
       return true;
     }
     if (message === STORYTELLER_RESTING || message === STORIES_TODAY_USED || code === 'quota_exceeded' || message === NO_STORY) {
-      finish(endingOf(null, null), { recorded: 'resting', announce: true });
+      finish(endingOf(null, null), { recorded: 'resting', announce: true, forced: true });
       return true;
     }
     if (/could not be reached|network failure|offline/i.test(message)) {
@@ -272,13 +282,22 @@ export function createStorySession(deps: SessionDeps) {
     }
   }
 
+  /**
+   * Whether a turn has been overtaken: disposed, stopped by force, or (for any turn but the close)
+   * interrupted or ended. Checked after every wait, before anything from it is played.
+   */
+  const gone = (mine: number, input: TurnInput): boolean => {
+    if (disposed || forced) return true;
+    if (input.kind === 'close') return false;
+    return ended || mine !== generation;
+  };
+
   /** The close needs a turn of its own, so ordinary turns stop one short of the limit. */
   const turnsLeftForStory = (): boolean => turns < SHAPE.closeTurn - 1;
 
   async function turn(input: TurnInput, watch?: (e: TurnEvent) => void): Promise<void> {
     if (disposed || (ended && input.kind !== 'close')) return;
     if (input.kind !== 'close' && !turnsLeftForStory()) {
-      endingPromise ??= new Promise((resolve) => (resolveEnding = resolve));
       void close('turns', true);
       return;
     }
@@ -333,7 +352,7 @@ export function createStorySession(deps: SessionDeps) {
     try {
       for await (const event of events) {
         await whileAwake();
-        if (mine !== generation && !(input.kind === 'close' && !ended)) return; // Interrupted: this turn is no longer the story.
+        if (gone(mine, input)) return; // Interrupted, stopped or disposed: this turn is no longer the story.
         watch?.(event);
         if (offline && event.kind === 'beat') {
           offline = false;
@@ -344,7 +363,7 @@ export function createStorySession(deps: SessionDeps) {
           // Voiced before it's queued, so the beat is timed by its real audio.
           const voiced = await Promise.all(linesOf(beat).map((l) => (event.ready.voice[l.lineId]?.url ? deps.sound.addLine(l.lineId, event.ready.voice[l.lineId]!.url!, event.ready.voice[l.lineId]!.durationMs) : Promise.resolve(false))));
           if (voiced.some((ok) => !ok)) deps.log?.('storyteller: a line has no voice (captions only)');
-          if (mine !== generation && input.kind !== 'close') return;
+          if (gone(mine, input)) return;
           if (first) {
             first = false;
             deps.log?.(`storyteller: first beat ${Math.round(performance.now() - started)} ms after the turn began`);
@@ -466,10 +485,7 @@ export function createStorySession(deps: SessionDeps) {
     /** "End the story here": ends at once, on the headset, with no network needed, and resolves with its ending. */
     end(): Promise<StoryEnding> {
       if (endingPromise) return endingPromise;
-      endingPromise = new Promise((resolve) => (resolveEnding = resolve));
-      if (ended) return endingPromise;
-      finish(endingOf(null, null), { recorded: 'close-fallback', announce: false });
-      return endingPromise;
+      return finish(endingOf(null, null), { recorded: 'close-fallback', announce: false, forced: true });
     },
     /** The story's title once it has one (for the pause card), or null. */
     title(): string | null {
@@ -487,7 +503,7 @@ export function createStorySession(deps: SessionDeps) {
       // The app owns the end: the hard stop first, then the close.
       if (startedAtMs !== null && activeS() >= SHAPE.hardStopS) {
         deps.live.interrupt(now);
-        finish(endingOf(null, null), { recorded: 'close-time', announce: true });
+        finish(endingOf(null, null), { recorded: 'close-time', announce: true, forced: true });
         return;
       }
       if (pendingListen && state === 'performing' && deps.live.idle) {
@@ -496,7 +512,6 @@ export function createStorySession(deps: SessionDeps) {
       }
       if (state === 'listening' && !closing && (activeS() >= SHAPE.closeAtS || !turnsLeftForStory())) {
         const reason: EndReason = turnsLeftForStory() ? 'time' : 'turns';
-        endingPromise ??= new Promise((resolve) => (resolveEnding = resolve));
         void close(reason, true);
         return;
       }
