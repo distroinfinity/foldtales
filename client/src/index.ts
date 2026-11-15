@@ -50,6 +50,8 @@ import { createWristMenu } from './stage/wrist.ts';
 import { createLiveScheduler } from './storyteller/live.ts';
 import { createStorySession, type StorySession } from './storyteller/session.ts';
 import { createEars } from './storyteller/ears.ts';
+import { recordFinished } from './storyteller/provider.ts';
+import { preloadRecorded, type RecordedLines } from './storyteller/recorded.ts';
 import { createTalkTab } from './stage/talk.ts';
 import { createKeepsakes } from './storyteller/keepsakes.ts';
 import type { ExtraTarget } from './stage/controls.ts';
@@ -142,7 +144,7 @@ async function prepare(world: World) {
     .then((raw) => (raw ? ChapterCanon.parse(raw) : null))
     .catch(() => null);
   const storyConfig = await fetch('./show/storyteller.json')
-    .then((r) => (r.ok ? (r.json() as Promise<{ firstSet: string; entrances: Record<string, Record<string, string>> }>) : null))
+    .then((r) => (r.ok ? (r.json() as Promise<{ firstSet: string; entrances: Record<string, Record<string, string>>; welcomeDrawer?: string[]; recorded?: RecordedLines }>) : null))
     .catch(() => null);
   const soft = makeSoftPieces();
   // Review builds only: `?review=cast` stands the whole cast on the open book, cycling every acting.
@@ -437,9 +439,19 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
     stage.objects.removeLive();
     runtime.useScheduler(live, live.spine, initialObjects);
     sound.clearLines();
+    // Lane D's wiring (handoff, Nov 16): the recorded lines play with no network, so they're loaded first.
+    void preloadRecorded(cfg.recorded ?? {}, (id, url, ms) => sound.addLine(id, url, ms));
     // The last evening, if any, is over: nothing it was still writing may play into this one.
     story?.dispose();
     const session: StorySession = createStorySession({
+      cozySet: cfg.firstSet,
+      recorded: cfg.recorded ?? {},
+      // The story ended by itself: its page is saved (kept on the headset until the server has it) and said.
+      // Lane A's end card replaces the printed line.
+      onEnded: (ending) => {
+        if (session.storyId) void recordFinished({ id: session.storyId, ...ending });
+        runtime.setHint(`The end of “${ending.title}”. ${ending.lines[0] ?? ''}`);
+      },
       withBackend: (call) => storyAccess.withBackend(call),
       stream: (request) =>
         (async function* () {
@@ -528,6 +540,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       if (!result || result.status === 'pending') continue;
       if (result.status === 'failed') {
         console.info(`storyteller: the painting didn't come (${result.reason})`);
+        session?.paintMissed();
         return;
       }
       const def = { ...result.object, id: job.objectId };
@@ -908,7 +921,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       }
     }
     // The tab is there while the Storyteller's book is open and playing; a pause lets the microphone go.
-    const canTalk = story !== null && runtime.started && !clock.paused && controls.amount > 0.98;
+    const canTalk = story !== null && !story.ended && runtime.started && !clock.paused && controls.amount > 0.98;
     if (story) talk.frame({ left: controls.fingertip('left'), right: controls.fingertip('right') });
     if (canTalk !== earsOn) {
       earsOn = canTalk;
