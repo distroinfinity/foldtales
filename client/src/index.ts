@@ -588,6 +588,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
   const speed = Math.max(0.25, Math.min(16, Number(reviewQuery('speed') ?? 1) || 1));
   const head = new Vector3();
   const bookAt = new Vector3();
+  const lightningAt = new Vector3();
   /** The room effects showing now, for telemetry and the storyteller. */
   const roomFx: { on: import('@tabletop/contracts').RoomEffect[] } = { on: [] };
   let roomFxKey = '';
@@ -779,15 +780,17 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       onRise: (at) => sound.play('spark', at),
     });
     const sky = weather.frame({ weather: roomNow.weather, thunderMs: roomNow.thunderMs, nowMs, head, floorY: roomMap.floorY(), ceilingY: roomMap.ceilingY(), bookOpen: controls.amount > 0.98 });
-    show.dim.weather({ storm: sky.storm, night: 0, flash: sky.flash });
-    // The storm's sound: rain all round you, and each thunder once, from your window or far off ahead.
+    // Lightning and its thunder come from your window's side (the room's nearest window), or far off ahead.
+    const lightningWindow = roomMap.resolve('room:window', 'face');
+    const lightningFrom = lightningWindow?.label === 'window' ? lightningWindow.centre : lightningAt.copy(head).addScaledVector(forward, 6).setY(head.y + 1.5);
+    show.dim.weather({ storm: sky.storm, night: 0, flash: sky.flash, flashFrom: lightningFrom });
+    // The storm's sound: rain all round you, and each thunder once.
     sound.ambience('rain', sky.storm);
     if (roomNow.thunderMs !== null && roomNow.thunderMs < 400) {
       const startedAt = Math.round(clock.ms - roomNow.thunderMs);
       if (Math.abs(startedAt - thunderAt) > 1000) {
         thunderAt = startedAt;
-        const window = roomMap.places().find((p) => p.label === 'window');
-        sound.thunder(window ? window.centre.clone() : head.clone().addScaledVector(forward, 6).setY(head.y + 2));
+        sound.thunder(lightningFrom.clone());
       }
     }
     roomDepth.frame(roomNow.weather.on || roomNow.weather.sinceMs < 3000, roomMap);

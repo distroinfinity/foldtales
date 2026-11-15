@@ -55,7 +55,7 @@ export interface DimView {
   /** Positions on your head each frame, so the room around you dims and the book stays lit. */
   update(head: Vector3, book: Vector3, bookWidthM: number, dim: number, beam?: BeamLight | null, spot?: SpotLight | null): void;
   /** The room's weather: a storm's blue-grey and extra dark, a deeper night, and a thunder flash, each 0 to 1. */
-  weather(look: { storm: number; night: number; flash: number }): void;
+  weather(look: { storm: number; night: number; flash: number; flashFrom?: Vector3 | null }): void;
   /** After `update`: another pool of light (shadow play's lit wall), shown if it's stronger than the one set this frame. */
   lift(head: Vector3, spot: SpotLight): void;
   /** Review only: adjusts the darkness, the pool's own dimming and the falloff, live. */
@@ -88,6 +88,7 @@ export function buildDim(): DimView {
       uStorm: { value: 0 },
       uNight: { value: 0 },
       uFlash: { value: 0 },
+      uFlashDir: { value: new Vector3(0, 0, -1) },
     },
     vertexShader: /* glsl */ `
       varying vec3 vDir;
@@ -99,7 +100,7 @@ export function buildDim(): DimView {
       }`,
     fragmentShader: /* glsl */ `
       uniform float uDim, uMax, uPool, uInner, uOuter, uBeamAz, uBeamStrength, uBeamHalf, uSpotAngle, uSpotStrength, uStorm, uNight, uFlash;
-      uniform vec3 uBookDir, uLamp, uSpotDir;
+      uniform vec3 uBookDir, uLamp, uSpotDir, uFlashDir;
       varying vec3 vDir;
       varying vec3 vWorld;
       void main() {
@@ -120,9 +121,12 @@ export function buildDim(): DimView {
         float toSpot = acos(clamp(dot(normalize(vDir), uSpotDir), -1.0, 1.0));
         float spot = uSpotStrength * (1.0 - smoothstep(uSpotAngle * 0.45, uSpotAngle, toSpot));
         alpha *= (1.0 - 0.9 * beam) * (1.0 - 0.85 * spot);
-        // Thunder: for a moment the dark lifts off your walls, and they flash cool white.
-        alpha *= 1.0 - 0.8 * uFlash;
-        gl_FragColor = vec4(color * alpha + vec3(1.0, 0.8, 0.48) * (0.24 * beam + 0.16 * spot) + vec3(0.75, 0.82, 1.0) * 0.22 * uFlash, alpha);
+        // Thunder: lightning outside, from the window's side. The dark lifts most toward it, a little
+        // elsewhere, never the whole room at once (owner: it read as random lights).
+        float toFlash = acos(clamp(dot(normalize(vDir), uFlashDir), -1.0, 1.0));
+        float lightning = uFlash * (0.12 + 0.38 * (1.0 - smoothstep(0.3, 1.4, toFlash)));
+        alpha *= 1.0 - lightning;
+        gl_FragColor = vec4(color * alpha + vec3(1.0, 0.8, 0.48) * (0.24 * beam + 0.16 * spot) + vec3(0.72, 0.8, 1.0) * 0.12 * lightning, alpha);
       }`,
     side: BackSide,
     transparent: true,
@@ -144,7 +148,8 @@ export function buildDim(): DimView {
       if (shape.pool !== undefined) material.uniforms.uPool!.value = shape.pool;
       if (shape.falloff !== undefined) falloff = shape.falloff;
     },
-    weather({ storm, night, flash }) {
+    weather({ storm, night, flash, flashFrom }) {
+      if (flashFrom) material.uniforms.uFlashDir!.value.copy(flashFrom).sub(mesh.position).normalize();
       material.uniforms.uStorm!.value = storm;
       material.uniforms.uNight!.value = night;
       material.uniforms.uFlash!.value = flash;

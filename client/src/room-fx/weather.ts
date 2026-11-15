@@ -11,7 +11,7 @@ import type { Lasting, Weather } from './state.ts';
 /** The painted rain strokes, side by side in one strip (from run 014's weather sheet). */
 export const RAIN_ART = 'fx/weather/rain-strokes.png';
 const RAIN_STROKES = 8;
-const RAIN_COUNT = 1400;
+const RAIN_COUNT = 1800;
 /** Around you, this far out. Real walls hide what's beyond them (the room's depth). */
 const RADIUS_M = 3.2;
 const FADE_MS = 3000;
@@ -65,15 +65,15 @@ export function createWeather(rainArt: TexRef | null): WeatherView {
         vec3 world = vec3(uCentre.x + at.x, y, uCentre.z + at.y);
         float r = length(at) / uRadius;
         vFade = (1.0 - smoothstep(0.75, 1.0, r)) * smoothstep(0.0, 0.25, y - uFloor) * smoothstep(0.0, 0.3, uTop - y)
-          // Not right in your face: drops thin out within arm's length.
-          * smoothstep(0.25, 0.7, length(at));
+          // A fine curtain round the room, not drops at your nose (owner: too big up close).
+          * smoothstep(1.1, 1.8, length(at));
         vStroke = floor(fract(aSeed.z * 13.7) * ${RAIN_STROKES}.0);
         vUv = uv;
         // A streak stands upright, turned to face you, leaning a little with the wind.
         vec3 toEye = normalize(vec3(cameraPosition.x - world.x, 0.0, cameraPosition.z - world.z));
         vec3 side = normalize(cross(vec3(0.0, 1.0, 0.0), toEye));
-        float length_ = 0.2 + 0.08 * aSeed.x;
-        world += side * position.x * 0.03 + vec3(0.0, 1.0, 0.0) * position.y * length_ + side * position.y * 0.04;
+        float length_ = 0.09 + 0.06 * aSeed.x;
+        world += side * position.x * 0.007 + vec3(0.0, 1.0, 0.0) * position.y * length_ + side * position.y * 0.012;
         gl_Position = projectionMatrix * viewMatrix * vec4(world, 1.0);
       }`,
     fragmentShader: /* glsl */ `
@@ -86,10 +86,10 @@ export function createWeather(rainArt: TexRef | null): WeatherView {
       void main() {
         vec2 strip = vec2((vStroke + vUv.x) / ${RAIN_STROKES}.0, vUv.y);
         vec4 c = texture2D(uMap, mix(uRect.xy, uRect.zw, strip));
-        float a = c.a * vFade * uAmount * 0.55;
+        float a = c.a * vFade * uAmount * 0.32;
         if (a < 0.01) discard;
         // Pale silvery paint, a touch lighter than painted, so it reads in a dimmed room.
-        gl_FragColor = vec4(mix(c.rgb, vec3(0.78, 0.84, 0.92), 0.35) * a, a);
+        gl_FragColor = vec4(mix(c.rgb, vec3(0.8, 0.85, 0.92), 0.5) * a, a);
       }`,
     transparent: true,
     premultipliedAlpha: true,
