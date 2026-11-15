@@ -1,0 +1,39 @@
+{
+  "id": "022-chapter-3-sound",
+  "question": "The three small sounds chapter 3's story lists: snow underfoot, the glass frosting over, and a sleepy chair.",
+  "why": "The look bar: every action has a visual and a sound. Chapter 3's snow, frost and morning have no sound of their own. Build plan: docs/plans/2026-11-16-finish-chapter-3.md, run 022. Runs only if lane B's chapter 2 work lets a cue name its own sound; otherwise nothing is spent and chapter 3 plays on existing foley.",
+  "sameAcrossJobs": "eleven_text_to_sound_v2 through art/tools/generate-sound.mjs, 1 credit a requested second. Finished like run 010 (quiet foley comes back near -30 dB and needs up to +19 dB) into art/sound/ch3/.",
+  "decideBy": [
+    "Each clip decodes and is levelled with the rest of the foley.",
+    "The owner judges on the Quest's speakers in the chapter."
+  ],
+  "learnEvenIfRejected": "Whether winter foley sits with the book's paper-and-lamp sounds.",
+  "reusableOutput": "Snow steps, a frost creak and a chair creak, for later chapters and the AI Storyteller.",
+  "estimateCredits": 7,
+  "capNote": "Lane C's 150 across runs 020-022. The cap leaves one retake of a 2 s sound.",
+  "capCredits": 9,
+  "soundJobs": [
+    {
+      "id": "snow-steps",
+      "durationS": 3,
+      "loop": false,
+      "use": "Pip walks into the snow at the foot of the steps (the-snow), and home up the steps (morning)",
+      "promptText": "Small soft footsteps crunching slowly in fresh deep snow, a little animal walking, close and quiet, nothing else. No music."
+    },
+    {
+      "id": "frost-tinkle",
+      "durationS": 2,
+      "loop": false,
+      "use": "The lamp's glass frosts over (errand, with lamp-out)",
+      "promptText": "A faint crystalline creak and tinkle of a glass pane frosting over in the cold, delicate and close, nothing else. No music."
+    },
+    {
+      "id": "chair-creak",
+      "durationS": 2,
+      "loop": false,
+      "use": "The old keeper falls asleep in his comfy chair (morning)",
+      "promptText": "An old padded wooden armchair creaking softly as someone sleepy settles into it, close and gentle, nothing else. No music."
+    }
+  ],
+  "voiceJobs": []
+}

@@ -1,0 +1,19 @@
+{
+  "id": "021-chapter-3-voices",
+  "question": "Voices for chapter 3, 'The longest night', in the run 005 voices and Thimble's from runs 017/019.",
+  "why": "Chapter 3 (docs/plans/2026-11-15-finish-chapters.md). Every line is voiced, as chapters 1 and 2 are; unvoiced lines break immersion (ticket 3, session 1). Build plan: docs/plans/2026-11-16-finish-chapter-3.md, run 021.",
+  "sameAcrossJobs": "Runway text to speech with run 005's presets and settings (narrator Wanda, Pip Mabel, Wick Arjun) and Thimble's preset from art/cast/thimble/voice.json (lane B), 1 credit a line of 200 characters or fewer. Run with art/tools/generate-sound.mjs, which caps from each task's reported cost. Finished with run 010's finish.mjs into art/sound/ch3/.",
+  "decideBy": [
+    "Each clip decodes; tools/chapter-timings.ts re-times every path and every carry pick from the rendered lines and finds them inside 5 to 7 minutes, first turn by about 1:40, the late-wrong path inside the scheduler's 7:00 time-box.",
+    "The owner judges by ear on the Quest's speakers."
+  ],
+  "learnEvenIfRejected": "How far the 1.3x rule holds for a third chapter, and for Thimble's voice.",
+  "reusableOutput": "Chapter 3's lines.",
+  "estimateCredits": 76,
+  "estimateNote": "76 lines from the deduplicated ledger (narrator 18 with the three bridges, Pip 31, Wick 18, Thimble 9; 2 more reuse chapter 1's, 4 more are played in several beats and voiced once). voiceJobs are written by build_plan.mjs from the frozen client/public/show/episode-3.json and its bridges, skipping every line already in the manifest; nothing is run before Thimble's voice is chosen.",
+  "trimOrder": "If the cap would be passed or voices run long: the three bridges (3 lines), then the-edge's narrator line, across's 'Forty years of lost things coming home, all in here.', too-long's 'He's been gone too long. Much too long.' Each trim reported to lane B.",
+  "capNote": "Lane C's 150 across runs 020-022. The cap leaves 8 retakes after the owner listens.",
+  "capCredits": 84,
+  "soundJobs": [],
+  "voiceJobs": []
+}
