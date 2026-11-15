@@ -389,6 +389,63 @@ Decided by the owner and recorded in `docs/v2-ideas.md`. The reasons:
 
 *For Codex review and the sprint master's approval. Every task lists its files and its check. `pnpm check` (typecheck, tests, bundle check) stays green after each commit.*
 
+**Status:** approved with changes by the sprint master (Nov 15), after Codex's review (3 P0, 7 P1, 2 P2). Building. The rulings below **override** the tasks where they differ.
+
+### Rulings from the review (Nov 15)
+
+1. **Rollback never opens guest AI.**
+   - A server kill switch, **`TT_STORYTELLER=off`**, refuses every AI route with `STORYTELLER_RESTING`. The door then says the Storyteller is resting.
+   - With it on, **AI routes always require a signed-in reader**, whatever `TT_ACCOUNTS` says. `TT_ACCOUNTS` now governs only the book's account routes.
+   - Rollback is the Storyteller off, never sign-in off.
+   - Tested across `TT_STORYTELLER` × `TT_ACCOUNTS` × signed in or not × the client's `TT_PUBLIC_*` switches: guests never start a story, everything AI is refused when it's off, and the chapters work in every combination.
+2. **A turn id runs once.**
+   - Each `(storyId, turnId)` is claimed atomically for the reader before any paid call. A duplicate, a concurrent copy, or a retry of a partly delivered turn never regenerates. It gets a terminal **`recover`** event, and the client plays the recorded "where were we?" line and moves on.
+   - There's no replay system.
+   - Start ids are scoped to the reader: `(userId, requestId)`.
+   - Tests count the provider calls on duplicates and concurrent requests.
+3. **Spend is reserved before every paid call.** This covers Claude turns, the moderation and naming calls, the vision check, voices, speech tokens and paintings.
+   - Each call type has a fixed, conservative estimate, reserved in one transaction against a daily ceiling and reconciled to the real usage afterwards. A failure or a timeout keeps the reservation.
+   - At exhaustion, paid work is refused and the story finishes locally.
+   - The defaults are finite, sized from the owner's numbers (150 stories × 40 turns, the per-call estimates in `backend/src/storyteller/spend.ts`).
+   - Tested at the final allowance with concurrent calls, failures, and a store reopen.
+4. **The local ending is saved.**
+   - `endStory` carries the page the headset shows: the title (a fallback if the AI never titled it), the summary (a fallback built from the premise), and the names of things that really arrived.
+   - It's idempotent. The server moderates and stores it.
+   - The client keeps it pending in IndexedDB until the server acknowledges it, and retries on load and on reconnect. Playback never waits for the write.
+5. **The contracts PR has every shape, first:**
+   - `storytellerAvailability`, which reserves nothing: ready, used today or resting, stories left, and the reset time;
+   - the shelf's `StoryRecord`, with `updatedAt` for the library's sessions;
+   - painting identified by `(storyId, objectId)`;
+   - the new route names;
+   - the `ending` and `recover` terminal events;
+   - the HTTP client and the mocks.
+6. **Handoffs.** Once the contracts PR is merged, the provider types and callbacks are posted below for lanes A and B. The integration deadline is the end of Nov 16.
+   - Lane A applies the presentation and `index.ts` entry edits.
+   - Lane B applies `progress.ts`.
+   - Lane D ships modules and small, agreed wiring patches.
+   - One integrated test runs a hands-only story from the door to the end page.
+7. **Live painting stays off** (`TT_PAINTING=off` by default) until the fail-closed picture check is in. The check is moved into the Nov 16 slice if it fits.
+8. **Run 023's playback:**
+   - Clips go to `art/sound/storyteller/<id>.mp3`. The run's job id is the runtime id, mapped in `client/src/storyteller/recorded.ts`.
+   - They're served through `manifest.artFolders`. The exact line for lane B, through the sprint master: add `"sound/storyteller"` to `artFolders` in `client/public/show/manifest.json`.
+   - They're decoded into the sound engine at story start, with line ids `recorded:<id>`.
+   - Tested from the built paths with the backend blocked.
+9. **Auth tests** mount the real accounts layer with mocked provider exchanges. They cover:
+   - Better Auth's real `email_not_found`;
+   - the door kept through cancel, error, retry and code expiry;
+   - Facebook's `redirect_uri`, exactly `https://api.foldtales.xyz/v1/auth/callback/facebook`.
+
+   Facebook isn't called ready until a real Facebook account with no role on the app has signed in on the live link.
+10. **Deletion:**
+    - Deleting a reader removes their stories, plans, turn records and pending jobs. The global spend and credit totals are anonymous aggregates and are kept.
+    - A shelf refresh that comes back after a reader change is dropped, by reader generation, as account sync does.
+    - Lane E's copy also covers the plans kept with a story, painting through Runway, and pictures sent to Anthropic for the look check.
+11. **Voices:**
+    - The owner approves the four live voices in the first headset session, on Nov 16.
+    - Run 023 is recorded only after that. It's approved: 13 lines, 712 characters, ElevenLabs direct, a 2,000-character cap, no Runway credits.
+    - A voice changed later means re-recording its lines within the cap.
+12. **The bundle check** also scans `.env.workspace`'s values, and adds canaries for the auth and provider secret names. It reports names and paths, never values.
+
 ### How it's built
 
 **The story's record lives on the server.** The backend stays stateless about the conversation, because the client still sends the history. It owns:
