@@ -251,6 +251,23 @@ Nothing is spent before the sprint master approves each run. 12 credits stay una
 3. **Chapter 3's `CHAPTERS` row** in `show/progress.ts`: the story's handoff gives it to lane C ("one line, which lane B leaves ready"), but this lane's brief says not to edit `progress.ts`. Either lane B adds the row (or reads it from the manifest's chapter list), or lane C makes that one-line edit with your say-so.
 4. **Lane B's three small asks** (load only the chapter's sets; a cue that names its sound; a carry seed for review), passed on if you agree.
 
+## Progress (stage 3)
+
+**Nov 16, early (before lane B's engine PR):** data preparation, free image work, ledger checks and provisional timings only (ruling 8).
+
+- **`client/public/show/episode-3.json`** from the draft (lane B's latest, with Pip stepping aside to `lighthouse-way` before each crossing), with the ruled staging, for lane B's approval:
+  - `the-frost` lists `lantern` first (ruling 2).
+  - `frost-wipe`: `+ cue set-down → object:$offered` with "There! Shine all the way down the steps!" (ruling 1).
+  - `log-return`: the narrator's line first, over the logbook's drift home, then `pip uses logbook (problem the-glint)` and `+ pip take` (ruling 4).
+  - `lost`: `cue pocket → object:logbook`, then the lines (ruling 1).
+  - `across`: `pip uses logbook` before Pip gives it to Wick; `cue pocket → object:logbook` after Wick gives it back, with "The lamp, and the log…" (ruling 1; otherwise `keep` would fly it into your satchel).
+  - No line changed. `episode-3.carry.json` and `.canon.json` as drafted; the canon's `page` lines wait for E3's shape (the canon schema is strict today).
+- **`tests/chapter-3.test.ts`** (11 checks pass, 3 wait by name): every path reaches the end page and every beat is reachable; the zero-input path exists; one ask per spread; only the story's room effects, and the ceiling only in `the-sky`; the lantern from the start; **Pip's paw is empty at every ask on every path** (it fails on the unfixed draft, at `glint-ask`, as Codex found); the logbook's home on every path; carry slots, picks and defaults; canon beats; no line over 200 characters. Waiting: `checkSpine` against the real library (switches on when Thimble, the landing and the logbook are in the manifest), snowy marks equal base marks (when the snowy sets are in the manifest), every playable line voiced (when run 021 lands).
+- **Provisional timings** (`chapter-timings.ts` with the draft overrides): quick turn 1:36–1:38, end 5:21–5:23; zero input 1:58–2:00, 6:32–6:34; late wrong 2:15–2:17, 6:49–6:51; holding 2:10–2:12, 6:52–6:54. Every pick inside the per-reader turn targets and 5–7 minutes.
+- **Run 021's builder** (`art/runs/021-chapter-3-voices/build_plan.mjs`, run 019's for several episode files, so both hunt versions are voiced): 76 lines to voice from 78 playable; `--check` lists every unvoiced line.
+- **Run 020's free pass** (`make_snow.py`, no credits): `art/sets/the-lamp-snow/` (ground, ledge, railing, lamp room with frosted glass and a snow-capped dome, the lit lamp with the same cap and clear glass) and `art/sets/the-gap-snow/` (ground and both rims). Every piece keeps its alpha exactly; unchanged pieces point at their base set. On the Mac, the gap reads as snow (its warm sand washes are now cool blue-grey, the paper is the snow); the lamp's ground reads only as paler stone, so it is the first candidate for a paid repaint if the emulator agrees. The landing's snow waits for lane B's finished `art/sets/the-landing/`. The snowy sets aren't in the manifest yet: today every chapter loads every set's art, so they wait for lane B's per-chapter loading (ruling 8, ask 1).
+- **Waiting on lane B:** the engine PR (chapter loading with its spine, `onStage`, carried lights, `light-high` on the landing, the minimum for one carried consequence), the landing set and marks, `logbook`, Thimble, contracts v6 (`pages`, PR #23), the hunt's page-version lines (ruling 3), and approval of the staging above.
+
 ## Appendix: the line ledger
 
 From `docs/plans/finish-chapters/episode-3.draft.json` and its bridges, by contract line id (`lineIdOf`), against `client/public/show/manifest.json` and `episode-2.draft.json`. Re-run when the lines freeze; run 021's jobs are written from the frozen file, not from this list.
