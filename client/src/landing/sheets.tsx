@@ -6,6 +6,8 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { deleteMyBook, finishSignIn, googleSignInUrl, signOutHere, startPhoneSignIn, watchPhoneSignIn, type DeviceCode } from './account-ui.ts';
 import { pageLink } from './actions.tsx';
 import { BOOK_TITLE, type LibraryState } from './library.ts';
+import { readCollection, type Collection } from './collection.ts';
+import type { FinishedStory } from '../stage/seams.ts';
 
 function Sheet({ open, onClose, label, children }: { open: boolean; onClose: () => void; label: string; children: ReactNode }) {
   const ref = useRef<HTMLDialogElement>(null);
@@ -191,28 +193,74 @@ export function Bookplate({ open, onClose, signedIn }: { open: boolean; onClose:
   );
 }
 
-export function ChaptersSheet({ open, onClose, library }: { open: boolean; onClose: () => void; library: LibraryState }) {
+/** One way into a chapter from Your book: its label, and what a tap does (null: nothing to do from here). */
+export type ShelfAction = { label: string; run: () => void } | null;
+
+/**
+ * Your book: the shelf (each chapter, with what a tap does), the AI Storyteller's finished stories,
+ * and what you've kept, by name. Nothing here looks tappable that isn't.
+ */
+export function BookSheet({ open, onClose, library, actionFor, stories }: { open: boolean; onClose: () => void; library: LibraryState; actionFor: (n: number) => ShelfAction; stories: FinishedStory[] }) {
   const word = { unread: '', started: 'started', finished: 'read' } as const;
+  const [kept, setKept] = useState<Collection | 'loading'>('loading');
+  useEffect(() => {
+    if (!open) return;
+    setKept('loading');
+    let live = true;
+    void readCollection().then((c) => live && setKept(c));
+    return () => {
+      live = false;
+    };
+  }, [open]);
+  const keptLine = (names: string[] | null, empty: string) => (names === null ? <span className="text-rust">Couldn’t read what’s kept on this headset.</span> : names.length ? names.join(' · ') : <span className="text-ink/60">{empty}</span>);
   return (
-    <Sheet open={open} onClose={onClose} label="Chapters">
-      <h2 className="display m-0 text-[32px] leading-tight text-navy">{BOOK_TITLE}</h2>
-      <div className="mt-2 h-px bg-ink/20" />
-      <h3 className="m-0 mt-6 text-[15px] font-medium text-ink/75">Chapters</h3>
-      <ol className="m-0 mt-2 list-none p-0">
-        {library.chapters.map((c) => (
-          <li key={c.n} className="flex items-baseline gap-3 py-2 text-[20px]">
-            <span className="w-6 text-ink/55">{c.n}</span>
-            <span className="text-ink">{c.title}</span>
-            <span aria-hidden className="mx-1 flex-1 translate-y-[-4px] border-b border-dotted border-ink/30" />
-            <span className="text-[16px] text-ink/75">{word[c.state]}</span>
-          </li>
-        ))}
+    <Sheet open={open} onClose={onClose} label="Your book">
+      <h2 className="display m-0 text-[32px] leading-tight text-navy">Your book</h2>
+      <p className="m-0 mt-1 text-[17px] text-ink/70">{BOOK_TITLE}</p>
+      <div className="mt-3 h-px bg-ink/20" />
+      <ol className="m-0 mt-3 list-none p-0">
+        {library.chapters.map((c) => {
+          const action = actionFor(c.n);
+          return (
+            <li key={c.n} className="flex items-baseline gap-3 py-2 text-[19px]">
+              <span className="w-6 text-ink/55">{c.n}</span>
+              <span className="text-ink">{c.title}</span>
+              <span aria-hidden className="mx-1 flex-1 translate-y-[-4px] border-b border-dotted border-ink/30" />
+              {action ? (
+                <button type="button" className={`${quietInk} p-1 text-[16px]`} onClick={action.run}>
+                  {action.label}
+                </button>
+              ) : (
+                <span className="text-[16px] text-ink/70">{word[c.state]}</span>
+              )}
+            </li>
+          );
+        })}
       </ol>
-      <p className="m-0 mt-2 text-[16px] text-ink/75">More chapters on the way.</p>
-      <h3 className="m-0 mt-7 text-[15px] font-medium text-ink/75">AI Storyteller</h3>
-      <p className="m-0 mt-2 text-[17px] leading-relaxed text-ink/80">
-        {library.storyteller.sessions.length > 0 ? `Your stories: ${library.storyteller.sessions.map((s) => s.title).join(' · ')}` : 'New stories, made up with you, out loud.'}
-      </p>
+      <p className="m-0 mt-1 text-[16px] text-ink/70">More chapters on the way.</p>
+      <h3 className="m-0 mt-7 text-[15px] font-medium text-ink/75">Your stories, with the AI Storyteller</h3>
+      {stories.length ? (
+        <ul className="m-0 mt-2 list-none p-0">
+          {stories.map((st) => (
+            <li key={st.id} className="py-2">
+              <p className="display m-0 text-[20px] text-navy">{st.title}</p>
+              {st.lines.length > 0 && <p className="m-0 mt-1 text-[16px] leading-relaxed text-ink/75">{st.lines.slice(0, 3).join(' ')}</p>}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="m-0 mt-2 text-[16px] text-ink/60">Stories you finish with the AI Storyteller are kept here.</p>
+      )}
+      <h3 className="m-0 mt-7 text-[15px] font-medium text-ink/75">What you’ve kept</h3>
+      {kept === 'loading' ? (
+        <p className="m-0 mt-2 text-[16px] text-ink/60" role="status">Looking in your satchel…</p>
+      ) : (
+        <>
+          <p className="m-0 mt-2 text-[16px] leading-relaxed text-ink/80">From the chapters: {keptLine(kept.chapters, 'nothing yet. Things you use in a chapter are kept.')}</p>
+          <p className="m-0 mt-1 text-[16px] leading-relaxed text-ink/80">Painted for you: {keptLine(kept.painted, 'nothing yet.')}</p>
+          <p className="m-0 mt-2 text-[14px] text-ink/60">Kept on this headset.</p>
+        </>
+      )}
     </Sheet>
   );
 }
