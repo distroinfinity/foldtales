@@ -45,3 +45,4 @@ Characters, objects and scene problems are data, not code, so a new cast or worl
 - **Continue an unfinished AI story** on the same headset (cut by the sprint master, Nov 15, after Codex's review). It needs a committed playback checkpoint covering cast places, held things, light and room effects. A story is left as played-only, and paid work is never replayed while restoring.
 - **Read your AI stories on the phone or desktop page** (cut, Nov 15). The stories are already on the account, so this is a page that reads them.
 - **A SOUND step in the Storyteller** for live sound effects, such as the teapot's broken whistle. The `soundEffect` route exists, and is budgeted at zero until it's used.
+- **Facebook Login,** once Meta business verification is done (app 1124471020437890 exists; its secret is on Railway).

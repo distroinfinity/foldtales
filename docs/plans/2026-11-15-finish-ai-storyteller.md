@@ -391,6 +391,16 @@ Decided by the owner and recorded in `docs/v2-ideas.md`. The reasons:
 
 **Status:** approved with changes by the sprint master (Nov 15), after Codex's review (3 P0, 7 P1, 2 P2). Building. The rulings below **override** the tasks where they differ.
 
+**Facebook Login is out of v1 (owner, Nov 16).** Meta's business verification needs business registration details. Sign-in is the phone code and Google only. Everything about Facebook below (the checklist's section 2, `TT_PUBLIC_FACEBOOK`, the test app, ruling 9's Facebook checks) is not built. It's in `docs/v2-ideas.md`, and the Railway variables stay in place.
+
+**Shapes agreed with lanes A and B** (`docs/plans/2026-11-16-finish-api-shapes.md` §2 and amendment 1):
+- `client/src/storyteller/provider.ts`;
+- the session's `suspend`, `resume`, `end`, `title` and `onEnded`;
+- the account's `startPhoneSignIn`, `watchPhoneSignIn`, `providerSignInUrl('google', …)` and `finishSignIn`;
+- the guest reset clears every key with lane B's prefixes (`READER_KEY_PREFIXES`).
+
+The stub with the exact types is pushed (`808155c`).
+
 ### Rulings from the review (Nov 15)
 
 1. **Rollback never opens guest AI.**
