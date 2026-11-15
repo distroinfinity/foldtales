@@ -301,12 +301,12 @@ Objects: `thimble-boat` (set).
 Problem `the-rocks`: Thimble's paper boat is sinking on the rocks below the landing. Rules in order: `thread` → `in-by-thread`; `rope` → `in-by-rope`; `spans`, `climbs` → `in-by-ladder`; `flies` → `in-by-kite`. Fallback → `rocks-puzzled`. Ignored after 22 s → `rocks-tide`.
 
 **`page-turn-landing`** (est. 3 s, next `the-rocks`)
-  *The page boat: Thimble in her paper boat on the rock, where the room boat was heading.*
+  *The page boat: Thimble in her paper boat on the rock (`near-edge`), where the room boat was heading. The landing names its rock `near-edge` and its bottom step `far-side`, like the gap, so chapter 1's crossings carry her over with data alone.*
 - cue `page-turn`
 - + place cast:pip at `landing-in`
 - + place cast:moth at `moth-landing`
-- + place cast:thimble at `rock`
-- + place object:thimble-boat at `rock`
+- + place cast:thimble at `near-edge`
+- + place object:thimble-boat at `near-edge`
 
 **`the-rocks`** (est. 26 s, next `rescue-ask`)
 - pip walks to mark:pip-step
@@ -325,8 +325,8 @@ Problem `the-rocks`: Thimble's paper boat is sinking on the rocks below the land
 **`in-by-thread`** (est. 12 s, next `ashore`)
 - pip take → object:$offered
 - **Thimble** (wonder, to cast:pip): "That thread! That's my grandmother's thread, from the basket!"
+- **Pip** (warm, to cast:moth): "Moth, take the end out to her! Hold on tight, Thimble!"
 - cue `thimble-thread` → object:$offered
-- + **Pip** (warm, to cast:thimble): "Hold on tight, and we'll pull you in!"
 - resolve `the-rocks`: pulled in on her grandmother's thread
 
 **`in-by-rope`** (est. 12 s, next `ashore`)
@@ -654,6 +654,7 @@ Problem `wick-across`: Wick can't see where the edge of the gap is in the snow. 
 **`wick-rope`** (est. 12 s, next `across`)
 - pip take → object:$offered
 - **Pip** (warm, to cast:wick): "Hold still, Wick. And catch!"
+- pip walks to mark:lighthouse-way
 - cue `wick-rope` → object:$offered
 - + **Wick** (silly): "Hmph. Now where did you learn that?"
 - resolve `wick-across`: Pip threw a line across
@@ -661,6 +662,7 @@ Problem `wick-across`: Wick can't see where the edge of the gap is in the snow. 
 **`wick-ladder`** (est. 12 s, next `across`)
 - pip take → object:$offered
 - **Pip** (warm, to cast:wick): "One rung at a time, Wick. I've got you."
+- pip walks to mark:lighthouse-way
 - cue `wick-ladder` → object:$offered
 - + **Wick** (silly): "Don't look down, eh? Easy for some."
 - resolve `wick-across`: a ladder laid across
@@ -668,6 +670,7 @@ Problem `wick-across`: Wick can't see where the edge of the gap is in the snow. 
 **`wick-kite`** (est. 12 s, next `across`)
 - pip take → object:$offered
 - **Wick** (silly): "A kite? At my age?"
+- pip walks to mark:lighthouse-way
 - cue `wick-kite` → object:$offered
 - + **Wick** (wonder): "Oh. Oh my. Hmph. Rather nice, actually."
 - resolve `wick-across`: Wick flew over on a kite
@@ -687,6 +690,7 @@ Problem `wick-across`: Wick can't see where the edge of the gap is in the snow. 
 - pip uses rope-coil
 - + pip take → object:rope-coil
 - **Pip** (warm, to cast:wick): "Hold still, Wick. And catch!"
+- pip walks to mark:lighthouse-way
 - cue `wick-rope` → object:rope-coil
 - + **Wick** (silly): "Hmph. Now where did you learn that?"
 - resolve `wick-across`: Pip threw Wick's own rope across
@@ -757,12 +761,22 @@ Lane C does **data, art, voices and sound only**. Everything the engine needs fo
 
 | Lane B delivers | So lane C can |
 |---|---|
-| The chapter list in the manifest, loading by number (`?chapter=3`), a saved place per chapter, carry slots, satchel carry | Add chapter 3's entry (episode, canon, carry, who's on stage where) and run it |
-| Thimble in the library (rig, voice), the landing set with every mark below, the `logbook` and `thimble-boat` objects, the `pages` and `thread` tags | Use them by id |
-| Marks: `the-lamp`: `moth-lamp`, `thimble`, `stair` (an exit: a character who walks there fades out). `the-landing`: `landing-in`, `pip-step`, `step` (where crossings land), `moth-landing`, `rock`, `pip-side`, `wick-steps`. `the-gap`: `rope-far`, `wick-lands`, `lamp-thimble` | Stage every beat in the draft |
-| Cues in the library: `light-up` (target `object:<kite or ladder>` or `cast:moth`), `light-down`, `wick-rope`, `wick-ladder`, `wick-kite` (Wick crosses to `wick-lands`; the ladder laid from Pip's side) | Name them; nothing to build |
-| `use` that pulls a room object to the user's paw; `place` of a satchel object onto a mark; Wick's logbook part hidden while the `logbook` object is on stage | `log-return`, `beacon-kite`, `beacon-ladder` and `across` work as written |
+| **Early engine PR to main (Nov 16, 15:00 IST):** `loadChapter(n)` with the chapter's spine and opening placement (`onStage`), the manifest's chapter list, progress and places per chapter, every keeper's light carried, `boat-home` | Add chapter 3's entry (episode, canon, carry, `onStage` with Thimble at `thimble`, `where`) and load it with `?chapter=3` once lane A's host reads it |
+| Thimble in the library (rig, voice), the landing set, the `logbook` and `thimble-boat` objects, the `pages` and `thread` tags (contracts v6) | Use them by id |
+| Marks: `the-lamp`: `moth-lamp`, `thimble`, `stair`. `the-landing`: `landing-in`, `pip-step`, `moth-landing`, `pip-side`, `wick-steps`, `light-high`, and its rock and bottom step named `near-edge` and `far-side` like the gap's. `the-gap`: `rope-far`, `lamp-thimble` | Stage every beat in the draft |
+| Cues: `wick-rope`, `wick-ladder`, `wick-kite` are chapter 1's crossing kinds with Wick as the traveller to `far-side` (data only; Pip steps aside to `lighthouse-way` first, as the draft does). `light-up` and `light-down` if they make the 18:00 cutoff | Name them |
 | `tools/chapter-timings.ts` | Re-time after every change, and against the rendered voice |
+
+**Two versions of anything optional.** Items that miss lane B's cutoff (Nov 16, 18:00 IST) fall back to existing staging. The build plan's dependency table gives each fallback and its story line; for chapter 3:
+
+| If this misses the cutoff | Chapter 3 plays it like this instead |
+|---|---|
+| `light-up` / `light-down` (the beacon) | No light leaves Pip's paw. `beacon-*` become one beat: Pip climbs to the top step (`move pip mark:wick-steps`) and raises the lantern (`emote raise`). Line: **Pip**: "Then I'll just have to be bigger than the dark." The beacon's kite or ladder variants are dropped; the carry slot keeps only its default |
+| `place` from the satchel | As above: no borrowing; the default beacon only |
+| `use` that pulls a room object | The hunt's own return (built) brings the logbook to the book; `log-return` becomes Pip picking it up there (`emote take object:logbook`), with the same lines |
+| The `stair` exit mark | Wick walks to `stair`, placed behind the lamp room's painted glass, so the set hides him; no new code |
+| Wick's logbook part hidden while the object is out (linked part) | The hunt finds Wick's old **brass key** instead (`object:brass-key`, rule `shiny`): "Wick's key! The key to the lamp room!" In `across`, Wick hands Pip the key: "The lamp, and the key, and all of it. They're yours, keeper." |
+| The hunt fails its headset walk (lane B owns the pass or fail, in the owner's Nov 16 session) | `place object:logbook at pip-step` plus `cue beam`: it glints on the page and the reader picks it up there |
 
 Lane C's own list: `client/public/show/episode-3.json`, `.canon.json` and `.carry.json` from the drafts here (titles, ids and lines as written; trims allowed, new lines through the sprint master); snowy page art (runs 020–022, its own plan); chapter 3's voices (76 new lines; Thimble's voice is chosen in run 017/019) and sound (snow underfoot, a frost tinkle, a sleepy chair creak, if wanted); the chapter's `CHAPTERS` row in `progress.ts` (one line, which lane B leaves ready); the headset run.
 

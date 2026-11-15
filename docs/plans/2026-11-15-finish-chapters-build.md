@@ -6,6 +6,40 @@ Lane B, stage 2, branch `finish-chapter-2`. Builds the story in `docs/plans/2026
 
 **Order:** the contracts PR first, then **chapter 3's engine prerequisites** (so lane C can build on them by the end of Nov 16), then the rest of the engine and **chapter 2**. Thimble's art goes first of the paid runs, so her look is approved in the headset by the end of Nov 16. Feature freeze is the end of Nov 17.
 
+## Stage 2 rulings (sprint master, Nov 16), and where they stand
+
+Approved with changes after Codex's review (0 P0, 6 P1, 3 P2). Runs 017–019 approved at their caps (150 in all).
+
+**The critical path, as an early engine PR to main through the sprint master (target Nov 16, 15:00 IST), separate from chapter 2's content PR:**
+
+| | What | Status |
+|---|---|---|
+| — | The image runner's per-run ledger and cap check before each job (finding 7), before run 017 | **Done** (`art/tools/ledger.mjs`). Run 017 spent 15 of 20 by our own ledger while the shared balance fell 57 |
+| — | Contracts: tags `thread`, `pages`; `boat-home`; `CONTRACT_VERSION` 6 (on top of lane D's v5) | PR #23, rebased to v6 |
+| a | `loadChapter(n)` with the chapter's spine and opening placement: `ChapterData.onStage`, `loadStageAssets(..., { spine })`, the manifest's optional `chapters` list (amendment 2) | **Done** on `finish-chapters-engine` |
+| b | Progress and places per chapter, and the account adapter: `readLocalChapters(store, seriesId, now)`, `writeLocalChapters(store, seriesId, book)`, `forgetLocalChapters(store)` in `show/progress.ts`, for lane D's boundary (finding 6; the four cases tested) | **Done** |
+| c | Every keeper's light carried in every chapter (`startingObjects()` in `stage/build.ts`); `light-high` on the landing | Lights **done**; the mark lands with run 018's set |
+| d | `boat-home` in `room-fx/state.ts` and `room-fx/sea.ts`; `SeaView.frame({ ..., book })` | **Done**, tested (pure, resume-safe) |
+
+**Amendment 2's field names** (sent to the sprint master): `ChapterData.onStage: ReadonlyArray<{ cast: string; mark: string }>`; `loadStageAssets(manifest, artBase, renderer, { allowKtx2, onProgress, spine })`, where the host passes `chapter.episode`; `SeaView.frame({ now, nowMs, head, floorY, bookOpen, book })`, where the host passes the book's world position as it already does for the night sky. Host call sites (lane A): `manifest.onStage` → `chapter.onStage` at its three uses in `index.ts`, the `spine` option, and the sea's `book`.
+
+**`LibraryState.storyteller`** becomes lane D's `StorytellerSnapshot` once `client/src/storyteller/provider.ts` is on main (its stub is on lane D's branch). Until then the field stays as it is, so the landing doesn't break.
+
+**Everything else is optional, cutoff Nov 16, 18:00 IST.** What misses it falls back to existing staging, and the story line changes as written here:
+
+| Item | Chapter | If it misses the cutoff |
+|---|---|---|
+| `light-up` / `light-down` (E5) | 2: `high-*`, `she-sees` | No light leaves Pip's paw. Kite: **Pip**: "A kite! Fly up high, so she can see where I am!" while Pip raises the lantern (`emote raise`) and the kite is set down by him. Ladder: Pip climbs to `light-high` on the rocks (`move`) and raises the lantern. Moth: **Narrator**: "And the moth, who could never leave a light alone, flew round and round it, until it winked like a signal." `she-sees` becomes: **Pip**: "It's very dark down here. But she can see my light. That's what matters." (helping despite fear, per finding 6's second option) |
+| | 3: `beacon-*` | See the story file's lane C table: the default beacon only, Pip raising the lantern on the top step |
+| Thimble's and Wick's crossings (E6) | 2, 3 | **No longer needed:** the landing names its rock `near-edge` and its step `far-side`, so chapter 1's crossing kinds carry Thimble with data alone; chapter 3's Wick crosses to `far-side` after Pip steps aside to `lighthouse-way`. Settle, next beat and restore are tested for each |
+| `use` from the room (E7) | 2: `letter-tide` | `place object:bottle at lantern-edge`, then Pip takes it (if `place` won't move a room object, Moth "brings" it with the same `place`, and the narrator line becomes "But the moth, who loves anything that shines, made such a fuss that the bottle came up after all.") |
+| | 3: `log-return` | The hunt's own return (built); Pip picks the logbook up at the book |
+| Exit mark, linked part, `place` from the satchel (E8, E9) | 3 | The story file's lane C table (the stair behind the lamp room's glass; the brass key instead of the logbook; the default beacon only) |
+| Thimble's look approved in the headset by the end of Nov 16 | 2, 3 | A non-speaking page card from run 017's master; her lines go to Pip and the narrator |
+| The hunt's headset walk (lane B owns pass or fail, in the owner's Nov 16 session) | 3 | The logbook glints on the page instead |
+
+**Other rulings:** finding 5, `exit` and link metadata stay client-only and are stripped from the shared library, checked by `StageLibrary.parse(libraryOf(...))` (test added); finding 8, branch and carry-combination coverage for the late-wrong and holding readers after real voices land, first-turn acceptance by reader (quick ≤ 1:45; zero input ≤ 2:05; late wrong ≤ 2:20), and a full unaccelerated zero-input walk; finding 9, run 019's builder takes scene beats and `spine.bridges`, dedupes by line id, and asserts every playable line has a voice.
+
 ## Timeline
 
 | When | Lane B | Lane C can |

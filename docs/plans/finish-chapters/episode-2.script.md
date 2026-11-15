@@ -181,12 +181,12 @@ Objects: `thimble-boat` (set).
 Problem `the-rocks`: Thimble's paper boat is sinking on the rocks below the landing. Rules in order: `thread` → `in-by-thread`; `rope` → `in-by-rope`; `spans`, `climbs` → `in-by-ladder`; `flies` → `in-by-kite`. Fallback → `rocks-puzzled`. Ignored after 22 s → `rocks-tide`.
 
 **`page-turn-landing`** (est. 3 s, next `the-rocks`)
-  *The page boat: Thimble in her paper boat on the rock, where the room boat was heading.*
+  *The page boat: Thimble in her paper boat on the rock (`near-edge`), where the room boat was heading. The landing names its rock `near-edge` and its bottom step `far-side`, like the gap, so chapter 1's crossings carry her over with data alone.*
 - cue `page-turn`
 - + place cast:pip at `landing-in`
 - + place cast:moth at `moth-landing`
-- + place cast:thimble at `rock`
-- + place object:thimble-boat at `rock`
+- + place cast:thimble at `near-edge`
+- + place object:thimble-boat at `near-edge`
 
 **`the-rocks`** (est. 26 s, next `rescue-ask`)
 - pip walks to mark:pip-step
@@ -205,8 +205,8 @@ Problem `the-rocks`: Thimble's paper boat is sinking on the rocks below the land
 **`in-by-thread`** (est. 12 s, next `ashore`)
 - pip take → object:$offered
 - **Thimble** (wonder, to cast:pip): "That thread! That's my grandmother's thread, from the basket!"
+- **Pip** (warm, to cast:moth): "Moth, take the end out to her! Hold on tight, Thimble!"
 - cue `thimble-thread` → object:$offered
-- + **Pip** (warm, to cast:thimble): "Hold on tight, and we'll pull you in!"
 - resolve `the-rocks`: pulled in on her grandmother's thread
 
 **`in-by-rope`** (est. 12 s, next `ashore`)

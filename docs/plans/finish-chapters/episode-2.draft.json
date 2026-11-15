@@ -1151,13 +1151,13 @@
               "do": "place",
               "withPrev": true,
               "what": "cast:thimble",
-              "at": "rock"
+              "at": "near-edge"
             },
             {
               "do": "place",
               "withPrev": true,
               "what": "object:thimble-boat",
-              "at": "rock"
+              "at": "near-edge"
             }
           ],
           "next": "the-rocks",
@@ -1278,18 +1278,18 @@
               "to": "cast:pip"
             },
             {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "Moth, take the end out to her! Hold on tight, Thimble!",
+              "mood": "warm",
+              "to": "cast:moth"
+            },
+            {
               "do": "cue",
               "withPrev": false,
               "cue": "thimble-thread",
               "target": "object:$offered"
-            },
-            {
-              "do": "speak",
-              "withPrev": true,
-              "who": "pip",
-              "text": "Hold on tight, and we'll pull you in!",
-              "mood": "warm",
-              "to": "cast:thimble"
             },
             {
               "do": "resolve",
