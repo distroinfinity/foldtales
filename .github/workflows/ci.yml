@@ -1,7 +1,14 @@
 name: CI
 
-# Every branch and PR head arrives as a push, so this one trigger covers both without running twice.
-on: push
+# Runs on main only (owner, Nov 16: Actions minutes). Lanes run `pnpm check` locally before every
+# push and before opening a PR. Railway waits for this check on main before deploying the backend.
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-main
+  cancel-in-progress: true
 
 jobs:
   check:
@@ -16,58 +23,5 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm check
 
-  # The site, built here and uploaded to Cloudflare Pages (lane E, Nov 16). Pages' own build ran out
-  # of its 20 minutes as the art grew: compressing it to KTX2 is most of the work, so here it runs on
-  # every core with the compressed art cached between runs. The cache is content-addressed
-  # (tools/art-build.ts), so a partial or older restore can only save time, never serve wrong art.
-  #
-  # Dormant until the CLOUDFLARE_API_TOKEN secret exists. When it's added, switch off "Enable
-  # automatic production branch deployments" in the Pages project, so only this job deploys.
-  # Railway still deploys the backend itself, after the check passes.
-  site:
-    if: github.ref == 'refs/heads/main'
-    needs: check
-    runs-on: ubuntu-latest
-    # One deploy at a time, the newest winning.
-    concurrency:
-      group: site
-      cancel-in-progress: true
-    env:
-      HAS_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
-    steps:
-      - name: Skip until the deploy token is set
-        if: env.HAS_TOKEN != 'true'
-        run: echo "No CLOUDFLARE_API_TOKEN secret, so Cloudflare Pages still builds main itself."
-      - uses: actions/checkout@v4
-        if: env.HAS_TOKEN == 'true'
-      - uses: pnpm/action-setup@v4
-        if: env.HAS_TOKEN == 'true'
-      - uses: actions/setup-node@v4
-        if: env.HAS_TOKEN == 'true'
-        with:
-          node-version-file: .nvmrc
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-        if: env.HAS_TOKEN == 'true'
-      - uses: actions/cache@v4
-        if: env.HAS_TOKEN == 'true'
-        with:
-          path: client/.art-cache
-          key: art-cache-v2-${{ hashFiles('art/**/*.png', 'tools/art-build.ts', 'tools/ktx2-encode.ts', 'pnpm-lock.yaml') }}
-          restore-keys: art-cache-v2-
-      - name: Build
-        if: env.HAS_TOKEN == 'true'
-        run: pnpm --filter @tabletop/client build
-        env:
-          # The site's settings, as GitHub variables (they were Pages' build variables).
-          TT_PUBLIC_BACKEND_URL: ${{ vars.TT_PUBLIC_BACKEND_URL }}
-          TT_PUBLIC_ACCOUNTS: ${{ vars.TT_PUBLIC_ACCOUNTS }}
-          TT_PUBLIC_STORYTELLER: ${{ vars.TT_PUBLIC_STORYTELLER }}
-          TT_PUBLIC_FACEBOOK: ${{ vars.TT_PUBLIC_FACEBOOK }}
-          TT_PUBLIC_SW: ${{ vars.TT_PUBLIC_SW }}
-      - name: Deploy to Cloudflare Pages
-        if: env.HAS_TOKEN == 'true'
-        run: pnpm dlx wrangler@4.162.0 pages deploy client/dist --project-name=foldtales --branch=main --commit-hash=${{ github.sha }} --commit-dirty=false
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+# Deploys aren't done here: Cloudflare Pages and Railway are linked to this repo and build main
+# themselves on every push (owner, Nov 15).
