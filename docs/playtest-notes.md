@@ -184,3 +184,4 @@ Signed off by the owner in the headset after AI Storyteller session 2: "I actual
   - *Changed:* snow settles only on tables, couches and beds, not the floor. Fog is taken out of what chapters and the storyteller are offered, until it's reworked.
   - **Snow, settled:** "snow in itself, we have, I think, cracked. Ring of snow, it looks very nice." Approved (the falling ring round the reader).
 - **The wall-lighting fix, confirmed:** "walls look fine now." Go-ahead for art run 015.
+- **Sea and paper boat:** "boat and sea look nice." Approved.
