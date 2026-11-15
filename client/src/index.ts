@@ -37,6 +37,7 @@ import { createNightSky, SKY_ART } from './room-fx/sky.ts';
 import { createSnow, SNOW_ART } from './room-fx/snow.ts';
 import { createFog, FOG_ART } from './room-fx/fog.ts';
 import { createSea, SEA_ART } from './room-fx/sea.ts';
+import { createGulls, GULL_ART } from './room-fx/gulls.ts';
 import { createSoundEngine } from './sound/engine.ts';
 import narratorVoice from '../../art/voice/narrator.json';
 import { arrivalAt, OPEN_AT_MS } from './stage/arrival.ts';
@@ -60,7 +61,7 @@ import { buildEmber, buildWash } from './stage/wash.ts';
 import { createTelemetry } from './telemetry.ts';
 
 /** Room effects this build can show. Each joins as it's built, and the storyteller hears of only these. */
-const ROOM_EFFECTS_BUILT: import('@tabletop/contracts').RoomEffect[] = ['hunt', 'shadows', 'shadows-off', 'fireflies', 'fireflies-off', 'rain', 'thunder', 'clear', 'night-sky', 'stars-lantern', 'stars-kite', 'stars-fox', 'shooting-star', 'day', 'snow', 'sea', 'tide-in', 'tide-out', 'boat', 'sea-off'];
+const ROOM_EFFECTS_BUILT: import('@tabletop/contracts').RoomEffect[] = ['hunt', 'shadows', 'shadows-off', 'fireflies', 'fireflies-off', 'rain', 'thunder', 'clear', 'night-sky', 'stars-lantern', 'stars-kite', 'stars-fox', 'shooting-star', 'day', 'snow', 'sea', 'tide-in', 'tide-out', 'boat', 'sea-off', 'gulls', 'gulls-off', 'bottle'];
 
 const FLUSH_EVERY_MS = 10_000;
 const FRAMEBUFFER_SCALE = 1.4;
@@ -222,6 +223,10 @@ async function prepare(world: World) {
   const seaWater = assets.textures.get(SEA_ART.water);
   const sea = seaWater ? createSea({ water: seaWater, boat: assets.textures.get(SEA_ART.boat) ?? null }) : null;
   if (sea) for (const mesh of sea.meshes) world.scene.add(mesh);
+  // Gulls that fly in and perch on a shelf or the couch.
+  const gullArt = { perched: assets.textures.get(GULL_ART.perched), up: assets.textures.get(GULL_ART.up), down: assets.textures.get(GULL_ART.down) };
+  const gulls = gullArt.perched && gullArt.up && gullArt.down ? createGulls({ perched: gullArt.perched, up: gullArt.up, down: gullArt.down }) : null;
+  if (gulls) for (const mesh of gulls.meshes) world.scene.add(mesh);
   const runtime = createShowRuntime({
     manifest,
     spine: assets.spine,
@@ -366,6 +371,15 @@ async function prepare(world: World) {
         step('shooting-star', 8_000);
         step('stars-fox', 11_000);
         step('day', 16_000);
+      } else if (effect === 'gulls') {
+        runtime.addRoom({ do: 'room', withPrev: false, effect: 'gulls', what: null, at: null }, at);
+        runtime.addRoom({ do: 'room', withPrev: false, effect: 'gulls-off', what: null, at: null }, at + 16_000);
+      } else if (effect === 'bottle') {
+        // The bottle isn't in chapter 1: it joins the stage for the review, then washes up at your feet.
+        const def = defs.get('bottle');
+        const art = def?.art.kind === 'asset' ? assets.textures.get(def.art.path) : undefined;
+        if (def && art && !stage.objects.get('bottle')) stage.objects.add(def, art, { kind: 'away' });
+        runtime.addRoom({ do: 'room', withPrev: false, effect: 'bottle', what: 'object:bottle', at: null }, at);
       } else if (effect === 'sea') {
         // The sea washes in, the boat sails, the tide rises and falls, the sea goes out.
         const step = (e: import('@tabletop/contracts').RoomEffect, ms: number) => runtime.addRoom({ do: 'room', withPrev: false, effect: e, what: null, at: null }, at + ms);
@@ -406,11 +420,11 @@ async function prepare(world: World) {
       else away.requested = true;
     },
   });
-  return { manifest, assets, stage, dim, sound, clock, runtime, roomMap, shadowPlay, fireflies, windowView, weather, roomDepth, nightSky, snow, fog, sea, devRoomTick, wash, ember, log, pause, controls, soft, review, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, directorOn, storyConfig, moreTargets };
+  return { manifest, assets, stage, dim, sound, clock, runtime, roomMap, shadowPlay, fireflies, windowView, weather, roomDepth, nightSky, snow, fog, sea, gulls, devRoomTick, wash, ember, log, pause, controls, soft, review, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, directorOn, storyConfig, moreTargets };
 }
 
 function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom: Checkpoint | null, target: EnterTarget | null = null): void {
-  const { manifest, assets, stage, sound, clock, runtime, roomMap, shadowPlay, fireflies, windowView, weather, roomDepth, nightSky, snow, fog, sea, devRoomTick, wash, ember, log, pause, controls, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, storyConfig, moreTargets } = show;
+  const { manifest, assets, stage, sound, clock, runtime, roomMap, shadowPlay, fireflies, windowView, weather, roomDepth, nightSky, snow, fog, sea, gulls, devRoomTick, wash, ember, log, pause, controls, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, storyConfig, moreTargets } = show;
   // The AI Storyteller, when that's the door the reader chose on the landing page.
   const storyMode = target?.kind === 'storyteller' && storyConfig !== null;
   let story: StorySession | null = null;
@@ -837,6 +851,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       }
     }
     roomDepth.frame(roomNow.weather.on || roomNow.weather.sinceMs < 6000 || roomNow.sea.on || roomNow.sea.sinceMs < 5000, roomMap);
+    gulls?.frame({ state: roomNow.gulls, nowMs, room: roomMap, head, book: stage.root.visible ? stage.root.getWorldPosition(bookAt) : null, bookOpen: controls.amount > 0.98 });
     sea?.frame({ now: roomNow, nowMs, head, floorY: roomMap.floorY(), bookOpen: controls.amount > 0.98 });
     snow?.frame({ weather: roomNow.weather, nowMs, head, room: roomMap, bookOpen: controls.amount > 0.98 });
     fog?.frame({ weather: roomNow.weather, nowMs, head, floorY: roomMap.floorY(), bookOpen: controls.amount > 0.98 });

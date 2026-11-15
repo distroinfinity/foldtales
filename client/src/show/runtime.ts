@@ -217,6 +217,8 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
   let huntHidden: string | null = null;
   let huntFoundAt: number | null = null;
   const huntTarget = new Vector3();
+  /** Your head, as of the last frame, for things that come to you (the bottle washes up at your feet). */
+  const lastHead = new Vector3(0, 1.2, 0);
   const lampProbe = new Vector3();
   let overlays: Overlay[] = [];
   let drawerWanted = false;
@@ -341,6 +343,25 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
     } else if (a.do === 'place' && a.what.startsWith('object:')) {
       const at = markOf(manifest, setOfScene(scheduler.scene()), a.at);
       if (at) views.objects.send(a.what.slice(7), { kind: 'page', at }, nowMs, 400, 0.02);
+    } else if (a.do === 'room' && a.effect === 'bottle') {
+      // It washes up at your feet: just in front of you, toward the book, sliding in from further out.
+      const id = objectOf(a.what);
+      if (id && views.objects.get(id) && views.room) {
+        const book = views.book.root.getWorldPosition(new Vector3());
+        const toward = book.clone().sub(lastHead).setY(0);
+        if (toward.lengthSq() < 1e-4) toward.set(0, 0, -1);
+        toward.normalize();
+        const side = new Vector3(-toward.z, 0, toward.x);
+        // By your feet, to one side: not under the table the book stands on.
+        const spot = lastHead.clone().addScaledVector(toward, 0.3).addScaledVector(side, 0.35);
+        spot.y = views.room.floorY() + 0.05;
+        const place = views.room.below(spot);
+        if (place) {
+          const from = spot.clone().addScaledVector(toward, 1.6).addScaledVector(side, 0.6).setY(views.room.floorY() + 0.03);
+          views.objects.setVisible(id, true);
+          views.objects.send(id, { kind: 'room', place: place.id, offset: [spot.x - place.centre.x, spot.z - place.centre.z] }, nowMs, 3200, 0.04, from);
+        }
+      }
     } else if (a.do === 'room' && a.effect === 'hunt') {
       // The lost thing slips off to a place in your room, unseen until the beam finds it.
       const id = objectOf(a.what);
@@ -647,6 +668,7 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
     },
     frame(deltaMs, nowMs, head, hands, handPoints) {
       wallMs = nowMs;
+      if (head) lastHead.copy(head);
       if (started && !heldCast && !pageHold) clock.advance(deltaMs);
       // Picked up mid-line, a character stops talking with the story, and picks up the line where it left off.
       const handsHold = heldCast !== null || pageHold !== null;

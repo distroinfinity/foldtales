@@ -364,9 +364,11 @@ export function createObjects(initial: ObjectState[], deps: ObjectsDeps): Object
             }
             at.x += home.offset[0];
             at.z += home.offset[1];
+            // Big enough to find across the room, nearer its own size close by (a bottle at your feet).
+            const near = Math.max(0.35, Math.min(1, at.distanceTo(head) / 2.5));
             surfaceY = deps.bookRoot.worldToLocal(at.clone()).y;
             v.holder.position.copy(deps.loose.worldToLocal(at));
-            size = Math.max(1, ROOM_HEIGHT_M / (v.h * (deps.loose.getWorldScale(tmp2).y || 1)));
+            size = Math.max(1, (ROOM_HEIGHT_M * near) / (v.h * (deps.loose.getWorldScale(tmp2).y || 1)));
             v.holder.scale.setScalar(size);
             break;
           }
