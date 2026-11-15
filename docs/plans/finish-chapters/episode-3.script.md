@@ -203,6 +203,7 @@ Problem `wick-across`: Wick can't see where the edge of the gap is in the snow. 
 **`wick-rope`** (est. 12 s, next `across`)
 - pip take → object:$offered
 - **Pip** (warm, to cast:wick): "Hold still, Wick. And catch!"
+- pip walks to mark:lighthouse-way
 - cue `wick-rope` → object:$offered
 - + **Wick** (silly): "Hmph. Now where did you learn that?"
 - resolve `wick-across`: Pip threw a line across
@@ -210,6 +211,7 @@ Problem `wick-across`: Wick can't see where the edge of the gap is in the snow. 
 **`wick-ladder`** (est. 12 s, next `across`)
 - pip take → object:$offered
 - **Pip** (warm, to cast:wick): "One rung at a time, Wick. I've got you."
+- pip walks to mark:lighthouse-way
 - cue `wick-ladder` → object:$offered
 - + **Wick** (silly): "Don't look down, eh? Easy for some."
 - resolve `wick-across`: a ladder laid across
@@ -217,6 +219,7 @@ Problem `wick-across`: Wick can't see where the edge of the gap is in the snow. 
 **`wick-kite`** (est. 12 s, next `across`)
 - pip take → object:$offered
 - **Wick** (silly): "A kite? At my age?"
+- pip walks to mark:lighthouse-way
 - cue `wick-kite` → object:$offered
 - + **Wick** (wonder): "Oh. Oh my. Hmph. Rather nice, actually."
 - resolve `wick-across`: Wick flew over on a kite
@@ -236,6 +239,7 @@ Problem `wick-across`: Wick can't see where the edge of the gap is in the snow. 
 - pip uses rope-coil
 - + pip take → object:rope-coil
 - **Pip** (warm, to cast:wick): "Hold still, Wick. And catch!"
+- pip walks to mark:lighthouse-way
 - cue `wick-rope` → object:rope-coil
 - + **Wick** (silly): "Hmph. Now where did you learn that?"
 - resolve `wick-across`: Pip threw Wick's own rope across

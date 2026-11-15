@@ -1219,6 +1219,12 @@
               "to": "cast:wick"
             },
             {
+              "do": "move",
+              "withPrev": false,
+              "who": "pip",
+              "to": "mark:lighthouse-way"
+            },
+            {
               "do": "cue",
               "withPrev": false,
               "cue": "wick-rope",
@@ -1264,6 +1270,12 @@
               "to": "cast:wick"
             },
             {
+              "do": "move",
+              "withPrev": false,
+              "who": "pip",
+              "to": "mark:lighthouse-way"
+            },
+            {
               "do": "cue",
               "withPrev": false,
               "cue": "wick-ladder",
@@ -1307,6 +1319,12 @@
               "text": "A kite? At my age?",
               "mood": "silly",
               "to": null
+            },
+            {
+              "do": "move",
+              "withPrev": false,
+              "who": "pip",
+              "to": "mark:lighthouse-way"
             },
             {
               "do": "cue",
@@ -1422,6 +1440,12 @@
               "text": "Hold still, Wick. And catch!",
               "mood": "warm",
               "to": "cast:wick"
+            },
+            {
+              "do": "move",
+              "withPrev": false,
+              "who": "pip",
+              "to": "mark:lighthouse-way"
             },
             {
               "do": "cue",

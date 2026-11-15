@@ -144,8 +144,8 @@ def ch2():
     ]
     s3 = 'the-landing'
     b3 = [
-        beat(s3, 'page-turn-landing', 3, 'the-rocks', [C('page-turn'), P('cast:pip', 'landing-in', w=True), P('cast:moth', 'moth-landing', w=True), P('cast:thimble', 'rock', w=True), P('object:thimble-boat', 'rock', w=True)],
-             'The page boat: Thimble in her paper boat on the rock, where the room boat was heading.'),
+        beat(s3, 'page-turn-landing', 3, 'the-rocks', [C('page-turn'), P('cast:pip', 'landing-in', w=True), P('cast:moth', 'moth-landing', w=True), P('cast:thimble', 'near-edge', w=True), P('object:thimble-boat', 'near-edge', w=True)],
+             'The page boat: Thimble in her paper boat on the rock (`near-edge`), where the room boat was heading. The landing names its rock `near-edge` and its bottom step `far-side`, like the gap, so chapter 1\'s crossings carry her over with data alone.'),
         beat(s3, 'the-rocks', 26, 'rescue-ask', [
             M('pip', 'mark:pip-step'), W(0.6),
             N('The little boat came in out of the dark, right up to the rocks. And there it stuck.', 'tense'),
@@ -158,8 +158,8 @@ def ch2():
         beat(s3, 'rescue-ask', 26, None, [E('pip', 'look', 'reader'), ASK('pip', 'the-rocks', "She's stuck on the rocks! Have you got anything that could bring her in?", drawer=True, wait=22)]),
         beat(s3, 'in-by-thread', 12, 'ashore', take() + [
             S('thimble', "That thread! That's my grandmother's thread, from the basket!", 'wonder', 'cast:pip'),
+            S('pip', 'Moth, take the end out to her! Hold on tight, Thimble!', 'warm', 'cast:moth'),
             C('thimble-thread', 'object:$offered'),
-            S('pip', "Hold on tight, and we'll pull you in!", 'warm', 'cast:thimble', w=True),
             RES('the-rocks', "pulled in on her grandmother's thread"),
         ]),
         beat(s3, 'in-by-rope', 12, 'ashore', take() + [
@@ -434,19 +434,19 @@ def ch3():
         beat(s3, 'wick-ask', 28, None, [E('pip', 'look', 'reader'), ASK('pip', 'wick-across', 'I got over this gap once, with help. Can you help me get him across?', drawer=True, wait=24)]),
         beat(s3, 'wick-rope', 12, 'across', take() + [
             S('pip', 'Hold still, Wick. And catch!', 'warm', 'cast:wick'),
-            C('wick-rope', 'object:$offered'),
+            M('pip', 'mark:lighthouse-way'), C('wick-rope', 'object:$offered'),
             S('wick', 'Hmph. Now where did you learn that?', 'silly', w=True),
             RES('wick-across', 'Pip threw a line across'),
         ]),
         beat(s3, 'wick-ladder', 12, 'across', take() + [
             S('pip', "One rung at a time, Wick. I've got you.", 'warm', 'cast:wick'),
-            C('wick-ladder', 'object:$offered'),
+            M('pip', 'mark:lighthouse-way'), C('wick-ladder', 'object:$offered'),
             S('wick', "Don't look down, eh? Easy for some.", 'silly', w=True),
             RES('wick-across', 'a ladder laid across'),
         ]),
         beat(s3, 'wick-kite', 12, 'across', take() + [
             S('wick', 'A kite? At my age?', 'silly'),
-            C('wick-kite', 'object:$offered'),
+            M('pip', 'mark:lighthouse-way'), C('wick-kite', 'object:$offered'),
             S('wick', 'Oh. Oh my. Hmph. Rather nice, actually.', 'wonder', w=True),
             RES('wick-across', 'Wick flew over on a kite'),
         ]),
@@ -460,7 +460,7 @@ def ch3():
             N("Then Pip saw it. Wick's own rope, right where he'd left it, the night the light went out.", 'wonder'),
             U('pip', 'rope-coil'), E('pip', 'take', 'object:rope-coil', w=True),
             S('pip', 'Hold still, Wick. And catch!', 'warm', 'cast:wick'),
-            C('wick-rope', 'object:rope-coil'),
+            M('pip', 'mark:lighthouse-way'), C('wick-rope', 'object:rope-coil'),
             S('wick', 'Hmph. Now where did you learn that?', 'silly', w=True),
             RES('wick-across', "Pip threw Wick's own rope across"),
         ], 'On the silent path Pip does it himself: his growth, not a rescue by someone else.'),
