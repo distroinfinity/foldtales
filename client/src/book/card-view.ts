@@ -131,9 +131,14 @@ export function createCardView(deps: CardViewDeps) {
   /** Faces you; the hinge under it stands the card up from its bottom edge. */
   const pivot = new Group();
   pivot.name = 'book-card';
+  // A Group's renderOrder sorts everything in it ahead of its children's own: without it, the set's
+  // ordered layer groups draw over the card.
+  pivot.renderOrder = ORDER;
   pivot.visible = false;
   deps.scene.add(pivot);
   const hinge = new Group();
+  // Every nested Group starts the order again for what's under it, so each one carries it.
+  hinge.renderOrder = ORDER;
   pivot.add(hinge);
   let face: Group | null = null;
 
@@ -177,6 +182,15 @@ export function createCardView(deps: CardViewDeps) {
     if (next.lines?.length) made.push({ what: 'lines', text: makeText(next.lines.join('\n'), captionFont, em, INK, textWidth, 'center') });
     if (next.note) made.push({ what: 'note', text: makeText(next.note, captionFont, em, INK, textWidth, 'center') });
     const choiceTexts = next.choices.map((c) => makeText(c.label, captionFont, em, INK, column, 'center'));
+    // The title wraps to even lines, never one word left alone: measured on one line, then given an even width.
+    const title = made.find((m) => m.what === 'title')?.text;
+    if (title) {
+      title.maxWidth = Infinity;
+      await synced(title);
+      const info = (title as unknown as { textRenderInfo?: { blockBounds: [number, number, number, number] } }).textRenderInfo;
+      const oneLine = info ? info.blockBounds[2] - info.blockBounds[0] : 0;
+      title.maxWidth = oneLine > textWidth ? Math.min(textWidth, (oneLine / Math.ceil(oneLine / textWidth)) * 1.12) : textWidth;
+    }
     await Promise.all([...made.map((m) => synced(m.text)), ...choiceTexts.map(synced)]);
     if (ticket !== building) {
       for (const t of [...made.map((m) => m.text), ...choiceTexts]) t.dispose();
@@ -196,6 +210,7 @@ export function createCardView(deps: CardViewDeps) {
     );
     clear();
     const group = new Group();
+    group.renderOrder = ORDER;
     const paper = new Mesh(slicedPaper(g.widthM, g.heightM, Math.min(0.02, g.heightM / 6), 24 / 720, 24 / 200), paperMaterial);
     paper.renderOrder = ORDER;
     group.add(paper);

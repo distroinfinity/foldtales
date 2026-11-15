@@ -927,7 +927,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       const top = menu.stack[menu.stack.length - 1];
       const ribbonAt = stage.book.root.localToWorld(new Vector3(assets.book.closedSizeM[0] * RIBBON_X_SHARE, stage.book.pageY + 0.01, assets.book.closedSizeM[1] / 2 - 0.012));
       const r3 = (v: Vector3) => [v.x, v.y, v.z].map((n) => +n.toFixed(3));
-      const info = JSON.stringify({ root: menu.root, top: top?.kind ?? null, gen: menu.generation, ready: card.ready, card: card.debug, hint: hint.ready ? Math.round(1000 * (hint.measure(head, stage.book.root.getWorldPosition(new Vector3()))?.minTextDeg ?? 0)) / 1000 : hint.shown, shown: card.shown, spec: card.spec?.title ?? null, open: +controls.amount.toFixed(2), shownGen: shownGeneration, clockMs: Math.round(clock.ms), paused: clock.paused, ribbon: r3(ribbonAt), pinchL: controls.pinchPoint("left") && r3(controls.pinchPoint("left")!), pinchR: controls.pinchPoint("right") && r3(controls.pinchPoint("right")!), targets: Object.fromEntries(card.targets().map((t) => [t.id, r3(t.position)])) });
+      const info = JSON.stringify({ objects: Object.fromEntries(hands.targets().filter((t) => t.proxy.id.startsWith("object:")).slice(0, 6).map((t) => [t.proxy.id.slice(7), { at: [t.proxy.position.x, t.proxy.position.y, t.proxy.position.z].map((n) => +n.toFixed(3)), home: stage.objects.get(t.proxy.id.slice(7))?.home.kind }])), mode: storyMode ? "story" : "chapter", story: story !== null, talk: earsOn, root: menu.root, top: top?.kind ?? null, gen: menu.generation, ready: card.ready, card: card.debug, hint: hint.ready ? Math.round(1000 * (hint.measure(head, stage.book.root.getWorldPosition(new Vector3()))?.minTextDeg ?? 0)) / 1000 : hint.shown, shown: card.shown, spec: card.spec?.title ?? null, open: +controls.amount.toFixed(2), shownGen: shownGeneration, clockMs: Math.round(clock.ms), paused: clock.paused, ribbon: r3(ribbonAt), pinchL: controls.pinchPoint("left") && r3(controls.pinchPoint("left")!), pinchR: controls.pinchPoint("right") && r3(controls.pinchPoint("right")!), targets: Object.fromEntries(card.targets().map((t) => [t.id, r3(t.position)])) });
       if (document.documentElement.dataset.menu !== info) document.documentElement.dataset.menu = info;
     }
     if (host.waiting.length && !clock.paused && !cardShowing(menu)) for (const resolve of host.waiting.splice(0)) resolve();
@@ -1424,6 +1424,8 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, world
   prepare(world)
     .then((show) => {
       const series = show.manifest.libraryVersion;
+      /** This build holds chapter 1 only (lane B's loadChapter brings the rest). */
+      const thisChapter = 1;
       const saved = fresh ? null : readCheckpoint(localStorage, Date.now(), { seriesId: series, episodeId: show.assets.spine.id });
       const choice = landingChoice(readProgress(localStorage, series), saved !== null);
       // Two ways in, side by side: the book's chapters, and the AI Storyteller. One page load runs one of them;
@@ -1431,6 +1433,8 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, world
       let ranMode: 'chapter' | 'story' | null = null;
       const begin = (resume: boolean, mode: 'chapter' | 'story' = 'chapter'): boolean => {
         if (ranMode && ranMode !== mode) {
+          // The other mode needs a fresh page load: kept as the destination, so the reloaded page opens it in one tap.
+          chooseEntry(mode === 'story' ? { kind: 'storyteller' } : { kind: 'chapter', n: thisChapter, from: resume ? 'resume' : 'start' }, ranMode === 'story' ? { kind: 'storyteller' } : { kind: 'chapter', n: thisChapter, from: 'resume' });
           location.reload();
           return false;
         }
@@ -1482,7 +1486,6 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, world
        * and a reload. This page load prepared the book for it, so one tap opens it once any prerequisite
        * (the microphone, for the Storyteller) is met. This build holds chapter 1 only.
        */
-      const thisChapter = 1;
       let entry: Entry | null = pendingEntry();
       let entryProblem: string | null = null;
       if (entry?.target.kind === 'chapter' && entry.target.n !== thisChapter) {
@@ -1547,9 +1550,9 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, world
           openRoom: arSupported && enterRoom ? () => enterRoom(now.mode) : null,
           label: now.mode === 'story' && micState !== 'granted' ? 'Let them hear you' : now.label,
           detail: now.detail,
-          restart: waiting
+          restart: waiting?.back
             ? {
-                label: backLabel(waiting.back),
+                label: backLabel(waiting.back!),
                 run: () => {
                   // Back to where you were: that becomes the page's destination, kept like any other choice.
                   const back = cancelEntry();
