@@ -3,7 +3,7 @@ import type { Place, RoomMap } from './room-map.ts';
 
 /**
  * Your real room, drawn invisibly into depth only, so room effects hide behind real things: rain
- * behind the couch, fog under the table, nothing beyond the walls. Walls are their own planes;
+ * behind the couch, the sea round the table legs, nothing beyond the walls. Walls are their own planes;
  * tables, couches, beds and shelves are their tops carried down to the floor, which is close to
  * how they stand. Drawn after the room dim (which must reach past the walls) and before the effects.
  */

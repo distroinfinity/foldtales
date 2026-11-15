@@ -20,7 +20,7 @@ type Pose = 'perched' | 'up' | 'down';
 
 export interface GullsView {
   meshes: Mesh[];
-  frame(opts: { state: Lasting; nowMs: number; room: RoomMap; head: Vector3; book: Vector3 | null; bookOpen: boolean }): void;
+  frame(opts: { state: Lasting; nowMs: number; room: RoomMap; head: Vector3; book: Vector3 | null; bookOpen: boolean; onCall: (at: Vector3) => void }): void;
 }
 
 const ease = (t: number) => t * t * (3 - 2 * t);
@@ -67,6 +67,8 @@ export function createGulls(art: Record<Pose, TexRef>): GullsView {
   let route: { from: Vector3; perch: Vector3[] } | null = null;
   let wasOn = false;
   let changedAt = -Infinity;
+  /** When they last called: as they come in, then now and then while they're perched. */
+  let calledAt = -Infinity;
   const at = new Vector3();
 
   const plan = (room: RoomMap, head: Vector3, book: Vector3 | null, place: string | null): typeof route => {
@@ -92,7 +94,7 @@ export function createGulls(art: Record<Pose, TexRef>): GullsView {
 
   return {
     meshes,
-    frame({ state, nowMs, room, head, book, bookOpen }) {
+    frame({ state, nowMs, room, head, book, bookOpen, onCall }) {
       if (state.on !== wasOn) {
         wasOn = state.on;
         changedAt = nowMs - Math.min(state.sinceMs, FLY_MS);
@@ -108,6 +110,14 @@ export function createGulls(art: Record<Pose, TexRef>): GullsView {
       route ??= plan(room, head, book, state.at);
       if (!route) return;
       const t = nowMs / 1000;
+      // They call as they come in and as they go, and every so often while they're perched.
+      if (since < 300 && nowMs - calledAt > 2000) {
+        calledAt = nowMs;
+        onCall(leaving ? route.perch[0]!.clone() : route.from.clone());
+      } else if (state.on && since > FLY_MS && nowMs - calledAt > 9000 + 6000 * Math.abs(Math.sin(nowMs * 0.001))) {
+        calledAt = nowMs;
+        onCall(route.perch[0]!.clone());
+      }
       birds.forEach((bird, i) => {
         // Arriving: from the window toward the perch; leaving: back the way they came. The second follows a moment later.
         const lag = i * 500;

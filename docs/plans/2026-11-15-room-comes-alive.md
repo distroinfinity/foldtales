@@ -10,6 +10,7 @@
 - **Storm without wall lighting** (Nov 15, after three looks): rain and thunder's sound only; no lightning light, no extra dark.
 - **The room map uses only the room the book is in, and the window opens in view** (Nov 15).
 - **Shadows only when the story asks,** never automatically.
+- **Fog dropped, sound run 016 straight on Runway** (Nov 15, the owner: "build these, do basic testing and audit yourself in simulated XR, fix anything obvious and move forward"). Fog low on the floor didn't work and is removed rather than reworked. Sound went to Runway without a CC0 search first: 61 credits, all seven clips at once.
 - **The seated hunt:** look at the hidden thing and pinch to call it to you, as well as walking over (default kept). Branch `ticket-4-room-comes-alive`, from main.
 
 **Why.** In the AI Storyteller's second headset session (Nov 14), the owner asked the cast to "light up my room" and the lighthouse beam swept the real room: "that lighthouse effect was nice … very simple and clever, like a rotating light in my room. More things which interact with my living place." Not new characters: more things like the lamp. The same session found the cast promising room effects that never happened ("the kite is circling your couch"). This ticket builds real room effects, so the cast has real things to do and only promises what exists.

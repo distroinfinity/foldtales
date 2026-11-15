@@ -49,7 +49,7 @@ Why: AI lines spliced into the written chapter didn't land ("If a story is alrea
 - [ ] **Your room comes alive** ← next (Superset workspace "Ticket 4: Your room comes alive", branch `ticket-4-room-comes-alive`, started Nov 15). Effects that act on the real room, for the chapters and the Storyteller: weather in the room, shadow play on the wall, a treasure hunt with the beam, the night sky on the ceiling, the sea on the floor, things that leave the page, the window as the story's window. Plan: `docs/plans/2026-11-15-room-comes-alive.md`, approved by the owner on Nov 15. A catalogue for upcoming chapters and the Storyteller, not added to chapter 1: `docs/room-effects.md`. Draft PR #13
   - [x] Contracts: the `room` stage action (PR #14, merged Nov 15)
   - [ ] The room-effects layer and the chapter side (room map, room state, the dim's spot: built, in PR #13)
-  - [ ] The seven effects: shadow play ✅, fireflies ✅, window ✅, rain 🔶 (approved; sound to come), treasure hunt (built, held for a walking session), night sky, snow and fog, sea
+  - [ ] The effects: shadow play ✅, fireflies ✅, window ✅, rain ✅, night sky ✅, snow ✅, sea and paper boat ✅; gulls, the bottle and the treasure hunt built and checked in the emulator, to see in the headset; fog dropped. Room sound from run 016 (61 credits)
   - [ ] The storyteller's `ROOM` step (built for the hunt), and its room rule widened to list the effects
 - [ ] **Defined stories: more chapters** (the owner, in parallel, Nov 14)
 - [ ] **4. Voices and Talk**

@@ -78,6 +78,7 @@ Generated art is a product asset, not a temp file. Credits are only spent on pla
 - **Thin washes on magenta paper take its colour** (run 014's fog came out lilac). Recolour after cutting by keeping lightness and alpha, or paint washes on neutral paper.
 - **"A slender stroke" paints as an outlined teardrop** (run 014's rain). Ask for a fine hairline streak with no outline.
 - **A full-bleed texture repeats for free** by blending it with its half-offset self under a soft window (run 014's snow).
+- **Ambience beds: ask for `loop: true`, then crossfade the last 0.6 s into the first anyway.** The loop flag gets close (rain within 1 dB, the sea 3.6 dB off), and the crossfade removes what's left (run 016).
 - **Another session can spend in the middle of your run** (run 015: the balance fell 268 for 23 credits of work). Reconcile each job against its known price and record both; a quiet minute before starting isn't enough.
 - **In CSS 3D proofs, keep puppet cards narrow** (0.7 of their height, as `m1-proof.html`). A wider card let Chrome draw the layer behind in front of the puppet (run 007).
 

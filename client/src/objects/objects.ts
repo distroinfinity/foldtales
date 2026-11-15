@@ -384,6 +384,12 @@ export function createObjects(initial: ObjectState[], deps: ObjectsDeps): Object
           const yaw = Math.atan2(dx, dz);
           const parentYaw = 2 * Math.atan2(parentQuat.y, parentQuat.w);
           v.holder.rotation.y = yaw - parentYaw;
+          // Out in the room, below your eyes (a bottle at your feet): lean back toward you, so it doesn't
+          // shrink to a sliver seen from above. Leaning about its base keeps it standing where it is.
+          if (home.kind === 'room') {
+            v.holder.rotation.order = 'YXZ';
+            v.holder.rotation.x = -Math.min(1.2, Math.max(0, Math.atan2(head.y - tmp.y, Math.hypot(dx, dz)) - 0.35));
+          }
         }
         // A flight eases from where it was to its new home, in world space, then hands over to the home.
         const flight = flights.get(state.id);

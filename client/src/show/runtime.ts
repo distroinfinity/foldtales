@@ -359,6 +359,10 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
         if (place) {
           const from = spot.clone().addScaledVector(toward, 1.6).addScaledVector(side, 0.6).setY(views.room.floorY() + 0.03);
           views.objects.setVisible(id, true);
+          // Washed up for you: yours to pick up and hand over, like anything on the page.
+          const state = views.objects.get(id);
+          if (state) state.grabbable = true;
+          views.sound.play('wash', spot);
           views.objects.send(id, { kind: 'room', place: place.id, offset: [spot.x - place.centre.x, spot.z - place.centre.z] }, nowMs, 3200, 0.04, from);
         }
       }

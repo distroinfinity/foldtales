@@ -35,7 +35,6 @@ import { createWeather, RAIN_ART } from './room-fx/weather.ts';
 import { createRoomDepth } from './room-fx/occluders.ts';
 import { createNightSky, SKY_ART } from './room-fx/sky.ts';
 import { createSnow, SNOW_ART } from './room-fx/snow.ts';
-import { createFog, FOG_ART } from './room-fx/fog.ts';
 import { createSea, SEA_ART } from './room-fx/sea.ts';
 import { createGulls, GULL_ART } from './room-fx/gulls.ts';
 import { createSoundEngine } from './sound/engine.ts';
@@ -212,13 +211,10 @@ async function prepare(world: World) {
   const skyArt = { stars: assets.textures.get(SKY_ART.stars), moon: assets.textures.get(SKY_ART.moon), shooting: assets.textures.get(SKY_ART.shooting) };
   const nightSky = skyArt.stars && skyArt.moon && skyArt.shooting ? createNightSky({ stars: skyArt.stars, moon: skyArt.moon, shooting: skyArt.shooting }) : null;
   if (nightSky) for (const mesh of nightSky.meshes) world.scene.add(mesh);
-  // Snow that falls and settles on your table and couch; fog low along your floor.
+  // Snow that falls and settles on your table and couch.
   const snowArt = { flakes: assets.textures.get(SNOW_ART.flakes), cover: assets.textures.get(SNOW_ART.cover) };
   const snow = snowArt.flakes && snowArt.cover ? createSnow({ flakes: snowArt.flakes, cover: snowArt.cover }) : null;
   if (snow) world.scene.add(snow.root);
-  const fogArt = FOG_ART.map((file) => assets.textures.get(file)).filter((ref) => ref !== undefined);
-  const fog = fogArt.length ? createFog(fogArt) : null;
-  if (fog) world.scene.add(fog.root);
   // The sea in a ring round you on the floor, its tide, and the paper boat.
   const seaWater = assets.textures.get(SEA_ART.water);
   const sea = seaWater ? createSea({ water: seaWater, boat: assets.textures.get(SEA_ART.boat) ?? null }) : null;
@@ -388,10 +384,10 @@ async function prepare(world: World) {
         step('tide-in', 8_000);
         step('tide-out', 15_000);
         step('sea-off', 21_000);
-      } else if (effect === 'snow' || effect === 'fog') {
-        // Snow for a minute, so it has time to settle; fog for 35 s.
+      } else if (effect === 'snow') {
+        // Snow, long enough to settle.
         runtime.addRoom({ do: 'room', withPrev: false, effect, what: null, at: null }, at);
-        runtime.addRoom({ do: 'room', withPrev: false, effect: 'clear', what: null, at: null }, at + (effect === 'snow' ? 12_000 : 16_000));
+        runtime.addRoom({ do: 'room', withPrev: false, effect: 'clear', what: null, at: null }, at + 12_000);
       } else if (effect === 'rain') {
         // A storm: rain, then three rolls of thunder, then it clears.
         runtime.addRoom({ do: 'room', withPrev: false, effect: 'rain', what: null, at: null }, at);
@@ -420,11 +416,11 @@ async function prepare(world: World) {
       else away.requested = true;
     },
   });
-  return { manifest, assets, stage, dim, sound, clock, runtime, roomMap, shadowPlay, fireflies, windowView, weather, roomDepth, nightSky, snow, fog, sea, gulls, devRoomTick, wash, ember, log, pause, controls, soft, review, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, directorOn, storyConfig, moreTargets };
+  return { manifest, assets, stage, dim, sound, clock, runtime, roomMap, shadowPlay, fireflies, windowView, weather, roomDepth, nightSky, snow, sea, gulls, devRoomTick, wash, ember, log, pause, controls, soft, review, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, directorOn, storyConfig, moreTargets };
 }
 
 function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom: Checkpoint | null, target: EnterTarget | null = null): void {
-  const { manifest, assets, stage, sound, clock, runtime, roomMap, shadowPlay, fireflies, windowView, weather, roomDepth, nightSky, snow, fog, sea, gulls, devRoomTick, wash, ember, log, pause, controls, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, storyConfig, moreTargets } = show;
+  const { manifest, assets, stage, sound, clock, runtime, roomMap, shadowPlay, fireflies, windowView, weather, roomDepth, nightSky, snow, sea, gulls, devRoomTick, wash, ember, log, pause, controls, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, storyConfig, moreTargets } = show;
   // The AI Storyteller, when that's the door the reader chose on the landing page.
   const storyMode = target?.kind === 'storyteller' && storyConfig !== null;
   let story: StorySession | null = null;
@@ -649,6 +645,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
   let roomFxKey = '';
   /** The show time of the last thunder heard, so each one plays once. */
   let thunderAt = -Infinity;
+  let shootingAt = -Infinity;
   const forward = new Vector3();
   const up = new Vector3();
   const spot = new Vector3();
@@ -843,6 +840,17 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
     show.dim.weather({ storm: 0, night: 0, flash: 0, window: null });
     // The storm's sound: rain all round you, and each thunder once.
     sound.ambience('rain', sky.storm);
+    // The sea's wash all round you while it's in, easing in and out with it.
+    const seaSince = Math.min(1, roomNow.sea.sinceMs / 4000);
+    sound.ambience('sea', (roomNow.sea.on ? seaSince : 1 - seaSince) * (controls.amount > 0.98 ? 1 : 0));
+    // A shooting star's shimmer, once, from overhead.
+    if (roomNow.shootingStarMs !== null && roomNow.shootingStarMs < 400) {
+      const startedAt = Math.round(clock.ms - roomNow.shootingStarMs);
+      if (Math.abs(startedAt - shootingAt) > 1000) {
+        shootingAt = startedAt;
+        sound.play('shooting', head.clone().addScaledVector(forward, 2).setY(roomMap.ceilingY()));
+      }
+    }
     if (roomNow.thunderMs !== null && roomNow.thunderMs < 400) {
       const startedAt = Math.round(clock.ms - roomNow.thunderMs);
       if (Math.abs(startedAt - thunderAt) > 1000) {
@@ -851,10 +859,9 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       }
     }
     roomDepth.frame(roomNow.weather.on || roomNow.weather.sinceMs < 6000 || roomNow.sea.on || roomNow.sea.sinceMs < 5000, roomMap);
-    gulls?.frame({ state: roomNow.gulls, nowMs, room: roomMap, head, book: stage.root.visible ? stage.root.getWorldPosition(bookAt) : null, bookOpen: controls.amount > 0.98 });
+    gulls?.frame({ state: roomNow.gulls, nowMs, room: roomMap, head, book: stage.root.visible ? stage.root.getWorldPosition(bookAt) : null, bookOpen: controls.amount > 0.98, onCall: (at) => sound.play('gull', at) });
     sea?.frame({ now: roomNow, nowMs, head, floorY: roomMap.floorY(), bookOpen: controls.amount > 0.98 });
     snow?.frame({ weather: roomNow.weather, nowMs, head, room: roomMap, bookOpen: controls.amount > 0.98 });
-    fog?.frame({ weather: roomNow.weather, nowMs, head, floorY: roomMap.floorY(), bookOpen: controls.amount > 0.98 });
     nightSky?.frame({ now: roomNow, nowMs, room: roomMap, head, book: stage.root.visible ? stage.root.getWorldPosition(bookAt) : null, bookOpen: controls.amount > 0.98 });
     windowView?.frame({ state: roomNow.window, nowMs, room: roomMap, bookOpen: controls.amount > 0.98, head, forward, book: stage.root.visible ? stage.root.getWorldPosition(bookAt) : null });
     // Which room effects are showing, each time that changes, so frame summaries can be read per effect.

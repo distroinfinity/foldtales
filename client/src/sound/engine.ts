@@ -21,7 +21,7 @@ export interface Speech {
   readonly playing: boolean;
 }
 
-export type SoundCall = SoundName | 'thump' | 'bloom' | 'tap' | 'rustle' | 'settle' | 'felt' | 'pleased' | 'puzzled' | 'interested' | 'drawer' | 'grab';
+export type SoundCall = SoundName | 'thump' | 'bloom' | 'tap' | 'rustle' | 'settle' | 'felt' | 'pleased' | 'puzzled' | 'interested' | 'drawer' | 'grab' | 'thunder' | 'gull' | 'wash' | 'shooting';
 
 /**
  * Where a sound plays. The show bus freezes with the story when it pauses; the ui bus never does,
@@ -59,8 +59,8 @@ export interface SoundEngine {
   roomTone(on: boolean): void;
   /** A faint warm hum while the ember searches. */
   hum(on: boolean): void;
-  /** A room effect's lasting sound (rain all round you), at a level from 0 to 1, eased. A clip named for it is used if there is one. */
-  ambience(name: 'rain', level: number): void;
+  /** A room effect's lasting sound (rain or the sea all round you), at a level from 0 to 1, eased. Its looping clip from run 016; rain has a synthesized stand-in, the sea is silent without its clip. */
+  ambience(name: 'rain' | 'sea', level: number): void;
   /** A roll of thunder from far off, in the direction `at`. A clip named `thunder` is used if there is one. */
   thunder(at: Vector3): void;
 }
@@ -464,6 +464,7 @@ export function createSoundEngine(sources?: SoundSources): SoundEngine {
       if (!b) return;
       const bus = b.show;
       let gain = ambiences.get(name);
+      if (!gain && level <= 0) return;
       if (!gain) {
         gain = new GainNode(bus.ctx, { gain: 0 });
         gain.connect(bus.master);
@@ -473,8 +474,8 @@ export function createSoundEngine(sources?: SoundSources): SoundEngine {
           const source = new AudioBufferSourceNode(bus.ctx, { buffer: clip, loop: true });
           source.connect(gain);
           source.start();
-        } else {
-          // A stand-in until sound run 016's clip: a soft hiss of rain, and a brighter patter over it.
+        } else if (name === 'rain') {
+          // A stand-in if run 016's clip didn't load: a soft hiss of rain, and a brighter patter over it.
           const hiss = new AudioBufferSourceNode(bus.ctx, { buffer: bus.noise, loop: true });
           const high = new BiquadFilterNode(bus.ctx, { type: 'highpass', frequency: 500 });
           const low = new BiquadFilterNode(bus.ctx, { type: 'lowpass', frequency: 5200 });
@@ -496,7 +497,7 @@ export function createSoundEngine(sources?: SoundSources): SoundEngine {
       if (!b) return;
       const file = sources?.sounds.thunder?.files[0];
       if (file && buffers.get(file)) {
-        this.play('thunder' as SoundCall, at);
+        this.play('thunder', at);
         return;
       }
       // A stand-in until sound run 016's clips: a short crack, then a long low rumble rolling away.
