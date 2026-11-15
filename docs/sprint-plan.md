@@ -61,11 +61,62 @@ Why: AI lines spliced into the written chapter didn't land ("If a story is alrea
   - [ ] Shared show
 - [ ] **6. Ship**
 - [ ] **7. The product around the book** (added by the owner, Nov 14). Plan: `docs/plans/2026-11-14-product-front-door.md`
-  - [ ] Sign-in proved end to end (accounts, the phone code, Google)
-  - [ ] The page: the hero and the scroll that opens the book, on every device
-  - [ ] Your book on any headset
+  - [x] Sign-in built and proved on the Mac (accounts, the phone code, email codes; PR #11), and **switched off** by the owner's choice. Google waits for its client, at the "turn sign-in on" to-do below
+  - [x] The page: the hero and the scroll that opens the book, in the painted reading room, on every device (PR #11, merged Nov 15; the owner's look check: "Yes, move on")
+  - [x] Your book on any headset: the book snapshot follows the account (finished chapters, started ones); the exact place and keepsakes stay on the headset. Live when sign-in is switched on
   - [ ] **Later, once the product is nearly done: turn sign-in on and test it.** Built and tested on the Mac, switched off for now (owner, Nov 14). Set up Resend (needs a domain and its DNS records), a Google sign-in client, and the server's sign-in secrets (`BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `TT_CLIENT_HOST`). Then turn on `TT_ACCOUNTS=on` (server) and `TT_PUBLIC_ACCOUNTS=on` (site) together. Test on the Quest: Google in Quest Browser, the phone code, and a second headset.
-  - [x] **Host it on foldtales.xyz** (owner, Nov 15). Live at https://www.foldtales.xyz with the API at api.foldtales.xyz; each platform deploys main from GitHub: the site on Cloudflare Pages through the existing CI, and the backend on Railway at api.foldtales.xyz. The AI stays off in production for now. Steps in the plan's "Hosting on foldtales.xyz"; this also releases ticket 0's held hosting task.
+  - [x] **Host it on foldtales.xyz** (owner, Nov 15). Live: https://www.foldtales.xyz (Cloudflare Pages) and https://api.foldtales.xyz (Railway), each deploying main from GitHub, with no per-branch previews. The AI is on in production behind the caps (keys on Railway; the site's build no longer sets `TT_PUBLIC_STORYTELLER=off`). Notes in PR #15 and the plan's "Hosting: live (Nov 15)"; this also releases ticket 0's held hosting task.
+  - [ ] **Foldtales as a complete product: every surface, flow and journey, planned end to end** (owner, Nov 15). For a fresh session: **plan first, the owner approves before any code**.
+    - **Why:** the owner says the product doesn't yet feel like a finished whole. "The overhaul of user journeys and product journeys needs to be planned well and executed." The surfaces should be "presented well as a finished product to the customer". Examples:
+      - The wrist quit menu is "very absurd right now".
+      - A first try at the landing (PR #16, closed) bolted a second section onto a polished page instead of asking the real questions.
+      - Things people collect, and ticket 4's room effects, have nowhere to live.
+    - **The bar: Beat Saber.** Every mode, menu and journey is thought out:
+      - a home you always return to;
+      - clear play modes;
+      - a library with packs;
+      - a pause menu that's always the same;
+      - a results screen;
+      - settings;
+      - a tutorial.
+
+      Study it, and Moss, on the Quest, and borrow the structure, not the look.
+    - **First, the inventory: what Foldtales is made of, and what to build.** Plan where each surface lives, on the page, on the book, on you, or in the system menu, and whether it's needed for Nov 18:
+      1. **Home:** where you start and come back to. The first question: does choosing between a written story and the AI Storyteller happen on the web page or inside the book?
+      2. **The library:** books and chapters as a shelf, with progress, "read again", and what's coming. More chapters are on the way from the owner.
+      3. **The AI Storyteller:** start a new story, continue the last one, and your past stories.
+      4. **Your collection** (the "catalog" of what you've gathered):
+         - keepsakes in your satchel from the chapters;
+         - everything painted for you in the Storyteller;
+         - the storybook pages that record each chapter and story.
+
+         How you browse it, and bring things back into a story.
+      5. **Room effects** (ticket 4, in parallel, `docs/plans/2026-11-15-room-comes-alive.md`): seven effects that work from a chapter or the Storyteller. Weather, shadow play, a treasure hunt, the night sky, the sea on your floor, things that leave the page, your window. How a reader discovers them, asks for them, and sees which ones their room has seen.
+      6. **The controls inside:** pause, start again, leave, switch between a story and the Storyteller, open the contents and the satchel. Today they're scattered across the ribbon, the sage tab and the wrist tag. One model, always in the same place. Meta reserves the palm pinch for its own menu.
+      7. **Endings:** the end of a chapter and the end of an AI story, like a results screen. What lasts, and what's next.
+      8. **Settings:** captions, voice and mute, microphone, book size, the room dim's strength, a table or the painted room, volume, starting the book over, and privacy and delete.
+      9. **First time:** how a newcomer learns to reach in, pinch, hand things over and talk, with no instructions screen.
+      10. **Leaving and coming back:** putting the book away, the page you land on, and the next evening.
+      11. **When things go wrong:** no internet, the AI slow or failing, the microphone refused, XR refused.
+      12. **The page around it all:** first visit, a judge cold, a desktop or phone, and returning. About and privacy. Later, sign-in (built and off).
+    - **How to plan it:**
+      - Walk today's product on the Quest and write down every surface and step as it really is, with its load: choices, words, reaches, waits.
+      - Propose one structure: a map of the surfaces, a shared vocabulary, and the flows between them, with mockups.
+      - Settle the open questions with the owner on cards.
+      - Agree what ships by Nov 18 and what's later.
+      - Build in phases, each checked in the headset.
+      - Coordinate with ticket 4 (the effects) and the owner's chapters, so their work lands in this structure.
+    - **Keep:**
+      - the book as the only UI inside XR (`docs/design-language.md`);
+      - hands only, and completable silently;
+      - a judge one tap from something wonderful;
+      - the microphone granted on the page before XR (a first prompt inside XR ended the session, twice);
+      - today's polished page (PR #11) as the baseline, changed only by the approved plan;
+      - the deadline, Nov 18.
+    - **Context:**
+      - The AI is live in production: the keys are on Railway, and the site's build no longer switches the Storyteller door off.
+      - Sign-in is built and off.
+      - The rejected attempt's branch, `product-two-ways`, is a reference only.
 - **Art library** (runs throughout)
   - [x] Book and first set for M1 (run 004, PR #1). Approved on the Mac
   - [x] Drawer objects for M2 (run 006, PR #2). Approved on the Mac and in Quest Browser
