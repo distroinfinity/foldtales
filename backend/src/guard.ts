@@ -39,7 +39,7 @@ export function readCaps(env: Record<string, string | undefined>): Caps {
 }
 
 /** Paid AI work, and the story it belongs to. Signed-in readers only, counted per route, all refused when the Storyteller is off. */
-const AI_ROUTES = new Set<RouteName>(['planBeat', 'planSpine', 'reactToObject', 'replyAsCharacter', 'speakLine', 'speechToken', 'startStory', 'storyTurn', 'paintProp', 'paintResult', 'soundEffect']);
+const AI_ROUTES = new Set<RouteName>(['planBeat', 'planSpine', 'reactToObject', 'replyAsCharacter', 'speakLine', 'transcribe', 'startStory', 'storyTurn', 'paintProp', 'paintResult', 'soundEffect']);
 /** Polling a painting costs nothing: it's capped where it starts, and checked against its story's reader. */
 const UNCOUNTED = new Set<RouteName>(['paintResult']);
 /** The Storyteller's own records: signed-in readers only, never paid, open while it rests (the door and the shelf still work). */

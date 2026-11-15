@@ -148,7 +148,7 @@ describe('a turn id runs once, through the handlers', () => {
   function handlers(anthropic: Anthropic) {
     const stories = openStories(new DatabaseSync(':memory:'), readStoryLimits({}));
     const painter = { start: () => null, result: () => ({ status: 'failed', reason: 'off' }) } as unknown as Painter;
-    const h = storytellerHandlers({ stories, anthropic, voices, painter, checkLine: async () => true, speechToken: async () => ({ provider: 'x', token: 't', expiresAt: new Date().toISOString() }) });
+    const h = storytellerHandlers({ stories, anthropic, voices, painter, checkLine: async () => true, transcriber: { transcribe: async () => ({ text: '', seconds: null }) } });
     return { h, stories };
   }
 
@@ -178,7 +178,7 @@ describe('a turn id runs once, through the handlers', () => {
     const fake = fakeAnthropic('LISTEN bramble\n');
     const stories = openStories(new DatabaseSync(':memory:'), readStoryLimits({}));
     const painter = { start: () => null, result: () => ({ status: 'failed', reason: 'off' }) } as unknown as Painter;
-    const h = storytellerHandlers({ stories, anthropic: fake.anthropic, voices, painter, checkLine: async (t) => !t.includes('unfit'), speechToken: async () => ({ provider: 'x', token: 't', expiresAt: new Date().toISOString() }) });
+    const h = storytellerHandlers({ stories, anthropic: fake.anthropic, voices, painter, checkLine: async (t) => !t.includes('unfit'), transcriber: { transcribe: async () => ({ text: '', seconds: null }) } });
     await guardTestCaller('ann', async () => {
       const { storyId } = await h.startStory({ requestId: 'r1' });
       const { record } = await h.endStory({ storyId, reason: 'failed', page: { title: 'An unfit title', summary: 'A fine summary of the night.', things: [] } });
@@ -191,7 +191,7 @@ describe('a turn id runs once, through the handlers', () => {
     const fake = fakeAnthropic('LISTEN bramble\n');
     const stories = openStories(new DatabaseSync(':memory:'), { ...readStoryLimits({}), spend: { claude: 20_000, tts: 10_000, stt: 10 } });
     const painter = { start: () => null, result: () => ({ status: 'failed', reason: 'off' }) } as unknown as Painter;
-    const h = storytellerHandlers({ stories, anthropic: fake.anthropic, voices, painter, checkLine: async () => true, speechToken: async () => ({ provider: 'x', token: 't', expiresAt: new Date().toISOString() }) });
+    const h = storytellerHandlers({ stories, anthropic: fake.anthropic, voices, painter, checkLine: async () => true, transcriber: { transcribe: async () => ({ text: '', seconds: null }) } });
     await guardTestCaller('ann', async () => {
       const { storyId } = await h.startStory({ requestId: 'r1' });
       stories.reserveSpend('claude', 11_000);

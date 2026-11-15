@@ -1,0 +1,4 @@
+{
+  "note": "Words the listener should expect, for the speech-to-text prompt (Groq's Whisper takes up to 224 tokens). The book's own names and things, so they're spelled as the story spells them.",
+  "prompt": "A reader talks to Pip the fox, Wick the badger and Moth in a storybook: the lighthouse, the lamp, the lantern, the shore, the sea, the drawer, the satchel, a teapot, a kite, a key, a sock, a paper boat, the giant."
+}

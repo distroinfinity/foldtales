@@ -35,14 +35,15 @@ export interface StoryLimits {
   paintsPerReaderDay: number;
   /** Live painting credits in all, for the life of the service. */
   paintCreditCap: number;
-  speechTokensPerReaderDay: number;
+  /** Holds of the tab sent to be heard, per reader per day. */
+  holdsPerReaderDay: number;
   /** A story still active this long after it began is ended (its title stays on the shelf). */
   staleMinutes: number;
   /** Daily ceilings per kind of paid work, in that kind's units. */
   spend: Record<SpendKind, number>;
 }
 
-/** Claude tokens; voice characters; speech-to-text tokens (one per hold). */
+/** Claude tokens; voice characters; seconds of audio heard (billed at least 10 a hold). */
 export type SpendKind = 'claude' | 'tts' | 'stt';
 
 /** Conservative reservations per call, reconciled to the real usage afterwards. */
@@ -82,12 +83,13 @@ export function readStoryLimits(env: Record<string, string | undefined>): StoryL
     paintsPerStory: N('PAINTS_PER_STORY', 6, env),
     paintsPerReaderDay: N('PAINTS_PER_READER_DAY', 12, env),
     paintCreditCap: N('PAINT_CREDIT_CAP', 100, env),
-    speechTokensPerReaderDay: N('SPEECH_TOKENS_PER_READER_DAY', 150, env),
+    holdsPerReaderDay: N('HOLDS_PER_READER_DAY', 150, env),
     staleMinutes: N('STORY_STALE_MINUTES', 60, env),
     spend: {
       claude: N('SPEND_CLAUDE_TOKENS_DAY', storiesPerDay * turnsPerStory * (SPEND_ESTIMATE.turn + 7 * SPEND_ESTIMATE.checkLine), env),
       tts: N('SPEND_TTS_CHARS_DAY', storiesPerDay * turnsPerStory * 6 * 150, env),
-      stt: N('SPEND_STT_TOKENS_DAY', storiesPerDay * 60, env),
+      // Groq bills at least 10 s a hold: 60 holds a story.
+      stt: N('SPEND_STT_SECONDS_DAY', storiesPerDay * 60 * 10, env),
     },
   };
 }
@@ -132,8 +134,8 @@ export interface Stories {
   /** The finished painting's name, so a saved page only names things that really arrived. */
   paintArrived(jobId: string, name: string): void;
   paintOwner(jobId: string): string | null;
-  /** Whether the reader has a story in progress (speech tokens need one), counting the token. */
-  claimSpeechToken(userId: string): void;
+  /** A hold of the tab to be heard: needs a story in progress, and is counted per reader per day. */
+  claimHold(userId: string): void;
   reserveSpend(kind: SpendKind, units: number): Reservation | null;
   settleSpend(reservation: Reservation, actualUnits: number | null): void;
   /** What one story used, by kind (voice characters, Claude tokens), to measure a story's cost. Anonymous: kept after deletion. */
@@ -380,13 +382,13 @@ export function openStories(db: DatabaseSync, limits: StoryLimits, now: () => Da
       return (q.job.get(jobId) as { user_id: string } | undefined)?.user_id ?? null;
     },
 
-    claimSpeechToken(userId) {
+    claimHold(userId) {
       savepoint(() => {
         expire(now());
         if (!q.hasActive.get(userId)) throw new BackendError('bad_request', NO_STORY);
         const day = dayOf(now());
         const used = Number((q.tokens.get(userId, day) as { count: number } | undefined)?.count ?? 0);
-        if (used >= limits.speechTokensPerReaderDay) throw new BackendError('quota_exceeded', 'listening has reached its daily limit');
+        if (used >= limits.holdsPerReaderDay) throw new BackendError('quota_exceeded', 'listening has reached its daily limit');
         q.tokenAdd.run(userId, day);
       });
     },

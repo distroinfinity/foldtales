@@ -297,7 +297,8 @@ export function createMockBackend(options: MockOptions = {}): BackendApi {
     // A mock painting never finishes: the client's "couldn't find it" path is what it exercises.
     paintResult: (request) => run('paintResult', () => (jobs.has(request.jobId) ? { status: 'failed' as const, reason: 'the mock does not paint' } : { status: 'failed' as const, reason: 'no such job' })),
     soundEffect: (request) => run('soundEffect', () => ({ url: null, durationMs: request.seconds * 1000 })),
-    speechToken: () => run('speechToken', () => ({ provider: 'mock', token: 'mock-speech-token', expiresAt: inAnHour() })),
+    // The mock hears nothing, so a dev build without keys shows "didn't catch that" and plays on by hand.
+    transcribe: () => run('transcribe', () => ({ text: '' })),
     memoryAppend: (request) =>
       run('memoryAppend', () => {
         const log = memory.get(request.seriesId) ?? [];

@@ -139,12 +139,12 @@ describe('stories', () => {
   });
 
   test('a speech token needs a story in progress, and is capped per reader a day', () => {
-    const { stories } = setup({ speechTokensPerReaderDay: 2 });
-    expect(() => stories.claimSpeechToken('ann')).toThrow(NO_STORY);
+    const { stories } = setup({ holdsPerReaderDay: 2 });
+    expect(() => stories.claimHold('ann')).toThrow(NO_STORY);
     const { storyId } = stories.start('ann', 'a');
-    stories.claimSpeechToken('ann');
-    stories.claimSpeechToken('ann');
-    expect(() => stories.claimSpeechToken('ann')).toThrow(/daily limit/);
+    stories.claimHold('ann');
+    stories.claimHold('ann');
+    expect(() => stories.claimHold('ann')).toThrow(/daily limit/);
     stories.end('ann', storyId, 'time', page());
   });
 
@@ -166,7 +166,7 @@ describe('stories', () => {
     const { storyId } = stories.start('ann', 'a');
     stories.claimTurn('ann', storyId, 't1');
     stories.claimPaint('ann', storyId, 'teapot');
-    stories.claimSpeechToken('ann');
+    stories.claimHold('ann');
     stories.reserveSpend('claude', 100);
     stories.forget('ann');
     for (const table of ['stories', 'story_turns', 'paint_jobs', 'speech_tokens']) {

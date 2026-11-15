@@ -46,7 +46,7 @@ describe.each([
     const client = api(token, session ?? undefined);
 
     const start = await failure(client.startStory({ requestId: 'r1' }));
-    const speech = await failure(client.speechToken({}));
+    const speech = await failure(client.transcribe({ storyId: 's', audio: { mime: 'audio/webm', base64: 'AAAA' } }));
     if (!on) {
       // Off: everyone hears that it's resting, and nothing paid is reached.
       expect(start).toEqual({ code: 'upstream_failed', message: STORYTELLER_RESTING });

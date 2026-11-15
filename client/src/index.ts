@@ -21,7 +21,7 @@ import type { RuntimeSnapshot } from './show/runtime.ts';
 import { createShowClock } from './show/clock.ts';
 import { createShowLog, indexedDbLogStore } from './show/log.ts';
 import { libraryOf, ShowManifest } from './show/manifest.ts';
-import { BackendError, SIGN_IN_REQUIRED, estimateSpeechMs, linesOf, type ReadyBeat, type ShowObject } from '@tabletop/contracts';
+import { BackendError, LISTENING_BUSY, SIGN_IN_REQUIRED, estimateSpeechMs, linesOf, type ReadyBeat, type ShowObject } from '@tabletop/contracts';
 import { createDirector } from './director/director.ts';
 import { ChapterCanon, recordChapterEnd } from './memory/memory.ts';
 import { createPauseControl } from './show/pause.ts';
@@ -580,7 +580,17 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
   }).catch(() => undefined);
   const trim = (t: string) => (t.length > 70 ? `…${t.slice(-67)}` : t);
   const ears = createEars({
-    token: () => storyAccess.withBackend((api) => api.speechToken({})).then((t) => (t && t.provider !== 'mock' ? t.token : null)).catch(() => null),
+    // The clip goes to our backend, which hears it; a busy listener is said plainly, and the story plays on.
+    transcribe: async (audio) => {
+      const storyId = story?.storyId;
+      if (!storyId) return null;
+      try {
+        return await storyAccess.withBackend((api) => api.transcribe({ storyId, audio }));
+      } catch (cause) {
+        return cause instanceof BackendError && cause.message === LISTENING_BUSY ? 'busy' : null;
+      }
+    },
+    missed: () => runtime.setHint('I couldn’t hear you just then. Hold the button and try again, or hand them something.'),
     heard: (text) => {
       if (!text) {
         runtime.setHint("Didn’t catch that. Hold the button and try again.");
@@ -590,7 +600,6 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       runtime.setHint(`You: ${storyHint.heard}`);
       story?.heard(text);
     },
-    hearing: (text) => runtime.setHint(`You: ${trim(text)}`),
     onState: (state) => {
       talk.setState(state === 'off' ? 'idle' : state);
       if (state === 'opening') runtime.setHint('Wait for the tab to glow, then speak.');

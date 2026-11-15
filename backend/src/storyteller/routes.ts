@@ -1,6 +1,8 @@
 import Anthropic from '@anthropic-ai/sdk';
 import {
   BackendError,
+  LISTENING_BUSY,
+  NO_STORY,
   PAINTINGS_USED,
   STORYTELLER_RESTING,
   type BackendApi,
@@ -11,10 +13,11 @@ import {
 } from '@tabletop/contracts';
 import type { SpendGate } from '../director/claude.ts';
 import { currentUser } from '../guard.ts';
+import { MIN_BILLED_S, billedSecondsOf, type Transcriber } from './listen.ts';
 import type { Painter } from './paint.ts';
 import { SPEND_ESTIMATE, type Stories } from './stories.ts';
 import { UNTITLED, storyTurn, type TurnDeps } from './turn.ts';
-import type { Voices } from './voices.ts';
+import { estimateTtsCost, type Voices } from './voices.ts';
 
 /**
  * The AI Storyteller's routes over the story store. The guard has already made sure the caller is
@@ -28,8 +31,8 @@ export interface StorytellerDeps {
   painter: Painter;
   moderate?: (text: string) => Promise<boolean>;
   checkLine: (text: string) => Promise<boolean>;
-  /** A single-use token for listening, from the speech vendor. */
-  speechToken: () => Promise<{ provider: string; token: string; expiresAt: string }>;
+  /** Hold to talk: the clip, heard by the speech provider. */
+  transcriber: Transcriber;
   /** Voices that count their characters for this story (falls back to `voices`). */
   storyVoices?: (storyId: string) => Voices;
   /** Paintings this story may still ask for (0 when painting is off). */
@@ -87,7 +90,7 @@ async function checkedPage(page: StoryPage, check: (text: string) => Promise<boo
 
 export function storytellerHandlers(deps: StorytellerDeps): Pick<
   BackendApi,
-  'storytellerAvailability' | 'startStory' | 'storyTurn' | 'endStory' | 'listStories' | 'paintProp' | 'paintResult' | 'speechToken' | 'soundEffect'
+  'storytellerAvailability' | 'startStory' | 'storyTurn' | 'endStory' | 'listStories' | 'paintProp' | 'paintResult' | 'transcribe' | 'soundEffect'
 > {
   const { stories } = deps;
 
@@ -135,7 +138,11 @@ export function storytellerHandlers(deps: StorytellerDeps): Pick<
     storyTurn: (request) => turn(request),
     endStory: async (request) => {
       const userId = reader();
-      deps.log?.(`storyteller: story ended (${request.reason}); used ${JSON.stringify(stories.storySpend(request.storyId))}`);
+      const used = stories.storySpend(request.storyId);
+      // Voices: about 15 characters a second of audio. Listening: Groq's $0.04 an hour. Claude: logged as tokens.
+      const voicesUsd = estimateTtsCost(used.tts ?? 0, ((used.tts ?? 0) / 15) * 1000);
+      const listeningUsd = ((used.stt ?? 0) / 3600) * 0.04;
+      deps.log?.(`storyteller: story ended (${request.reason}); used ${JSON.stringify(used)}; voices about $${voicesUsd.toFixed(3)}, listening about $${listeningUsd.toFixed(4)}`);
       // Already ended: the saved record, with no second check.
       const row = stories.get(userId, request.storyId);
       if (row && row.status === 'ended') return { record: stories.end(userId, request.storyId, request.reason, request.page) };
@@ -152,11 +159,24 @@ export function storytellerHandlers(deps: StorytellerDeps): Pick<
       if (stories.paintOwner(jobId) !== reader()) return { status: 'failed', reason: 'no such painting' };
       return deps.painter.result(jobId);
     },
-    speechToken: async () => {
-      stories.claimSpeechToken(reader());
-      const reservation = stories.reserveSpend('stt', 1);
-      if (!reservation) throw new BackendError('upstream_failed', STORYTELLER_RESTING, false);
-      return deps.speechToken();
+    transcribe: async (request) => {
+      const userId = reader();
+      // Only for the reader's own story in progress, counted per reader per day.
+      if (!stories.get(userId, request.storyId)) throw new BackendError('bad_request', NO_STORY);
+      stories.claimHold(userId);
+      const billed = billedSecondsOf(request.audio.base64.length);
+      const reservation = stories.reserveSpend('stt', billed);
+      if (!reservation) throw new BackendError('quota_exceeded', LISTENING_BUSY, true);
+      try {
+        const heard = await deps.transcriber.transcribe(request.audio);
+        const actual = heard.seconds === null ? null : Math.max(MIN_BILLED_S, Math.ceil(heard.seconds));
+        stories.settleSpend(reservation, actual);
+        stories.addStorySpend(request.storyId, 'stt', actual ?? billed);
+        return { text: heard.text };
+      } catch (cause) {
+        stories.settleSpend(reservation, null);
+        throw cause;
+      }
     },
     // No caller yet (v2's SOUND step): budgeted at zero.
     soundEffect: async () => {

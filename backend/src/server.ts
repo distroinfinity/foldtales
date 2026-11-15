@@ -14,6 +14,7 @@ import { createLineCheck, createModerator, createPictureCheck } from './storytel
 import { createPainter } from './storyteller/paint.ts';
 import { claudeSpend, spendingVoices, storytellerHandlers } from './storyteller/routes.ts';
 import { openStories, readStoryLimits } from './storyteller/stories.ts';
+import { createTranscriber, readListenPrompt } from './storyteller/listen.ts';
 import { createVoices, readLiveVoices } from './storyteller/voices.ts';
 import { guard, readCaps } from './guard.ts';
 import { realRoutes } from './real-routes.ts';
@@ -58,7 +59,10 @@ const accounts = await openAccounts(
 // The AI is real once a key is set (backend only, never the client); without one it stays the mock.
 const key = process.env.ANTHROPIC_API_KEY;
 const claude = key ? createClaude(key, console.error, claudeSpend(stories)) : null;
-const liveVoices = createVoices(process.env.ELEVENLABS_API_KEY, readLiveVoices(join(process.cwd(), '..', 'art', 'voice', 'live.json')));
+// Voices (OpenAI) and listening (Groq's Whisper): the only two speech providers, each behind its own module.
+const liveVoices = createVoices(process.env.OPENAI_API_KEY, readLiveVoices(join(process.cwd(), '..', 'art', 'voice', 'live.json')));
+const groqKey = process.env.GROQ_API_KEY ?? process.env.GROQ_KEY;
+const transcriber = createTranscriber(groqKey, { prompt: readListenPrompt(join(process.cwd(), '..', 'art', 'voice', 'listen.json')) });
 const voices = spendingVoices(liveVoices, stories);
 const anthropic = key ? new Anthropic({ apiKey: key, maxRetries: 0 }) : null;
 const moderate = claude ? createModerator(claude) : undefined;
@@ -74,15 +78,6 @@ const painter = createPainter({
   enabled: paintingOn,
   log: (m) => console.log(m),
 });
-// A single-use token for ElevenLabs' realtime speech to text: the headset listens without the key.
-const speechToken = async () => {
-  const apiKey = process.env.ELEVENLABS_API_KEY;
-  if (!apiKey) throw new BackendError('upstream_failed', 'listening is off', false);
-  const response = await fetch('https://api.elevenlabs.io/v1/single-use-token/realtime_scribe', { method: 'POST', headers: { 'xi-api-key': apiKey }, signal: AbortSignal.timeout(6000) });
-  const body = (await response.json()) as { token?: string };
-  if (!response.ok || !body.token) throw new BackendError('upstream_failed', `token ${response.status}`, true);
-  return { provider: 'elevenlabs', token: body.token, expiresAt: new Date(Date.now() + 14 * 60_000).toISOString() };
-};
 const director =
   claude && anthropic && profile === 'normal'
     ? {
@@ -94,7 +89,7 @@ const director =
           painter,
           ...(moderate ? { moderate } : {}),
           checkLine,
-          speechToken,
+          transcriber,
           storyVoices: (storyId) => spendingVoices(liveVoices, stories, storyId),
           paintsLeft: (story) => (paintingOn() && process.env.RUNWAYML_API_SECRET ? Math.max(0, limits.paintsPerStory - story.paints) : 0),
           log: (m) => console.log(m),
@@ -103,7 +98,8 @@ const director =
     : {};
 console.log(
   claude ? 'director and storyteller: claude' : 'director and storyteller: mock',
-  process.env.ELEVENLABS_API_KEY ? '; voices: elevenlabs' : '; voices: captions only',
+  process.env.OPENAI_API_KEY ? '; voices: openai' : '; voices: captions only',
+  groqKey ? '; listening: groq' : '; listening: off (by hand)',
   storytellerOn() ? '; storyteller on' : '; storyteller OFF',
   paintingOn() ? '; painting on' : '; painting off',
 );
