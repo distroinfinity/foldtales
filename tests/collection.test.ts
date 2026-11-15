@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { ShowEvent } from '@tabletop/contracts';
+import type { ShowEvent } from '../contracts/src/index.ts';
 import { keptNames, readCollection } from '../client/src/landing/collection.ts';
 
 const ev = (seq: number, type: string, data: unknown): ShowEvent => ({ id: `e${seq}`, seq, type, data, at: '2026-11-16T00:00:00.000Z', showMs: 0, seriesId: 's', episodeId: 'chapter-1' }) as unknown as ShowEvent;
