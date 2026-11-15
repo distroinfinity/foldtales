@@ -757,7 +757,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       // Kept for this visit only.
     }
   };
-  const applySound = () => (sound as unknown as { setMuted?: (on: boolean) => void }).setMuted?.(!settings.soundOn);
+  const applySound = () => sound.setMuted(!settings.soundOn);
   applySound();
 
   // The menu: the ribbon opens it, the card shows it, and the story waits while it's open.
