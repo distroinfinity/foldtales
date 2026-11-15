@@ -111,6 +111,7 @@ describe('the full acting list', () => {
     pip: ['forward', 'talk', 'blink', 'scared', 'profile', 'up'],
     wick: ['forward', 'talk', 'blink', 'grumpy', 'profile'],
     moth: [],
+    thimble: ['forward', 'talk', 'blink', 'scared', 'profile', 'up'],
   };
   const differs = (a: ReturnType<typeof actingPose>, b: ReturnType<typeof actingPose>) => JSON.stringify(a) !== JSON.stringify(b);
 
