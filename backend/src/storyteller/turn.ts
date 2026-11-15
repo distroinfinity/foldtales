@@ -144,6 +144,8 @@ export interface StoryContext {
   title: string | null;
   plan: string | null;
   recent: Array<{ title: string; summary: string | null }>;
+  /** Paintings this story may still ask for; 0 means none (absent means unknown). */
+  paintsLeft?: number;
 }
 
 export function contextOf(request: StoryTurnRequest, ctx: StoryContext = { title: null, plan: null, recent: [] }): string {
@@ -190,6 +192,7 @@ export function contextOf(request: StoryTurnRequest, ctx: StoryContext = { title
       : 'No room effects tonight.',
     ctx.recent.length && input.kind === 'open' ? `The reader's earlier stories (titles and endings only):\n${ctx.recent.map((r) => `- ${r.title}${r.summary ? `: ${r.summary}` : ''}`).join('\n')}` : '',
     ctx.title ? `Tonight's story: ${ctx.title}.${ctx.plan ? ` Its plan (private, never spoken): ${ctx.plan}` : ''}` : '',
+    ctx.paintsLeft === 0 ? "No more painting tonight: never PAINT. If the reader asks for something new, Moth says her wings are tired, and the cast uses what's on the page or in the satchel." : '',
     shape,
     history.length ? `The story so far:\n${history.slice(-40).map((h) => `${h.who}: ${h.text}`).join('\n')}` : '',
     `NOW: ${what}`,

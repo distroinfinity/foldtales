@@ -46,7 +46,8 @@ const origins = clientOrigins(process.env.TT_CLIENT_HOST, devOrigins);
 const storytellerOn = () => process.env.TT_STORYTELLER !== 'off';
 // Live painting stays off until it's switched on, and never runs without the picture check.
 const paintingOn = () => process.env.TT_PAINTING === 'on';
-const stories = openStories(store.db, readStoryLimits(process.env), now, () => !storytellerOn());
+const limits = readStoryLimits(process.env);
+const stories = openStories(store.db, limits, now, () => !storytellerOn());
 
 const accounts = await openAccounts(
   store.db,
@@ -85,7 +86,17 @@ const director =
   claude && anthropic && profile === 'normal'
     ? {
         planBeat: createPlanBeat(claude),
-        ...storytellerHandlers({ stories, anthropic, voices, painter, ...(moderate ? { moderate } : {}), checkLine, speechToken, log: (m) => console.log(m) }),
+        ...storytellerHandlers({
+          stories,
+          anthropic,
+          voices,
+          painter,
+          ...(moderate ? { moderate } : {}),
+          checkLine,
+          speechToken,
+          paintsLeft: (story) => (paintingOn() && process.env.RUNWAYML_API_SECRET ? Math.max(0, limits.paintsPerStory - story.paints) : 0),
+          log: (m) => console.log(m),
+        }),
       }
     : {};
 console.log(

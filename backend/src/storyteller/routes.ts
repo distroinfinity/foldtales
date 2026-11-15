@@ -30,6 +30,8 @@ export interface StorytellerDeps {
   checkLine: (text: string) => Promise<boolean>;
   /** A single-use token for listening, from the speech vendor. */
   speechToken: () => Promise<{ provider: string; token: string; expiresAt: string }>;
+  /** Paintings this story may still ask for (0 when painting is off). */
+  paintsLeft?: (story: { paints: number }) => number;
   log?: (message: string) => void;
 }
 
@@ -103,7 +105,7 @@ export function storytellerHandlers(deps: StorytellerDeps): Pick<
       anthropic: deps.anthropic,
       voices: deps.voices,
       checkLine: deps.checkLine,
-      story: { title: row.title, plan: row.plan, recent: request.input.kind === 'open' ? stories.recent(userId, 3) : [] },
+      story: { title: row.title, plan: row.plan, recent: request.input.kind === 'open' ? stories.recent(userId, 3) : [], paintsLeft: deps.paintsLeft ? deps.paintsLeft(row) : undefined },
       onTitle: (title, plan) => stories.setTitle(request.storyId, title, plan),
       onUsage: (tokens) => stories.settleSpend(reservation, tokens),
       paint: (storyId, description, objectId) => deps.painter.start(userId, { storyId, objectId, description, image: null }),

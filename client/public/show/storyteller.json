@@ -1,5 +1,6 @@
 {
   "firstSet": "the-lamp",
+  "welcomeDrawer": ["odd-sock", "brass-key", "paper-boat"],
   "entrances": {
     "the-lamp": { "pip": "pip", "wick": "wick", "moth": "lamp" },
     "shore-path": { "pip": "pip", "wick": "path-mid", "moth": "moth-near" },
