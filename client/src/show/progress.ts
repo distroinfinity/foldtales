@@ -1,7 +1,11 @@
 import { z } from 'zod';
 import { readCheckpoint } from './checkpoint.ts';
+import { whereIn } from './chapters.ts';
 
+/** The furthest chapter and its state. Account sync reads and writes this key, so its shape stays. */
 const KEY = 'tt.progress';
+/** Each chapter's own state, so rereading chapter 1 doesn't forget chapter 2. */
+export const CHAPTERS_KEY = 'tt.chapters';
 
 /**
  * How far you've read, kept across visits so the landing page knows you: new, back mid-chapter,
@@ -16,22 +20,69 @@ const Progress = z.strictObject({
 });
 export type Progress = z.infer<typeof Progress>;
 
+export type ChapterState = 'unread' | 'started' | 'finished';
+const ChapterStates = z.strictObject({
+  v: z.literal(1),
+  seriesId: z.string().min(1),
+  chapters: z.record(z.string().regex(/^[1-9][0-9]{0,2}$/), z.enum(['started', 'finished'])),
+});
+
 type Store = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
 
-export function readProgress(store: Store, seriesId: string): Progress | null {
+const RANK: Record<ChapterState, number> = { unread: 0, started: 1, finished: 2 };
+/** States only move forward: finishing is for good, and rereading a finished chapter keeps it finished. */
+const further = (a: ChapterState, b: ChapterState): ChapterState => (RANK[b] > RANK[a] ? b : a);
+
+function readJson<T>(store: Store, key: string, schema: z.ZodType<T>): T | null {
   try {
-    const raw = store.getItem(KEY);
+    const raw = store.getItem(key);
     if (!raw) return null;
-    const parsed = Progress.safeParse(JSON.parse(raw));
-    return parsed.success && parsed.data.seriesId === seriesId ? parsed.data : null;
+    const parsed = schema.safeParse(JSON.parse(raw));
+    return parsed.success ? parsed.data : null;
   } catch {
     return null;
   }
 }
 
+export function readProgress(store: Store, seriesId: string): Progress | null {
+  const progress = readJson(store, KEY, Progress);
+  return progress && progress.seriesId === seriesId ? progress : null;
+}
+
+/**
+ * Every chapter's state. Reads both keys and takes the furthest of each, so a book merged from
+ * the account (which writes only `tt.progress`: earlier chapters finished) still counts.
+ */
+export function readChapterStates(store: Store, seriesId?: string): { seriesId: string | null; states: Map<number, ChapterState> } {
+  const states = new Map<number, ChapterState>();
+  const progress = readJson(store, KEY, Progress);
+  const own = readJson(store, CHAPTERS_KEY, ChapterStates);
+  const series = seriesId ?? own?.seriesId ?? progress?.seriesId ?? null;
+  if (progress && progress.seriesId === series) {
+    for (let n = 1; n < progress.chapter; n++) states.set(n, 'finished');
+    states.set(progress.chapter, further(states.get(progress.chapter) ?? 'unread', progress.state));
+  }
+  if (own && own.seriesId === series) {
+    for (const [key, state] of Object.entries(own.chapters)) states.set(Number(key), further(states.get(Number(key)) ?? 'unread', state));
+  }
+  return { seriesId: series, states };
+}
+
+/**
+ * Per chapter, for the host to call when a chapter starts and ends. Keeps this chapter's own state
+ * (never moving back), and `tt.progress` as before for the furthest chapter only (account sync
+ * reads it; an earlier chapter read again leaves it alone).
+ */
 export function writeProgress(store: Store, progress: Omit<Progress, 'v' | 'updatedAt'>, now = new Date()): void {
+  const { states } = readChapterStates(store, progress.seriesId);
+  const furthest = readJson(store, KEY, Progress);
+  states.set(progress.chapter, further(states.get(progress.chapter) ?? 'unread', progress.state));
+  const chapters: Record<string, 'started' | 'finished'> = {};
+  for (const [n, state] of states) if (state !== 'unread') chapters[String(n)] = state;
   try {
-    store.setItem(KEY, JSON.stringify({ v: 1, ...progress, updatedAt: now.toISOString() }));
+    store.setItem(CHAPTERS_KEY, JSON.stringify({ v: 1, seriesId: progress.seriesId, chapters }));
+    if (!furthest || furthest.seriesId !== progress.seriesId || progress.chapter >= furthest.chapter)
+      store.setItem(KEY, JSON.stringify({ v: 1, ...progress, updatedAt: now.toISOString() }));
   } catch {
     // The landing page simply greets you as new.
   }
@@ -86,18 +137,13 @@ export type EnterTarget = { kind: 'chapter'; n: number; from: 'resume' | 'start'
 
 /** The landing's view of the library, from what this browser has kept. Pure apart from reading `store`. */
 export function libraryState(store: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>, now: number, seriesId?: string): LibraryState {
-  let progress: Progress | null = null;
-  try {
-    const raw = store.getItem(KEY);
-    const parsed = raw ? Progress.safeParse(JSON.parse(raw)) : null;
-    progress = parsed?.success && (!seriesId || parsed.data.seriesId === seriesId) ? parsed.data : null;
-  } catch {
-    progress = null;
-  }
+  const { seriesId: series, states } = readChapterStates(store, seriesId);
   const chapters = CHAPTERS.map(({ n, title, episodeId }) => {
-    const state: 'unread' | 'started' | 'finished' = progress?.chapter === n ? progress.state : progress && progress.chapter > n ? 'finished' : 'unread';
-    const canResume = state === 'started' && progress !== null && readCheckpoint(store, now, { seriesId: progress.seriesId, episodeId }) !== null;
-    return { n, title, state, canResume };
+    const state = states.get(n) ?? 'unread';
+    // A finished chapter being read again has a place too.
+    const saved = state !== 'unread' && series ? readCheckpoint(store, now, { seriesId: series, episodeId }) : null;
+    const where = saved ? whereSaved(episodeId, saved.runtime) : null;
+    return { n, title, state, canResume: saved !== null, ...(where ? { where } : {}) };
   });
   // The one button: carry on where you are, or the first chapter not yet finished, or the last one again.
   const current = chapters.find((c) => c.state === 'started') ?? chapters.find((c) => c.state === 'unread') ?? chapters[chapters.length - 1]!;
@@ -106,4 +152,11 @@ export function libraryState(store: Pick<Storage, 'getItem' | 'setItem' | 'remov
     next: { kind: 'chapter', n: current.n, resume: current.canResume },
     storyteller: { available: STORYTELLER_AVAILABLE, sessions: [] },
   };
+}
+
+/** The saved place's spread, in the reader's words, from the runtime snapshot's last beat. */
+function whereSaved(episodeId: string, runtime: Record<string, unknown>): string | null {
+  const history = (runtime.scheduler as { history?: Array<{ scene?: unknown }> } | undefined)?.history;
+  const scene = history?.at(-1)?.scene;
+  return typeof scene === 'number' ? whereIn(episodeId, scene) : null;
 }

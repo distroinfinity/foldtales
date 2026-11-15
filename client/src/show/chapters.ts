@@ -1,14 +1,15 @@
-import { Spine } from '@tabletop/contracts';
-import { ChapterCanon } from '../memory/memory.ts';
+import { ObjectDef, Spine, type ShowObject } from '@tabletop/contracts';
+import { ChapterCanon, keptAfter, memoryOf } from '../memory/memory.ts';
+import { indexedDbLogStore, type LogStore } from './log.ts';
 import { ShowManifest } from './manifest.ts';
 
 /**
  * Chapters for the host (lane A): one chapter per page load, prepared before the book opens.
- * The shape is the sprint's agreed one (`docs/plans/2026-11-16-finish-api-shapes.md`, section 1);
- * a change to it goes through the sprint master.
+ * The shape is the sprint's agreed one (`docs/plans/2026-11-16-finish-api-shapes.md`, section 1
+ * and amendment 1); a change to it goes through the sprint master.
  *
- * Stub, Nov 16: only chapter 1, read from the manifest as `index.ts` reads it today. The chapter
- * list, carry slots and the satchel across chapters come in lane B's stage 3.
+ * Today the build has chapter 1 only, read from the manifest as `index.ts` reads it. The chapter
+ * list and carry slots arrive with chapter 2's data (lane B, stage 3).
  */
 export interface ChapterData {
   n: number;
@@ -21,24 +22,38 @@ export interface ChapterData {
   canon: ChapterCanon | null;
   /** The next chapter's number, or null for the last one in this build. */
   next: number | null;
+  /** Keepsakes carried in from the chapter before, with their histories, for the host to put in the satchel. */
+  satchel: ShowObject[];
   /** Where the reader is, for "Stopped on the shore.", from a beat id; null when unknown. */
   where(beatId: string): string | null;
 }
 
-/** Where each spread is, in the reader's words, by scene id. */
-const WHERE: Record<string, Record<string, string>> = {
-  'chapter-1': { 'the-lamp': 'Stopped at the top of the lighthouse.', 'the-shore': 'Stopped on the shore.', 'the-gap': 'Stopped at the gap.' },
+/** Where each spread is, in the reader's words, by episode and scene index. */
+const WHERE: Record<string, readonly string[]> = {
+  'chapter-1': ['Stopped at the top of the lighthouse.', 'Stopped on the shore.', 'Stopped at the gap.'],
 };
 
-/** The chapters in this build, in order: the episode file beside `show/manifest.json`. */
+/** A spread's place in the reader's words, from its episode and scene index; null when unknown. */
+export function whereIn(episodeId: string, sceneIndex: number): string | null {
+  return WHERE[episodeId]?.[sceneIndex] ?? null;
+}
+
+/** The chapters in this build, in order: their episode files beside `show/manifest.json`. */
 function episodesOf(manifest: ShowManifest): string[] {
   return [manifest.episode];
 }
 
 type Fetch = (url: string) => Promise<{ ok: boolean; status: number; json(): Promise<unknown> }>;
 
+export interface ChapterDeps {
+  fetchJson?: Fetch;
+  /** The series log, for what earlier chapters kept. IndexedDB by default. */
+  log?: LogStore;
+}
+
 /** Prepares chapter n for this page load. Rejects if it can't (no such chapter, or its data won't load). */
-export async function loadChapter(n: number, fetchJson: Fetch = (url) => fetch(url)): Promise<ChapterData> {
+export async function loadChapter(n: number, deps: ChapterDeps = {}): Promise<ChapterData> {
+  const fetchJson: Fetch = deps.fetchJson ?? ((url) => fetch(url));
   const get = async (url: string) => {
     const response = await fetchJson(url);
     if (!response.ok) throw new Error(`${url} answered ${response.status}`);
@@ -53,7 +68,8 @@ export async function loadChapter(n: number, fetchJson: Fetch = (url) => fetch(u
   const canon = await get(`./${path.replace(/\.json$/, '.canon.json')}`)
     .then((raw) => ChapterCanon.parse(raw))
     .catch(() => null);
-  const sceneOf = new Map(episode.scenes.flatMap((scene) => scene.beats.map((beat) => [beat.id, scene.id] as const)));
+  const satchel = n > 1 ? await carriedIn(manifest, get, deps.log ?? indexedDbLogStore(), `chapter-${n - 1}`) : [];
+  const sceneOf = new Map(episode.scenes.flatMap((scene, i) => scene.beats.map((beat) => [beat.id, i] as const)));
   return {
     n,
     title: episode.title,
@@ -61,9 +77,26 @@ export async function loadChapter(n: number, fetchJson: Fetch = (url) => fetch(u
     episode,
     canon,
     next: n < episodes.length ? n + 1 : null,
+    satchel,
     where: (beatId) => {
       const scene = sceneOf.get(beatId);
-      return scene ? (WHERE[episode.id]?.[scene] ?? null) : null;
+      return scene === undefined ? null : whereIn(episode.id, scene);
     },
   };
+}
+
+/** What the chapter before kept, from this series' log. A log that can't be read carries nothing in. */
+async function carriedIn(manifest: ShowManifest, get: (url: string) => Promise<unknown>, log: LogStore, before: string): Promise<ShowObject[]> {
+  try {
+    const events = (await log.all()).filter((e) => e.seriesId === manifest.libraryVersion);
+    const defs = new Map<string, ObjectDef>();
+    for (const file of manifest.objectFiles) {
+      const def = ObjectDef.parse(await get(`./art/${file}`));
+      defs.set(def.id, def);
+    }
+    for (const def of manifest.extraObjects) defs.set(def.id, def);
+    return keptAfter(memoryOf(events, defs), before, defs, events);
+  } catch {
+    return [];
+  }
 }
