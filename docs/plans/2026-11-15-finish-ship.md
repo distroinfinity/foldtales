@@ -19,7 +19,7 @@ This lane makes what the other lanes build submittable and production-ready. It 
 
 ## Progress (Nov 16)
 
-### Task 1, the build: decided. GitHub Actions builds and uploads; the owner's token switches it on
+### Task 1, the build: measured. The Actions deploy is withdrawn; committing the cache is now the safe option
 
 - **The three-chapter build, measured.** I encoded stand-ins for lane B's planned new art (`docs/plans/2026-11-15-finish-chapters.md`): the landing set (a copy of the gap's), Thimble (a copy of Moth), and in the worst case snowy repaints of three sets. The Mac was loaded by other lanes' builds (load average 19).
 
@@ -32,12 +32,14 @@ This lane makes what the other lanes build submittable and production-ready. It 
   Both are over the 14-minute bar.
 - **The cache is now content-addressed** (Codex's point 5). Each texture is stored under a key made from the cache settings, the encoder's version and its sources' names and bytes, as `blobs/<key>.ktx2`. Blobs are written whole (a temporary name, then a rename). The served `ktx2/` names are rewritten from the blobs on every build, and unused blobs are removed. Tests cover a change and revert, a missing blob, a stale blob, the settings in the key, and threads against one thread (`tests/art-build.test.ts`).
 - **Encoding runs on several threads** (`tools/ktx2-worker.ts`, up to 8). A cold encode of chapter 1's art took **4:51 on 8 threads, against 10:57 on one**, under the same load. **All 72 textures are byte-identical** to the single-threaded output. The drawer is no longer encoded or emitted twice: 72 textures, not 75. A warm build takes 13–18 s.
-- **The deploy:** `.github/workflows/ci.yml` has a `site` job on main. After `pnpm check`, it restores the art cache (`actions/cache`), builds, and uploads with `wrangler pages deploy`. The content-addressed cache makes a partial restore safe. GitHub's runners have 4 cores. My estimate is about 5 minutes cold and about 2 warm, unmeasured until the first run. **It does nothing until the `CLOUDFLARE_API_TOKEN` secret exists.**
-- **The owner, to switch it on:**
-  1. Make a Cloudflare API token with **Account → Cloudflare Pages: Edit**, then `! gh secret set CLOUDFLARE_API_TOKEN`. `CLOUDFLARE_ACCOUNT_ID` is already set.
-  2. Copy the Pages build variables into GitHub variables, starting with `! gh variable set TT_PUBLIC_BACKEND_URL --body https://api.foldtales.xyz`, plus any other `TT_PUBLIC_*` the dashboard holds.
-  3. In Pages, **Settings → Build → Branch control**, turn off **Enable automatic production branch deployments**. Cloudflare's docs say a Git-connected project then takes Wrangler uploads, and stays Git-connected.
-- **Until then**, Pages keeps building main itself. With parallel encoding it may fit in 20 minutes, if Pages' builder has more than one core. I can't see its core count, so I don't rely on it.
+- **Withdrawn, Nov 16:** the owner limited GitHub Actions minutes, and CI now runs on main only (PR #25: "Don't add workflows"). So the `site` job below is gone from this branch: I took main's `ci.yml` whole at the merge. **What's left, for the sprint master to choose:**
+  1. **Commit the compressed art cache** (`client/.art-cache/blobs/`, about 60 MB today). That's now the safe kind the ruling allows: hash-addressed, with the settings and encoder version in the key, written atomically and checked to exist. Pages would find every texture already encoded, and its build should take about a minute, plus encoding for any texture a lane forgot to commit. A lane adding art commits its new blobs with it. `ktx2/` and `ktx2.json` stay ignored, since every build rewrites them.
+  2. **Rely on parallel encoding alone.** That's only enough if Pages' builder has 2 or more cores, which I can't see. On one core the planned art is ~16 minutes, which is risky.
+  3. **The Actions deploy anyway,** if the owner wants to spend about 5 minutes of Actions per main push.
+
+  **My recommendation is 1:** no infrastructure, and no Actions minutes.
+- *(Withdrawn, kept for the record: a `site` job that built on Actions with `actions/cache` and uploaded with `wrangler pages deploy`, dormant until a `CLOUDFLARE_API_TOKEN` secret existed. It would need that token, the Pages variables copied to GitHub, and Pages' automatic production deployments switched off. Cloudflare's docs say a Git-connected project then accepts Wrangler uploads.)*
+- **Pages keeps building main itself** in the meantime. With parallel encoding it may fit in 20 minutes, if Pages' builder has more than one core. I can't see its core count, so I don't rely on it.
 - **Telemetry's build ID** now defaults to the commit, plus the mode and `+dirty` (`client/vite.config.ts`), instead of `dev`. That tags every session with the build that ran it.
 
 ### Task 2, the offline cache: ships, version-safe
@@ -79,6 +81,7 @@ This lane makes what the other lanes build submittable and production-ready. It 
 
 - `setMuted(on: boolean)` on the sound engine (`client/src/sound/engine.ts`). It ramps both buses' masters to silence and back over about 0.2 s. It's kept if the buses are created later. Anything added to the show bus, the music bed included, mutes with it.
 - `bookCached(): Promise<boolean>` from `client/src/offline/cache.ts`. True only when a worker is active and holds a complete cache.
+- **Landed early, for lane A:** PR #27 (`finish-ship-api`, commit `24e4220`) holds just these two, with tests, and no worker, so `bookCached()` is false until this branch lands.
 
 ## 1. The deadline
 
