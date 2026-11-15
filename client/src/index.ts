@@ -15,7 +15,8 @@ import { buildDim } from './light/dim.ts';
 import { loadStageAssets, uploadAll } from './paint/assets.ts';
 import { makeSoftPieces } from './paint/soft.ts';
 import { CHECKPOINT_VERSION, clearCheckpoint, readCheckpoint, writeCheckpoint, type Checkpoint } from './show/checkpoint.ts';
-import { landingChoice, readProgress, STORYTELLER_AVAILABLE, writeProgress, type EnterTarget } from './show/progress.ts';
+import { CHAPTERS, landingChoice, libraryState, readProgress, STORYTELLER_AVAILABLE, writeProgress, type EnterTarget } from './show/progress.ts';
+import { RIBBON_X_SHARE } from './book/book-view.ts';
 import { createObjectHands } from './objects/hands.ts';
 import type { RuntimeSnapshot } from './show/runtime.ts';
 import { createShowClock } from './show/clock.ts';
@@ -46,7 +47,10 @@ import { reviewOverride } from './stage/review.ts';
 import { createFrameGuard } from './stage/frame-guard.ts';
 import { startPlacement } from './stage/placement-runtime.ts';
 import { createSessionFlow } from './stage/session-flow.ts';
-import { createWristMenu } from './stage/wrist.ts';
+import { cardFor, cardShowing, choose, ended, holdsStory, initialMenu, restarted, ribbon as ribbonPinched, type MenuContext, type MenuEffect, type MenuState } from './stage/book-menu.ts';
+import { chapterEnding } from './book/end-sheet.ts';
+import { chooseEntry } from './landing/entry.ts';
+import type { ExtraTarget as CardExtra } from './stage/controls.ts';
 import { createLiveScheduler } from './storyteller/live.ts';
 import { createStorySession, type StorySession } from './storyteller/session.ts';
 import { createEars } from './storyteller/ears.ts';
@@ -261,7 +265,7 @@ async function prepare(world: World) {
   const readAgain = { requested: false };
   /** Other things the hands can take, added by a mode (the Storyteller's "Hold to talk"). */
   const moreTargets: Array<() => ExtraTarget[]> = [];
-  /** "Put the book away" from the wrist: the book closes, then the session ends. */
+  /** "Put the book away": the book closes, then the session ends. */
   const away = { requested: false };
   const hands = createObjectHands({
     roomBelow: (world) => {
@@ -282,6 +286,14 @@ async function prepare(world: World) {
     },
     endPage: stage.endPage,
   });
+  /** The book's menu, set up by run(): the ribbon, the card's targets, and the look-and-pinch on the card. */
+  const menuHooks = {
+    onRibbon: (): void => undefined,
+    showing: (): boolean => false,
+    cardTargets: (): CardExtra[] => [],
+    pick: (_origin: Vector3, _direction: Vector3): { id: string; generation: number } | null => null,
+    commit: (_choice: { id: string; generation: number }): void => undefined,
+  };
   const controls = createBookControls({
     world,
     stageRoot: stage.root,
@@ -291,9 +303,13 @@ async function prepare(world: World) {
     glow: soft.glow,
     cards: stage.book.cards.length,
     onMoved: () => undefined,
-    extras: () => [...hands.targets(), ...moreTargets.flatMap((f) => f())],
+    // While a card stands, its choices are the only things the hands can take (with the cover and the ribbon).
+    extras: () => (menuHooks.showing() ? menuHooks.cardTargets() : [...hands.targets(), ...moreTargets.flatMap((f) => f())]),
     onGazeSelect: (origin, direction) => hands.gazeSelect(origin, direction),
     onHeadSelect: (origin, direction) => hands.headSelect(origin, direction),
+    onRibbon: () => menuHooks.onRibbon(),
+    limited: () => menuHooks.showing(),
+    cardGaze: { pick: (o, d) => menuHooks.pick(o, d), commit: (c) => menuHooks.commit(c) },
     // A new size keeps the printed lines at least 1° tall.
     onResized: (scale) => {
       sizing.userScale = scale;
@@ -409,21 +425,11 @@ async function prepare(world: World) {
     if (!devRoomState.scheduled || clock.ms < devRoomState.lastMs - 1000) scheduleDevRoom(clock.ms);
     devRoomState.lastMs = clock.ms;
   };
-  const wrist = createWristMenu({
-    parent: world.scene,
-    sound,
-    paused: () => controls.ribbonUp,
-    choose: (choice) => {
-      if (choice === 'pause' || choice === 'resume') controls.setRibbon(choice === 'pause');
-      else if (choice === 'restart') readAgain.requested = true;
-      else away.requested = true;
-    },
-  });
-  return { manifest, assets, stage, dim, sound, clock, runtime, roomMap, shadowPlay, fireflies, windowView, weather, roomDepth, nightSky, snow, sea, gulls, devRoomTick, wash, ember, log, pause, controls, soft, review, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, directorOn, storyConfig, moreTargets };
+  return { manifest, assets, stage, dim, sound, clock, runtime, roomMap, shadowPlay, fireflies, windowView, weather, roomDepth, nightSky, snow, sea, gulls, devRoomTick, wash, ember, log, pause, controls, soft, review, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, away, canonData, defs, directorOn, storyConfig, moreTargets, menuHooks };
 }
 
 function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom: Checkpoint | null, target: EnterTarget | null = null): void {
-  const { manifest, assets, stage, sound, clock, runtime, roomMap, shadowPlay, fireflies, windowView, weather, roomDepth, nightSky, snow, sea, gulls, devRoomTick, wash, ember, log, pause, controls, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, storyConfig, moreTargets } = show;
+  const { manifest, assets, stage, sound, clock, runtime, roomMap, shadowPlay, fireflies, windowView, weather, roomDepth, nightSky, snow, sea, gulls, devRoomTick, wash, ember, log, pause, controls, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, away, canonData, defs, storyConfig, moreTargets, menuHooks } = show;
   // The AI Storyteller, when that's the door the reader chose on the landing page.
   const storyMode = target?.kind === 'storyteller' && storyConfig !== null;
   let story: StorySession | null = null;
@@ -523,10 +529,11 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
   };
   /** A painting the story asked for: wait for it, upload it out of sight, then it appears on the page and the story is told. */
   async function collectPainting(job: { jobId: string; objectId: string }, session: StorySession | null): Promise<void> {
+    const gen = host.generation;
     const deadline = performance.now() + 75_000;
     while (performance.now() < deadline) {
       await new Promise((r) => setTimeout(r, 2500));
-      if (story !== session) return; // A new evening began meanwhile.
+      if (story !== session || gen !== host.generation) return; // A new evening began meanwhile, or the book was put away.
       const result = await storyAccess.withBackend((api) => api.paintResult({ jobId: job.jobId })).catch(() => null);
       if (!result || result.status === 'pending') continue;
       if (result.status === 'failed') {
@@ -536,32 +543,38 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       const def = { ...result.object, id: job.objectId };
       if (def.art.kind !== 'url') return;
       const texture = await new TextureLoader().loadAsync(def.art.url).catch(() => null);
-      if (!texture || story !== session) return;
+      if (!texture || story !== session || gen !== host.generation) return;
+      // Kept for you at once; it appears on the page only once the story is playing again.
+      void keepsakes.keep(def);
+      await host.whenPlaying();
+      if (story !== session || gen !== host.generation) return;
       texture.colorSpace = SRGBColorSpace;
       const ref = wholeRef(texture);
       defs.set(def.id, def);
       stage.objects.add(def, ref, { kind: 'page', at: [0.035, 0, 0.055] });
       world.renderer.initTexture(texture);
       sound.play('chime', stage.book.root.getWorldPosition(new Vector3()), undefined, 'ui');
-      // Everything painted for you is yours to keep: it goes in your satchel for every evening after.
-      void keepsakes.keep(def);
+      paintedTonight.push(def.name);
       session?.arrived(def.id);
       return;
     }
   }
   /** A new evening: a fresh session, and what you kept from earlier evenings back in your satchel. */
   function beginStory(): void {
+    host.generation++;
+    paintedTonight.length = 0;
     startStorySession();
     satchelSeen.clear();
     fromSatchel.clear();
     void bringKeepsakes(story);
   }
   async function bringKeepsakes(session: StorySession | null): Promise<void> {
+    const gen = host.generation;
     for (const k of await keepsakes.list()) {
-      if (story !== session) return;
+      if (story !== session || gen !== host.generation) return;
       if (stage.objects.get(k.def.id) || k.def.art.kind !== 'url') continue;
       const texture = await new TextureLoader().loadAsync(k.def.art.url).catch(() => null);
-      if (!texture || story !== session || stage.objects.get(k.def.id)) continue;
+      if (!texture || story !== session || gen !== host.generation || stage.objects.get(k.def.id)) continue;
       texture.colorSpace = SRGBColorSpace;
       defs.set(k.def.id, k.def);
       stage.objects.add(k.def, wholeRef(texture), { kind: 'satchel' });
@@ -645,6 +658,192 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
     },
   };
   let cardProofAt: number | null = null;
+
+  /**
+   * The host's generation: bumped whenever what's on the stage stops belonging to what was asked for
+   * (put away, switched, started again, a new story). Late work from an older one writes nothing.
+   */
+  const host = {
+    generation: 0,
+    waiting: [] as Array<() => void>,
+    /** Resolves once the story is playing (no card holding it, the cover open, the headset on). */
+    whenPlaying(): Promise<void> {
+      if (!clock.paused && !cardShowing(menu)) return Promise.resolve();
+      return new Promise((resolve) => host.waiting.push(resolve));
+    },
+  };
+  const paintedTonight: string[] = [];
+  /** Sound and the room's light, kept on this headset. */
+  const SETTINGS_KEY = 'tt.settings';
+  const settings: { soundOn: boolean } = (() => {
+    try {
+      return { soundOn: true, ...(JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? '{}') as { soundOn?: boolean }) };
+    } catch {
+      return { soundOn: true };
+    }
+  })();
+  const applySound = () => (sound as unknown as { setMuted?: (on: boolean) => void }).setMuted?.(!settings.soundOn);
+  applySound();
+
+  // The menu: the ribbon opens it, the card shows it, and the story waits while it's open.
+  let menu: MenuState = initialMenu();
+  let ending: MenuContext['ending'] = null;
+  let shownGeneration = -1;
+  const chapterN = 1;
+  const menuContext = (): MenuContext => {
+    const library = libraryState(localStorage, Date.now(), series);
+    const sessions = (library.storyteller as { finished?: Array<{ title: string; lines: string[] }> }).finished ?? [];
+    const storyTitle = (story as unknown as { title?: () => string | null } | null)?.title?.() ?? null;
+    return {
+      mode: storyMode ? 'storyteller' : 'chapter',
+      heading: storyMode ? { over: null, title: storyTitle ?? 'The AI Storyteller' } : { over: `Chapter ${chapterN}`, title: canonData?.title ?? library.chapters.find((c) => c.n === chapterN)?.title ?? '' },
+      where: null,
+      current: storyMode ? null : chapterN,
+      chapters: library.chapters,
+      stories: sessions,
+      satchelCount: stage.objects.states().filter((o) => o.home.kind === 'satchel').length,
+      soundOn: settings.soundOn,
+      light: 'dimmer',
+      ending,
+    };
+  };
+  function setMenu(next: MenuState): void {
+    const wasShowing = cardShowing(menu);
+    const wasHolding = holdsStory(menu);
+    menu = next;
+    if (cardShowing(menu) && !wasShowing) {
+      // A card opened: whatever the hands held goes back with no gift, drop or turn, and the microphone stops now.
+      hands.cancelAll();
+      controls.cancelAll();
+      ears.stop();
+      (story as unknown as { suspend?: () => void } | null)?.suspend?.();
+    }
+    if (holdsStory(menu) !== wasHolding) controls.setRibbon(holdsStory(menu));
+    if (!cardShowing(menu) && wasShowing) (story as unknown as { resume?: () => void } | null)?.resume?.();
+    shownGeneration = -1;
+  }
+  async function endStoryHere(): Promise<void> {
+    const gen = ++host.generation;
+    ears.stop();
+    const own = (story as unknown as { end?: () => Promise<{ title: string; lines: string[]; things: string[] }> } | null)?.end;
+    const result = own ? await own.call(story).catch(() => null) : null;
+    if (gen !== host.generation) return;
+    ending = { heading: result?.title ?? menuContext().heading.title, lines: result?.lines ?? [], things: result?.things ?? [...paintedTonight], next: null };
+    story?.dispose();
+    setMenu(ended(menu));
+  }
+  /** Leaves for the page: the place is kept, nothing late lands, and the page shows `target` if one was chosen. */
+  function putAway(target: EnterTarget | null): void {
+    host.generation++;
+    ears.stop();
+    if (target) chooseEntry(target, storyMode ? { kind: 'storyteller' } : { kind: 'chapter', n: chapterN, from: runtime.ended ? 'start' : 'resume' });
+    away.requested = true;
+  }
+  function apply(effect: MenuEffect | null): void {
+    if (!effect) return;
+    switch (effect.kind) {
+      case 'carry-on':
+        return;
+      case 'again':
+        if (storyMode && !runtime.ended && menu.root === 'playing') void endStoryHere();
+        else {
+          ending = null;
+          host.generation++;
+          readAgain.requested = true;
+        }
+        return;
+      case 'tell-another':
+        ending = null;
+        host.generation++;
+        readAgain.requested = true;
+        return;
+      case 'put-away':
+        return putAway(null);
+      case 'next-chapter':
+        return putAway({ kind: 'chapter', n: chapterN + 1, from: 'start' });
+      case 'open':
+        return putAway(effect.target.kind === 'storyteller' ? { kind: 'storyteller' } : effect.target);
+      case 'toggle-sound':
+        settings.soundOn = !settings.soundOn;
+        try {
+          localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+        } catch {
+          // Kept for this visit only.
+        }
+        applySound();
+        return;
+      case 'cycle-light':
+        return;
+    }
+  }
+  menuHooks.onRibbon = () => setMenu(ribbonPinched(menu));
+  menuHooks.showing = () => cardShowing(menu) && !cardProof;
+  const commit = (id: string, generation: number) => {
+    if (generation !== menu.generation || !card.ready) return;
+    sound.play('felt', stage.book.root.getWorldPosition(new Vector3()), undefined, 'ui');
+    const r = choose(menu, id, menuContext());
+    setMenu(r.state);
+    apply(r.effect);
+  };
+  menuHooks.cardTargets = () => {
+    const generation = menu.generation;
+    return card.targets().map((t) => ({
+      proxy: { id: `card:${t.id}`, position: { x: t.position.x, y: t.position.y, z: t.position.z }, radiusM: t.radiusM },
+      onRelease: () => commit(t.id, generation),
+      halo: false,
+    }));
+  };
+  menuHooks.pick = (origin, direction) => {
+    const CONE = (6 * Math.PI) / 180;
+    const ribbonAt = stage.book.root.localToWorld(new Vector3(assets.book.closedSizeM[0] * RIBBON_X_SHARE, stage.book.pageY, assets.book.closedSizeM[1] / 2 - 0.012));
+    let best: { id: string; a: number } | null = null;
+    for (const t of [...card.targets(), { id: 'ribbon', position: ribbonAt }]) {
+      const a = direction.angleTo(t.position.clone().sub(origin));
+      if (a < CONE && (!best || a < best.a)) best = { id: t.id, a };
+    }
+    return best ? { id: best.id, generation: menu.generation } : null;
+  };
+  menuHooks.commit = (c) => commit(c.id, c.generation);
+  /** Each frame: the card shows what the menu says, while the book is open; a hand near a choice brightens its rule. */
+  function cardStep(): void {
+    const want = cardShowing(menu) && controls.amount > 0.98 && !away.requested;
+    if (want && shownGeneration !== menu.generation) {
+      shownGeneration = menu.generation;
+      const spec = cardFor(menu, menuContext());
+      if (spec) void card.open(spec, head);
+    } else if (!want && card.shown && !cardProof) {
+      card.close();
+      shownGeneration = -1;
+    }
+    let near: string | null = null;
+    let bestD = Infinity;
+    for (const side of ['left', 'right'] as const) {
+      const p = controls.pinchPoint(side);
+      if (!p) continue;
+      for (const t of card.targets()) {
+        const d = p.distanceTo(t.position);
+        if (d < t.radiusM && d < bestD) {
+          near = t.id;
+          bestD = d;
+        }
+      }
+    }
+    card.setNear(near);
+    // Back to a chapter that had already ended (a reload at its end): its end card, not a silent page.
+    if (!storyMode && runtime.ended && wasEnded && menu.root === 'playing' && !readAgain.requested && runtime.started) {
+      ending ??= chapterEnding(chapterN, null, defs, null);
+      setMenu(ended(menu));
+    }
+    // Review builds: where the menu is and where its targets are, for checks driven by emulated hands.
+    if (REVIEW_HOOKS) {
+      const top = menu.stack[menu.stack.length - 1];
+      const ribbonAt = stage.book.root.localToWorld(new Vector3(assets.book.closedSizeM[0] * RIBBON_X_SHARE, stage.book.pageY + 0.01, assets.book.closedSizeM[1] / 2 - 0.012));
+      const r3 = (v: Vector3) => [v.x, v.y, v.z].map((n) => +n.toFixed(3));
+      const info = JSON.stringify({ root: menu.root, top: top?.kind ?? null, gen: menu.generation, ready: card.ready, card: card.debug, shown: card.shown, spec: card.spec?.title ?? null, open: +controls.amount.toFixed(2), shownGen: shownGeneration, clockMs: Math.round(clock.ms), paused: clock.paused, ribbon: r3(ribbonAt), pinchL: controls.pinchPoint("left") && r3(controls.pinchPoint("left")!), pinchR: controls.pinchPoint("right") && r3(controls.pinchPoint("right")!), targets: Object.fromEntries(card.targets().map((t) => [t.id, r3(t.position)])) });
+      if (document.documentElement.dataset.menu !== info) document.documentElement.dataset.menu = info;
+    }
+    if (host.waiting.length && !clock.paused && !cardShowing(menu)) for (const resolve of host.waiting.splice(0)) resolve();
+  }
   let earsOn = false;
   const startEpisode = () => {
     log.forget();
@@ -781,10 +980,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
   // Each part of the frame has its own guard, so an error in one (say, hand input) never stops the story.
   const handsStep = guard('controls', (frame: XRFrame, deltaMs: number) => {
     hands.frame(clock.ms, controls.amount > 0.98);
-    const space = world.xrReferenceSpace;
-    if (space && runtime.started) wrist.frame(frame, space, head);
-    // While the wrist's tags are open, your hands are choosing there, not taking hold of the book.
-    controls.frame(frame, deltaMs, runtime.started && (!arrival || arrival.opened) && !wrist.open, head);
+    controls.frame(frame, deltaMs, runtime.started && (!arrival || arrival.opened), head);
     if (inject && injected < 3 && clock.ms > 2000) {
       injected++;
       throw new Error('injected frame error');
@@ -794,6 +990,9 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
   let wasEnded = runtime.ended;
   const storyStep = guard('runtime', (deltaMs: number) => {
     card.frame(deltaMs, head);
+    if (!cardProof) cardStep();
+    // The old printed end line gives way to the end card.
+    stage.endPage.root.visible = false;
     if (cardProof && PROOF_CARDS[cardProof] && runtime.started && controls.amount > 0.98) {
       if (cardProofAt === null) {
         cardProofAt = nowMs;
@@ -826,6 +1025,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
         readAgain.requested = false;
         beginStory();
         runtime.start();
+        setMenu(restarted(menu));
         controls.lowerRibbon();
         controls.reopen();
         story!.open();
@@ -833,6 +1033,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
         readAgain.requested = false;
         runtime.reset(initialObjects);
         startEpisode();
+        setMenu(restarted(menu));
         controls.lowerRibbon();
         clearCheckpoint(localStorage);
         writeProgress(localStorage, { seriesId: series, chapter: 1, state: 'started' });
@@ -982,10 +1183,17 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
         const played = new Set(runtime.scheduler.snapshot().history.map((h) => h.beatId));
         const kept = stage.objects.states().filter((o) => o.home.kind === 'satchel').map((o) => o.id);
         const sets = [...new Set(assets.spine.scenes.map((sc) => sc.setId))];
-        recordChapterEnd(log.append, canonData, played, kept, defs, sets.map((id) => `sets/${id}/ground.png`));
-      }
+        let page: { title: string; text: string[]; keepsakes: string[] } | null = null;
+        const append: typeof log.append = (type, data) => {
+          if (type === 'page.composed') page = (data as { page: { title: string; text: string[]; keepsakes: string[] } }).page;
+          return log.append(type, data);
+        };
+        recordChapterEnd(append, canonData, played, kept, defs, sets.map((id) => `sets/${id}/ground.png`));
+        ending = chapterEnding(chapterN, page, defs, CHAPTERS.some((c) => c.n === chapterN + 1) ? { n: chapterN + 1 } : null);
+      } else ending = chapterEnding(chapterN, null, defs, null);
       writeProgress(localStorage, { seriesId: series, chapter: 1, state: 'finished' });
       checkpoint();
+      setMenu(ended(menu));
     }
     if (vr) {
       // No passthrough to dim: the house lights go down in the painted room itself.

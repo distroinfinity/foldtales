@@ -265,9 +265,14 @@ export function createCardView(deps: CardViewDeps) {
     get spec(): CardSpec | null {
       return spec;
     },
+    /** For review checks: how far it has stood up, and how many times it has been built and folded. */
+    get debug(): { pop: number; wanted: number; builds: number; built: boolean } {
+      return { pop: +pop.toFixed(2), wanted, builds: building, built: face !== null };
+    },
     frame(deltaMs: number, head: Vector3): void {
       const step = deltaMs / POP_MS;
-      pop = wanted > pop ? Math.min(1, pop + step) : Math.max(0, pop - step);
+      if (wanted > pop) pop = Math.min(1, pop + step);
+      else if (wanted < pop) pop = Math.max(0, pop - step);
       if (pop <= 0 && wanted === 0) {
         if (pivot.visible) {
           pivot.visible = false;
