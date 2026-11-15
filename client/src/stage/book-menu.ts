@@ -161,13 +161,17 @@ export function cardFor(s: MenuState, ctx: MenuContext): CardSpec | null {
     case 'chapter': {
       const c = ctx.chapters.find((x) => x.n === page.n);
       if (!c) return { title: 'Chapters', choices: [{ id: 'back', label: 'Back' }] };
-      const running = ctx.mode === 'chapter' && ctx.current === c.n;
+      const current = ctx.mode === 'chapter' && ctx.current === c.n;
+      // The chapter you're in: Carry on only while it's still playing; once it has ended, Read again.
+      const running = current && s.root === 'playing';
       const choices = running
         ? [{ id: 'carry-on', label: 'Carry on' }, { id: 'again', label: 'Start again' }]
-        : c.state === 'started' && c.canResume
+        : current
+          ? [{ id: 'again', label: 'Read again' }]
+          : c.state === 'started' && c.canResume
           ? [{ id: `open:${c.n}:resume`, label: 'Continue' }, { id: `open:${c.n}:start`, label: 'Start again' }]
           : [{ id: `open:${c.n}:start`, label: c.state === 'finished' ? 'Read again' : 'Start' }];
-      const away = running ? null : 'The book is put away, then it opens there from the page.';
+      const away = current ? null : 'The book is put away, then it opens there from the page.';
       return { over: `Chapter ${c.n}`, title: c.title, note: [STATE_WORD[c.state], away].filter(Boolean).join('. '), choices: [...choices, { id: 'back', label: 'Back' }] };
     }
     case 'storyteller':

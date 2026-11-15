@@ -51,7 +51,7 @@ import { cardFor, cardShowing, choose, ended, holdsStory, initialMenu, restarted
 import { chapterEnding } from './book/end-sheet.ts';
 import { cancelEntry, chooseEntry, consumeEntry, pendingEntry, prepareEntry, type Entry } from './landing/entry.ts';
 import { primaryLabel, readLibrary } from './landing/library.ts';
-import { recordFinished, storytellerSnapshot, whereIn } from './stage/seams.ts';
+import { recordFinished, storytellerSnapshot, whereIn, type StoryEnding } from './stage/seams.ts';
 import type { ExtraTarget as CardExtra } from './stage/controls.ts';
 import { createLiveScheduler } from './storyteller/live.ts';
 import { createStorySession, type StorySession } from './storyteller/session.ts';
@@ -295,6 +295,7 @@ async function prepare(world: World) {
     cardTargets: (): CardExtra[] => [],
     pick: (_origin: Vector3, _direction: Vector3): { id: string; generation: number } | null => null,
     commit: (_choice: { id: string; generation: number }): void => undefined,
+    generation: (): number => 0,
   };
   const controls = createBookControls({
     world,
@@ -311,7 +312,7 @@ async function prepare(world: World) {
     onHeadSelect: (origin, direction) => hands.headSelect(origin, direction),
     onRibbon: () => menuHooks.onRibbon(),
     limited: () => menuHooks.showing(),
-    cardGaze: { pick: (o, d) => menuHooks.pick(o, d), commit: (c) => menuHooks.commit(c) },
+    cardGaze: { pick: (o, d) => menuHooks.pick(o, d), commit: (c) => menuHooks.commit(c), generation: () => menuHooks.generation() },
     // A new size keeps the printed lines at least 1° tall.
     onResized: (scale) => {
       sizing.userScale = scale;
@@ -435,6 +436,11 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
   // The AI Storyteller, when that's the door the reader chose on the landing page.
   const storyMode = target?.kind === 'storyteller' && storyConfig !== null;
   let story: StorySession | null = null;
+  /** Lane D's session lifecycle (seams: suspend, resume, end, title), until their PR types it on StorySession. */
+  type Lifecycle = { suspend?(): void; resume?(): void; end?(): Promise<StoryEnding>; title?(): string | null };
+  const life = (s: StorySession | null): (StorySession & Lifecycle) | null => s as (StorySession & Lifecycle) | null;
+  /** Put away or left XR in the Storyteller: the next time the book opens, it's a new story. */
+  let storyNeedsFresh = false;
   const library = libraryOf(manifest, assets.objects);
   const onStage = manifest.onStage.map((o) => o.cast);
   /** Begins an evening: a fresh live stage and a fresh session, the book opening on the first set. */
@@ -450,6 +456,9 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
     sound.clearLines();
     // The last evening, if any, is over: nothing it was still writing may play into this one.
     story?.dispose();
+    // Everything this session asks for belongs to the generation it was made in.
+    const sessionGen = host.generation;
+    suspended = false;
     const session: StorySession = createStorySession({
       withBackend: (call) => storyAccess.withBackend(call),
       stream: (request) =>
@@ -517,7 +526,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
         if (state !== 'thinking') storyHint.heard = null;
         runtime.setHint(storyHint.base);
       },
-      onPaint: (job) => void collectPainting(job, session),
+      onPaint: (job) => void collectPainting(job, session, sessionGen),
       onAcknowledge: (who) => sound.play('interested', stage.puppets.get(who)?.root.getWorldPosition(new Vector3())),
       // A guest can't use the AI Storyteller: said plainly, printed on the page, never as an error.
       onError: (code, message) => {
@@ -530,8 +539,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
     story = session;
   };
   /** A painting the story asked for: wait for it, upload it out of sight, then it appears on the page and the story is told. */
-  async function collectPainting(job: { jobId: string; objectId: string }, session: StorySession | null): Promise<void> {
-    const gen = host.generation;
+  async function collectPainting(job: { jobId: string; objectId: string }, session: StorySession | null, gen: number): Promise<void> {
     const deadline = performance.now() + 75_000;
     while (performance.now() < deadline) {
       await new Promise((r) => setTimeout(r, 2500));
@@ -568,15 +576,17 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
     startStorySession();
     satchelSeen.clear();
     fromSatchel.clear();
-    void bringKeepsakes(story);
+    void bringKeepsakes(story, host.generation);
   }
-  async function bringKeepsakes(session: StorySession | null): Promise<void> {
-    const gen = host.generation;
+  async function bringKeepsakes(session: StorySession | null, gen: number): Promise<void> {
     for (const k of await keepsakes.list()) {
       if (story !== session || gen !== host.generation) return;
       if (stage.objects.get(k.def.id) || k.def.art.kind !== 'url') continue;
       const texture = await new TextureLoader().loadAsync(k.def.art.url).catch(() => null);
       if (!texture || story !== session || gen !== host.generation || stage.objects.get(k.def.id)) continue;
+      // Into the satchel only while the story is playing (held while a card, the cover or the headset holds it).
+      await host.whenPlaying();
+      if (story !== session || gen !== host.generation || stage.objects.get(k.def.id)) continue;
       texture.colorSpace = SRGBColorSpace;
       defs.set(k.def.id, k.def);
       stage.objects.add(k.def, wholeRef(texture), { kind: 'satchel' });
@@ -589,7 +599,6 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
   const fromSatchel = new Set<string>();
   /** What the caption band says between lines: whose turn it is, and your words as they're heard. */
   const storyHint: { base: string | null; heard: string | null; listening: boolean; blocked: string | null } = { base: null, heard: null, listening: false, blocked: null };
-  if (storyMode) beginStory();
   // Listening: hold to talk. The microphone was allowed on the landing page before the Storyteller opened.
   let micAllowed = false;
   void navigator.permissions?.query({ name: 'microphone' as PermissionName }).then((p) => {
@@ -691,10 +700,43 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
     waiting: [] as Array<() => void>,
     /** Resolves once the story is playing (no card holding it, the cover open, the headset on). */
     whenPlaying(): Promise<void> {
-      if (!clock.paused && !cardShowing(menu)) return Promise.resolve();
+      if (!held()) return Promise.resolve();
       return new Promise((resolve) => host.waiting.push(resolve));
     },
   };
+  /** The story is held: by the clock's pause (cover, ribbon, headset, hands), a card, leaving, or an ending. */
+  const held = (): boolean => clock.paused || cardShowing(menu) || menu.leaving || menu.root === 'ending';
+  /** Whether lane D's session has been told to hold. */
+  let suspended = false;
+  /**
+   * One lifecycle, from the combined state: the session holds its turns, voice and paintings while the
+   * story is held, and the microphone stops at once; playing again releases them in order, and so do
+   * the host's own deliveries (paintings, kept things) waiting in whenPlaying().
+   */
+  function syncLifecycle(): void {
+    const now = held();
+    if (now && !suspended) {
+      suspended = true;
+      ears.stop();
+      life(story)?.suspend?.();
+    } else if (!now && suspended) {
+      suspended = false;
+      life(story)?.resume?.();
+    }
+    if (!now && host.waiting.length) for (const resolve of host.waiting.splice(0)) resolve();
+  }
+  /** Leaving (put away, or XR ended): nothing late from now on lands, and the story is let go. */
+  function invalidate(): void {
+    host.generation++;
+    ears.stop();
+    if (story) {
+      story.dispose();
+      story = null;
+      storyNeedsFresh = storyMode;
+    }
+    // Late deliveries waiting to land wake, see the new generation, and drop.
+    for (const resolve of host.waiting.splice(0)) resolve();
+  }
   const paintedTonight: string[] = [];
   /** Sound and the room's light, kept on this headset. */
   const SETTINGS_KEY = 'tt.settings';
@@ -724,7 +766,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
   const chapterN = 1;
   const menuContext = (): MenuContext => {
     const library = libraryState(localStorage, Date.now(), series);
-    const storyTitle = (story as unknown as { title?: () => string | null } | null)?.title?.() ?? null;
+    const storyTitle = life(story)?.title?.() ?? null;
     return {
       mode: storyMode ? 'storyteller' : 'chapter',
       heading: storyMode ? { over: null, title: storyTitle ?? 'The AI Storyteller' } : { over: `Chapter ${chapterN}`, title: canonData?.title ?? library.chapters.find((c) => c.n === chapterN)?.title ?? '' },
@@ -740,34 +782,33 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
   };
   function setMenu(next: MenuState): void {
     const wasShowing = cardShowing(menu);
-    const wasHolding = holdsStory(menu);
     menu = next;
     if (cardShowing(menu) && !wasShowing) {
       // A card opened: whatever the hands held goes back with no gift, drop or turn, and the microphone stops now.
       hands.cancelAll();
       controls.cancelAll();
-      ears.stop();
-      (story as unknown as { suspend?: () => void } | null)?.suspend?.();
     }
-    if (holdsStory(menu) !== wasHolding) controls.setRibbon(holdsStory(menu));
-    if (!cardShowing(menu) && wasShowing) (story as unknown as { resume?: () => void } | null)?.resume?.();
+    // A finished story stays frozen under its end card; a chapter's has simply ended.
+    const freeze = holdsStory(menu) || (storyMode && menu.root === 'ending');
+    if (freeze !== controls.ribbonUp) controls.setRibbon(freeze);
+    syncLifecycle();
     shownGeneration = -1;
   }
   async function endStoryHere(): Promise<void> {
     const gen = ++host.generation;
     ears.stop();
-    const own = (story as unknown as { end?: () => Promise<{ title: string; lines: string[]; things: string[] }> } | null)?.end;
-    const result = own ? await own.call(story).catch(() => null) : null;
+    const ending0 = life(story)?.end?.();
+    const result = ending0 ? await ending0.catch(() => null) : null;
     if (gen !== host.generation) return;
     ending = { heading: result?.title ?? menuContext().heading.title, lines: result?.lines ?? [], things: result?.things ?? [...paintedTonight], next: null };
     void recordFinished({ id: `story-${Date.now()}`, title: ending.heading, lines: ending.lines, things: ending.things });
     story?.dispose();
+    story = null;
     setMenu(ended(menu));
   }
   /** Leaves for the page: the place is kept, nothing late lands, and the page shows `target` if one was chosen. */
   function putAway(target: EnterTarget | null): void {
-    host.generation++;
-    ears.stop();
+    invalidate();
     if (target) chooseEntry(target, storyMode ? { kind: 'storyteller' } : { kind: 'chapter', n: chapterN, from: runtime.ended ? 'start' : 'resume' });
     away.requested = true;
   }
@@ -845,6 +886,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
     return best ? { id: best.id, generation: menu.generation } : null;
   };
   menuHooks.commit = (c) => commit(c.id, c.generation);
+  menuHooks.generation = () => menu.generation;
   /** Each frame: the card shows what the menu says, while the book is open; a hand near a choice brightens its rule. */
   function cardStep(deltaMs: number): void {
     const want = cardShowing(menu) && controls.amount > 0.98 && !away.requested;
@@ -1002,6 +1044,12 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
     warmedSession = session;
     // Back in the book after putting it away: the menu answers again, with nothing open.
     setMenu(returned(menu));
+    // The Storyteller was let go when you left: this time the book opens on a new story.
+    if (storyNeedsFresh) {
+      storyNeedsFresh = false;
+      ending = null;
+      readAgain.requested = true;
+    }
     vr = session.environmentBlendMode === 'opaque' && !!room;
     roomMap.reset();
     roomPlaced = false;
@@ -1035,11 +1083,14 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
     }
   });
 
+  // The Storyteller's first story begins once everything it uses exists (the host, the menu, the ears).
+  if (storyMode) beginStory();
   /** The room's light setting, through the hands' fold: the show's dim never goes past it. */
   const roomLightFold = (fold: ReturnType<typeof controls.fold>) => (settings.light === 'lighter' ? { ...fold, dim: Math.min(fold.dim, LIGHTER_DIM) } : fold);
   let wasEnded = runtime.ended;
   const storyStep = guard('runtime', (deltaMs: number) => {
     card.frame(deltaMs, head);
+    syncLifecycle();
     if (!cardProof) cardStep(deltaMs);
     // The old printed end line gives way to the end card.
     stage.endPage.root.visible = false;
@@ -1183,7 +1234,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       }
     }
     // The tab is there while the Storyteller's book is open and playing; a pause lets the microphone go.
-    const canTalk = story !== null && runtime.started && !clock.paused && controls.amount > 0.98;
+    const canTalk = story !== null && runtime.started && !held() && controls.amount > 0.98;
     if (story) talk.frame({ left: controls.fingertip('left'), right: controls.fingertip('right') });
     if (canTalk !== earsOn) {
       earsOn = canTalk;
@@ -1337,10 +1388,15 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
   );
 
   // Taking the headset off, or leaving XR, pauses the show and its sound. Coming back resumes it.
+  let wasImmersive = false;
   world.visibilityState.subscribe((state) => {
     if (state === VisibilityState.NonImmersive) {
       if (flow.end(runtime.started).pause) pause.set('headset_off', true);
+      // Out of XR (the system menu, the browser, or Put the book away): late work from this visit is dropped.
+      if (wasImmersive) invalidate();
+      wasImmersive = false;
     } else {
+      wasImmersive = true;
       pause.set('headset_off', state !== VisibilityState.Visible);
     }
     checkpoint();
@@ -1383,12 +1439,19 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, world
           if (mode === 'chapter' && !resume) show.readAgain.requested = true;
           return true;
         }
-        ranMode = mode;
-        if (mode === 'story') run(world, show, null, { kind: 'storyteller' });
-        else {
-          if (!resume) clearCheckpoint(localStorage);
-          run(world, show, resume ? saved : null, null);
+        // The mode counts as running only once it has started: a failed start can be tapped again.
+        try {
+          if (mode === 'story') run(world, show, null, { kind: 'storyteller' });
+          else {
+            if (!resume) clearCheckpoint(localStorage);
+            run(world, show, resume ? saved : null, null);
+          }
+        } catch (cause) {
+          reportError('run', cause);
+          setLandingState({ kind: 'failed' });
+          return false;
         }
+        ranMode = mode;
         return true;
       };
       const ran = () => ranMode !== null;
@@ -1488,17 +1551,43 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, world
             ? {
                 label: backLabel(waiting.back),
                 run: () => {
-                  // Back to where you were: the choice is forgotten, and the page shows your place again.
-                  cancelEntry();
+                  // Back to where you were: that becomes the page's destination, kept like any other choice.
+                  const back = cancelEntry();
                   entry = null;
-                  if (ranMode && ranMode !== 'chapter' && waiting.back?.kind === 'chapter') location.reload();
-                  else setLandingState(ready());
+                  if (back) {
+                    chooseEntry(back, null);
+                    const backMode = back.kind === 'storyteller' ? 'story' : 'chapter';
+                    // The other mode already ran on this page load: a fresh load prepares the one you're going back to.
+                    if (ranMode && ranMode !== backMode) {
+                      location.reload();
+                      return;
+                    }
+                    prepareEntry();
+                    entry = pendingEntry();
+                  }
+                  setLandingState(ready());
                 },
               }
             : now.restartLabel
               ? { label: now.restartLabel, run: () => enter(false) }
               : null,
           storyteller: STORYTELLER_AVAILABLE ? { label: storyDoorLabel(), run: openStoryteller, byHand: () => enter(false, 'story') } : null,
+          // Your book's shelf: exactly this chapter, from where it says, whatever else is waiting.
+          openChapter: (n, from) => {
+            if (n !== thisChapter) {
+              chooseEntry({ kind: 'chapter', n, from }, null);
+              location.reload();
+              return;
+            }
+            cancelEntry();
+            entry = null;
+            if (ranMode === 'story') {
+              chooseEntry({ kind: 'chapter', n, from }, null);
+              location.reload();
+              return;
+            }
+            enter(from === 'resume', 'chapter');
+          },
         };
       };
       void navigator.xr

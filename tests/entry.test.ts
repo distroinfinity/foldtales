@@ -37,6 +37,15 @@ describe('the entry target', () => {
     expect(cancelEntry(s)).toBeNull();
   });
 
+  it('Back makes where you were the destination, with its own mode and intent (review PR #26, finding 8)', () => {
+    const s = tab();
+    chooseEntry({ kind: 'chapter', n: 1, from: 'start' }, { kind: 'storyteller' }, now, s);
+    const back = cancelEntry(s);
+    chooseEntry(back!, null, now, s);
+    prepareEntry(s);
+    expect(pendingEntry(now, s)).toMatchObject({ target: { kind: 'storyteller' }, back: null, state: 'prepared' });
+  });
+
   it('lapses after half an hour untouched', () => {
     const s = tab();
     chooseEntry({ kind: 'storyteller' }, null, now, s);

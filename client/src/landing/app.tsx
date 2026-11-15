@@ -8,8 +8,7 @@ import { BOOK_TITLE, readLibrary, type LibraryState } from './library.ts';
 import { ACCOUNTS_ON } from './flags.ts';
 import { HERO_ART, WEB_ART, preloadArt } from './preload.ts';
 import { BookSheet, Bookplate, type ShelfAction } from './sheets.tsx';
-import { chooseEntry } from './entry.ts';
-import { primaryLabel } from './library.ts';
+import { shelfTarget } from './library.ts';
 import { storytellerSnapshot, subscribeStoryteller } from '../stage/seams.ts';
 import { Story } from './story.tsx';
 import { Storyteller } from './storyteller.tsx';
@@ -69,19 +68,12 @@ export function App({ device }: { device: Device }) {
    * chosen as the entry target, and the page reloads to prepare it. Elsewhere, only its state shows.
    */
   const shelfAction = (n: number): ShelfAction => {
-    if (device !== 'headset' || state.kind !== 'ready') return null;
-    const main = primaryLabel(library);
-    if (main.target.kind === 'chapter' && main.target.n === n) return { label: main.label === 'Open the book' ? 'Start' : main.label.replace(/ chapter \d+/, ''), run: () => openingTap(state.open) };
+    if (device !== 'headset' || state.kind !== 'ready' || !state.openChapter) return null;
     const c = library.chapters.find((x) => x.n === n);
     if (!c) return null;
-    const from = c.state === 'started' && c.canResume ? 'resume' : 'start';
-    return {
-      label: from === 'resume' ? 'Continue' : c.state === 'finished' ? 'Read again' : 'Start',
-      run: () => {
-        chooseEntry({ kind: 'chapter', n, from }, main.target.kind === 'chapter' ? main.target : null);
-        location.reload();
-      },
-    };
+    const t = shelfTarget(c);
+    const open = state.openChapter;
+    return { label: t.label, run: () => openingTap(() => open(n, t.from)) };
   };
   const action = (compact: boolean) =>
     device === 'headset' ? <OpenTheBook state={state} library={library} signedIn={reader} onSignIn={() => setSheet('plate')} compact={compact} /> : <SendToQuest compact={compact} />;

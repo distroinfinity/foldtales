@@ -96,6 +96,15 @@ describe('the book menu', () => {
     expect(returned(endedAway).root).toBe('ending');
   });
 
+  it('a finished chapter offers Read again from its own chapter card, never a dead Carry on (review PR #26, finding 9)', () => {
+    let s = ribbon(ended(initialMenu()));
+    s = choose(s, 'chapters', ctx()).state;
+    s = choose(s, 'chapter:1', ctx()).state;
+    expect(ids(s)).toEqual(['again', 'back']);
+    expect(cardFor(s, ctx())!.choices[0]!.label).toBe('Read again');
+    expect(choose(s, 'again', ctx()).effect).toEqual({ kind: 'again' });
+  });
+
   it('every change bumps the generation', () => {
     const s = initialMenu();
     const a = ribbon(s);
