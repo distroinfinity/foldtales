@@ -88,9 +88,13 @@ export function artPlugin({ artRoot, folders, ktx2 }: ArtPluginOptions): Plugin 
     },
     async generateBundle() {
       // Emitted rather than copied, so the files follow the resolved outDir and survive its cleanup.
+      // A folder inside another (`book/drawer` in `book`) is emitted once.
+      const emitted = new Set<string>();
       for (const folder of folders) {
         for (const file of filesUnder(resolve(artRoot, folder))) {
           const fileName = join('art', relative(artRoot, file)).split(sep).join('/');
+          if (emitted.has(fileName)) continue;
+          emitted.add(fileName);
           this.emitFile({ type: 'asset', fileName, source: readFileSync(file) });
         }
       }

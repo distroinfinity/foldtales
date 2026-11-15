@@ -1,8 +1,84 @@
 # Lane E: ship and submission
 
-**Status:** Stage 1, for review (Nov 15, night). Branch `finish-ship`. Read with `docs/plans/2026-11-15-finish-sprint.md` (the lanes and seams), `docs/hackathon.md`, and ticket 6 in `docs/sprint-plan.md`.
+**Status:** Stage 1 approved with changes by the sprint master (Nov 16; Codex: 0 P0, 6 P1, 2 P2). Building. Tasks 1 and 2 are decided and measured (below). Branch `finish-ship`. Read with `docs/plans/2026-11-15-finish-sprint.md` (the lanes and seams), `docs/hackathon.md`, and ticket 6 in `docs/sprint-plan.md`.
 
 This lane makes what the other lanes build submittable and production-ready. It doesn't build features. Its code is the build, caching, performance and telemetry. Its docs are credits, privacy, the form and the video.
+
+## The sprint master's rulings (Nov 16)
+
+- **Submit by 20:00 IST on Nov 18, with a Devpost draft on Nov 17.** Main is frozen from submission until the winners are announced. The sprint master tells the owner about pausing automatic deploys, and the three weeks of Railway and AI cost.
+- **Runway:** record the terms that apply. Add "Powered by Runway", with a link, wherever live painting appears (lane A places it, on lane D's Storyteller surfaces). Write the end-user terms our use needs: a Terms page whose text is mine and whose page is lane A's. Reconcile both with the competition's brand rule. Keep evidence of ElevenLabs' plan and voice rights.
+- **Offline is not a must-pass item.** Ship a service worker only if it's version-safe by the end of Nov 16; otherwise ship none. Built and tested below, so it ships.
+- **Must-pass items stay pending until checked on the final build,** against a device matrix written as a short script for the owner's Nov 17 sessions. The far-table reach case goes to the sprint master.
+- **Performance:** sustained fixtures, valid pairs only, the observed `room_fx` state asserted, sessions tagged with the build and test case, honest percentile labels, and a missed-frame count. A telemetry field change is its own contracts PR.
+- **Art cache:** measure the three-chapter build first. Under about 14 minutes, commit no cache. Over it, prefer GitHub Actions with a direct upload. Any persisted cache is hash-addressed, with the settings in the key.
+- **Lazy loading is out of scope** (task 4's steps 1 to 3): `index.ts` and the constructors are lanes A's and B's. Cold-start work is measuring, plus cheap wins in the build and preload order. If the bus-stop bar fails, I bring numbers and a proposal.
+- **Notices:** the real licence texts, reachable by users, linked from About through lane A, and checked in the deployed build.
+- **Music:** keep the source and licence evidence, upload a private test to YouTube early with the actual bed, and drop the bed if a claim can't be cleared.
+- **API shapes** (`docs/plans/2026-11-16-finish-api-shapes.md`, section 3): `setMuted(on)` on the sound engine and `bookCached()` from the cache module. Lane A calls both.
+
+## Progress (Nov 16)
+
+### Task 1, the build: decided. GitHub Actions builds and uploads; the owner's token switches it on
+
+- **The three-chapter build, measured.** I encoded stand-ins for lane B's planned new art (`docs/plans/2026-11-15-finish-chapters.md`): the landing set (a copy of the gap's), Thimble (a copy of Moth), and in the worst case snowy repaints of three sets. The Mac was loaded by other lanes' builds (load average 19).
+
+  | Art | Extra encode, Mac, one thread | Whole build, Mac | Estimated on Pages (×1.28, chapter 1's ratio) |
+  |---|---|---|---|
+  | Chapter 1 (measured, Nov 15) | — | 10:57 | 14:00 (measured) |
+  | + the landing and Thimble | +1:53 | ~12:50 | **~16:25** |
+  | + snowy repaints of three sets | +6:13 more | ~19:00 | **~24:20** |
+
+  Both are over the 14-minute bar.
+- **The cache is now content-addressed** (Codex's point 5). Each texture is stored under a key made from the cache settings, the encoder's version and its sources' names and bytes, as `blobs/<key>.ktx2`. Blobs are written whole (a temporary name, then a rename). The served `ktx2/` names are rewritten from the blobs on every build, and unused blobs are removed. Tests cover a change and revert, a missing blob, a stale blob, the settings in the key, and threads against one thread (`tests/art-build.test.ts`).
+- **Encoding runs on several threads** (`tools/ktx2-worker.ts`, up to 8). A cold encode of chapter 1's art took **4:51 on 8 threads, against 10:57 on one**, under the same load. **All 72 textures are byte-identical** to the single-threaded output. The drawer is no longer encoded or emitted twice: 72 textures, not 75. A warm build takes 13–18 s.
+- **The deploy:** `.github/workflows/ci.yml` has a `site` job on main. After `pnpm check`, it restores the art cache (`actions/cache`), builds, and uploads with `wrangler pages deploy`. The content-addressed cache makes a partial restore safe. GitHub's runners have 4 cores. My estimate is about 5 minutes cold and about 2 warm, unmeasured until the first run. **It does nothing until the `CLOUDFLARE_API_TOKEN` secret exists.**
+- **The owner, to switch it on:**
+  1. Make a Cloudflare API token with **Account → Cloudflare Pages: Edit**, then `! gh secret set CLOUDFLARE_API_TOKEN`. `CLOUDFLARE_ACCOUNT_ID` is already set.
+  2. Copy the Pages build variables into GitHub variables, starting with `! gh variable set TT_PUBLIC_BACKEND_URL --body https://api.foldtales.xyz`, plus any other `TT_PUBLIC_*` the dashboard holds.
+  3. In Pages, **Settings → Build → Branch control**, turn off **Enable automatic production branch deployments**. Cloudflare's docs say a Git-connected project then takes Wrangler uploads, and stays Git-connected.
+- **Until then**, Pages keeps building main itself. With parallel encoding it may fit in 20 minutes, if Pages' builder has more than one core. I can't see its core count, so I don't rely on it.
+- **Telemetry's build ID** now defaults to the commit, plus the mode and `+dirty` (`client/vite.config.ts`), instead of `dev`. That tags every session with the build that ran it.
+
+### Task 2, the offline cache: ships, version-safe
+
+- **How it stays safe** (Codex's point 2): `client/src/offline/worker.ts`.
+  - It installs all of its build's files at once, checking each one's SHA-256 against the list the build inlined into `sw.js`. Any mismatch or failure throws the whole cache away.
+  - It serves only from its own complete cache, pages included, so a tab stays on one build.
+  - It never calls `skipWaiting` or `clients.claim`. A new build waits until no tab uses the old one, and only then deletes the old cache.
+  - Sign-in pages (`/auth/`, `/link/`), the API, other sites, queries on non-page files and the PNG sources are never touched.
+  - A file that answers "not modified" with another build's bytes (a server that validates by date) is fetched once more in full before the install gives up.
+  - **The kill switch:** a build with `TT_PUBLIC_SW=off` ships a worker that takes over at once, deletes every cache and unregisters.
+- **Who gets it:** a headset on the live site, registered once the book is ready, so it never competes with the cold start. Never a phone or desktop, a review or dev build, or a local build unless the URL says `?offline=on`.
+- **What it holds:** 360 files, 77.9 MB (code, pages, KTX2 art, data, sound, the Basis transcoder, the icons and manifest). Not the 100 MB of PNG sources.
+- **Tested.** 21 unit tests (`tests/offline.test.ts`), including A to B, a mid-deploy install, an interrupted install, a 404, a stale 304, routing and the kill switch. Then in a real browser, against a local server that validates by ETag as Pages does:
+
+  | Step | Result |
+  |---|---|
+  | First visit to A | Not controlled. Installs A's cache after the book is ready |
+  | Reload | Served from A's cache |
+  | C deploys mid-install (B's list over newer files) | B's install fails, A untouched |
+  | B deploys under the open A tab | B installs and waits. **The A tab keeps getting A's bytes** for the same URL |
+  | The tab leaves, and reopens | B serves, A's cache is deleted |
+  | The server gone (every file 404s) | The book opens from the cache. `/privacy/` opens offline. Sign-in pages and PNG sources aren't cached |
+  | The kill switch deployed | The worker unregisters and every cache is deleted |
+  | `bookCached()` | False before the install finishes, true after |
+
+  My first runs used Python's server, which validates by date. It handed back another build's bytes for unchanged files and broke the test. That's what found the 304 case above.
+- **Not offline:** IWSDK fetches its hand and controller profiles from jsdelivr, and troika its fallback glyphs. How input looks with no network is still to check on the Quest.
+- **The installable page:** `client/public/manifest.webmanifest`, and icons cut from the cover's gilt lighthouse (`tools/pwa-icons.ts`, no new paint). `client/public/_headers` gives hashed `assets/` a year's immutable cache and keeps `sw.js` and the manifest unchecked by caches. **Lane A's `client/index.html` needs two lines** to make it installable:
+
+  ```html
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" href="./icons/icon-192.png" />
+  ```
+
+  The second replaces today's empty `data:` icon. Also the call in `client/src/main.ts` (lane A's file), which I added in three lines: `registerOffline(device)`, inside the headset branch.
+
+### The API shapes (section 3): built
+
+- `setMuted(on: boolean)` on the sound engine (`client/src/sound/engine.ts`). It ramps both buses' masters to silence and back over about 0.2 s. It's kept if the buses are created later. Anything added to the show bus, the music bed included, mutes with it.
+- `bookCached(): Promise<boolean>` from `client/src/offline/cache.ts`. True only when a worker is active and holds a complete cache.
 
 ## 1. The deadline
 

@@ -1,0 +1,15 @@
+{
+  "name": "Foldtales",
+  "short_name": "Foldtales",
+  "description": "A living storybook on your table. Reach in and help the characters through each chapter, or make up a new story with the AI Storyteller.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#15110e",
+  "theme_color": "#15110e",
+  "icons": [
+    { "src": "icons/icon-192.png", "type": "image/png", "sizes": "192x192", "purpose": "any" },
+    { "src": "icons/icon-512.png", "type": "image/png", "sizes": "512x512", "purpose": "any" },
+    { "src": "icons/icon-512-maskable.png", "type": "image/png", "sizes": "512x512", "purpose": "maskable" }
+  ]
+}

@@ -1,3 +1,4 @@
+import { execSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { iwsdkDev } from '@iwsdk/vite-plugin-dev';
@@ -6,8 +7,26 @@ import react from '@vitejs/plugin-react';
 import { defineConfig, type ServerOptions } from 'vite';
 import { readPorts } from '../tools/ports.ts';
 import { artPlugin } from './vite/art-plugin.ts';
+import { offlinePlugin } from './vite/offline-plugin.ts';
 
 const manifest = JSON.parse(readFileSync(new URL('./public/show/manifest.json', import.meta.url), 'utf8')) as { artFolders: string[] };
+
+/**
+ * Which build a telemetry session came from: the commit (from the CI or the checkout), with the
+ * mode and a mark if the checkout had uncommitted changes. An explicit TT_PUBLIC_BUILD_ID wins.
+ */
+function buildId(mode: string): string {
+  if (process.env.TT_PUBLIC_BUILD_ID) return process.env.TT_PUBLIC_BUILD_ID;
+  let sha = process.env.GITHUB_SHA ?? process.env.CF_PAGES_COMMIT_SHA ?? '';
+  let dirty = false;
+  try {
+    sha ||= execSync('git rev-parse HEAD', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+    dirty = execSync('git status --porcelain', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim() !== '';
+  } catch {
+    // No git (a bare upload): the mode alone.
+  }
+  return `${sha.slice(0, 12) || 'unknown'}${dirty ? '+dirty' : ''}-${mode}`;
+}
 
 function devServer(): ServerOptions {
   const { CLIENT_PORT, BACKEND_PORT } = readPorts();
@@ -24,7 +43,7 @@ function devServer(): ServerOptions {
   };
 }
 
-export default defineConfig(({ command }) => ({
+export default defineConfig(({ command, mode }) => ({
   plugins: [
     react(),
     tailwindcss(),
@@ -34,11 +53,14 @@ export default defineConfig(({ command }) => ({
       folders: manifest.artFolders,
       ktx2: { cacheDir: fileURLToPath(new URL('./.art-cache', import.meta.url)) },
     }),
+    // The offline cache's worker, written last. Production builds only; TT_PUBLIC_SW=off is its kill switch.
+    offlinePlugin({ enabled: mode === 'production', off: process.env.TT_PUBLIC_SW === 'off' }),
   ],
   // Only serving needs ports, so a CDN builder with no .env.ports can still build.
   ...(command === 'serve' ? { server: devServer(), preview: devServer() } : {}),
   // Vite also exposes matching process variables, so the prefix is what keeps keys out.
   envPrefix: 'TT_PUBLIC_',
+  define: command === 'build' ? { 'import.meta.env.TT_PUBLIC_BUILD_ID': JSON.stringify(buildId(mode)) } : {},
   build: {
     outDir: 'dist',
     sourcemap: process.env.NODE_ENV !== 'production',
