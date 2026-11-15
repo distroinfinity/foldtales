@@ -817,3 +817,58 @@ This workspace's `.env.workspace` then gets `BETTER_AUTH_URL=http://localhost:51
 | Lane A's slots land late | The provider and the end page data are built and tested first. The door keeps today's look until lane A's lands |
 | The spend ceilings are sized wrong | They're variables on Railway, changed without a deploy of code |
 | A live sign-in fails after merge | Both flags off together, then the card |
+
+---
+
+## Stage 3: progress
+
+*Updated as the build goes. Newest last.*
+
+**Nov 16**
+- **Contracts:** v5 (#22, merged) has the story record, ending and shelf. v7 (#28, merged) has `transcribe`, with `speechToken` removed.
+- **Main PR #30:**
+  - the story's shape and its app-owned ending;
+  - stories, turns, paintings and holds counted on the server;
+  - spend reserved before every paid call;
+  - fail-closed checks on lines, titles, summaries, painted names, descriptions and pictures;
+  - the kill switch (`TT_STORYTELLER`);
+  - the provider and shelf;
+  - sign-in with Google and the email or phone code;
+  - the welcome email (owner-approved, with its button);
+  - OpenAI voices and Groq listening (owner: off ElevenLabs);
+  - the AI-voice disclosure (lane E's licence review).
+- **Codex's review of #30:** 11 P1 and 2 P2, all fixed with a regression test each (`backend/test/review-pr30.test.ts`, `tests/storyteller-review.test.ts`). Checks before the push: typecheck clean, 939 tests passed, bundle clean.
+- **Proved live:**
+  - **Claude**, through the dev backend: start, welcome, a repeated turn id answered with `recover`, a premise naming the story, a close with a checked summary, and the shelf.
+  - **Groq**: 188–670 ms per hold, exact once `art/voice/listen.json`'s vocabulary was added.
+  - **Resend**: the welcome and a sign-in code, both delivered.
+  - **Google**: the start redirects to Google with the registered redirect URI.
+  - **OpenAI**: still waiting for its key.
+
+### Emulator pass (owner's rule, Nov 16)
+
+Run in the IWSDK emulator (Quest 3 profile, hands only) on this workspace's dev build, with the mock backend: no AI keys, codes printed.
+
+**Driving it:**
+- The emulator has no microphone, and the app's frame doesn't receive the browser's permission grant. A stand-in microphone (a soft tone, or a recorded sentence) lets the door's ask, MediaRecorder and the upload run for real.
+- The scripts are in `client/.emu-scripts/`, kept out of git by the shared `.git/info/exclude`.
+
+**So far:**
+- **Sign-in by phone code:** "Sign in to start" opens the bookplate, and "Use your phone" shows the code (`emu/01-bookplate-code.png`). I played the phone by script: email-code sign-in, then approve. The headset came back signed in, scrolled to the door.
+- **Microphone, then into the book:** "Let them hear you", then "Start the AI Storyteller". The book landed on the room's table with the cast and the satchel (`emu/02-welcome.png`). The welcome turn ran, first beat in 141 ms, captions only.
+- **Zero input, first try:** 17 quiet turns in a row (thinking, performing, listening, about every 20 s), then my own client edits hot-reloaded the page mid-run. That run doesn't count. Rule from now on: no client edits while a whole-story run is going.
+- **Zero input, second try:** running (from 01:56).
+
+The screenshots are in the session scratchpad's `emu/` folder: `/private/tmp/claude-501/-Users-manu--superset-worktrees-tabletop-theater-finish-ai-storyteller/18aa207a-25cb-4520-992b-31acb6af3ac6/scratchpad/emu/`.
+
+**Still to run after lane A's #26 is in and this branch is rebased:**
+- the new door's states;
+- a spoken story, with the stand-in microphone saying a recorded sentence, through Groq;
+- pause by the cover and by headset off;
+- leaving and coming back;
+- a reload;
+- offline;
+- AI slow or failing (`MOCK_PROFILE=slow` and `fail`);
+- mic refused;
+- sign-in cancelled;
+- one real-AI pass.
