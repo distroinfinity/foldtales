@@ -74,12 +74,16 @@ export async function loadStageAssets(
   /** `spine` is the chapter this page load plays (`loadChapter(n).episode`); chapter 1's from the manifest if absent. */
   options: { allowKtx2: boolean; onProgress?: (done: number, total: number) => void; spine?: Spine },
 ): Promise<StageAssets> {
+  // A chapter loads only the sets its own spreads use (chapter 3's snowy sets stay out of chapter 1).
+  // Without a chosen spine, every set, as before.
+  const used = options.spine ? new Set(options.spine.scenes.map((scene) => scene.setId)) : null;
+  const setEntries = used ? manifest.sets.filter((set) => used.has(set.id)) : manifest.sets;
   const [bookRaw, drawerRaw, satchelRaw, spineRaw, setRaws, objectRaws, rigRaws] = await Promise.all([
     json(`${artBase}/${manifest.book}`),
     json(`${artBase}/${manifest.drawer}`),
     json(`${artBase}/${manifest.satchel}`),
     options.spine ?? json(`./${manifest.episode}`),
-    Promise.all(manifest.sets.map((set) => json(`${artBase}/${set.file}`))),
+    Promise.all(setEntries.map((set) => json(`${artBase}/${set.file}`))),
     Promise.all(manifest.objectFiles.map((file) => json(`${artBase}/${file}`))),
     Promise.all(manifest.cast.map((entry) => json(`${artBase}/${entry.member.rig}/rig.json`))),
   ]);
@@ -96,7 +100,7 @@ export async function loadStageAssets(
   const drawer = DrawerSpec.parse(drawerRaw);
   const satchel = SatchelSpec.parse(satchelRaw);
   const spine = Spine.parse(spineRaw);
-  const sets = manifest.sets.map((entry, i) => ({ id: entry.id, spec: SetSpec.parse(setRaws[i]), base: dirOf(entry.file) }));
+  const sets = setEntries.map((entry, i) => ({ id: entry.id, spec: SetSpec.parse(setRaws[i]), base: dirOf(entry.file) }));
   const set = sets[0]!.spec;
   const objects = [...objectRaws.map((raw) => ObjectDef.parse(raw)), ...manifest.extraObjects];
   const rigs = new Map(manifest.cast.map((entry, i) => [entry.member.id, Rig.parse(rigRaws[i])]));

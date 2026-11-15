@@ -1299,7 +1299,9 @@
     "objects/rope-coil/object.json",
     "objects/lamp-wick/object.json",
     "objects/paper-boat/object.json",
-    "objects/bottle/object.json"
+    "objects/bottle/object.json",
+    "objects/logbook/object.json",
+    "objects/thimble-boat/object.json"
   ],
   "extraObjects": [
     {
