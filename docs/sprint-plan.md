@@ -4,7 +4,7 @@
 
 ## Progress
 
-*Last updated Nov 15, 2026. A workstream is ticked when it's merged to main, and a milestone when the owner signs it off in the headset. ⏸ means held by the owner's choice. **Now: M3 signed off (the AI Storyteller, PR #9). The owner writes more chapters; "Your room comes alive" is merged (PR #13), a catalogue of room effects for both the chapters and the Storyteller.***
+*Last updated Nov 15, 2026. A workstream is ticked when it's merged to main, and a milestone when the owner signs it off in the headset. ⏸ means held by the owner's choice. **Now: the finish sprint (`docs/plans/2026-11-15-finish-sprint.md`). Five lanes in parallel take Foldtales to a finished product by Nov 18: the product overhaul, chapter 2 and the engine, chapter 3, the AI Storyteller with sign-in, and ship. `main` is the sprint master.***
 
 **The product is two ways (owner, Nov 14, after ticket 3's first headset session):**
 1. **Defined stories:** authored chapters and books, theatrical experiences. Chapter 1 is the first. The owner writes more, in parallel.
@@ -19,7 +19,7 @@ Why: AI lines spliced into the written chapter didn't land ("If a story is alrea
 - [x] **M2, first five minutes.** Signed off by the owner on the Quest 3 on Nov 14, from a local review build over USB (PR #7). Someone new played it on Nov 14 and was amazed by the wow; the web page and journey around the book need polish later (ticket 6).
 - [x] **M3, the AI mode.** Signed off by the owner on the Quest 3 on Nov 15, from a local review build over USB (PR #9): "I actually felt immersion. They were like they were following my commands … we are in the right direction." Re-cut on Nov 14 from "a story that bends and remembers": the AI gets its own mode instead of being layered on the written chapters.
 - [ ] **M4, voices and Talk.**
-- [ ] **M5, Story Circle.**
+- [ ] ~~**M5, Story Circle.**~~ Cut from v1 by the owner (Nov 15), moved to `docs/v2-ideas.md`.
 - [ ] **M6, ready to submit.**
 
 ### Tickets
@@ -56,7 +56,7 @@ Why: AI lines spliced into the written chapter didn't land ("If a story is alrea
   - [x] Voice audition (run 005): full cast chosen from measurements, since the owner delegated it. Not yet compared by ear. Plan: `docs/superpowers/plans/2026-11-09-voice-audition.md`
   - [ ] Rest of voice and music: voice chain in the product, line pre-render, foley, music
   - [ ] Talk
-- [ ] ⏸ **5. Story Circle.** Held by the owner (Nov 13) until the single-player product is done or at a good standard, then picked up if time is left.
+- [ ] ~~**5. Story Circle.**~~ Cut from v1 by the owner (Nov 15), moved to `docs/v2-ideas.md`.
   - [ ] Two-headset proof (can start once ticket 1 places a stage)
   - [ ] Shared show
 - [ ] **6. Ship**
