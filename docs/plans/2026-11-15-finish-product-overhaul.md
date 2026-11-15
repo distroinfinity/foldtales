@@ -1,12 +1,12 @@
 # Finish sprint, lane A: the product overhaul
 
-**Stage 1: the walk and the structure.** Nov 15, 2026. Branch `finish-product-overhaul`. For the sprint master's Codex review and approval. No code yet.
+**Stage 2: the build plan.** Nov 16, 2026. Branch `finish-product-overhaul`. Stage 1 (the walk and the structure) was approved with changes by the sprint master on Nov 15 after one Codex review (4 P0, 8 P1). Every ruling is folded into the structure below; the review log at the end maps each finding to where it's answered. Stage 2 is section 6 onward.
 
 **Read with:** `docs/plans/2026-11-15-finish-sprint.md` (the lanes and seams), ticket 7's "Foldtales as a complete product" in `docs/sprint-plan.md` (the brief and what to keep), `docs/design-language.md`, `docs/plans/2026-11-14-product-front-door.md` (today's page, approved Nov 14).
 
 ## The proposal in one paragraph
 
-**The page is the front door, and the book is home.** You choose on the page the first time, because XR starts from a tap there and the microphone must be allowed there. Once you're inside, the book itself is the menu, the way Moss does it, with Beat Saber's structure: one way to pause that always looks the same, a contents page that is home, an end page that works like a results screen, and a small settings page. **One control opens all of it: the ribbon.** Pinch the ribbon and the story stops, the pop-ups fold down flat, and the open spread becomes a printed page of choices. Shutting the cover still pauses, as it does today. The wrist tag and the sage tab go. Everything you've gathered (keepsakes, things painted for you, each chapter's storybook page) lives in **your satchel** inside the book and in **Your book** on the page. Lanes B and D don't build menus: they hand the book what to print (a chapter's title, where you are, the end page's lines, the Storyteller's items) through one small controls API.
+**The page is the front door, and the book is home.** You choose on the page the first time, because XR starts from a tap there and the microphone must be allowed there. Once you're inside, the book itself is the menu, the way Moss does it, with Beat Saber's structure: one way to pause that always looks the same, a small contents page that is home, an end page that works like a results screen, and two settings. **One control opens all of it: the ribbon.** Pinch the ribbon and the story stops, the pop-ups fold down flat, and the open spread becomes a printed page of choices, never more than two to a page so each one can be pinched alone even when the book is at its smallest. Shutting the cover still pauses, with no page. The way out is **"Put the book away"**. The wrist tag and the sage tab go. **Your book**, on the page, lists what you've kept by name. Lanes B and D don't build menus: they hand the book what to print, and they plug their chapter and Storyteller into one entry path and one controls API.
 
 ---
 
@@ -26,10 +26,12 @@ I read every surface's code and ran today's `main` on the Mac in the IWSDK emula
 | **The end section** | `app.tsx` | "Your table is ready." and the button again. | Fine. |
 | **Foot** | `app.tsx` | Chapters (opens a sheet), "No table? Read in the painted room", About, Privacy, "Open it here anyway" (desktop only), the competition line. | "Chapters" is a list without actions: you can't start a chapter from it. The painted room is hidden in the foot. |
 | **Chapters sheet** | `landing/sheets.tsx` | A paper sheet: the book's title, chapters with "started" or "read", "More chapters on the way", and one line about the AI Storyteller. | Read-only. Says chapter 1 is "The lamp goes out", while the chapter itself is titled "The night the light went out" (`episode-1.json`). Keepsakes and things painted for you appear nowhere. |
-| **Bookplate** | `sheets.tsx` | Sign in (Google, phone code), signed-in state, sign out, delete. | Built, off. Lane D turns it on. Fine as a surface. |
+| **Bookplate** | `sheets.tsx` | Sign in (Google, phone code), signed-in state, sign out, delete. | Built, off. Two options, not the three now required (phone code, Google, Facebook). Its layout is lane A's; behaviour and words are lane D's. |
+| **Phone sign-in, `/link/`** | `pages/link.tsx` | Steps: enter the code → sign in (Google or an email code) → "Let the headset in?" → done, or declined. | Expired code, wrong code, a provider that fails and a cancelled sign-in have no screen of their own. No Facebook. |
+| **`/auth/return/`** | `pages/auth-return.tsx` | Finishes a Google sign-in and goes back to the page. | A failure lands on a plain line; it doesn't carry you back to the door you were opening. |
 | **About, Privacy** | `pages/` | Plain pages in the same look. | Privacy names the Storyteller's data. Needs the keepsakes line (they stay on the headset) and settings' "forget" once that exists. |
 | **Desktop and phone** | `actions.tsx` | Same page, "Send to your Quest", copy and share. No 3D download. | Fine. |
-| **Settings** | — | None. | No place to mute, change the dim, start the book over, or forget keepsakes without an account. |
+| **Settings** | — | None. | No place to mute or change the room's light. |
 
 ### 1.2 Inside the book (XR)
 
@@ -84,13 +86,13 @@ I read every surface's code and ran today's `main` on the Mac in the IWSDK emula
 
 | Beat Saber has | Moss has | Foldtales gets |
 |---|---|---|
-| A main menu you always return to | The book is the menu | **The contents page**, printed in the book: home inside XR |
-| Clear play modes (Solo, Campaign, Party) | — | **Two ways in**, always named the same: *Chapters* and *the AI Storyteller* |
-| A library with packs | Chapters in a book | **The shelf**: books, then chapters, with "More chapters on the way" |
-| A pause menu that's always the same | — | **The pause page**: one ribbon, the same four choices everywhere |
-| A results screen | The page turns to the next chapter | **The end page**: what you did, what you kept, what's next |
-| Settings | — | **A small settings page** in the book, and its twin on the page |
-| A tutorial | Learn by doing | **No tutorial**: the story teaches by asking, and each control teaches itself once |
+| A main menu you always return to | The book is the menu | **The contents**, printed in the book: home inside XR |
+| Clear play modes | — | **Two ways in**, always named the same: *chapters* and *the AI Storyteller* |
+| A library with packs | Chapters in a book | **The shelf**: the book's chapters with their state, and "More chapters on the way" |
+| A pause menu that's always the same | — | **The pause page**: one ribbon, the same four choices |
+| A results screen | — | **The end page**: what happened, what you kept, what's next |
+| Settings | — | **Two settings** in the book: sound, and the room's light |
+| A tutorial | Learn by doing | **No tutorial**: the story teaches by asking, and the ribbon carries a printed hint until you've used it |
 
 The look stays ours: printed paper, ink, gold rules. No panels.
 
@@ -98,371 +100,415 @@ The look stays ours: printed paper, ink, gold rules. No panels.
 
 ## 3. The structure
 
-### 3.1 The one decision: where you choose
+### 3.1 Decisions (sprint master, Nov 15)
 
-**On the page the first time, and in the book after that.**
-
-- **The page** chooses for the first entry, because XR only starts from a tap on the page, and the microphone must be allowed there (a first prompt inside XR ended the session twice). A judge still gets one tap.
-- **The book** is home once you're inside. Its contents page lists every chapter and the AI Storyteller, so you never leave XR to choose.
-- **Switching from a chapter to the Storyteller from inside the book** needs the microphone and today a fresh page load. So the book does it honestly: "The book closes, then opens the AI Storyteller." XR ends, the page comes back already set to the Storyteller with one tap to go ("Open the AI Storyteller"). If stage 2 finds the switch can happen in place (lane B's chapter loading may make the stage reusable), it skips the page. Chapter to chapter switches in place once lane B's engine loads chapters by number.
+| Decision | Ruling |
+|---|---|
+| Where you choose | On the page the first time; in the book after that. |
+| The one control | **The ribbon replaces the sage tab** (`docs/design-language.md` is updated in phase 5). The gold tab stays as the satchel's latch. |
+| Shutting the cover | **Pauses**, with no page, as today. |
+| The printed way out | **"Put the book away"**. "Close the book" is no longer used as a label; shutting the cover is a pause. |
+| Switching mode inside XR | **Cut.** Another chapter or the Storyteller is reached through a durable entry target and the page (section 3.6). Chapter to chapter may load in place if lane B's engine does it cleanly; nothing depends on it. |
+| The collection that ships | **Small and honest:** on the page, Your book lists your keepsakes and things painted for you **by name**; in the book, the contents shows the satchel's **count**. No browsing inside the book, and nothing looks pinchable that isn't. |
+| Room-effect discovery | **v2.** |
+| Settings | **In the book:** sound on or off, and the room's light. **On the page:** none in v1. "Start this chapter again" is on the pause page. A global reset and "forget what's kept" are deferred. |
+| The Storyteller | Lane D's model: **no continuing an unfinished story**. "Your stories" means finished stories. |
 
 ### 3.2 The surface map
 
 ```
 FOLDTALES
 │
-├─ THE PAGE  (2D; every device)                         front door
-│   ├─ Hero: the cover, the tagline, the one button     "Open the book" / "Continue chapter 2" / …
-│   │    └─ under it: your second door                  "Or make up a story with the AI Storyteller"
+├─ THE PAGE  (2D; every device)                              front door
+│   ├─ Hero: the cover, the tagline, the one button          where you are, from libraryState()
+│   │    └─ under it, once you've played: the Storyteller door, equal weight
 │   ├─ The scroll (unchanged)
-│   ├─ The AI Storyteller (the shore and its door)       lane D's words, lane A's door
+│   ├─ The AI Storyteller: the shore and its door             lane D's states and words, lane A's layout
 │   ├─ Your book  (a paper sheet; replaces "Chapters")
-│   │    ├─ The shelf: Tales from the Table's Edge, each chapter with Start / Continue / Read again
-│   │    ├─ The AI Storyteller: Start a new story · your stories (lane D)
-│   │    ├─ Your satchel: keepsakes and things painted for you, with names
-│   │    └─ Settings: sound, the room's light, start the book over, forget what's kept
-│   ├─ Bookplate (sign-in; lane D switches it on)
+│   │    ├─ The shelf: each chapter with Start / Continue / Read again
+│   │    ├─ The AI Storyteller: Start a new story · Your stories (finished, by title)
+│   │    └─ What you've kept: keepsakes and things painted for you, by name
+│   ├─ Bookplate: phone code · Google · Facebook              lane A's layout, lane D's behaviour
+│   ├─ /link/ and /auth/return/                               same split
 │   └─ Foot: Your book · The painted room · About · Privacy
 │
-├─ THE BOOK  (XR; the only UI inside)                   home
+├─ THE BOOK  (XR; the only UI inside)                        home
 │   ├─ Arrival (unchanged)
-│   ├─ The story: chapter or Storyteller
-│   │    ├─ Cover: shut to pause, open to carry on
-│   │    ├─ Ribbon: THE one control  ──►  the pause page
+│   ├─ The story: a chapter or the Storyteller
+│   │    ├─ Cover: shut to pause (no page), open to carry on
+│   │    ├─ Ribbon: THE one control ──► the pause page       hint printed beside it until first use
 │   │    ├─ Spine: move · outer edges: stretch
-│   │    ├─ Drawer pull · page edge · Hold to talk (Storyteller only)
-│   │    └─ Caption band: story only · a quieter status line under it for the system
-│   ├─ The pause page   Carry on · Start again · Contents · Settings · Close the book
-│   ├─ The contents page (home)
-│   │    ├─ Chapters, each with its state, and its storybook page once finished
-│   │    ├─ The AI Storyteller
-│   │    └─ Your satchel
-│   ├─ The settings page  sound · room light · book size
-│   └─ The end page (chapter or story)  what happened · what you kept · what's next
+│   │    ├─ Drawer pull · page edge · gold tab (satchel) · Hold to talk (Storyteller)
+│   │    └─ Caption band: story only · status line under it: system only
+│   ├─ Pause page · Contents · Chapters · AI Storyteller · Your stories · Settings
+│   └─ End page: a chapter's, or a story's
 │
-├─ ON YOU  nothing. The wrist tag goes.
+├─ ON YOU: nothing. The wrist tag goes.
 │
-└─ THE SYSTEM  Meta's menu (palm pinch, reserved) and headset off: always a pause, never lost
+└─ THE SYSTEM: Meta's menu and headset off pause; the place is kept
 ```
 
 ### 3.3 Shared vocabulary
 
-Every lane uses these words, on the page and printed in the book.
-
 | Say | Means | Don't say |
 |---|---|---|
 | **Foldtales** | the product | Tabletop Theater (repo only), the app |
-| **the book** | the pop-up book in XR, and *Tales from the Table's Edge* | the scene, the stage, the experience |
+| **the book** | the pop-up book in XR, and *Tales from the Table's Edge* | the scene, the stage |
 | **chapter** | a written story, in order, about six minutes, hands only | episode, level |
-| **the AI Storyteller** | the free mode | AI mode, playground, sandbox |
-| **a story** | one Storyteller sitting, with its own title | session, evening, run |
-| **Open the book** | enter XR | launch, start VR, play |
-| **Continue** · **Start again** · **Read again** | resume · restart · replay a finished chapter | resume, restart, replay |
-| **Carry on** | leave the pause page | resume, unpause |
-| **the ribbon** | the one control | menu button |
-| **the pause page** · **the contents** · **the end page** | the three printed pages | menu, HUD, results |
-| **Close the book** | leave XR, with your place kept | quit, exit, put the book away |
-| **your satchel** | everything you keep | inventory, catalog, collection |
-| **keepsakes** · **things painted for you** · **storybook pages** | what's in it | items, assets, generations |
-| **Your book** | the page's sheet: shelf, satchel, settings, and your account | library, dashboard, profile |
-| **the painted room** | no-passthrough mode | VR mode |
+| **the AI Storyteller** | the free mode | AI mode, playground |
+| **a story** | one Storyteller story, with its own title | session, evening |
+| **Your stories** | finished Storyteller stories | history, saves |
+| **Open the book** | enter XR | launch, play |
+| **Continue** · **Start again** · **Read again** | resume · restart · replay a finished chapter | resume, restart |
+| **Carry on** | leave the pause page and play | resume, unpause |
+| **Put the book away** | leave XR, place kept | quit, exit, close the book |
+| **shut the book** | the cover, a pause | — |
+| **the ribbon** · **the pause page** · **the contents** · **the end page** | the control and the printed pages | menu, HUD, results |
+| **End the story here** · **Start a new story** · **Tell another** | the Storyteller's actions (lane D's words) | stop, new session |
+| **your satchel** · **keepsakes** · **things painted for you** | what you keep | inventory, catalog, items |
+| **Your book** | the page's sheet | library, dashboard |
 
-Chapter titles come from the chapter's own data, everywhere. Chapter 1 is **"The night the light went out"** (from `episode-1.json`); `CHAPTERS` in `progress.ts` changes to match (lane B owns that file).
+Chapter titles come from the chapter's data everywhere. Chapter 1 is **"The night the light went out"**; `CHAPTERS` in `progress.ts` changes to match (lane B's file).
 
-### 3.4 The flows
+### 3.4 The printed pages: measured at the smallest book
 
-```
-                      ┌──────────── desktop / phone ───────────► Send to your Quest
-   link ──► THE PAGE ─┤
-                      └── headset ── one tap ──┐
-                         (mic asked here       │
-                          for the Storyteller) ▼
-                                         ARRIVAL ──► THE STORY ◄───────────────┐
-                                                       │  │  │                 │
-                               shut the cover ◄────────┘  │  └──► END PAGE ────┤ Read again /
-                               (pause, nothing else)      │        │  │        │ Continue to chapter 2 /
-                                                          ▼        │  │        │ New story
-                                                    PAUSE PAGE ────┼──┼────────┘ Carry on / Start again
-                                                     │     │       │  │
-                                                     ▼     ▼       │  │
-                                               SETTINGS  CONTENTS ◄┘  │
-                                                           │          │
-                       chapter ◄──── in place ─────────────┤          │
-                       Storyteller ◄─ page, one tap ───────┘          │
-                                                                      ▼
-                                              CLOSE THE BOOK ──► THE PAGE, set to where you are
-   system menu / headset off ──► paused, place kept ─────────────────► next evening: "Continue …"
-```
+The book stretches from 0.6× to 1.3× (`resize.ts`); auto-fit starts at 0.7× (`sizing.ts`). **Every printed page is laid out for 0.6×** and keeps the same arrangement at larger sizes (only spacing grows), so the pages are always the same.
 
-- **Every page in the book has "Carry on" or a way back** in the same place (the top right line), and the ribbon always closes what's open.
-- **Close the book** is on the pause page, the contents and the end page, always the last line.
-- **Nothing autoplays the next chapter.** The end page offers it; you choose it.
+| | 0.6× | 0.7× | 1.0× | 1.3× |
+|---|---|---|---|---|
+| One page (w × d) | 126 × 189 mm | 147 × 221 mm | 210 × 315 mm | 273 × 410 mm |
+| The spread's width | 252 mm | 294 mm | 420 mm | 546 mm |
+| Half-width seen from 0.6 m | ±12° | ±14° | ±19° | ±24° |
 
-### 3.5 Mockups
+- **Two choices a page, four a spread.** Each choice is a row 64 mm deep (the hand target's diameter, `design-language.md`), so neighbours never share a target. A page with a heading band of 36 mm still fits two: 36 + 2 × 64 + 2 × 8 margin = 180 mm ≤ 189 mm.
+- **Text at 1° or more at its real distance.** Each row's size is set when the page opens, from the head to that row (`minTextSizeM` in `sizing.ts`): 11.3 mm at 0.65 m, 13.1 mm at 0.75 m, 15.7 mm at 0.9 m. At 0.6× a line holds about 13 to 16 characters, so a label may wrap to two lines (38 mm at the largest size, inside its 64 mm row). Labels are kept to 18 characters.
+- **In view.** The whole spread stays within ±24° across at 1.3× and 0.6 m, inside the ~70° × 66° view and the VR Glasses' 37° to each side. Nothing is printed outside the book.
+- **The pop-ups lie flat** while a page shows: the hands' `Unfold` with `cover: 1` and every `layers` 0, through the existing `combineUnfold` (the same path that folds them when you shut the cover). The cover stays open, the set folds down front to back, and it stands back up on Carry on. If that can't restore cleanly by Nov 16 noon, the fallback is a printed paper card lying over the folded set.
+- **Choices come first.** When the book is small and the eye far, printed lines that don't fit are cut from the end (the end page's lines, a description); choices never move or shrink.
+- **Ink on page, gold rule under each choice.** A hand or gaze near a choice thickens its rule (feedback only). The choice fires on release of the pinch that started on it.
 
-All pages inside the book are printed on the open spread while the pop-ups lie folded flat, in ink on page with gold rules for what you can pinch, at least 11 mm tall at reading distance. Sizes and the fold are proved in stage 2.
-
-**The pause page** (pinch the ribbon; the pop-ups fold down, the lights come part way up):
+**The pages** (left | right; ▸ marks a choice):
 
 ```
- ┌──────────────────────────────┬──────────────────────────────┐
- │                              │                              │
- │  Tales from the Table's Edge │   Carry on                   │
- │  ─────────────────────────── │   ────────                   │
- │                              │   Start this chapter again   │
- │  Chapter 1                   │                              │
- │  The night the light         │   Contents                   │
- │  went out                    │                              │
- │                              │   Settings                   │
- │  Paused on the shore.        │                              │
- │                              │   Close the book             │
- │                              │                          ribbon▼
- └──────────────────────────────┴──────────────────────────────┘
+PAUSE (chapter)                         PAUSE (Storyteller)
+┌───────────────────┬───────────────────┐ ┌───────────────────┬───────────────────┐
+│ Chapter 1         │ ▸ Carry on        │ │ A key for the     │ ▸ Carry on        │
+│ The night the     │   ─────           │ │ cellar            │   ─────           │
+│ light went out    │                   │ │                   │                   │
+│ ▸ Start again     │ ▸ Put the book    │ │ ▸ End the story   │ ▸ Put the book    │
+│ ▸ Contents        │   away            │ │   here            │   away            │
+└───────────────────┴──────────ribbon───┘ │ ▸ Contents        │                   │
+                                          └───────────────────┴───────────────────┘
+CONTENTS (home)                         CHAPTERS
+┌───────────────────┬───────────────────┐ ┌───────────────────┬───────────────────┐
+│ Contents          │ Your satchel:     │ │ Chapters          │ ▸ 3 <title>       │
+│ ▸ Chapters        │ 7 things          │ │ ▸ 1 The night the │   begin           │
+│ ▸ The AI          │ ▸ Settings        │ │   light… · read   │ More chapters on  │
+│   Storyteller     │ ▸ Back            │ │ ▸ 2 <title> · here│ the way.          │
+└───────────────────┴───────────────────┘ │                   │ ▸ Back            │
+                                          └───────────────────┴───────────────────┘
+ONE CHAPTER (pinched from Chapters)     THE AI STORYTELLER
+┌───────────────────┬───────────────────┐ ┌───────────────────┬───────────────────┐
+│ Chapter 2         │ ▸ Continue        │ │ The AI            │ ▸ Start a new     │
+│ <title>           │   (or Start /     │ │ Storyteller       │   story           │
+│ Stopped on the    │   Read again)     │ │ Talk to Pip, Wick │ ▸ Your stories    │
+│ shore.            │ ▸ Back            │ │ and Moth.         │ ▸ Back            │
+└───────────────────┴───────────────────┘ └───────────────────┴───────────────────┘
+SETTINGS                                END (chapter)
+┌───────────────────┬───────────────────┐ ┌───────────────────┬───────────────────┐
+│ Settings          │ ▸ Back            │ │ The end of        │ ▸ Continue to     │
+│ ▸ Sound: on       │                   │ │ chapter 1         │   chapter 2       │
+│ ▸ Room light:     │                   │ │ You gave Pip his  │   (or Read again) │
+│   dimmer          │                   │ │ lantern. Kept:    │ ▸ Put the book    │
+└───────────────────┴───────────────────┘ │ the kite.         │   away            │
+                                          │ ▸ Read again      │                   │
+END (Storyteller; lane D's words)        └───────────────────┴───────────────────┘
+┌───────────────────┬───────────────────┐ YOUR STORIES (finished; paged, 3 a spread)
+│ A key for the     │ ▸ Tell another    │ ┌───────────────────┬───────────────────┐
+│ cellar            │                   │ │ Your stories      │ ▸ The teapot named│
+│ Two or three      │ ▸ Put the book    │ │ ▸ A key for the   │   Shubham         │
+│ lines…            │   away            │ │   cellar          │ ▸ Back            │
+│ Things: dragon    │                   │ │ ▸ The dragon kite │   (▸ More, when   │
+│ kite, teapot      │                   │ │                   │   there are more) │
+│ ▸ Your stories    │                   │ └───────────────────┴───────────────────┘
+└───────────────────┴───────────────────┘
 ```
 
-In the Storyteller the left page names the story ("A key for the cellar", lane D) and the right page reads Carry on · **End this story** · Contents · Settings · Close the book. "Start again" becomes "End this story", which goes to its end page.
+- On the end pages, **Contents** is one pinch away on the ribbon (section 3.5), so the end page itself keeps to three choices.
+- **Your satchel: 7 things** is printed, not pinchable, and has no gold rule.
+- Pinching a finished story in Your stories shows its end page read-only, with Back.
+- From a chapter, "Start a new story" and the Storyteller's choices say what happens: the left page adds "The book is put away, then the AI Storyteller opens from the page."
 
-**The contents page** (home):
+### 3.5 The state model
 
-```
- ┌──────────────────────────────┬──────────────────────────────┐
- │  Contents                    │                   ◄ Back      │
- │  ─────────                   │                              │
- │  Tales from the Table's Edge │  The AI Storyteller          │
- │                              │  Talk to Pip, Wick and Moth, │
- │  1  The night the light      │  and make up a story.        │
- │     went out ·········· read │  Start a new story           │
- │  2  <title> ··· you're here  │  Continue "A key for the     │
- │  3  <title> ········· begin  │  cellar"                     │
- │  More chapters on the way.   │                              │
- │                              │  Your satchel ······ 7 things │
- │                              │  Close the book              │
- └──────────────────────────────┴──────────────────────────────┘
-```
+The menu is one state machine in `book-menu.ts`. It is the only code that changes what the book shows between the story and a printed page.
 
-Pinch a finished chapter and its **storybook page** shows on the left page (the painted page composed from its sets, with what lasts), with "Read again" under it.
+| State | What shows | Story clock | Story input (objects, drawer, page turn, talk) | Late work (replies, paintings, beats) | Ribbon does | Back goes to |
+|---|---|---|---|---|---|---|
+| **playing** | the story | runs | on | arrives and plays | opens **pause** | — |
+| **pause** | pause page, set folded | held (reason `ribbon`) | off | held by the mode until play | **Carry on** → playing | — (Carry on) |
+| **contents** | contents | held | off | held | returns to the **root** (below) | the root's page |
+| **chapters**, **one chapter**, **storyteller**, **your stories**, **settings** | as named | held | off | held | returns to the root | contents (one chapter → chapters; a story → your stories) |
+| **ending** | the end page, set folded | stopped; the mode has ended | off | none: the mode has stopped | opens **contents** | — |
+| **leaving** | the cover swinging shut | held | off | dropped | nothing | — |
+| **switching** | the cover swinging shut | held | off | dropped | nothing | — |
 
-**The end page of a chapter** (the results screen; no score):
+- **The root** is where the ribbon takes you back to: **playing** if you came from the story, the **end page** if you came from an ending. A finished story or chapter never shows **Carry on**.
+- **Pause reasons stay independent** (`clock.ts`). A menu holds the clock with the existing `ribbon` reason (no contracts change). Leaving a menu clears only that reason: a shut cover, the headset off or lost hands still hold the story. Shutting the cover while a page shows keeps the page; opening the cover shows it again.
+- **Entering any page from playing:**
+  - an object in a hand settles where it was picked up from (its last home), never given, kept or dropped;
+  - a page held mid-turn falls back, and its invitation stays;
+  - a pinch that started before the page opened can't fire a choice;
+  - Hold to talk hides and the microphone stops (today's rule: no talking while paused).
+- **Returning to playing** unfolds the set and clears the reason. The story resumes at the same millisecond: nothing advanced while held.
+- **Late work** is the mode's to hold (section 4.1, `suspend()` and `resume()`): a Storyteller reply or painting that lands during a page is kept and played after Carry on; a chapter's director offers wait like any beat.
+- **Leaving** is not cancellable once chosen: the cover shuts, the mode's `stop()` saves its place, XR ends, the page shows where you are.
+- **Headset off or the system menu** during a page: the page is kept; you return to it.
 
-```
- ┌──────────────────────────────┬──────────────────────────────┐
- │  The end of chapter 1        │                              │
- │  ─────────────────────       │  Continue to chapter 2       │
- │  [the storybook page:        │  ─────────────────────       │
- │   painted from the sets]     │  Read it again               │
- │                              │                              │
- │  You gave Pip his lantern.   │  Contents                    │
- │  The kite carried him over   │                              │
- │  the gap.                    │  Close the book              │
- │  Wick handed over the lamp.  │                              │
- │                              │                              │
- │  Kept: the kite ⟶ satchel    │                              │
- └──────────────────────────────┴──────────────────────────────┘
-```
+### 3.6 Navigation: the entry target
 
-The lines come from the chapter's recorded page (`page.composed`, lane B). In this build "Continue to chapter 2" appears once lane B ships it; until then the right page starts with "Read it again", and under the lines: "More chapters on the way."
+Choosing something you can't reach in place (the Storyteller from a chapter, a chapter from the Storyteller, or a chapter that lane B can't load in place) goes through one durable entry target. **Lane A owns this wiring in `client/src/index.ts`.**
 
-**The end page of a story** (the Storyteller; lane D fills the words):
+1. **Kept.** The choice is written as an `EnterTarget` (today's type in `progress.ts`) to `sessionStorage` under `tt.enter`, with where you were (`back: EnterTarget`) and a time. It survives XR ending, a reload and a sign-in round trip in the same tab.
+2. **Put away.** The book is put away (state **switching**): the current mode's `stop()` saves its place, XR ends.
+3. **The page reads it.** On load, the page's one button becomes the target: "Open the AI Storyteller", "Open chapter 2". Under it: "Back to chapter 1" (or "Back to the AI Storyteller"), which clears the target.
+4. **Prerequisites on the page.** If the target needs sign-in or the microphone, the button is that step first ("Sign in to start", "Let them hear you"). **One tap opens the book only once every prerequisite is met and the book is loaded.**
+5. **Loaded.** `index.ts` reads the target on entry and calls the mode's entry: lane B's `loadChapter(n, from)` or lane D's `startStoryteller()`. **The target is consumed when that call resolves**, not before.
+6. **Failed or cancelled.** If loading fails, the target is cleared and the page says so in one line ("Chapter 2 couldn't open.") with where you were as the button. If you never tap, the target expires after 30 minutes and the page shows where you were.
 
-```
- ┌──────────────────────────────┬──────────────────────────────┐
- │  A key for the cellar        │                              │
- │  ─────────────────────       │  Start a new story           │
- │  Pip, Wick and Moth found    │  ─────────────────           │
- │  the old cellar door …       │  Contents                    │
- │                              │                              │
- │  Painted for you tonight:    │  Close the book              │
- │  the dragon kite, a teapot   │                              │
- │  called Shubham Mishra       │                              │
- │  ⟶ in your satchel           │                              │
- └──────────────────────────────┴──────────────────────────────┘
-```
+A **chapter you can reach in place** (lane B's `loadChapter` supports it) skips steps 2 to 4: the cover shuts, the chapter loads, the cover opens.
 
-**Settings** (in the book: only what you'd change with the headset on):
+### 3.7 The first time
 
-```
- ┌──────────────────────────────┬──────────────────────────────┐
- │  Settings                    │                   ◄ Back      │
- │  ─────────                   │                              │
- │  Sound          on · off     │  The room's light            │
- │  ──                          │  dim · dimmer · darkest      │
- │  Book size      as it was    │                     ───────  │
- │                              │                              │
- └──────────────────────────────┴──────────────────────────────┘
-```
-
-Captions stay on: the story is printed, and captions are the accessibility promise. The page's settings (in **Your book**) add: start the book over, forget what's kept in your satchel, the microphone's state with how to change it, and (signed in) sign out and delete.
-
-**The page, a returning reader** (the hero's button is where you are; your second door sits under it, not after the scroll):
-
-```
-                     Tales from the Table's Edge
-     A living storybook on your table. Reach in and help the characters …
-
-                   ┌──────────────────────────────┐
-                   │     Continue chapter 2        │   rust
-                   └──────────────────────────────┘
-               You stopped on the shore · Start chapter 2 again
-       Or make up a story with the AI Storyteller  ·  Your book
-```
-
-A first visit is unchanged: "Open the book", the detail line, and the Storyteller below the scroll as today. Once you've finished a chapter or played the Storyteller, the second door joins the hero at equal weight, as the PRD asks.
-
-**Your book** (the paper sheet from the foot and the hero; replaces "Chapters"):
-
-```
- ┌────────────────────────────────────────────┐
- │  Your book                              ×   │
- │  Tales from the Table's Edge                │
- │  1  The night the light went out    Read again
- │  2  <title>                         Continue │
- │  More chapters on the way.                  │
- │  ───────────────────────────────────────    │
- │  The AI Storyteller        Start a new story │
- │  A key for the cellar · Nov 15     Continue  │
- │  ───────────────────────────────────────    │
- │  Your satchel                               │
- │  [kite] [spool] [dragon kite] [teapot] …    │
- │  Kept on this headset.                      │
- │  ───────────────────────────────────────    │
- │  Settings   Sound · Room light · Start the book over · Forget what's kept
- └────────────────────────────────────────────┘
-```
-
-Every line with an action opens the book there in one tap (it's a tap on the page, so XR starts inside it). On a desktop or phone the sheet shows the shelf and the satchel read-only, with "Send to your Quest".
-
-### 3.6 The first time
-
-No instructions screen. Each thing teaches itself once, then never again (kept per headset, like the wrist hint today).
-
-- **Reach in, pinch, hand over:** the story asks (Pip's lantern at about 0:50). Unchanged.
+- **Reach in, pinch, hand over:** the story asks (Pip's lantern). Unchanged.
 - **Turn the page:** printed when it's time. Unchanged.
-- **The ribbon:** the first time the book opens, the ribbon lifts and settles once with a soft felt sound and a gold edge, as the arrival's words fade. The first pause page ever adds one line: "Pinch the ribbon any time to stop here."
-- **Talk:** the Storyteller teaches it in the cast's own words (lane D), with "Hold to talk" on its button.
-- **Leaving:** "Close the book" is on every printed page; the end page is the first place most people see it.
+- **The ribbon:** a quiet printed slip, **"Pinch the ribbon to pause"**, lies on the table at the book's near edge under the ribbon's tail (paper art from `Hold to talk`, ink at 70%, 1° text), **until the first time you use the ribbon**, then never again on this headset (`tt.ribbon-used`, like today's `tt.wrist-used`). In the Storyteller it sits beside Hold to talk, never under it.
+- **Talk:** lane D teaches it in the cast's words, with Hold to talk's own label.
+- **Checked:** a newcomer can pause, carry on and put the book away with either hand in the first five minutes, and the opening's payoff is untouched (section 7).
 
-### 3.7 When things go wrong
+### 3.8 When things go wrong
 
-Two rules: **story on the caption band, system on a quieter status line just under it** (smaller, ink at 70%, no pulse, never over the story's words), and **never a dead end**: every message says what to do.
+**Story on the caption band; system on the status line** just under it (smaller, ink at 70%, no pulse). Every message says what to do, and unavailable actions are shown greyed with their reason, never removed silently. **The chapters are always offered.**
 
-| Moment | Where | What it says |
+| Moment | Where | What happens |
 |---|---|---|
-| Cold start, art didn't load | page button | "The book didn't load. Check your connection, then reload the page." (today) |
+| Cold start, art didn't load | page | "The book didn't load. Check your connection, then reload the page." (today) |
 | XR refused | page | "Your browser didn't open the book. Tap to try again." (today) |
-| No passthrough | page | Opens the painted room. (today) |
-| No WebXR | page | The desktop page, "Send to your Quest". (today) |
-| Offline, chapter | book | Plays as authored. Nothing to say. |
-| Offline, the Storyteller door | page | The door checks before XR: "The AI Storyteller needs the internet. The chapters don't." with "Open the book" beside it. |
-| Offline mid-story | status line | "The connection dropped. They'll wait for you." Then the pause page offers Carry on (retry) · Contents · Close the book. |
-| AI slow | the story | The cast covers it (lane D). If a turn takes over 12 s, the status line: "Still thinking…". |
-| AI failing, or at the evening's cap | status line, then end page | "The Storyteller needs a rest tonight." The story goes to its end page; chapters stay open. Lane D sets the words and the caps. |
-| Mic refused | page door, status line | Page: the door says how to allow it (today). Inside: "They can't hear you. Allow the microphone on the page outside the book." |
-| Not signed in (accounts on) | page door | "Sign in to start", before XR. Never in XR. |
-| Headset off, hands lost, system menu | book | Paused, place kept, the ribbon lifted. On return the pause page shows. |
+| No passthrough · no WebXR | page | The painted room · the desktop page. (today) |
+| Offline, chapter | book | Plays as authored once the book has loaded. Whether a first visit can start offline is lane E's cache; the page promises only what lane E's check confirms. |
+| The Storyteller door, any state but ready | page | Lane D's states (section 4.3), each with its one step or its reason, and "Open the book" for the chapters beside it. AI and account checks never sit on the chapter's path. |
+| Offline or failing mid-story | status line, then the end page | Lane D's retry and its local ending: the story ends here without the network, on its own end page. What you gave stays on the page. |
+| Tonight's limit reached | page door; in the book, lane D's ending | Its words are lane D's; the door is greyed with the reason, chapters beside it. |
+| Mic refused | page door, status line | Page: how to allow it. Inside: "They can't hear you. Allow the microphone on the page outside the book." |
+| Sign-in ended while inside | status line, then lane D's ending | "Your sign-in ended. Sign in again on the page." The story ends locally; chapters unaffected. |
+| An entry target fails to load | page | "Chapter 2 couldn't open." and where you were (section 3.6). |
+| Headset off, hands lost, system menu | book | Paused, place kept; any page stays. |
 
 ---
 
 ## 4. The seams
 
-### 4.1 One controls API (for lanes B and D)
+Exact shapes for lanes B, D and E go through the sprint master; these are lane A's proposals.
 
-A new module, `client/src/stage/book-menu.ts`, owned by lane A. It draws every printed page, handles the ribbon, and runs the shared actions. Modes describe themselves; they never draw a menu or add a control.
+### 4.1 One controls API (lanes B and D call it)
+
+`client/src/stage/book-menu.ts`, owned by lane A.
 
 ```ts
-/** What a mode tells the book about itself. Chapters (lane B) and the Storyteller (lane D) each supply one. */
+/** A running mode describes itself and owns its lifecycle. Chapters (lane B) and the Storyteller (lane D). */
 export interface ModeSheet {
   kind: 'chapter' | 'storyteller';
-  /** Left page of the pause page: "Chapter 2" + "<title>", or the story's title. */
+  /** The pause page's left page: { over: 'Chapter 2', title: '<title>' }, or the story's title. */
   heading(): { over: string | null; title: string };
-  /** "Paused on the shore." or null. */
+  /** "Stopped on the shore." or null. */
   where(): string | null;
-  /** The pause page's second line: "Start this chapter again", or "End this story". */
+  /** The pause page's second choice: "Start again" (chapter) or "End the story here" (Storyteller). */
   again: { label: string; run(): void };
+  /** A page opened: hold late work (replies, paintings, director offers). */
+  suspend(): void;
+  /** Back to playing: release what was held, in order. */
+  resume(): void;
+  /** Leaving or switching: save the place, drop late work, release the microphone. */
+  stop(): Promise<void>;
 }
 
-/** What an ending prints. Lane B for chapters, lane D for stories. */
+/** What an ending prints. Lane B's chapter ending comes through lane A's adapter of the recorded page. */
 export interface EndSheet {
-  heading: string;                       // "The end of chapter 1" / the story's title
-  lines: string[];                       // at most 4, from the recorded page
-  kept: string[];                        // object ids that went into the satchel
-  art?: string[];                        // the storybook page's pictures
-  next: Array<{ label: string; run(): void }>;  // primary first: "Continue to chapter 2", "Read it again" / "Start a new story"
+  heading: string;                 // "The end of chapter 1" / the story's title
+  lines: string[];                 // at most 3
+  things: string[];                // names: kept, or painted tonight
+  primary: { label: string; run(): void };     // "Continue to chapter 2" / "Read again" / "Tell another"
+  secondary?: { label: string; run(): void };  // "Read again" / "Your stories"
 }
 
 export interface BookMenu {
-  /** The running mode registers itself once. */
   setMode(sheet: ModeSheet): void;
-  /** Show the end page. Contents and Close the book are added by the menu. */
+  /** The mode has ended: show its end page. "Put the book away" is added by the menu. */
   showEnd(end: EndSheet): void;
-  /** System words on the status line (null clears it). Never narration. */
+  /** System words on the status line (null clears). Never narration. */
   status(text: string | null): void;
-  /** For code that must stop the story: the same pause as the ribbon, with or without its page. */
-  pause(withPage: boolean): void;
-  carryOn(): void;
-  /** Close the book: the cover shuts, the place is saved, XR ends, the page lands where you are. */
-  closeTheBook(): void;
-  /** Go to a chapter or the Storyteller. In place when the stage allows it, otherwise through the page with one tap. */
+  /** Open a destination: in place if the mode can load it, otherwise through the entry target. */
   open(target: EnterTarget): void;
-  readonly paused: boolean;
+  /** For code that must stop the story for the reader (a lost connection): the pause page. */
+  pause(): void;
+  readonly state: MenuState;
 }
 ```
 
-- `EnterTarget` is today's type from `progress.ts`. No new shapes cross the seam.
-- The **Storyteller's place in the controls** is: its `ModeSheet`, its `EndSheet`, the status line, and "Hold to talk", which stays on the table in front of the book and hides on any pause (today's behaviour).
-- `pause.set('ribbon', …)`, `controls.setRibbon` and the wrist's `choose()` stop being called from anywhere but `book-menu.ts`.
+- `pause.set('ribbon', …)`, `controls.setRibbon` and the end page's "Read it again" target are called only from `book-menu.ts`. `runtime.setHint()` stays for story hints ("Turn the page", "Your turn: …"); system words move to `status()`.
+- **The Storyteller's place in the controls:** its `ModeSheet` (title, "End the story here"), the contents' **AI Storyteller** page (Start a new story, Your stories), its `EndSheet` (Tell another, Your stories), `status()`, and Hold to talk on the table, hidden on every page.
 
-### 4.2 Chapters (lane B)
+### 4.2 One selection path (gaze and pinch)
 
-- **Where chapters show:** the page's hero button, its detail line, **Your book**'s shelf, the in-book contents, and the end page. All of them read `libraryState()` and nothing else. The page stops reading `index.ts`'s own labels.
-- **What I ask of `libraryState()`** (through the sprint master, additive and optional, so nothing breaks): per chapter, `where?: string` ("on the shore"), for "You stopped on the shore" and "Paused on the shore". If lane B doesn't add it, the line is left out.
-- **What lane B calls:** `menu.setMode()` when a chapter starts, `menu.showEnd()` when it ends, with lines from the recorded page and "Continue to chapter N+1" as the first `next` when it exists. `menu.open({ kind: 'chapter', n, from })` for "Continue to chapter 2" if lane B prefers the menu to run it.
-- **What lane B owns that lane A reads:** `CHAPTERS` titles (and the chapter 1 title fix), loading chapter `n` from `EnterTarget`, the saved place per chapter.
+Every printed choice, the ribbon, Back and Put the book away go through **one dispatcher in `controls.ts`**:
+
+- **Hands:** each choice is an `ExtraTarget` with its 64 mm proxy, either hand. It fires on **release**, and only if the same pinch started on it. One choice per pinch.
+- **Gaze and pinch (VR Glasses):** `onGazeSelect` first tests the printed choices and the ribbon (7° cone, nearest wins), then falls back to `hands.gazeSelect` for objects and characters. On Quest 3, `onHeadSelect` does the same for the printed choices only while a page shows.
+- **Hover** (a hand within reach, or the gaze on a choice) only thickens the gold rule. Nothing fires from hover or gaze alone.
 
 ### 4.3 The AI Storyteller (lane D)
 
-- **The door on the page:** lane A's component with fixed states, in this order: *needs sign-in* → *offline* → *needs the microphone* → *ready* → *continue a story* (when `libraryState().storyteller.sessions` has one). Lane D supplies the words for each state in `page-content.json`'s `storyteller` block, and fills `sessions` (it's empty today).
-- **Its place in the hero:** a returning reader sees it under the one button, as in the mockup.
-- **Inside the book:** its `ModeSheet` (the story's title; "End this story"), its `EndSheet` (title, a few lines, what was painted), and `menu.status()` for listening, offline, slow and failed. Lane D stops writing system words through `runtime.setHint()`.
-- **The contents page's Storyteller block:** "Start a new story", and "Continue <title>" for the last story if lane D can resume one.
+- **Data:** lane D owns a Storyteller data provider in `client/src/storyteller/`. Lane B's `libraryState()` calls it; lane A reads only `libraryState()`. The shape is agreed through the sprint master. Lane A's proposal for `LibraryState['storyteller']`:
 
-### 4.4 Lane E
+```ts
+storyteller: {
+  door:
+    | { kind: 'signed-out' } | { kind: 'auth-loading' } | { kind: 'auth-failed'; retry: true }
+    | { kind: 'session-expired' } | { kind: 'mic-not-asked' } | { kind: 'mic-refused' }
+    | { kind: 'unavailable'; why: 'offline' | 'service' } | { kind: 'limit-reached'; until?: string }
+    | { kind: 'ready' };
+  finished: Array<{ id: string; title: string; endedAt: string; lines: string[]; things: string[] }>;
+}
+```
 
-- The status line and every printed page follow the 11 mm and 4.5:1 rules, for lane E's accessibility pass.
-- "Sound off" in settings is one switch on the sound engine's master gain, for lane E's music bed too.
+  `door` is ordered as the door checks it; "has finished stories" is `ready` with a non-empty `finished`. Lane A draws one door per state with lane D's words from `page-content.json`'s `storyteller` block, and greys it with "Open the book" beside it for every state but `ready`.
+- **Entry:** lane D supplies `startStoryteller(): Promise<void>` for `index.ts` (section 3.6).
+- **In the book:** its `ModeSheet`, `EndSheet` and `status()` (section 4.1). Its `suspend()` holds replies and paintings; its `stop()` ends the story locally. Lane D's local ending without the network uses `showEnd`.
+- **Sign-in surfaces:** lane A owns the layouts of the bookplate (three options: phone code, Google, Facebook), `/link/` (enter code, sign in, approve, approved, declined, expired, wrong code, provider failed, cancelled) and `/auth/return/` (finishing, signed in → back to the page with any entry target, failed → a line and "Try again"). Lane D supplies behaviour and words. The chapters never ask for an account.
 
-### 4.5 Contracts
+### 4.4 Chapters (lane B)
 
-**None needed for this lane.** Everything above is client-side. `LibraryState`'s optional `where` lives in `client/src/show/progress.ts`, not in `contracts`.
+- **Navigation:** `libraryState()` stays the authority for chapters: the hero, Your book's shelf and the in-book Chapters page all read it. The page stops reading `index.ts`'s own labels. Requested, optional: `where?: string` per chapter.
+- **Entry:** lane B supplies `loadChapter(n: number, from: 'resume' | 'start'): Promise<void>` and says whether it works in place inside XR.
+- **In the book:** lane B calls `setMode()` when a chapter starts and `showEnd()` when it ends, with `primary` "Continue to chapter N+1" when there is one, else "Read again".
+- **The ending's words:** lane A owns `client/src/book/end-sheet.ts`, which turns the recorded `page.composed` (title, text, keepsakes) into an `EndSheet`. Lane B owns what the page records.
+
+### 4.5 Lane E
+
+- **Sound:** lane A adds `setMuted(on: boolean)` to `sound/engine.ts`, which ramps both buses' masters (show and UI) to silence and back; lane E's music bed joins the show bus, so it follows. Agreed through the sprint master.
+- **Offline:** the page asks lane E's cache whether the book is stored before promising an offline chapter.
+- **Accessibility:** printed pages and the status line meet 1° and 4.5:1, for lane E's pass.
+
+### 4.6 What you've kept (the read adapter)
+
+`client/src/landing/collection.ts`, owned by lane A, read-only:
+- **Keepsakes from the chapters:** from the event log in IndexedDB (`show/log.ts`), through `memory.ts`'s `memoryOf()` satchel, names from the object library.
+- **Things painted for you:** from lane D's keepsake store (`storyteller/keepsakes.ts`), through a `listKeepsakes()` read lane D exports (names only).
+- **States:** loading ("Looking in your satchel…"), empty ("Nothing kept yet. Things you use in a story are kept here."), a list of names with "Kept on this headset.", and storage failure ("Couldn't read what's kept on this headset.").
+
+### 4.7 Contracts
+
+**None.** The menu uses the existing `ribbon` pause reason; every other shape lives in the client.
 
 ---
 
-## 5. What ships by the Nov 17 freeze, and what's later
+## 5. What ships, and what's later
 
-| By | What | Why |
-|---|---|---|
-| **Nov 16, first** | The `book-menu.ts` API with the ribbon driving it, the pause page (Carry on, Start again, Close the book), the status line, the page reading only `libraryState()`. The wrist tag and the sage tab removed. | The seams lanes B and D build into. |
-| **Nov 16** | The end page for chapters, from the recorded page, with "Read it again", "Close the book" and the slot for "Continue to chapter 2". The page's hero for returning readers, with the second door. The Storyteller door's states including offline. | The results screen and the front door are what a judge sees. |
-| **Nov 17** | The contents page (chapters, Storyteller, satchel count). **Your book** sheet (shelf with actions, satchel pictures, page settings). In-book settings (sound, room light, book size). The ribbon's first-time lift. The Storyteller's end page with lane D's words. The failure lines. | Completes the structure. |
-| **Nov 17, if time** | Each finished chapter's storybook page shown from the contents. Chapter-to-Storyteller switching in place. | Nice, not needed for a judge. |
-| **Later** (to `docs/v2-ideas.md`) | Room effects your room has seen, and asking for one from the contents. Browsing the satchel inside the book page by page, with each thing's history. Bringing a keepsake back from the contents into a story. The satchel following your account. Per-thing delete. | Each needs content or backend work that doesn't fit by Nov 17. |
-
-**Art:** no paid art planned. The pages are printed in type on the book's existing page art, with the gold rules the end page already uses. Runs 025 and 026 stay unspent unless the headset shows the printed pages need a painted ornament; any run gets a plan and an estimate first.
-
----
-
-## 6. Open questions, each with my recommendation
-
-| Question | Recommendation |
+| By | What |
 |---|---|
-| Do the pop-ups fold flat for the pause page, or does the page print on a paper card over the set? | **Fold flat.** It's the book's own motion, so it reads as the book and leaves the whole spread for type. Proved in the emulator first in stage 2; the card is the fallback. |
-| Does the ribbon also pause without the page, as today? | **No.** The ribbon always opens the pause page; shutting the cover is the pause without a page. One meaning per control. |
-| The gold tab: keep it? | **Keep it as the satchel's latch.** It opens a thing, not a menu, like the drawer pull. |
-| Chapter to Storyteller from inside the book: through the page? | **Yes, through the page with one tap**, for Nov 17. In place only if stage 2 shows it's safe. |
-| Does the Storyteller get an ending? | **Yes: "End this story"** on its pause page, and its end page. Lane D decides whether the cast can also end a story on its own. |
+| **Nov 16, by the end** | The complete thin path: the ribbon and the pause page; a small contents (chapters, the AI Storyteller page, settings); choosing a chapter; both end-page slots; Put the book away and coming back through the entry target; the Storyteller door's states; sound on or off. The wrist tag and the sage tab removed after the layout proof. |
+| **Nov 17** | Integration with lanes B and D (their `ModeSheet`, `EndSheet`, `loadChapter`, `startStoryteller`, door data, `listKeepsakes`); the room's light; Your book with names; the bookplate's three options and the sign-in pages' states; the ribbon slip; the glasses-view check; the owner's headset session and its fixes. **Freeze at the end of Nov 17.** |
+| **Later** (to `docs/v2-ideas.md`) | Room effects your room has seen, and asking for one. Browsing the satchel in the book, and each thing's history. A chapter's storybook page shown from the contents. A global reset and "forget what's kept". In-place mode switching. Book size reset. |
 
-## 7. Risks
+**Art:** none paid. Runs 025 and 026 stay unspent unless the headset shows a printed page needs a painted ornament, with a plan and estimate first.
 
-- **Printed text on the spread at book scale.** 11 mm type fits about 8 lines a page at full size, fewer at 0.6×. The pages are laid out for the smallest size, and the book's stretch is clamped while a printed page shows.
-- **Pinch targets on paper.** Today's 64 mm rule fits five lines a page. The pause page has five; contents has the most and is laid out first.
-- **Removing the wrist tag removes the only pause that works with the book out of reach.** The cover and ribbon are within 0.6 m by design, and the system menu and headset-off still pause.
-- **Lane B and D timing.** The menu works with today's single chapter and today's Storyteller from the first day, so nobody waits on anyone.
+---
+
+## 6. The build plan
+
+Seams and the thin path first. Each phase ends green (`pnpm check`: typecheck, tests, bundle) with a commit and a push, and is shown in the emulator or on the Mac as listed. Times are Nov 16 unless marked.
+
+### Phase 0: the layout and the fold (morning, before anything is removed)
+
+| | |
+|---|---|
+| **Build** | `client/src/book/printed.ts`: a pure layout. Given a sheet (heading, lines, up to two choices a page), the book's scale and the head's position, it returns each row's place, text size and target. `tests/printed.test.ts`. The menu fold: an `Unfold` with the cover open and the set flat, combined into the hands' fold in `index.ts`'s frame. |
+| **Prove** | Tests across scales 0.6, 0.7, 1.0, 1.3 and eye distances 0.5 to 0.9 m: every line ≥ 1°, every target 64 mm from its neighbour and on its page, every choice within ±35° across and the glasses' 37°. In the emulator: a review flag `?menu=pause` opens the pause page at 0.6× and 1.0×; the set folds flat and stands back up with every layer at its old angle (read from the scene); one screenshot each. |
+| **Gate** | If the set doesn't restore exactly by noon, use the paper card (a printed sheet lying over the folded set) and note it here. |
+
+### Phase 1: the menu, the ribbon, one selection path (Nov 16)
+
+| | |
+|---|---|
+| **Build** | `client/src/stage/book-menu.ts`: the state machine of section 3.5 as a pure reducer (`tests/book-menu.test.ts`: every state's Back, root and ribbon; a finished story never offers Carry on; clearing a menu leaves `book_closed` and `hands_lost` held), plus `BookMenu` and `ModeSheet`. `client/src/book/printed-view.ts`: troika text and gold rules on the spread from `printed.ts`. The dispatcher in `controls.ts` (section 4.2). A chapter `ModeSheet` for today's chapter 1, so it works before lane B. The status line. Entering a page settles held objects and drops a held page (`hands.ts`, `runtime.releasePage`). |
+| **Remove** | The wrist tag (`stage/wrist.ts` and its wiring in `index.ts`), the sage tab's mesh. Only after phase 0 passes. |
+| **Show** | Emulator, hands only: right hand and then left hand pinch the ribbon → pause page → Carry on; the story clock reads the same before and after. Pinch the ribbon while holding the lantern → the lantern settles home. Shut the cover on the pause page → open it → the page is back. Glasses device (`iwsdk-glasses-test`): look at the ribbon and pinch → pause → look at Carry on and pinch. |
+
+### Phase 2: the entry target and putting the book away (Nov 16)
+
+| | |
+|---|---|
+| **Build** | `client/src/landing/entry.ts`: `tt.enter` with `back` and expiry; read, consume, clear (`tests/entry.test.ts`: survives a reload, consumed only on a resolved load, cleared on failure and on "Back to…", expires). `index.ts`: entry reads the target and calls `loadChapter` or `startStoryteller` (today's chapter 1 and Storyteller starts, wrapped, until lanes B and D supply theirs); Put the book away and switching run `stop()`, then end XR. The page reads only `libraryState()` and the entry target for its button; `index.ts`'s `current()` and `storyDoorLabel()` go. |
+| **Show** | Emulator: pause → Put the book away → the page says "Continue chapter 1" → tap → the book re-arrives shut and opens at the same moment. Contents → The AI Storyteller → Start a new story → the page shows "Let them hear you" then "Open the AI Storyteller" with "Back to chapter 1"; Back clears it. Mac screenshots of each page state at 1280 × 670. |
+
+### Phase 3: contents, chapters, endings, sound (Nov 16)
+
+| | |
+|---|---|
+| **Build** | The contents, Chapters, one chapter, AI Storyteller, Your stories and Settings pages from section 3.4 on `printed.ts`. `client/src/book/end-sheet.ts` (`tests/end-sheet.test.ts`: a recorded page to at most three lines and names). The chapter end page replaces `endPageText`; the Storyteller's `showEnd` slot works with a stand-in `EndSheet` until lane D's. `sound.setMuted()` and the Sound setting, kept in `localStorage` under `tt.settings`. |
+| **Show** | Emulator with `?speed=16`: chapter 1 to its end page → Read again → the chapter restarts; the ribbon at the end opens the contents, and Back returns to the end page, never to Carry on. Contents → Chapters → chapter 1 → Start. Sound off → no sound plays (the engine's master reads 0) → on. |
+
+### Phase 4: the page (Nov 16 evening)
+
+| | |
+|---|---|
+| **Build** | The hero for a returning reader with the Storyteller door under it. The door's states from `libraryState().storyteller.door` (a stand-in reading today's flags until lane D's provider). Your book replaces Chapters: the shelf with actions (each one sets the entry target and opens the book in one tap when ready), Your stories, and what you've kept through `collection.ts` (`tests/collection.test.ts`: the four states). The hero's detail line clear of the cover at 1280 × 670. |
+| **Show** | Mac screenshots at 1280 × 670, 1440 × 900 and 390 × 844 for: new, mid-chapter, finished, an entry target waiting, each door state (forced by a review flag), Your book empty and full. |
+
+### Phase 5: integration and the headset (Nov 17)
+
+| | |
+|---|---|
+| **Build** | Lane B's `loadChapter`, chapter `ModeSheet`, `where`; lane D's door data, `startStoryteller`, Storyteller `ModeSheet` and `EndSheet`, `listKeepsakes`, sign-in behaviour. The bookplate's three options, `/link/` and `/auth/return/` states. Room light (three levels of `MAX_DIM`). The ribbon slip. Docs: `docs/design-language.md` (the ribbon replaces the sage tab, the wrist tag goes, the printed pages, "Put the book away"), the PRD's vocabulary lines, `docs/v2-ideas.md` (section 5's later list), a dated section in `docs/playtest-notes.md`. |
+| **Show** | The glasses-view check (section 7). Then the owner in the headset, in this workspace: a first-time run with either hand (pause, carry on, put away), a chapter's ending, the contents, the Storyteller door to a story and its ending. Fixes the same day. Then the PR. |
+
+---
+
+## 7. Checks
+
+- **Every phase:** `pnpm check` green; no test visuals (review flags only in review builds); keys stay out (`check:bundle`).
+- **Layout:** `tests/printed.test.ts` at four scales and five distances.
+- **Hands only, either hand:** ribbon → pause → contents → Chapters → chapter → start; an ending → Read again; pause → Put the book away; in the emulator with each hand on its own.
+- **Gaze and pinch:** the same path on the `metaVRGlasses` device with `iwsdk-glasses-test`, every printed choice inside the glasses' view.
+- **State:** the story clock, held objects and page-turn invitation are the same before and after any page.
+- **The page:** Mac screenshots of every state at the three sizes; a judge's path unchanged (one tap to the chapter, no account, no microphone).
+- **The headset (owner):** section 6, phase 5.
+
+## 8. Risks
+
+- **The fold doesn't restore.** Proved first, with the paper card as the noon fallback.
+- **Troika text cost.** A spread is at most about ten text meshes, built when the page opens and disposed when it closes; telemetry's frame rate is watched in the emulator and in the owner's session.
+- **Lanes B and D land late.** Every slot works with today's chapter 1 and today's Storyteller through stand-ins, so phase 5 swaps them in without layout work.
+- **Removing the wrist tag.** The ribbon and cover are within reach by design; the system menu and taking the headset off still pause.
+- **Shared `index.ts`.** Lane A owns the entry block and the menu wiring; lanes B and D hand in functions, not edits to that block. Conflicts are settled through the sprint master.
+
+---
+
+## Review log
+
+**Codex, stage 1 (Nov 15), with the sprint master's rulings:**
+
+| # | Finding | Where it's answered |
+|---|---|---|
+| P0 1 | The layouts don't fit their own rules | 3.4: two choices a page, measured at 0.6×; phase 0 proves it before removals |
+| P0 2 | No state model | 3.5 |
+| P0 3 | Lane D's seam incomplete | 3.3, 3.4, 4.1, 4.3 with lane D's revised model |
+| P0 4 | No durable navigation | 3.6; in-place mode switching cut |
+| P1 5 | Gaze and pinch path | 4.2; checks in 7 |
+| P1 6 | Freeze too broad | 5 and 6: the thin path on Nov 16, integration on Nov 17 |
+| P1 7 | Collection and ending data seams | 3.1, 4.4, 4.6 |
+| P1 8 | Sign-in surfaces missing | 1.1, 4.3 |
+| P1 9 | Failure recovery undefined | 3.8, using lane D's retry and local ending |
+| P1 10 | Settings scope | 3.1, 4.5 |
+| P1 11 | First-time ribbon lesson too late | 3.7 |
+| P1 12 | Decisions not covered | 3.1 |
