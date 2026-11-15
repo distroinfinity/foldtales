@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { ACTING } from '../src/acting.ts';
 import { Entity, Id } from '../src/primitives.ts';
-import { StageAction, stageActionsJsonSchema } from '../src/stage-actions.ts';
+import { ROOM_EFFECTS, StageAction, stageActionsJsonSchema } from '../src/stage-actions.ts';
 
 const validActions = [
   { do: 'speak', withPrev: false, who: 'bramble', text: 'Oh, hello.', mood: 'warm', to: null },
@@ -156,4 +156,9 @@ test('a generated UUID is a valid id, and capitals are not', () => {
 
 test('an entity can name a UUID copy', () => {
   expect(Entity.safeParse('object:0f3a9c1e-7b2d-4c11-9e4a-1234567890ab').success).toBe(true);
+});
+
+test('the circling boat can be sent home, as a room effect that takes no object', () => {
+  expect(ROOM_EFFECTS['boat-home']).toEqual({ ms: 9000, what: false });
+  expect(StageAction.safeParse({ do: 'room', withPrev: true, effect: 'boat-home', what: null, at: null }).success).toBe(true);
 });
