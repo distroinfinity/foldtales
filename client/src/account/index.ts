@@ -9,6 +9,7 @@ import {
   type ResumePoint,
 } from '@tabletop/contracts';
 import { SESSION_KEY, createBackendAccess, withDeadline, type BackendAccess } from '../backend.ts';
+import { ACCOUNTS_ON } from '../landing/flags.ts';
 import { mergeBooks, sameBook, type LocalBook } from './merge.ts';
 
 export { mergeBooks, type LocalBook } from './merge.ts';
@@ -107,9 +108,31 @@ function storeSession(token: string, user: AccountUser | null): void {
   bumpGeneration();
 }
 
-/** Leaves this headset a fresh guest: no session, no progress, no saved place. The caller reloads the page. */
+/**
+ * Keys a reader leaves behind, by prefix: chapter progress and saved places (lane B keeps one per
+ * chapter under these, `tt.progress…` and `tt.checkpoint…`), and the Storyteller's cached shelf.
+ */
+export const READER_KEY_PREFIXES = [PROGRESS_KEY, CHECKPOINT_KEY, 'tt.storyteller.'] as const;
+
+/** Every stored key that starts with one of the reader's prefixes. Empty if storage can't be read. */
+function readerKeys(): string[] {
+  try {
+    const local = globalThis.localStorage;
+    if (!local) return [];
+    const keys: string[] = [];
+    for (let i = 0; i < local.length; i++) {
+      const key = local.key(i);
+      if (key && READER_KEY_PREFIXES.some((prefix) => key.startsWith(prefix))) keys.push(key);
+    }
+    return keys;
+  } catch {
+    return [];
+  }
+}
+
+/** Leaves this headset a fresh guest: no session, no progress, no saved place, no shelf. The caller reloads the page. */
 function clearReader(): void {
-  for (const key of [SESSION_KEY, USER_KEY, LAPSED_KEY, PROGRESS_KEY, CHECKPOINT_KEY]) storage.removeItem(key);
+  for (const key of [SESSION_KEY, USER_KEY, LAPSED_KEY, PROGRESS_KEY, CHECKPOINT_KEY, ...readerKeys()]) storage.removeItem(key);
   bumpGeneration();
 }
 
@@ -222,8 +245,15 @@ const showCode = (code: string): string => (code.length === 8 ? `${code.slice(0,
 /** What someone typed, as the server stores it: capitals and digits only. */
 const typedCode = (code: string): string => code.toUpperCase().replace(/[^A-Z0-9]/g, '');
 
+/** The code the bookplate shows, finished on the phone. */
+export interface DeviceCode {
+  userCode: string;
+  verificationUrl: string;
+  expiresAt: string;
+}
+
 /** A new code for the bookplate. Null when the backend can't be reached. Replaces any code before it. */
-export async function startDeviceSignIn(): Promise<{ userCode: string; verificationUrl: string; expiresAt: string } | null> {
+export async function startDeviceSignIn(): Promise<DeviceCode | null> {
   try {
     const answer = await request(`${AUTH}/device/code`, { method: 'POST', body: { client_id: DEVICE_CLIENT_ID } });
     const body = record(answer?.json);
@@ -297,6 +327,47 @@ export function pollDeviceSignIn(onUpdate: (status: DeviceSignInStatus) => void)
     stopped = true;
     clearTimeout(timer);
   };
+}
+
+// ---- the agreed names (docs/plans/2026-11-16-finish-api-shapes.md §2) --------------------
+
+/** The bookplate's phone code. */
+export const startPhoneSignIn = (): Promise<DeviceCode | null> => startDeviceSignIn();
+
+/** Waits for the phone; one of approved, denied or expired ends it. Returns a cancel. */
+export const watchPhoneSignIn = (cb: (s: DeviceSignInStatus) => void): (() => void) => pollDeviceSignIn(cb);
+
+/**
+ * Where "Continue with Google" navigates. Google is the only provider in v1 (Facebook is v2: owner,
+ * Nov 16). Null when sign-in is off in this build.
+ */
+export function providerSignInUrl(provider: 'google', returnTo: string): string | null {
+  if (!ACCOUNTS_ON) return null;
+  return provider === 'google' ? googleStartUrl(returnTo) : null;
+}
+
+/**
+ * Finishes a provider's return on `/auth/return/`: trades the one-time code in the address for the
+ * session, removes it from the address, records this headset and merges its book. No reload of
+ * its own: the page decides where to go (and keeps `tt.enter`).
+ */
+export async function finishSignIn(): Promise<'ok' | 'failed'> {
+  const params = new URLSearchParams(globalThis.location?.search ?? '');
+  const ott = params.get('ott');
+  try {
+    globalThis.history?.replaceState(null, '', globalThis.location?.pathname ?? '/');
+  } catch {
+    // The address keeps the code until the reload; it's single-use and short-lived either way.
+  }
+  if (!ott || params.get('error')) return 'failed';
+  if (!(await finishGoogleReturn(ott))) return 'failed';
+  const back = params.get('return') ?? '';
+  // The phone's page approves the headset itself; a headset records itself and merges its book.
+  if (!back.includes('/link/')) {
+    await linkThisDevice();
+    writeLocalBook(await syncBook(readLocalBook()), 'flagship-1');
+  }
+  return 'ok';
 }
 
 // ---- Google, by top-level navigation on the API's own address -----------------

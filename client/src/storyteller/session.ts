@@ -11,6 +11,16 @@ import type { LiveScheduler } from './live.ts';
 
 export type StoryState = 'opening' | 'listening' | 'thinking' | 'performing';
 
+/** How a story ended, for the end card and the shelf. `lines` has two or three; `things` are names. */
+export interface StoryEnding {
+  title: string;
+  lines: string[];
+  things: string[];
+}
+
+/** The title a story has before the cast names it. */
+export const UNTITLED = 'Tonight\'s story';
+
 /** Quiet this long while they listen, and the story carries itself on a little. */
 const QUIET_MS = 28_000;
 /** At most this many quiet turns in a row, then they simply wait. */
@@ -41,6 +51,8 @@ export interface SessionDeps {
   onAcknowledge?(who: string): void;
   /** State changes, for the paper ear and the cast's listening acting. */
   onState?(state: StoryState, who: string | null): void;
+  /** The story ended by itself (its time ran out, the connection was lost, tonight's limit). Not called for `end()`. */
+  onEnded?(ending: StoryEnding): void;
 }
 
 export function createStorySession(deps: SessionDeps) {
@@ -53,6 +65,9 @@ export function createStorySession(deps: SessionDeps) {
   const history: StoryTurnRequest['history'] = [];
 
   let disposed = false;
+  let suspended = false;
+  let storyTitle: string | null = null;
+  let ending: Promise<StoryEnding> | null = null;
   const setState = (next: StoryState, who: string | null = listener) => {
     if (disposed) return;
     state = next;
@@ -198,13 +213,31 @@ export function createStorySession(deps: SessionDeps) {
       deps.live.interrupt(deps.nowMs());
       toListening(listener);
     },
+    /** A page is open, the cover is shut, or the headset is off: hold everything in order. */
+    suspend(): void {
+      suspended = true;
+    },
+    /** Play what was held, in order. */
+    resume(): void {
+      suspended = false;
+    },
+    /** "End the story here": ends locally, with no network needed, and resolves with its ending. */
+    end(): Promise<StoryEnding> {
+      ending ??= Promise.resolve({ title: storyTitle ?? UNTITLED, lines: ['The story was gathered up, and tucked into the book for another night.'], things: [] });
+      generation += 1;
+      return ending;
+    },
+    /** The story's title once it has one, or null. */
+    title(): string | null {
+      return storyTitle;
+    },
     /** This evening is over (started again, or left): nothing from it plays or answers any more. */
     dispose(): void {
       disposed = true;
       generation += 1;
     },
     frame(): void {
-      if (disposed) return;
+      if (disposed || suspended) return;
       const now = deps.nowMs();
       if (pendingListen && state === 'performing' && deps.live.idle) {
         setState('listening', listener);
