@@ -401,6 +401,44 @@ Decided by the owner and recorded in `docs/v2-ideas.md`. The reasons:
 
 The stub with the exact types is pushed (`808155c`).
 
+### Handoffs to lanes A and B (Nov 16, ruling 6)
+
+What lane D's modules give, and the small call sites the host needs. Lane A applies the `index.ts` and landing edits; lane B applies `progress.ts` and the manifest line. The types are the agreed ones in `docs/plans/2026-11-16-finish-api-shapes.md` §2, plus the three additions marked **new**.
+
+**`client/src/storyteller/provider.ts`** (built):
+- `storytellerSnapshot()`, `subscribeStoryteller()`, `refreshStoryteller()`, `askMicrophone()`, `recordFinished()`, `listKeepsakes()`, as agreed.
+- `refreshStoryteller()` also sends any finished story still waiting on the headset. It runs by itself when the browser comes back online.
+- `DoorState` comes from sign-in, the microphone, reachability and `storytellerAvailability`.
+- `limit-reached.until` is the reset time (the next UTC midnight).
+
+**`client/src/storyteller/session.ts`** (built). `createStorySession(deps)` keeps today's deps, plus:
+- `onEnded(ending)`: the story ended by itself (time, turns, tonight's limit, a lapsed sign-in).
+- **new** `cozySet`: the set a redirect turns to. Pass `storyConfig.firstSet`.
+
+And `StorySession` gains:
+- `suspend()`, `resume()`, `end(): Promise<StoryEnding>`, `title()`;
+- `storyId` (null until the backend reserved the story);
+- `ended`;
+- **new** `paintMissed()`: Moth's empty-handed line when a painting fails.
+
+**The host's call sites, in `index.ts` (lane A):**
+1. When a story begins, after `sound.clearLines()`, call `void preloadRecorded((id, url, ms) => sound.addLine(id, url, ms))` (from `storyteller/recorded.ts`).
+2. Pass `cozySet: storyConfig.firstSet` and `onEnded` to `createStorySession`.
+3. At the welcome, open the drawer with `storyConfig.welcomeDrawer` (`odd-sock`, `brass-key`, `paper-boat`) as drawer objects (`origin: 'drawer'`). A gift of one at the welcome is the premise.
+4. In `collectPainting`, call `session.paintMissed()` on `failed`, and on the 75 s timeout.
+5. At the end (`onEnded` or `end()`):
+   - show the end card from `StoryEnding` (copy in `page-content.json` → `storyteller.endCard`);
+   - call `recordFinished({ id: session.storyId, ...ending })` only when `session.storyId` isn't null;
+   - "Tell another" is shown when the door isn't `limit-reached`.
+6. Call `suspend()` and `resume()` on pause, menus and headset off. The session's clock is the show clock, so the host stops the show clock while paused.
+7. The talk tab and the ears: hidden once `session.ended`. The "allow the microphone" hint goes. The story is complete without speaking, so the hint is just "Hold to talk, or hand them something".
+
+**Lane B, `progress.ts`:** `storyteller: storytellerSnapshot()` in `libraryState()`, and `subscribeLibrary` re-fires on `subscribeStoryteller`.
+
+**The manifest (lane B):** add `"sound/storyteller"` to `artFolders` in `client/public/show/manifest.json`, so run 023's clips are served and cached.
+
+**For the sprint master to settle with lane A:** the door's `mic-refused` row offers only "Try again". Ruling 4 makes a story complete without speech, so a reader who says no to the microphone needs a **Start a new story** button there too, playing by hand.
+
 ### Rulings from the review (Nov 15)
 
 1. **Rollback never opens guest AI.**
