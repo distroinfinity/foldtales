@@ -1,0 +1,1911 @@
+{
+  "v": 1,
+  "id": "chapter-3",
+  "title": "The longest night",
+  "premise": "On the longest night of the year, snow comes to the edge of the table. Wick goes down to the store and gets lost in the snow, and Pip leaves Thimble with the light to bring the old keeper home.",
+  "source": "authored",
+  "targetSeconds": {
+    "min": 300,
+    "max": 420
+  },
+  "scenes": [
+    {
+      "id": "the-frost",
+      "setId": "the-lamp",
+      "summary": "The lamp glass frosts over on the longest night",
+      "objects": [
+        {
+          "id": "lantern",
+          "defId": "lantern",
+          "origin": "set"
+        },
+        {
+          "id": "odd-sock",
+          "defId": "odd-sock",
+          "origin": "drawer"
+        },
+        {
+          "id": "ladder",
+          "defId": "ladder",
+          "origin": "drawer"
+        },
+        {
+          "id": "brass-key",
+          "defId": "brass-key",
+          "origin": "drawer"
+        },
+        {
+          "id": "kite",
+          "defId": "kite",
+          "origin": "drawer"
+        }
+      ],
+      "problem": {
+        "id": "frost",
+        "summary": "The lamp's glass has frosted over in the cold",
+        "rules": [
+          {
+            "id": "wipe-it",
+            "anyTags": [
+              "soft",
+              "warm"
+            ],
+            "beat": "frost-wipe",
+            "outcome": "solved"
+          }
+        ],
+        "fallback": {
+          "beat": "frost-puzzled"
+        },
+        "ignored": {
+          "beat": "frost-thimble",
+          "afterSeconds": 18
+        }
+      },
+      "entry": "opening",
+      "beats": [
+        {
+          "id": "opening",
+          "source": "authored",
+          "sceneId": "the-frost",
+          "estSeconds": 30,
+          "actions": [
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "open-book",
+              "target": null
+            },
+            {
+              "do": "cue",
+              "withPrev": true,
+              "cue": "lamp-lit",
+              "target": null
+            },
+            {
+              "do": "light",
+              "withPrev": true,
+              "mood": "gold",
+              "seconds": 2.0
+            },
+            {
+              "do": "cue",
+              "withPrev": true,
+              "cue": "beam",
+              "target": null
+            },
+            {
+              "do": "wait",
+              "withPrev": false,
+              "seconds": 1.0
+            },
+            {
+              "do": "room",
+              "withPrev": false,
+              "effect": "snow",
+              "what": null,
+              "at": null
+            },
+            {
+              "do": "narrate",
+              "withPrev": true,
+              "text": "On the longest night of the year, the snow came all the way to the edge of the table.",
+              "mood": "wonder"
+            },
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "pip",
+              "acting": "look",
+              "target": "reader"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "Snow! It's snowing on the Reader too! Look!",
+              "mood": "wonder",
+              "to": "reader"
+            }
+          ],
+          "next": "thimble-snow",
+          "replaces": null
+        },
+        {
+          "id": "thimble-snow",
+          "source": "authored",
+          "sceneId": "the-frost",
+          "estSeconds": 4,
+          "actions": [
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "thimble",
+              "text": "I've never seen snow from dry land before!",
+              "mood": "wonder",
+              "to": null
+            }
+          ],
+          "next": "errand",
+          "replaces": null
+        },
+        {
+          "id": "carry-thread",
+          "source": "authored",
+          "sceneId": "the-frost",
+          "estSeconds": 4,
+          "actions": [
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "thimble",
+              "text": "I've wound Grandmother's thread back on its spool. Every inch of it.",
+              "mood": "warm",
+              "to": null
+            }
+          ],
+          "next": "errand",
+          "replaces": null
+        },
+        {
+          "id": "carry-rope",
+          "source": "authored",
+          "sceneId": "the-frost",
+          "estSeconds": 4,
+          "actions": [
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "thimble",
+              "text": "The last time I was this cold, somebody threw me a rope.",
+              "mood": "silly",
+              "to": null
+            }
+          ],
+          "next": "errand",
+          "replaces": null
+        },
+        {
+          "id": "carry-ladder",
+          "source": "authored",
+          "sceneId": "the-frost",
+          "estSeconds": 4,
+          "actions": [
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "thimble",
+              "text": "The last time I was this cold, I crossed a ladder to get home.",
+              "mood": "silly",
+              "to": null
+            }
+          ],
+          "next": "errand",
+          "replaces": null
+        },
+        {
+          "id": "errand",
+          "source": "authored",
+          "sceneId": "the-frost",
+          "estSeconds": 30,
+          "actions": [
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "wick",
+              "acting": "examine",
+              "target": "mark:lamp"
+            },
+            {
+              "do": "speak",
+              "withPrev": true,
+              "who": "wick",
+              "text": "Longest night of the year. I'll fetch the oil up from the store, same as every night.",
+              "mood": "neutral",
+              "to": null
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "I'll go! You can't see the steps in the...",
+              "mood": "tense",
+              "to": "cast:wick"
+            },
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "wick",
+              "acting": "grumble",
+              "target": null
+            },
+            {
+              "do": "speak",
+              "withPrev": true,
+              "who": "wick",
+              "text": "Forty winters I've walked those steps, lad. I don't need eyes for them.",
+              "mood": "warm",
+              "to": "cast:pip"
+            },
+            {
+              "do": "move",
+              "withPrev": false,
+              "who": "wick",
+              "to": "mark:stair"
+            },
+            {
+              "do": "narrate",
+              "withPrev": true,
+              "text": "And down he went, one paw on the wall, counting every step.",
+              "mood": "neutral"
+            },
+            {
+              "do": "wait",
+              "withPrev": false,
+              "seconds": 0.8
+            },
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "lamp-out",
+              "target": null
+            },
+            {
+              "do": "light",
+              "withPrev": true,
+              "mood": "dusk",
+              "seconds": 1.5
+            },
+            {
+              "do": "emote",
+              "withPrev": true,
+              "who": "pip",
+              "acting": "scared",
+              "target": null
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "The glass is frosting over! The light can't get out!",
+              "mood": "tense",
+              "to": null
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "thimble",
+              "text": "And Wick will need it to find his way back!",
+              "mood": "tense",
+              "to": "cast:pip"
+            }
+          ],
+          "next": "frost-ask",
+          "replaces": null
+        },
+        {
+          "id": "frost-ask",
+          "source": "authored",
+          "sceneId": "the-frost",
+          "estSeconds": 20,
+          "actions": [
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "pip",
+              "acting": "look",
+              "target": "reader"
+            },
+            {
+              "do": "ask_reader",
+              "withPrev": false,
+              "who": "pip",
+              "player": null,
+              "problem": "frost",
+              "text": "Have you got anything to wipe it clear?",
+              "mood": "tense",
+              "opensDrawer": true,
+              "waitSeconds": 18
+            }
+          ],
+          "next": null,
+          "replaces": null
+        },
+        {
+          "id": "frost-wipe",
+          "source": "authored",
+          "sceneId": "the-frost",
+          "estSeconds": 12,
+          "actions": [
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "pip",
+              "acting": "take",
+              "target": "object:$offered"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "That's it! Rub, rub, rub...",
+              "mood": "wonder",
+              "to": null
+            },
+            {
+              "do": "emote",
+              "withPrev": true,
+              "who": "pip",
+              "acting": "examine",
+              "target": "mark:lamp"
+            },
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "lamp-lit",
+              "target": null
+            },
+            {
+              "do": "light",
+              "withPrev": true,
+              "mood": "gold",
+              "seconds": 1.5
+            },
+            {
+              "do": "cue",
+              "withPrev": true,
+              "cue": "beam",
+              "target": null
+            },
+            {
+              "do": "speak",
+              "withPrev": true,
+              "who": "pip",
+              "text": "There! Shine all the way down the steps!",
+              "mood": "relief",
+              "to": null
+            },
+            {
+              "do": "cue",
+              "withPrev": true,
+              "cue": "set-down",
+              "target": "object:$offered"
+            },
+            {
+              "do": "resolve",
+              "withPrev": false,
+              "problem": "frost",
+              "outcome": "the Reader's gift wiped the glass clear"
+            }
+          ],
+          "next": "too-long",
+          "replaces": null
+        },
+        {
+          "id": "frost-puzzled",
+          "source": "authored",
+          "sceneId": "the-frost",
+          "estSeconds": 20,
+          "actions": [
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "pip",
+              "acting": "take",
+              "target": "object:$offered"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "Thank you! But that won't wipe the frost.",
+              "mood": "silly",
+              "to": "reader"
+            },
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "set-down",
+              "target": "object:$offered"
+            },
+            {
+              "do": "wait",
+              "withPrev": false,
+              "seconds": 0.6
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "Something soft, maybe? Something warm?",
+              "mood": "tense",
+              "to": "reader"
+            },
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "pip",
+              "acting": "look",
+              "target": "reader"
+            },
+            {
+              "do": "wait",
+              "withPrev": false,
+              "seconds": 11
+            }
+          ],
+          "next": "frost-thimble",
+          "replaces": null
+        },
+        {
+          "id": "frost-thimble",
+          "source": "authored",
+          "sceneId": "the-frost",
+          "estSeconds": 14,
+          "actions": [
+            {
+              "do": "narrate",
+              "withPrev": false,
+              "text": "Thimble had polished a great many thimbles in her time. She knew exactly what to do.",
+              "mood": "silly"
+            },
+            {
+              "do": "move",
+              "withPrev": false,
+              "who": "thimble",
+              "to": "mark:lamp"
+            },
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "thimble",
+              "acting": "examine",
+              "target": "mark:lamp"
+            },
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "lamp-lit",
+              "target": null
+            },
+            {
+              "do": "light",
+              "withPrev": true,
+              "mood": "gold",
+              "seconds": 1.5
+            },
+            {
+              "do": "cue",
+              "withPrev": true,
+              "cue": "beam",
+              "target": null
+            },
+            {
+              "do": "speak",
+              "withPrev": true,
+              "who": "thimble",
+              "text": "A bit of elbow grease, and... there!",
+              "mood": "relief",
+              "to": null
+            },
+            {
+              "do": "resolve",
+              "withPrev": false,
+              "problem": "frost",
+              "outcome": "Thimble polished the glass clear"
+            }
+          ],
+          "next": "too-long",
+          "replaces": null
+        },
+        {
+          "id": "too-long",
+          "source": "authored",
+          "sceneId": "the-frost",
+          "estSeconds": 30,
+          "actions": [
+            {
+              "do": "wait",
+              "withPrev": false,
+              "seconds": 0.8
+            },
+            {
+              "do": "narrate",
+              "withPrev": false,
+              "text": "The lamp shone. The snow fell. And the old keeper didn't come back.",
+              "mood": "sad"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "He's been gone too long. Much too long.",
+              "mood": "tense",
+              "to": null
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "thimble",
+              "text": "Go and find him, Pip. I'll keep the light till you're back.",
+              "mood": "warm",
+              "to": "cast:pip"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "But a keeper never leaves the light.",
+              "mood": "tense",
+              "to": "cast:thimble"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "thimble",
+              "text": "Then I'll be the keeper for a bit. I know what this light means to someone lost.",
+              "mood": "warm",
+              "to": "cast:pip"
+            },
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "pip",
+              "acting": "look",
+              "target": "reader"
+            },
+            {
+              "do": "speak",
+              "withPrev": true,
+              "who": "pip",
+              "text": "Will you come with me? Into the snow?",
+              "mood": "warm",
+              "to": "reader"
+            },
+            {
+              "do": "narrate",
+              "withPrev": false,
+              "text": "So down went the little fox, a hundred and twelve steps, into the longest night.",
+              "mood": "warm"
+            }
+          ],
+          "next": "page-one",
+          "replaces": null
+        },
+        {
+          "id": "page-one",
+          "source": "authored",
+          "sceneId": "the-frost",
+          "estSeconds": 6,
+          "actions": [
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "page-invite",
+              "target": null
+            }
+          ],
+          "next": null,
+          "replaces": null
+        }
+      ]
+    },
+    {
+      "id": "lost-in-the-snow",
+      "setId": "the-landing",
+      "summary": "Wick is lost in the snow, and his logbook is out in the Reader's room",
+      "objects": [
+        {
+          "id": "logbook",
+          "defId": "logbook",
+          "origin": "set"
+        }
+      ],
+      "problem": {
+        "id": "the-glint",
+        "summary": "Wick's logbook lies half buried in the snow at the foot of the steps",
+        "rules": [
+          {
+            "id": "bring-it",
+            "anyTags": [
+              "pages"
+            ],
+            "beat": "log-found",
+            "outcome": "solved"
+          }
+        ],
+        "fallback": {
+          "beat": "glint-puzzled"
+        },
+        "ignored": {
+          "beat": "log-return",
+          "afterSeconds": 18
+        }
+      },
+      "entry": "page-turn-landing",
+      "beats": [
+        {
+          "id": "page-turn-landing",
+          "source": "authored",
+          "sceneId": "lost-in-the-snow",
+          "estSeconds": 3,
+          "actions": [
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "page-turn",
+              "target": null
+            },
+            {
+              "do": "place",
+              "withPrev": true,
+              "what": "cast:pip",
+              "at": "landing-in"
+            },
+            {
+              "do": "place",
+              "withPrev": true,
+              "what": "cast:moth",
+              "at": "moth-landing"
+            }
+          ],
+          "next": "the-snow",
+          "replaces": null
+        },
+        {
+          "id": "the-snow",
+          "source": "authored",
+          "sceneId": "lost-in-the-snow",
+          "estSeconds": 34,
+          "actions": [
+            {
+              "do": "move",
+              "withPrev": false,
+              "who": "pip",
+              "to": "mark:pip-step"
+            },
+            {
+              "do": "wait",
+              "withPrev": false,
+              "seconds": 0.6
+            },
+            {
+              "do": "narrate",
+              "withPrev": false,
+              "text": "At the bottom of the steps, the snow had covered everything. The path, the rocks, and every footprint.",
+              "mood": "tense"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "Wick? Wick! Where are you?",
+              "mood": "tense",
+              "to": null
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "His footprints just stop. The snow's filled them in.",
+              "mood": "sad",
+              "to": null
+            },
+            {
+              "do": "narrate",
+              "withPrev": false,
+              "text": "Then something glinted, half buried in the snow at the foot of the steps.",
+              "mood": "wonder"
+            },
+            {
+              "do": "place",
+              "withPrev": false,
+              "what": "object:logbook",
+              "at": "far-side"
+            },
+            {
+              "do": "cue",
+              "withPrev": true,
+              "cue": "beam",
+              "target": null
+            }
+          ],
+          "next": "glint-ask",
+          "replaces": null
+        },
+        {
+          "id": "glint-ask",
+          "source": "authored",
+          "sceneId": "lost-in-the-snow",
+          "estSeconds": 22,
+          "actions": [
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "pip",
+              "acting": "look",
+              "target": "reader"
+            },
+            {
+              "do": "ask_reader",
+              "withPrev": false,
+              "who": "pip",
+              "player": null,
+              "problem": "the-glint",
+              "text": "There, in the snow! Can you reach it for me?",
+              "mood": "tense",
+              "opensDrawer": false,
+              "waitSeconds": 18
+            }
+          ],
+          "next": null,
+          "replaces": null
+        },
+        {
+          "id": "log-found",
+          "source": "authored",
+          "sceneId": "lost-in-the-snow",
+          "estSeconds": 8,
+          "actions": [
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "pip",
+              "acting": "take",
+              "target": "object:$offered"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "Wick's logbook! He never goes anywhere without it.",
+              "mood": "tense",
+              "to": null
+            },
+            {
+              "do": "emote",
+              "withPrev": true,
+              "who": "pip",
+              "acting": "examine",
+              "target": "object:$offered"
+            },
+            {
+              "do": "resolve",
+              "withPrev": false,
+              "problem": "the-glint",
+              "outcome": "the Reader brought the logbook back from the room"
+            }
+          ],
+          "next": "lost",
+          "replaces": null
+        },
+        {
+          "id": "glint-puzzled",
+          "source": "authored",
+          "sceneId": "lost-in-the-snow",
+          "estSeconds": 18,
+          "actions": [
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "pip",
+              "acting": "take",
+              "target": "object:$offered"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "Thank you. But it's the shiny thing I need, there in the snow.",
+              "mood": "neutral",
+              "to": "reader"
+            },
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "set-down",
+              "target": "object:$offered"
+            },
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "pip",
+              "acting": "look",
+              "target": "reader"
+            },
+            {
+              "do": "wait",
+              "withPrev": false,
+              "seconds": 9
+            }
+          ],
+          "next": "log-return",
+          "replaces": null
+        },
+        {
+          "id": "log-return",
+          "source": "authored",
+          "sceneId": "lost-in-the-snow",
+          "estSeconds": 10,
+          "actions": [
+            {
+              "do": "narrate",
+              "withPrev": false,
+              "text": "So the little fox dug it out of the snow himself.",
+              "mood": "wonder"
+            },
+            {
+              "do": "use",
+              "withPrev": false,
+              "who": "pip",
+              "object": "logbook",
+              "on": null,
+              "problem": "the-glint"
+            },
+            {
+              "do": "emote",
+              "withPrev": true,
+              "who": "pip",
+              "acting": "take",
+              "target": "object:logbook"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "Wick's logbook! He never goes anywhere without it.",
+              "mood": "tense",
+              "to": null
+            },
+            {
+              "do": "resolve",
+              "withPrev": false,
+              "problem": "the-glint",
+              "outcome": "Pip dug the logbook out of the snow"
+            }
+          ],
+          "next": "lost",
+          "replaces": null
+        },
+        {
+          "id": "lost",
+          "source": "authored",
+          "sceneId": "lost-in-the-snow",
+          "estSeconds": 14,
+          "actions": [
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "pocket",
+              "target": "object:logbook"
+            },
+            {
+              "do": "speak",
+              "withPrev": true,
+              "who": "pip",
+              "text": "He's lost. Wick's lost, out in the snow.",
+              "mood": "sad",
+              "to": null
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "Every lost thing follows the light home. But how can he follow it, if he can't see it?",
+              "mood": "tense",
+              "to": null
+            }
+          ],
+          "next": "beacon-moth",
+          "replaces": null
+        },
+        {
+          "id": "beacon-moth",
+          "source": "authored",
+          "sceneId": "lost-in-the-snow",
+          "estSeconds": 12,
+          "actions": [
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "Then the light will just have to be bigger than the dark. Moth?",
+              "mood": "warm",
+              "to": "cast:moth"
+            },
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "light-up",
+              "target": "cast:moth"
+            },
+            {
+              "do": "narrate",
+              "withPrev": true,
+              "text": "And up went the little light, high above the snow.",
+              "mood": "wonder"
+            }
+          ],
+          "next": "calling",
+          "replaces": null
+        },
+        {
+          "id": "beacon-kite",
+          "source": "authored",
+          "sceneId": "lost-in-the-snow",
+          "estSeconds": 12,
+          "actions": [
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "The kite from the night Thimble came! Can I borrow it again?",
+              "mood": "wonder",
+              "to": "reader"
+            },
+            {
+              "do": "place",
+              "withPrev": false,
+              "what": "object:kite",
+              "at": "pip-step"
+            },
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "light-up",
+              "target": "object:kite"
+            },
+            {
+              "do": "narrate",
+              "withPrev": true,
+              "text": "And up went the little light, high above the snow.",
+              "mood": "wonder"
+            }
+          ],
+          "next": "calling",
+          "replaces": null
+        },
+        {
+          "id": "beacon-ladder",
+          "source": "authored",
+          "sceneId": "lost-in-the-snow",
+          "estSeconds": 12,
+          "actions": [
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "The ladder from the night Thimble came! Can I borrow it again?",
+              "mood": "wonder",
+              "to": "reader"
+            },
+            {
+              "do": "place",
+              "withPrev": false,
+              "what": "object:ladder",
+              "at": "pip-step"
+            },
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "light-up",
+              "target": "object:ladder"
+            },
+            {
+              "do": "narrate",
+              "withPrev": true,
+              "text": "And up went the little light, high above the snow.",
+              "mood": "wonder"
+            }
+          ],
+          "next": "calling",
+          "replaces": null
+        },
+        {
+          "id": "calling",
+          "source": "authored",
+          "sceneId": "lost-in-the-snow",
+          "estSeconds": 10,
+          "actions": [
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "Wick! Wick! Follow the light!",
+              "mood": "tense",
+              "to": null
+            },
+            {
+              "do": "wait",
+              "withPrev": false,
+              "seconds": 1.0
+            },
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "light-down",
+              "target": null
+            }
+          ],
+          "next": "page-two",
+          "replaces": null
+        },
+        {
+          "id": "page-two",
+          "source": "authored",
+          "sceneId": "lost-in-the-snow",
+          "estSeconds": 6,
+          "actions": [
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "page-invite",
+              "target": null
+            }
+          ],
+          "next": null,
+          "replaces": null
+        }
+      ]
+    },
+    {
+      "id": "home-by-the-light",
+      "setId": "the-gap",
+      "summary": "Wick can't see where the edge of the gap is in the snow",
+      "objects": [
+        {
+          "id": "rope-coil",
+          "defId": "rope-coil",
+          "origin": "set"
+        }
+      ],
+      "problem": {
+        "id": "wick-across",
+        "summary": "Wick can't see where the edge of the gap is in the snow",
+        "rules": [
+          {
+            "id": "throw-a-line",
+            "anyTags": [
+              "rope"
+            ],
+            "beat": "wick-rope",
+            "outcome": "solved"
+          },
+          {
+            "id": "lay-a-bridge",
+            "anyTags": [
+              "spans",
+              "climbs"
+            ],
+            "beat": "wick-ladder",
+            "outcome": "solved"
+          },
+          {
+            "id": "fly-him-over",
+            "anyTags": [
+              "flies"
+            ],
+            "beat": "wick-kite",
+            "outcome": "solved"
+          }
+        ],
+        "fallback": {
+          "beat": "wick-puzzled"
+        },
+        "ignored": {
+          "beat": "wick-rope-self",
+          "afterSeconds": 24
+        }
+      },
+      "entry": "page-turn-gap",
+      "beats": [
+        {
+          "id": "page-turn-gap",
+          "source": "authored",
+          "sceneId": "home-by-the-light",
+          "estSeconds": 3,
+          "actions": [
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "page-turn",
+              "target": null
+            },
+            {
+              "do": "place",
+              "withPrev": true,
+              "what": "cast:pip",
+              "at": "far-side"
+            },
+            {
+              "do": "place",
+              "withPrev": true,
+              "what": "cast:moth",
+              "at": "moth-hover"
+            },
+            {
+              "do": "place",
+              "withPrev": true,
+              "what": "cast:wick",
+              "at": "near-edge"
+            },
+            {
+              "do": "place",
+              "withPrev": true,
+              "what": "object:rope-coil",
+              "at": "rope-far"
+            }
+          ],
+          "next": "the-edge",
+          "replaces": null
+        },
+        {
+          "id": "the-edge",
+          "source": "authored",
+          "sceneId": "home-by-the-light",
+          "estSeconds": 28,
+          "actions": [
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "wick",
+              "text": "Pip? Is that your light, lad? Brightest little light I ever saw.",
+              "mood": "wonder",
+              "to": "cast:pip"
+            },
+            {
+              "do": "narrate",
+              "withPrev": false,
+              "text": "The old keeper stood at the edge of the gap, with the snow coming down, and no way to tell where the ground stopped.",
+              "mood": "tense"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "wick",
+              "text": "Forty winters on this shore, and tonight I can't find my own way home.",
+              "mood": "sad",
+              "to": null
+            }
+          ],
+          "next": "wick-ask",
+          "replaces": null
+        },
+        {
+          "id": "wick-ask",
+          "source": "authored",
+          "sceneId": "home-by-the-light",
+          "estSeconds": 28,
+          "actions": [
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "pip",
+              "acting": "look",
+              "target": "reader"
+            },
+            {
+              "do": "ask_reader",
+              "withPrev": false,
+              "who": "pip",
+              "player": null,
+              "problem": "wick-across",
+              "text": "I got over this gap once, with help. Can you help me get him across?",
+              "mood": "tense",
+              "opensDrawer": true,
+              "waitSeconds": 24
+            }
+          ],
+          "next": null,
+          "replaces": null
+        },
+        {
+          "id": "wick-rope",
+          "source": "authored",
+          "sceneId": "home-by-the-light",
+          "estSeconds": 12,
+          "actions": [
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "pip",
+              "acting": "take",
+              "target": "object:$offered"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "Hold still, Wick. And catch!",
+              "mood": "warm",
+              "to": "cast:wick"
+            },
+            {
+              "do": "move",
+              "withPrev": false,
+              "who": "pip",
+              "to": "mark:lighthouse-way"
+            },
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "wick-rope",
+              "target": "object:$offered"
+            },
+            {
+              "do": "speak",
+              "withPrev": true,
+              "who": "wick",
+              "text": "Hmph. Now where did you learn that?",
+              "mood": "silly",
+              "to": null
+            },
+            {
+              "do": "resolve",
+              "withPrev": false,
+              "problem": "wick-across",
+              "outcome": "Pip threw a line across"
+            }
+          ],
+          "next": "across",
+          "replaces": null
+        },
+        {
+          "id": "wick-ladder",
+          "source": "authored",
+          "sceneId": "home-by-the-light",
+          "estSeconds": 12,
+          "actions": [
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "pip",
+              "acting": "take",
+              "target": "object:$offered"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "One rung at a time, Wick. I've got you.",
+              "mood": "warm",
+              "to": "cast:wick"
+            },
+            {
+              "do": "move",
+              "withPrev": false,
+              "who": "pip",
+              "to": "mark:lighthouse-way"
+            },
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "wick-ladder",
+              "target": "object:$offered"
+            },
+            {
+              "do": "speak",
+              "withPrev": true,
+              "who": "wick",
+              "text": "Don't look down, eh? Easy for some.",
+              "mood": "silly",
+              "to": null
+            },
+            {
+              "do": "resolve",
+              "withPrev": false,
+              "problem": "wick-across",
+              "outcome": "a ladder laid across"
+            }
+          ],
+          "next": "across",
+          "replaces": null
+        },
+        {
+          "id": "wick-kite",
+          "source": "authored",
+          "sceneId": "home-by-the-light",
+          "estSeconds": 12,
+          "actions": [
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "pip",
+              "acting": "take",
+              "target": "object:$offered"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "wick",
+              "text": "A kite? At my age?",
+              "mood": "silly",
+              "to": null
+            },
+            {
+              "do": "move",
+              "withPrev": false,
+              "who": "pip",
+              "to": "mark:lighthouse-way"
+            },
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "wick-kite",
+              "target": "object:$offered"
+            },
+            {
+              "do": "speak",
+              "withPrev": true,
+              "who": "wick",
+              "text": "Oh. Oh my. Hmph. Rather nice, actually.",
+              "mood": "wonder",
+              "to": null
+            },
+            {
+              "do": "resolve",
+              "withPrev": false,
+              "problem": "wick-across",
+              "outcome": "Wick flew over on a kite"
+            }
+          ],
+          "next": "across",
+          "replaces": null
+        },
+        {
+          "id": "wick-puzzled",
+          "source": "authored",
+          "sceneId": "home-by-the-light",
+          "estSeconds": 20,
+          "actions": [
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "pip",
+              "acting": "take",
+              "target": "object:$offered"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "I don't think that'll get him over.",
+              "mood": "neutral",
+              "to": null
+            },
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "set-down",
+              "target": "object:$offered"
+            },
+            {
+              "do": "wait",
+              "withPrev": false,
+              "seconds": 0.6
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "Something long, maybe? Something to hold on to?",
+              "mood": "tense",
+              "to": "reader"
+            },
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "pip",
+              "acting": "look",
+              "target": "reader"
+            },
+            {
+              "do": "wait",
+              "withPrev": false,
+              "seconds": 11
+            }
+          ],
+          "next": "wick-rope-self",
+          "replaces": null
+        },
+        {
+          "id": "wick-rope-self",
+          "source": "authored",
+          "sceneId": "home-by-the-light",
+          "estSeconds": 16,
+          "actions": [
+            {
+              "do": "narrate",
+              "withPrev": false,
+              "text": "Then Pip saw it. Wick's own rope, right where he'd left it, the night the light went out.",
+              "mood": "wonder"
+            },
+            {
+              "do": "use",
+              "withPrev": false,
+              "who": "pip",
+              "object": "rope-coil",
+              "on": null,
+              "problem": null
+            },
+            {
+              "do": "emote",
+              "withPrev": true,
+              "who": "pip",
+              "acting": "take",
+              "target": "object:rope-coil"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "Hold still, Wick. And catch!",
+              "mood": "warm",
+              "to": "cast:wick"
+            },
+            {
+              "do": "move",
+              "withPrev": false,
+              "who": "pip",
+              "to": "mark:lighthouse-way"
+            },
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "wick-rope",
+              "target": "object:rope-coil"
+            },
+            {
+              "do": "speak",
+              "withPrev": true,
+              "who": "wick",
+              "text": "Hmph. Now where did you learn that?",
+              "mood": "silly",
+              "to": null
+            },
+            {
+              "do": "resolve",
+              "withPrev": false,
+              "problem": "wick-across",
+              "outcome": "Pip threw Wick's own rope across"
+            }
+          ],
+          "next": "across",
+          "replaces": null
+        },
+        {
+          "id": "across",
+          "source": "authored",
+          "sceneId": "home-by-the-light",
+          "estSeconds": 40,
+          "actions": [
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "wick",
+              "text": "Hmph. Not bad, keeper. Not bad at all.",
+              "mood": "warm",
+              "to": "cast:pip"
+            },
+            {
+              "do": "use",
+              "withPrev": false,
+              "who": "pip",
+              "object": "logbook",
+              "on": null,
+              "problem": null
+            },
+            {
+              "do": "give",
+              "withPrev": false,
+              "from": "pip",
+              "to": "wick",
+              "object": "logbook"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "You dropped this. It was in the snow at the bottom of the steps.",
+              "mood": "warm",
+              "to": "cast:wick"
+            },
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "wick",
+              "acting": "examine",
+              "target": "object:logbook"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "wick",
+              "text": "Forty years of lost things coming home, all in here.",
+              "mood": "warm",
+              "to": null
+            },
+            {
+              "do": "wait",
+              "withPrev": false,
+              "seconds": 0.6
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "wick",
+              "text": "You brought us all home tonight, lad. Time you kept the lamp.",
+              "mood": "warm",
+              "to": "cast:pip"
+            },
+            {
+              "do": "give",
+              "withPrev": false,
+              "from": "wick",
+              "to": "pip",
+              "object": "logbook"
+            },
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "pocket",
+              "target": "object:logbook"
+            },
+            {
+              "do": "speak",
+              "withPrev": true,
+              "who": "wick",
+              "text": "The lamp, and the log, and all of it. They're yours, keeper.",
+              "mood": "warm",
+              "to": "cast:pip"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "Mine? But who'll grumble at me?",
+              "mood": "wonder",
+              "to": "cast:wick"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "wick",
+              "text": "I'll grumble from my comfy chair. Loudly.",
+              "mood": "silly",
+              "to": "cast:pip"
+            }
+          ],
+          "next": "the-sky",
+          "replaces": null
+        },
+        {
+          "id": "the-sky",
+          "source": "authored",
+          "sceneId": "home-by-the-light",
+          "estSeconds": 50,
+          "actions": [
+            {
+              "do": "room",
+              "withPrev": false,
+              "effect": "clear",
+              "what": null,
+              "at": null
+            },
+            {
+              "do": "narrate",
+              "withPrev": true,
+              "text": "And just then, the snow stopped, the clouds opened, and the whole sky came out.",
+              "mood": "wonder"
+            },
+            {
+              "do": "room",
+              "withPrev": false,
+              "effect": "night-sky",
+              "what": null,
+              "at": null
+            },
+            {
+              "do": "emote",
+              "withPrev": true,
+              "who": "wick",
+              "acting": "look",
+              "target": "reader"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "wick",
+              "text": "I don't need eyes for the stars, lad. I know them all by heart.",
+              "mood": "warm",
+              "to": "cast:pip"
+            },
+            {
+              "do": "room",
+              "withPrev": false,
+              "effect": "stars-lantern",
+              "what": null,
+              "at": null
+            },
+            {
+              "do": "speak",
+              "withPrev": true,
+              "who": "wick",
+              "text": "There's the Lantern. Every keeper's first star.",
+              "mood": "warm",
+              "to": null
+            },
+            {
+              "do": "room",
+              "withPrev": false,
+              "effect": "stars-kite",
+              "what": null,
+              "at": null
+            },
+            {
+              "do": "speak",
+              "withPrev": true,
+              "who": "wick",
+              "text": "And the Kite, with her long tail.",
+              "mood": "warm",
+              "to": null
+            },
+            {
+              "do": "room",
+              "withPrev": false,
+              "effect": "stars-fox",
+              "what": null,
+              "at": null
+            },
+            {
+              "do": "speak",
+              "withPrev": true,
+              "who": "pip",
+              "text": "And that one? It looks like a fox.",
+              "mood": "wonder",
+              "to": "cast:wick"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "wick",
+              "text": "Don't know that one. Must be new.",
+              "mood": "neutral",
+              "to": "cast:pip"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "wick",
+              "text": "They say every keeper gets a star. Looks like that one's yours.",
+              "mood": "warm",
+              "to": "cast:pip"
+            },
+            {
+              "do": "room",
+              "withPrev": false,
+              "effect": "shooting-star",
+              "what": null,
+              "at": null
+            },
+            {
+              "do": "emote",
+              "withPrev": true,
+              "who": "pip",
+              "acting": "look",
+              "target": "reader"
+            },
+            {
+              "do": "speak",
+              "withPrev": true,
+              "who": "pip",
+              "text": "A shooting star! Quick, make a wish!",
+              "mood": "wonder",
+              "to": "reader"
+            },
+            {
+              "do": "wait",
+              "withPrev": false,
+              "seconds": 2.0
+            }
+          ],
+          "next": "morning",
+          "replaces": null
+        },
+        {
+          "id": "morning",
+          "source": "authored",
+          "sceneId": "home-by-the-light",
+          "estSeconds": 36,
+          "actions": [
+            {
+              "do": "move",
+              "withPrev": false,
+              "who": "wick",
+              "to": "mark:lamp-wick"
+            },
+            {
+              "do": "move",
+              "withPrev": true,
+              "who": "pip",
+              "to": "mark:lamp-pip"
+            },
+            {
+              "do": "move",
+              "withPrev": true,
+              "who": "moth",
+              "to": "mark:moth-lamp"
+            },
+            {
+              "do": "place",
+              "withPrev": true,
+              "what": "cast:thimble",
+              "at": "lamp-thimble"
+            },
+            {
+              "do": "narrate",
+              "withPrev": true,
+              "text": "They climbed the hundred and twelve steps together. And the old keeper didn't count them once.",
+              "mood": "warm"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "thimble",
+              "text": "Welcome home, keepers. I kept her shining, every minute.",
+              "mood": "relief",
+              "to": null
+            },
+            {
+              "do": "room",
+              "withPrev": false,
+              "effect": "day",
+              "what": null,
+              "at": null
+            },
+            {
+              "do": "narrate",
+              "withPrev": true,
+              "text": "And when the stars had faded, and the morning came over the edge of the table...",
+              "mood": "wonder"
+            },
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "lamp-out",
+              "target": null
+            },
+            {
+              "do": "light",
+              "withPrev": true,
+              "mood": "dusk",
+              "seconds": 2.0
+            },
+            {
+              "do": "narrate",
+              "withPrev": true,
+              "text": "...the new keeper put out the lamp himself, for the very first time. And the old keeper fell asleep in his comfy chair.",
+              "mood": "warm"
+            }
+          ],
+          "next": "chapter-end",
+          "replaces": null
+        },
+        {
+          "id": "chapter-end",
+          "source": "authored",
+          "sceneId": "home-by-the-light",
+          "estSeconds": 14,
+          "actions": [
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "keep",
+              "target": null
+            },
+            {
+              "do": "narrate",
+              "withPrev": true,
+              "text": "And whatever the Reader gave that night, the book kept safe, for another time.",
+              "mood": "warm"
+            },
+            {
+              "do": "wait",
+              "withPrev": false,
+              "seconds": 1.5
+            },
+            {
+              "do": "narrate",
+              "withPrev": false,
+              "text": "Because lost things, as you'll find, have a way of coming back.",
+              "mood": "wonder"
+            },
+            {
+              "do": "wait",
+              "withPrev": false,
+              "seconds": 1.5
+            },
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "chapter-end",
+              "target": null
+            }
+          ],
+          "next": null,
+          "replaces": null
+        }
+      ]
+    }
+  ],
+  "bridges": [
+    {
+      "id": "bridge-snow",
+      "source": "bridge",
+      "sceneId": null,
+      "estSeconds": 5,
+      "actions": [
+        {
+          "do": "narrate",
+          "withPrev": false,
+          "text": "The snow fell, soft as a held breath.",
+          "mood": "neutral"
+        }
+      ],
+      "next": null,
+      "replaces": null
+    },
+    {
+      "id": "bridge-mouse",
+      "source": "bridge",
+      "sceneId": null,
+      "estSeconds": 5,
+      "actions": [
+        {
+          "do": "narrate",
+          "withPrev": false,
+          "text": "Up at the top, a small mouse kept the great lamp turning.",
+          "mood": "neutral"
+        }
+      ],
+      "next": null,
+      "replaces": null
+    },
+    {
+      "id": "bridge-counting",
+      "source": "bridge",
+      "sceneId": null,
+      "estSeconds": 5,
+      "actions": [
+        {
+          "do": "narrate",
+          "withPrev": false,
+          "text": "Somewhere out in the white, an old badger counted his steps.",
+          "mood": "neutral"
+        }
+      ],
+      "next": null,
+      "replaces": null
+    }
+  ]
+}

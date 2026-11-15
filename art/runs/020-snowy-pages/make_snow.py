@@ -74,24 +74,32 @@ def snow_texture(shape, scale=1.0):
     return (tiled - tiled.mean()) / (tiled.std() + 1e-6)
 
 
-def absorbance(rgb):
+def absorbance(rgb, paper=PAPER):
     """Pigment over paper, per channel: 0 is bare paper."""
-    return -np.log(np.clip(rgb / PAPER, 1e-3, 1.5))
+    return -np.log(np.clip(rgb / paper, 1e-3, 1.5))
 
 
-def from_absorbance(a):
-    return PAPER * np.exp(-a)
+def from_absorbance(a, paper=PAPER):
+    return paper * np.exp(-a)
 
 
-def cool_washes(rgb, keep_mask=None, lo=0.16, hi=0.34, lift=0.0, hollows=0.0, seed=1):
+def paper_of(rgb):
+    """A printed ground's own paper: the median of its top and bottom edges, which are bare."""
+    edge = np.concatenate([rgb[: rgb.shape[0] // 40].reshape(-1, 3), rgb[-rgb.shape[0] // 40 :].reshape(-1, 3)])
+    return np.median(edge, axis=0)
+
+
+def cool_washes(rgb, keep_mask=None, lo=0.16, hi=0.34, lift=0.0, hollows=0.0, seed=1, blue=(0.02, 0.10), paper=PAPER):
     """Turns light warm washes into cool blue-grey of the same strength; darker paint (cliffs, rock,
     water, metal) fades out of the change between `lo` and `hi` density. `lift` thins the light
     washes too (more paper, more snow); `hollows` adds run 014's soft drifts inside the land."""
-    a = absorbance(rgb)
+    a = absorbance(rgb, paper)
     d = np.clip(a.mean(axis=2), 0, None)
+    # Bare paper (and anything lighter) is left exactly as it is.
+    m_paper = smoothstep(d, 0.005, 0.03)
     # Blue pigment (sea, sky) absorbs red more than blue: it isn't sand, so it stays.
-    blue = smoothstep(a[..., 0] - a[..., 2], 0.02, 0.10)
-    m = (1 - smoothstep(d, lo, hi)) * (1 - blue)
+    is_blue = smoothstep(a[..., 0] - a[..., 2], blue[0], blue[1])
+    m = (1 - smoothstep(d, lo, hi)) * (1 - is_blue) * m_paper
     if keep_mask is not None:
         m = m * (1 - keep_mask)
     d_new = d * (1 - lift)
@@ -99,7 +107,7 @@ def cool_washes(rgb, keep_mask=None, lo=0.16, hi=0.34, lift=0.0, hollows=0.0, se
         tex = snow_texture(d.shape, 1.6)
         land = ndimage.gaussian_filter(m * smoothstep(d, 0.03, 0.08), 25)
         d_new = d_new + hollows * np.clip(-tex, 0, None) * land
-    cooled = from_absorbance(d_new[..., None] * COOL[None, None, :])
+    cooled = from_absorbance(d_new[..., None] * COOL[None, None, :], paper)
     return rgb * (1 - m[..., None]) + cooled * m[..., None], m
 
 
@@ -176,7 +184,7 @@ def glass_mask(rgb, alpha):
 def the_gap(out_dir):
     base = ART / "sets/the-gap"
     rgb, _ = load(base / "ground.png")
-    snowy, _ = cool_washes(rgb, lo=0.22, hi=0.46, lift=0.1)
+    snowy, _ = cool_washes(rgb, lo=0.22, hi=0.46, lift=0.1, paper=paper_of(rgb))
     save(out_dir / "ground.png", snowy, None)
     for name, thick in (("layer-3-far-rim.png", 30), ("layer-4-near-rim.png", 40)):
         rgb, alpha = load(base / name)
@@ -192,7 +200,7 @@ def the_gap(out_dir):
 def the_lamp(out_dir):
     base = ART / "sets/the-lamp"
     rgb, _ = load(base / "ground.png")
-    snowy, _ = cool_washes(rgb, lo=0.22, hi=0.40, lift=0.5)
+    snowy, _ = cool_washes(rgb, lo=0.22, hi=0.40, lift=0.5, paper=paper_of(rgb))
     save(out_dir / "ground.png", snowy, None)
     for name, thick in (("near-ledge.png", 14), ("far-railing.png", 6)):
         rgb, alpha = load(base / name)
@@ -214,7 +222,27 @@ def the_lamp(out_dir):
     return ["ground.png", "near-ledge.png", "far-railing.png", "lamp-room.png", "lamp-lit.png"]
 
 
-SETS = {"the-gap": the_gap, "the-lamp": the_lamp}
+def the_landing(out_dir):
+    """Lane B's run 018. Grey stone already: its pale treads and rock tops lift toward the paper (the
+    snow), its shaded sides and the dark sea keep their paint. Only strongly blue paint (the sea)
+    counts as blue here, since the stone itself is a cool grey."""
+    base = ART / "sets/the-landing"
+    rgb, _ = load(base / "ground.png")
+    snowy, _ = cool_washes(rgb, lo=0.20, hi=0.42, lift=0.55, blue=(0.10, 0.25), paper=paper_of(rgb))
+    save(out_dir / "ground.png", snowy, None)
+    rgb, alpha = load(base / "layer-3-far-rocks.png")
+    a = absorbance(rgb)
+    sea = smoothstep(a[..., 0] - a[..., 2], 0.10, 0.25) * smoothstep(a.mean(axis=2), 0.5, 0.8)
+    save(out_dir / "layer-3-far-rocks.png", caps(rgb, alpha, 22, avoid=sea), alpha)
+    rgb, alpha = load(base / "layer-4-near-steps.png")
+    a = absorbance(rgb)
+    grass = smoothstep(a[..., 2] - a[..., 0], 0.05, 0.2) * smoothstep(a.mean(axis=2), 0.15, 0.3)
+    snowy, _ = cool_washes(rgb, keep_mask=grass, lo=0.20, hi=0.42, lift=0.35, blue=(0.10, 0.25))
+    save(out_dir / "layer-4-near-steps.png", caps(snowy, alpha, 30, avoid=ndimage.grey_dilation(grass, size=(9, 9))), alpha)
+    return ["ground.png", "layer-3-far-rocks.png", "layer-4-near-steps.png"]
+
+
+SETS = {"the-gap": the_gap, "the-lamp": the_lamp, "the-landing": the_landing}
 
 
 def snowy_set_json(name, made):
