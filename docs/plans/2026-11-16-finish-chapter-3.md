@@ -4,6 +4,23 @@ Lane C of the finish sprint (`docs/plans/2026-11-15-finish-sprint.md`), task `C-
 
 **What lane C builds:** chapter 3's content only: its data (spine, beats, branches, lines, carry rules), its snowy pages, its voices and its sound. **What it builds from:** the story, chapter 3's section of `docs/plans/2026-11-15-finish-chapters.md` (lane B is its writer and owns every change to it), the draft spine `docs/plans/finish-chapters/episode-3.draft.json` with its `.carry` and `.canon` drafts, the dependency table in `docs/plans/2026-11-15-finish-chapters-build.md`, and the approved API shapes (`docs/plans/2026-11-16-finish-api-shapes.md`, with amendment 1). **What it doesn't touch:** the engine (`show/runtime.ts`, `show/chapters.ts`, `show/progress.ts`, `stage/`, `room-fx/`, `objects/`, `index.ts`, `landing/`), contracts (chapter 3 needs no change there), `docs/sprint-plan.md`, and anything already painted (Thimble, the landing, the sets, the objects: reused, never repainted).
 
+## Stage 1 rulings (sprint master, Nov 16), taken in
+
+**Approved with changes** after Codex's review (0 P0, 5 P1, 3 P2; the ledger, the 110-credit estimate and the 138-credit caps checked out). Runs 020–022 approved at their caps, spent through lane B's per-run ledger in the image runner (`art/tools/ledger.mjs`; each plan names lane C's runs and its 150). Where a ruling changes something below, the section says so.
+
+| # | Ruling | What lane C does |
+|---|---|---|
+| 1 | Pip's paw stays free: a gift held in the paw blocks the next gift (`canReceive`) | Data-only staging with existing cues, for lane B's approval: `frost-wipe` sets the sock down once the glass is clear; `lost` pockets the logbook (`cue pocket`) before the beacon and the crossing; `across` takes it out with `use` to hand it over, and Pip pockets it again when Wick gives it back (otherwise `keep` would fly it into your satchel, and it's Pip's now). Checked with consecutive gifts in one continuous emulator run, on the kite and ladder paths too |
+| 2 | The lantern and `light-high` | `lantern` is in chapter 3's first scene objects, as in chapter 1. Lane B delivers a measured `light-high` on the landing; lane C copies it into the snowy landing (and the shore fallback). **The engine handoff gate** is a real chapter 3 page load: its own spine, the opening placement, a visible lantern and all three beacon variants. Lane C doesn't patch the engine or the host |
+| 3 | The hunt's page fallback | Lane B writes the page version's lines and page text now; lane C voices **both** versions in run 021, so voices never wait on the hunt's headset pass or fail. The owner judges the hunt in the Nov 16 session; lane B owns the call |
+| 4 | Collecting the logbook | `log-return` waits for the hunt's own return and keeps the page-object `use`: the narrator's line ("…brought it the rest of the way home") now plays first, over the logbook's 2.6 s drift back to the book, then `use` and `take`. **Its home at completion:** Pip's paw after `log-found` or `log-return`; his pocket from `lost` to `across`; his pocket at the end. Checked on the zero-input, late-wrong and holding paths |
+| 5 | The carried consequence is **required** | Lane B delivers the minimum for one visible carried consequence (chapter 2's kite or ladder carrying the light) in its early engine PR. Only optional variants may be cut at 18:00; "defaults only" is no longer a fallback for it |
+| 6 | Test location | `tests/chapter-3.test.ts` (vitest only finds `tests/**`), discovery verified; voice coverage walks scene beats and `spine.bridges` |
+| 7 | Coverage | Branch and carry-combination coverage after the voices land, including the defaults with an empty satchel; one uninterrupted zero-input emulator walk at normal speed; first-turn targets per reader (lane B's: quick ≤ 1:45, zero input ≤ 2:05, late wrong ≤ 2:20) |
+| 8 | Order | Before lane B's chapter and set loading lands: data, free image processing, ledger checks and provisional timings only. Emulator acceptance of the snowy sets comes after. The merged `pages` tag (contracts PR #23) is a listed prerequisite. Lane C stays out of chapter 1's data and the engine |
+
+**Lane B's later rulings this plan now follows** (`docs/plans/2026-11-15-finish-chapters-build.md`, "Stage 2 rulings"): Wick's crossings are chapter 1's crossing kinds with Wick as the traveller to `far-side`, after Pip steps aside to `lighthouse-way` (data only; E6 isn't needed); lane B's own fallbacks for the stair (behind the lamp room's glass), the linked part (the brass key instead of the logbook) and `use` replace the ones lane C proposed below, where they differ.
+
 ## The bar, and where chapter 3 meets it
 
 | Chapter 1's bar | Chapter 3 |
@@ -19,7 +36,7 @@ Lane C of the finish sprint (`docs/plans/2026-11-15-finish-sprint.md`), task `C-
 
 ## Chapter 3's data, in order
 
-Built from the drafts exactly: titles, ids and lines as written. Trims are allowed (lane C, reported); a new line goes through the sprint master. Everything below is data in `client/public/` and `art/`, plus one new test file.
+Built from the drafts exactly: titles, ids and lines as written. Trims are allowed (lane C, reported); a new line goes through the sprint master. Everything below is data in `client/public/` and `art/`, plus one new test file. Lane C changes its own staging only as the rulings say (ruling 1, 4), and reports each change to lane B.
 
 ### Files
 
@@ -32,7 +49,7 @@ Built from the drafts exactly: titles, ids and lines as written. Trims are allow
 | `art/sets/the-lamp-snow/`, `the-landing-snow/`, `the-gap-snow/` | Snowy pieces and a `set.json` each. Unchanged pieces (the skies, the headland) are referenced from the base set, as the gap already references the shore's sky |
 | `art/sound/ch3/` | Chapter 3's finished lines and sounds |
 | `art/runs/020-snowy-pages/`, `021-chapter-3-voices/`, `022-chapter-3-sound/` | The run plans (written with this plan), their tools, manifests and results |
-| `client/src/show/chapter-3.test.ts` (new) | Chapter 3's checks (under "Checks") |
+| `tests/chapter-3.test.ts` (new) | Chapter 3's checks (under "Checks"), where vitest finds them (ruling 6) |
 | `docs/playtest-notes.md` | Lane C's own dated section: the emulator walk and the owner's headset session |
 
 ### Scene by scene
@@ -204,8 +221,8 @@ Nothing is spent before the sprint master approves each run. 12 credits stay una
 ## Checks
 
 - **`pnpm check`** (typecheck, tests, bundle) green on every push.
-- **`client/src/show/chapter-3.test.ts`:** `episode-3.json` parses and passes `checkSpine` against the real manifest; every carry pick and default resolves to a beat; every problem has a fallback and an ignored path, and the zero-input path reaches `chapter-end`; the only room effects are the story's nine, and nothing touches the ceiling before `the-sky`; each snowy set's marks, anchors and hinges equal its base set's; once run 021 lands, every line is in `voiceLines` and every voice file exists.
-- **The simulator, four readers, every carry pick:** `node tools/chapter-timings.ts client/public/show/episode-3.json --carry client/public/show/episode-3.carry.json` (the `--cues` and `--objects` overrides drop away once E10 lands). Every path inside 5–7 minutes; first turn by about 1:40; no quiet over 8 s; no repeated line. On the drafts today:
+- **`tests/chapter-3.test.ts`** (ruling 6): `episode-3.json` parses and passes `checkSpine` against the real manifest; every carry pick and default resolves to a beat; every problem has a fallback and an ignored path, and the zero-input path reaches `chapter-end`; the only room effects are the story's nine, and nothing touches the ceiling before `the-sky`; each snowy set's marks, anchors and hinges equal its base set's; Pip's paw is empty at every ask (ruling 1); once run 021 lands, every playable line (scene beats and `spine.bridges`) is in `voiceLines` and every voice file exists.
+- **The simulator, four readers, every carry pick:** `node tools/chapter-timings.ts client/public/show/episode-3.json --carry client/public/show/episode-3.carry.json` (the `--cues` and `--objects` overrides drop away once E10 lands). Every path inside 5–7 minutes; first turn by reader (quick ≤ 1:45, zero input ≤ 2:05, late wrong ≤ 2:20); no quiet over 8 s; no repeated line. After the voices land, every branch and carry combination, including the defaults with an empty satchel (ruling 7). On the drafts today:
 
 | Chapter 3 (drafts, real scheduler, unvoiced lines at 1.3×) | Quick | Zero input | Late wrong gift | Holding |
 |---|---|---|---|---|
@@ -215,7 +232,7 @@ Nothing is spent before the sprint master approves each run. 12 credits stay una
 
   The late-wrong path sits at the scheduler's 7:00 time-box (it shortens waits to finish by 7:00). That's the margin to watch once real voices are in; the trims above are the answer if it goes over.
 - **`TT_EPISODE=show/episode-3.json node tools/director-sim.ts`** green.
-- **The emulator walk** (IWSDK skills; `?chapter=3`, `?jump=<beat>`, `?speed=4`, the carry seed): each snowy spread against its unsnowy self; the frost with the sock, with a wrong gift, ignored; the hunt in the living room and the painted room (walk and pinch, look and pinch, ignored); every beacon (Moth, kite, ladder); every crossing (rope, ladder, kite, wrong gift, Wick's own rope); the handover with the linked part; the sky in full; the morning (the lamp lit on the far lighthouse until Pip puts it out); the end card's page lines; pause and resume in each spread; Read it again. Screenshots and telemetry fps per spread in lane C's section of `docs/playtest-notes.md`.
+- **One uninterrupted zero-input walk at normal speed** (ruling 7), then **the emulator walk** (IWSDK skills; `?chapter=3`, `?jump=<beat>`, `?speed=4`, the carry seed): each snowy spread against its unsnowy self; the frost with the sock, with a wrong gift, ignored; the hunt in the living room and the painted room (walk and pinch, look and pinch, ignored); every beacon (Moth, kite, ladder); every crossing (rope, ladder, kite, wrong gift, Wick's own rope); the handover with the linked part; the sky in full; the morning (the lamp lit on the far lighthouse until Pip puts it out); the end card's page lines; pause and resume in each spread; Read it again. Screenshots and telemetry fps per spread in lane C's section of `docs/playtest-notes.md`.
 - **The headset (the owner, before merge):** chapter 2 then chapter 3, continuing from the end page; the snow by minute 1; the hunt walked (owed since Nov 15); the stars at the peak; the snowy pages against the look bar; the voices by ear. Sign-off before merge.
 
 ## Order of work

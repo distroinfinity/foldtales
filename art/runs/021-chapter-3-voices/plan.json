@@ -10,10 +10,21 @@
   "learnEvenIfRejected": "How far the 1.3x rule holds for a third chapter, and for Thimble's voice.",
   "reusableOutput": "Chapter 3's lines.",
   "estimateCredits": 76,
-  "estimateNote": "76 lines from the deduplicated ledger (narrator 18 with the three bridges, Pip 31, Wick 18, Thimble 9; 2 more reuse chapter 1's, 4 more are played in several beats and voiced once). voiceJobs are written by build_plan.mjs from the frozen client/public/show/episode-3.json and its bridges, skipping every line already in the manifest; nothing is run before Thimble's voice is chosen.",
+  "estimateNote": "76 lines from the deduplicated ledger (narrator 18 with the three bridges, Pip 31, Wick 18, Thimble 9; 2 more reuse chapter 1's, 4 more are played in several beats and voiced once). voiceJobs are written by build_plan.mjs from the frozen client/public/show/episode-3.json and its bridges, skipping every line already in the manifest; nothing is run before Thimble's voice is chosen. Ruling 3: the hunt's page version (lane B's lines) is voiced too, from client/public/show/episode-3.page-hunt.json, so the voices never wait on the hunt's headset pass or fail; its few differing lines come out of the 8 retakes.",
   "trimOrder": "If the cap would be passed or voices run long: the three bridges (3 lines), then the-edge's narrator line, across's 'Forty years of lost things coming home, all in here.', too-long's 'He's been gone too long. Much too long.' Each trim reported to lane B.",
   "capNote": "Lane C's 150 across runs 020-022. The cap leaves 8 retakes after the owner listens.",
   "capCredits": 84,
   "soundJobs": [],
-  "voiceJobs": []
+  "voiceJobs": [],
+  "lane": {
+    "id": "C",
+    "capCredits": 150,
+    "runs": [
+      "020-snowy-pages",
+      "021-chapter-3-voices",
+      "022-chapter-3-sound"
+    ]
+  },
+  "approved": "Sprint master, Nov 16: approved at this cap (stage 1 rulings, docs/plans/2026-11-16-finish-chapter-3.md).",
+  "thimblePreset": null
 }

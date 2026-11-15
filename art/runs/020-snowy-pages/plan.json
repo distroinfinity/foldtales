@@ -71,5 +71,15 @@
       ],
       "prompt": "Figure 1 shows die-cut paper stage pieces on plain magenta paper. Paint exactly the same pieces, with the same outline, size and place, after fresh snow: soft cream-white snow with pale blue-grey shadows in the hollows, painted in the same washes as the rest lies on the tops of both dune pieces, and the grass bends under a light dusting of snow. The sandy cliff faces keep their paint. No sky, nothing behind the pieces. Each piece keeps its clean hard edge traced with a fine pencil line and its perfectly straight flat bottom edge. Leave a wide margin of empty paper on all four sides, with nothing touching the edge of the image. Gentle night values. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. On plain flat solid vivid magenta paper, one even colour. No text."
     }
-  ]
+  ],
+  "lane": {
+    "id": "C",
+    "capCredits": 150,
+    "runs": [
+      "020-snowy-pages",
+      "021-chapter-3-voices",
+      "022-chapter-3-sound"
+    ]
+  },
+  "approved": "Sprint master, Nov 16: approved at this cap (stage 1 rulings, docs/plans/2026-11-16-finish-chapter-3.md)."
 }

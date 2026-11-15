@@ -35,5 +35,15 @@
       "promptText": "An old padded wooden armchair creaking softly as someone sleepy settles into it, close and gentle, nothing else. No music."
     }
   ],
-  "voiceJobs": []
+  "voiceJobs": [],
+  "lane": {
+    "id": "C",
+    "capCredits": 150,
+    "runs": [
+      "020-snowy-pages",
+      "021-chapter-3-voices",
+      "022-chapter-3-sound"
+    ]
+  },
+  "approved": "Sprint master, Nov 16: approved at this cap (stage 1 rulings, docs/plans/2026-11-16-finish-chapter-3.md)."
 }
