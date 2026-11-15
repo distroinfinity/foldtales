@@ -1,0 +1,39 @@
+{
+  "episodeId": "chapter-2",
+  "slots": [
+    {
+      "after": "opening",
+      "otherwise": "trim",
+      "pick": [
+        {
+          "when": {
+            "fact": "crossing",
+            "is": "kite"
+          },
+          "beat": "carry-kite"
+        },
+        {
+          "when": {
+            "fact": "crossing",
+            "is": "thread"
+          },
+          "beat": "carry-thread"
+        },
+        {
+          "when": {
+            "fact": "crossing",
+            "is": "ladder"
+          },
+          "beat": "carry-ladder"
+        },
+        {
+          "when": {
+            "fact": "crossing",
+            "is": "rope"
+          },
+          "beat": "carry-rope"
+        }
+      ]
+    }
+  ]
+}

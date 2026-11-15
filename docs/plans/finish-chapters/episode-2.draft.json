@@ -1,0 +1,1877 @@
+{
+  "v": 1,
+  "id": "chapter-2",
+  "title": "The night the sea came in",
+  "premise": "The tide comes all the way in, across the Reader's floor, and brings a letter from Thimble, lost at sea and following the light. Wick can't see a boat at sea, so Pip goes down to the dark water to be the keeper's eyes.",
+  "source": "authored",
+  "targetSeconds": {
+    "min": 300,
+    "max": 420
+  },
+  "scenes": [
+    {
+      "id": "the-letter",
+      "setId": "the-lamp",
+      "summary": "A bottle washes up at the Reader's feet with a letter from someone lost at sea",
+      "objects": [
+        {
+          "id": "bottle",
+          "defId": "bottle",
+          "origin": "set"
+        }
+      ],
+      "problem": {
+        "id": "the-letter",
+        "summary": "A bottle with a letter has washed up at the Reader's feet",
+        "rules": [
+          {
+            "id": "pass-it-up",
+            "anyTags": [
+              "message"
+            ],
+            "beat": "letter",
+            "outcome": "solved"
+          }
+        ],
+        "fallback": {
+          "beat": "letter-puzzled"
+        },
+        "ignored": {
+          "beat": "letter-tide",
+          "afterSeconds": 16
+        }
+      },
+      "entry": "opening",
+      "beats": [
+        {
+          "id": "opening",
+          "source": "authored",
+          "sceneId": "the-letter",
+          "estSeconds": 40,
+          "actions": [
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "open-book",
+              "target": null
+            },
+            {
+              "do": "cue",
+              "withPrev": true,
+              "cue": "lamp-lit",
+              "target": null
+            },
+            {
+              "do": "light",
+              "withPrev": true,
+              "mood": "gold",
+              "seconds": 2.0
+            },
+            {
+              "do": "cue",
+              "withPrev": true,
+              "cue": "beam",
+              "target": null
+            },
+            {
+              "do": "wait",
+              "withPrev": false,
+              "seconds": 1.0
+            },
+            {
+              "do": "narrate",
+              "withPrev": false,
+              "text": "The next night, the lamp burned bright, and a new keeper stood on the gallery. A very small one, in a very big coat.",
+              "mood": "wonder"
+            },
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "pip",
+              "acting": "look",
+              "target": "reader"
+            },
+            {
+              "do": "speak",
+              "withPrev": true,
+              "who": "pip",
+              "text": "You came back! Wick, look, they came back!",
+              "mood": "wonder",
+              "to": "reader"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "wick",
+              "text": "Hmph. So they did. Evening, whoever you are.",
+              "mood": "warm",
+              "to": "reader"
+            }
+          ],
+          "next": "trim",
+          "replaces": null
+        },
+        {
+          "id": "carry-kite",
+          "source": "authored",
+          "sceneId": "the-letter",
+          "estSeconds": 4,
+          "actions": [
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "I still dream about flying over the gap on that kite.",
+              "mood": "wonder",
+              "to": "reader"
+            }
+          ],
+          "next": "trim",
+          "replaces": null
+        },
+        {
+          "id": "carry-thread",
+          "source": "authored",
+          "sceneId": "the-letter",
+          "estSeconds": 4,
+          "actions": [
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "Moth's still ever so proud of carrying that thread across.",
+              "mood": "wonder",
+              "to": "reader"
+            }
+          ],
+          "next": "trim",
+          "replaces": null
+        },
+        {
+          "id": "carry-ladder",
+          "source": "authored",
+          "sceneId": "the-letter",
+          "estSeconds": 4,
+          "actions": [
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "I keep thinking about that ladder. Right across the gap!",
+              "mood": "wonder",
+              "to": "reader"
+            }
+          ],
+          "next": "trim",
+          "replaces": null
+        },
+        {
+          "id": "carry-rope",
+          "source": "authored",
+          "sceneId": "the-letter",
+          "estSeconds": 4,
+          "actions": [
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "Wick says next time I cross a gap, I'm to bring my own rope.",
+              "mood": "silly",
+              "to": "reader"
+            }
+          ],
+          "next": "trim",
+          "replaces": null
+        },
+        {
+          "id": "trim",
+          "source": "authored",
+          "sceneId": "the-letter",
+          "estSeconds": 8,
+          "actions": [
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "Can I trim the wick tonight, Wick? Please?",
+              "mood": "wonder",
+              "to": "cast:wick"
+            },
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "wick",
+              "acting": "grumble",
+              "target": null
+            },
+            {
+              "do": "speak",
+              "withPrev": true,
+              "who": "wick",
+              "text": "Go on, then. Carefully, mind.",
+              "mood": "warm",
+              "to": "cast:pip"
+            },
+            {
+              "do": "emote",
+              "withPrev": true,
+              "who": "pip",
+              "acting": "examine",
+              "target": "mark:lamp"
+            }
+          ],
+          "next": "sea-in",
+          "replaces": null
+        },
+        {
+          "id": "sea-in",
+          "source": "authored",
+          "sceneId": "the-letter",
+          "estSeconds": 20,
+          "actions": [
+            {
+              "do": "narrate",
+              "withPrev": false,
+              "text": "That night, the sea came in further than it ever had. Up the shore, up the rocks, and right across the Reader's floor.",
+              "mood": "wonder"
+            },
+            {
+              "do": "room",
+              "withPrev": true,
+              "effect": "sea",
+              "what": null,
+              "at": null
+            },
+            {
+              "do": "room",
+              "withPrev": false,
+              "effect": "bottle",
+              "what": "object:bottle",
+              "at": null
+            },
+            {
+              "do": "emote",
+              "withPrev": true,
+              "who": "pip",
+              "acting": "look",
+              "target": "reader"
+            },
+            {
+              "do": "speak",
+              "withPrev": true,
+              "who": "pip",
+              "text": "The sea's come right in! And look, something's washed up by your feet!",
+              "mood": "wonder",
+              "to": "reader"
+            }
+          ],
+          "next": "bottle-ask",
+          "replaces": null
+        },
+        {
+          "id": "bottle-ask",
+          "source": "authored",
+          "sceneId": "the-letter",
+          "estSeconds": 18,
+          "actions": [
+            {
+              "do": "ask_reader",
+              "withPrev": false,
+              "who": "pip",
+              "player": null,
+              "problem": "the-letter",
+              "text": "Can you pass it up to us?",
+              "mood": "tense",
+              "opensDrawer": false,
+              "waitSeconds": 16
+            }
+          ],
+          "next": null,
+          "replaces": null
+        },
+        {
+          "id": "letter",
+          "source": "authored",
+          "sceneId": "the-letter",
+          "estSeconds": 6,
+          "actions": [
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "pip",
+              "acting": "take",
+              "target": "object:$offered"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "A bottle, with a letter in it! Thank you!",
+              "mood": "wonder",
+              "to": "reader"
+            },
+            {
+              "do": "emote",
+              "withPrev": true,
+              "who": "pip",
+              "acting": "examine",
+              "target": "object:$offered"
+            }
+          ],
+          "next": "letter-read",
+          "replaces": null
+        },
+        {
+          "id": "letter-puzzled",
+          "source": "authored",
+          "sceneId": "the-letter",
+          "estSeconds": 20,
+          "actions": [
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "pip",
+              "acting": "take",
+              "target": "object:$offered"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "Oh, thank you! But it's the bottle we need. The one that washed up!",
+              "mood": "silly",
+              "to": "reader"
+            },
+            {
+              "do": "emote",
+              "withPrev": true,
+              "who": "pip",
+              "acting": "examine",
+              "target": "object:$offered"
+            },
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "set-down",
+              "target": "object:$offered"
+            },
+            {
+              "do": "wait",
+              "withPrev": false,
+              "seconds": 0.6
+            },
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "pip",
+              "acting": "look",
+              "target": "reader"
+            },
+            {
+              "do": "wait",
+              "withPrev": false,
+              "seconds": 11
+            }
+          ],
+          "next": "letter-tide",
+          "replaces": null
+        },
+        {
+          "id": "letter-tide",
+          "source": "authored",
+          "sceneId": "the-letter",
+          "estSeconds": 10,
+          "actions": [
+            {
+              "do": "narrate",
+              "withPrev": false,
+              "text": "But the tide, as tides do, brought the bottle the rest of the way by itself.",
+              "mood": "silly"
+            },
+            {
+              "do": "use",
+              "withPrev": false,
+              "who": "pip",
+              "object": "bottle",
+              "on": null,
+              "problem": "the-letter"
+            },
+            {
+              "do": "emote",
+              "withPrev": true,
+              "who": "pip",
+              "acting": "take",
+              "target": "object:bottle"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "A bottle! And there's a letter in it!",
+              "mood": "wonder",
+              "to": null
+            }
+          ],
+          "next": "letter-read",
+          "replaces": null
+        },
+        {
+          "id": "letter-read",
+          "source": "authored",
+          "sceneId": "the-letter",
+          "estSeconds": 24,
+          "actions": [
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "Wick, it's a letter! Read it, read it!",
+              "mood": "wonder",
+              "to": "cast:wick"
+            },
+            {
+              "do": "give",
+              "withPrev": false,
+              "from": "pip",
+              "to": "wick",
+              "object": "bottle"
+            },
+            {
+              "do": "emote",
+              "withPrev": true,
+              "who": "wick",
+              "acting": "examine",
+              "target": "object:bottle"
+            },
+            {
+              "do": "wait",
+              "withPrev": false,
+              "seconds": 0.4
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "wick",
+              "text": "Hmm. The light's poor up here tonight. You read it, lad.",
+              "mood": "sad",
+              "to": "cast:pip"
+            },
+            {
+              "do": "give",
+              "withPrev": false,
+              "from": "wick",
+              "to": "pip",
+              "object": "bottle"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "'To whoever keeps the light: I'm lost on the water. I can see your light, but the rocks keep turning me back. Please keep shining. Thimble.'",
+              "mood": "tense",
+              "to": null
+            },
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "set-down",
+              "target": "object:bottle"
+            },
+            {
+              "do": "resolve",
+              "withPrev": false,
+              "problem": "the-letter",
+              "outcome": "Thimble's letter came up out of the sea"
+            }
+          ],
+          "next": "who-goes",
+          "replaces": null
+        },
+        {
+          "id": "who-goes",
+          "source": "authored",
+          "sceneId": "the-letter",
+          "estSeconds": 30,
+          "actions": [
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "wick",
+              "text": "The light brings her as far as the rocks. Past them, someone has to call her in.",
+              "mood": "neutral",
+              "to": "cast:pip"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "wick",
+              "text": "I'd go. But I couldn't see a paper boat if it sailed up my nose.",
+              "mood": "silly",
+              "to": "cast:pip"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "wick",
+              "text": "Somebody's got to be my eyes, lad.",
+              "mood": "warm",
+              "to": "cast:pip"
+            },
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "pip",
+              "acting": "scared",
+              "target": null
+            },
+            {
+              "do": "speak",
+              "withPrev": true,
+              "who": "pip",
+              "text": "Down to the water? In the dark?",
+              "mood": "tense",
+              "to": null
+            },
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "pip",
+              "acting": "look",
+              "target": "reader"
+            },
+            {
+              "do": "speak",
+              "withPrev": true,
+              "who": "pip",
+              "text": "Not on my own, though. You'll come, won't you?",
+              "mood": "warm",
+              "to": "reader"
+            },
+            {
+              "do": "narrate",
+              "withPrev": false,
+              "text": "So down went the little fox, a hundred and twelve steps, to the very edge of the sea.",
+              "mood": "warm"
+            }
+          ],
+          "next": "page-one",
+          "replaces": null
+        },
+        {
+          "id": "page-one",
+          "source": "authored",
+          "sceneId": "the-letter",
+          "estSeconds": 6,
+          "actions": [
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "page-invite",
+              "target": null
+            }
+          ],
+          "next": null,
+          "replaces": null
+        }
+      ]
+    },
+    {
+      "id": "the-water",
+      "setId": "shore-path",
+      "summary": "Pip's light is too low for Thimble to see from the sea",
+      "objects": [
+        {
+          "id": "kite",
+          "defId": "kite",
+          "origin": "set"
+        },
+        {
+          "id": "spool",
+          "defId": "spool",
+          "origin": "set"
+        },
+        {
+          "id": "ladder",
+          "defId": "ladder",
+          "origin": "drawer"
+        },
+        {
+          "id": "odd-sock",
+          "defId": "odd-sock",
+          "origin": "drawer"
+        },
+        {
+          "id": "brass-key",
+          "defId": "brass-key",
+          "origin": "drawer"
+        }
+      ],
+      "problem": {
+        "id": "too-low",
+        "summary": "Pip's lantern is too low for Thimble to see past the rocks",
+        "rules": [
+          {
+            "id": "fly-it-up",
+            "anyTags": [
+              "flies"
+            ],
+            "beat": "high-kite",
+            "outcome": "solved"
+          },
+          {
+            "id": "hang-it-high",
+            "anyTags": [
+              "climbs",
+              "spans"
+            ],
+            "beat": "high-ladder",
+            "outcome": "solved"
+          }
+        ],
+        "fallback": {
+          "beat": "high-puzzled"
+        },
+        "ignored": {
+          "beat": "high-moth",
+          "afterSeconds": 22
+        }
+      },
+      "entry": "page-turn-shore",
+      "beats": [
+        {
+          "id": "page-turn-shore",
+          "source": "authored",
+          "sceneId": "the-water",
+          "estSeconds": 3,
+          "actions": [
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "page-turn",
+              "target": null
+            },
+            {
+              "do": "place",
+              "withPrev": true,
+              "what": "cast:pip",
+              "at": "shore-in"
+            },
+            {
+              "do": "place",
+              "withPrev": true,
+              "what": "cast:moth",
+              "at": "moth-in"
+            }
+          ],
+          "next": "the-water",
+          "replaces": null
+        },
+        {
+          "id": "the-water",
+          "source": "authored",
+          "sceneId": "the-water",
+          "estSeconds": 34,
+          "actions": [
+            {
+              "do": "place",
+              "withPrev": false,
+              "what": "object:kite",
+              "at": "kite-sand"
+            },
+            {
+              "do": "place",
+              "withPrev": true,
+              "what": "object:spool",
+              "at": "spool-sand"
+            },
+            {
+              "do": "move",
+              "withPrev": false,
+              "who": "pip",
+              "to": "mark:water-edge"
+            },
+            {
+              "do": "move",
+              "withPrev": true,
+              "who": "moth",
+              "to": "mark:moth-follow"
+            },
+            {
+              "do": "wait",
+              "withPrev": false,
+              "seconds": 0.6
+            },
+            {
+              "do": "narrate",
+              "withPrev": false,
+              "text": "At the water's edge, the dark was very big, and the sea was very loud.",
+              "mood": "tense"
+            },
+            {
+              "do": "room",
+              "withPrev": false,
+              "effect": "boat",
+              "what": null,
+              "at": null
+            },
+            {
+              "do": "speak",
+              "withPrev": true,
+              "who": "pip",
+              "text": "There! A little paper boat, going round and round...",
+              "mood": "wonder",
+              "to": "reader"
+            },
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "pip",
+              "acting": "raise",
+              "target": null
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "Thimble! Over here! Thimble!",
+              "mood": "tense",
+              "to": null
+            },
+            {
+              "do": "narrate",
+              "withPrev": false,
+              "text": "But the sea was loud, and the lantern was low, and the little boat went round again.",
+              "mood": "neutral"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "She can't see me. My light's too low down here.",
+              "mood": "sad",
+              "to": null
+            }
+          ],
+          "next": "light-ask",
+          "replaces": null
+        },
+        {
+          "id": "light-ask",
+          "source": "authored",
+          "sceneId": "the-water",
+          "estSeconds": 24,
+          "actions": [
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "pip",
+              "acting": "look",
+              "target": "reader"
+            },
+            {
+              "do": "ask_reader",
+              "withPrev": false,
+              "who": "pip",
+              "player": null,
+              "problem": "too-low",
+              "text": "Is there anything that could get my light up high, where the whole sea can see it?",
+              "mood": "tense",
+              "opensDrawer": true,
+              "waitSeconds": 22
+            }
+          ],
+          "next": null,
+          "replaces": null
+        },
+        {
+          "id": "high-kite",
+          "source": "authored",
+          "sceneId": "the-water",
+          "estSeconds": 12,
+          "actions": [
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "pip",
+              "acting": "take",
+              "target": "object:$offered"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "A kite! Up you go, little light!",
+              "mood": "wonder",
+              "to": null
+            },
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "light-up",
+              "target": "object:$offered"
+            },
+            {
+              "do": "speak",
+              "withPrev": true,
+              "who": "pip",
+              "text": "Up, up, up! Higher than the rocks!",
+              "mood": "wonder",
+              "to": null
+            }
+          ],
+          "next": "she-sees",
+          "replaces": null
+        },
+        {
+          "id": "high-ladder",
+          "source": "authored",
+          "sceneId": "the-water",
+          "estSeconds": 12,
+          "actions": [
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "pip",
+              "acting": "take",
+              "target": "object:$offered"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "A ladder! I'll stand it on the rocks, and hang my light at the top.",
+              "mood": "wonder",
+              "to": null
+            },
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "light-up",
+              "target": "object:$offered"
+            },
+            {
+              "do": "speak",
+              "withPrev": true,
+              "who": "pip",
+              "text": "There. Like a little lighthouse!",
+              "mood": "wonder",
+              "to": null
+            }
+          ],
+          "next": "she-sees",
+          "replaces": null
+        },
+        {
+          "id": "high-puzzled",
+          "source": "authored",
+          "sceneId": "the-water",
+          "estSeconds": 20,
+          "actions": [
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "pip",
+              "acting": "take",
+              "target": "object:$offered"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "Oh, that's lovely. But it won't get my light up high.",
+              "mood": "silly",
+              "to": "reader"
+            },
+            {
+              "do": "emote",
+              "withPrev": true,
+              "who": "pip",
+              "acting": "examine",
+              "target": "object:$offered"
+            },
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "set-down",
+              "target": "object:$offered"
+            },
+            {
+              "do": "wait",
+              "withPrev": false,
+              "seconds": 0.6
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "Something that flies, maybe? Or something to climb?",
+              "mood": "tense",
+              "to": "reader"
+            },
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "pip",
+              "acting": "look",
+              "target": "reader"
+            },
+            {
+              "do": "wait",
+              "withPrev": false,
+              "seconds": 11
+            }
+          ],
+          "next": "high-moth",
+          "replaces": null
+        },
+        {
+          "id": "high-moth",
+          "source": "authored",
+          "sceneId": "the-water",
+          "estSeconds": 12,
+          "actions": [
+            {
+              "do": "narrate",
+              "withPrev": false,
+              "text": "Now, if there's one thing a moth knows, it's how to get close to a light.",
+              "mood": "silly"
+            },
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "light-up",
+              "target": "cast:moth"
+            },
+            {
+              "do": "speak",
+              "withPrev": true,
+              "who": "pip",
+              "text": "Moth! Where are you taking my... oh!",
+              "mood": "tense",
+              "to": null
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "Oh, Moth. You clever, clever moth.",
+              "mood": "relief",
+              "to": null
+            }
+          ],
+          "next": "she-sees",
+          "replaces": null
+        },
+        {
+          "id": "she-sees",
+          "source": "authored",
+          "sceneId": "the-water",
+          "estSeconds": 30,
+          "actions": [
+            {
+              "do": "light",
+              "withPrev": false,
+              "mood": "night",
+              "seconds": 1.0
+            },
+            {
+              "do": "narrate",
+              "withPrev": false,
+              "text": "Far out on the water, the little boat stopped going round. And turned. And came, slowly, toward the light.",
+              "mood": "wonder"
+            },
+            {
+              "do": "room",
+              "withPrev": true,
+              "effect": "boat-home",
+              "what": null,
+              "at": null
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "It's very dark down here without my light. But she can see it. That's what matters.",
+              "mood": "tense",
+              "to": null
+            },
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "pip",
+              "acting": "look",
+              "target": "reader"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "I'm still a little bit scared. Is that all right?",
+              "mood": "sad",
+              "to": "reader"
+            },
+            {
+              "do": "narrate",
+              "withPrev": false,
+              "text": "It was. Being a little bit scared is mostly what brave is made of.",
+              "mood": "warm"
+            },
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "light-down",
+              "target": null
+            },
+            {
+              "do": "light",
+              "withPrev": true,
+              "mood": "dusk",
+              "seconds": 1.2
+            },
+            {
+              "do": "resolve",
+              "withPrev": false,
+              "problem": "too-low",
+              "outcome": "the light went up high, and Thimble turned for home"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "Come on, Moth. She'll come in at the landing.",
+              "mood": "warm",
+              "to": "cast:moth"
+            }
+          ],
+          "next": "page-two",
+          "replaces": null
+        },
+        {
+          "id": "page-two",
+          "source": "authored",
+          "sceneId": "the-water",
+          "estSeconds": 6,
+          "actions": [
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "page-invite",
+              "target": null
+            }
+          ],
+          "next": null,
+          "replaces": null
+        }
+      ]
+    },
+    {
+      "id": "the-landing",
+      "setId": "the-landing",
+      "summary": "Thimble's paper boat is sinking on the rocks below the landing",
+      "objects": [
+        {
+          "id": "thimble-boat",
+          "defId": "thimble-boat",
+          "origin": "set"
+        }
+      ],
+      "problem": {
+        "id": "the-rocks",
+        "summary": "Thimble's paper boat is sinking on the rocks below the landing",
+        "rules": [
+          {
+            "id": "grandmothers-thread",
+            "anyTags": [
+              "thread"
+            ],
+            "beat": "in-by-thread",
+            "outcome": "solved"
+          },
+          {
+            "id": "haul-her-in",
+            "anyTags": [
+              "rope"
+            ],
+            "beat": "in-by-rope",
+            "outcome": "solved"
+          },
+          {
+            "id": "bridge-it",
+            "anyTags": [
+              "spans",
+              "climbs"
+            ],
+            "beat": "in-by-ladder",
+            "outcome": "solved"
+          },
+          {
+            "id": "fly-her-in",
+            "anyTags": [
+              "flies"
+            ],
+            "beat": "in-by-kite",
+            "outcome": "solved"
+          }
+        ],
+        "fallback": {
+          "beat": "rocks-puzzled"
+        },
+        "ignored": {
+          "beat": "rocks-tide",
+          "afterSeconds": 22
+        }
+      },
+      "entry": "page-turn-landing",
+      "beats": [
+        {
+          "id": "page-turn-landing",
+          "source": "authored",
+          "sceneId": "the-landing",
+          "estSeconds": 3,
+          "actions": [
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "page-turn",
+              "target": null
+            },
+            {
+              "do": "place",
+              "withPrev": true,
+              "what": "cast:pip",
+              "at": "landing-in"
+            },
+            {
+              "do": "place",
+              "withPrev": true,
+              "what": "cast:moth",
+              "at": "moth-landing"
+            },
+            {
+              "do": "place",
+              "withPrev": true,
+              "what": "cast:thimble",
+              "at": "rock"
+            },
+            {
+              "do": "place",
+              "withPrev": true,
+              "what": "object:thimble-boat",
+              "at": "rock"
+            }
+          ],
+          "next": "the-rocks",
+          "replaces": null
+        },
+        {
+          "id": "the-rocks",
+          "source": "authored",
+          "sceneId": "the-landing",
+          "estSeconds": 26,
+          "actions": [
+            {
+              "do": "move",
+              "withPrev": false,
+              "who": "pip",
+              "to": "mark:pip-step"
+            },
+            {
+              "do": "wait",
+              "withPrev": false,
+              "seconds": 0.6
+            },
+            {
+              "do": "narrate",
+              "withPrev": false,
+              "text": "The little boat came in out of the dark, right up to the rocks. And there it stuck.",
+              "mood": "tense"
+            },
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "thimble",
+              "acting": "raise",
+              "target": null
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "thimble",
+              "text": "Ahoy! Ahoy, the light!",
+              "mood": "wonder",
+              "to": "cast:pip"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "Thimble? Are you Thimble?",
+              "mood": "wonder",
+              "to": "cast:thimble"
+            },
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "thimble",
+              "acting": "scared",
+              "target": null
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "thimble",
+              "text": "Thimble, from the sewing basket! But my boat's gone soft. Paper boats aren't made for the whole sea.",
+              "mood": "tense",
+              "to": "cast:pip"
+            }
+          ],
+          "next": "rescue-ask",
+          "replaces": null
+        },
+        {
+          "id": "rescue-ask",
+          "source": "authored",
+          "sceneId": "the-landing",
+          "estSeconds": 26,
+          "actions": [
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "pip",
+              "acting": "look",
+              "target": "reader"
+            },
+            {
+              "do": "ask_reader",
+              "withPrev": false,
+              "who": "pip",
+              "player": null,
+              "problem": "the-rocks",
+              "text": "She's stuck on the rocks! Have you got anything that could bring her in?",
+              "mood": "tense",
+              "opensDrawer": true,
+              "waitSeconds": 22
+            }
+          ],
+          "next": null,
+          "replaces": null
+        },
+        {
+          "id": "in-by-thread",
+          "source": "authored",
+          "sceneId": "the-landing",
+          "estSeconds": 12,
+          "actions": [
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "pip",
+              "acting": "take",
+              "target": "object:$offered"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "thimble",
+              "text": "That thread! That's my grandmother's thread, from the basket!",
+              "mood": "wonder",
+              "to": "cast:pip"
+            },
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "thimble-thread",
+              "target": "object:$offered"
+            },
+            {
+              "do": "speak",
+              "withPrev": true,
+              "who": "pip",
+              "text": "Hold on tight, and we'll pull you in!",
+              "mood": "warm",
+              "to": "cast:thimble"
+            },
+            {
+              "do": "resolve",
+              "withPrev": false,
+              "problem": "the-rocks",
+              "outcome": "pulled in on her grandmother's thread"
+            }
+          ],
+          "next": "ashore",
+          "replaces": null
+        },
+        {
+          "id": "in-by-rope",
+          "source": "authored",
+          "sceneId": "the-landing",
+          "estSeconds": 12,
+          "actions": [
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "pip",
+              "acting": "take",
+              "target": "object:$offered"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "Hold still, Thimble. And catch!",
+              "mood": "warm",
+              "to": "cast:thimble"
+            },
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "thimble-rope",
+              "target": "object:$offered"
+            },
+            {
+              "do": "speak",
+              "withPrev": true,
+              "who": "thimble",
+              "text": "Steady as she goes! Steady as she goes!",
+              "mood": "tense",
+              "to": null
+            },
+            {
+              "do": "resolve",
+              "withPrev": false,
+              "problem": "the-rocks",
+              "outcome": "hauled in on a line"
+            }
+          ],
+          "next": "ashore",
+          "replaces": null
+        },
+        {
+          "id": "in-by-ladder",
+          "source": "authored",
+          "sceneId": "the-landing",
+          "estSeconds": 12,
+          "actions": [
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "pip",
+              "acting": "take",
+              "target": "object:$offered"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "A ladder! Across to the rock, like a bridge!",
+              "mood": "wonder",
+              "to": null
+            },
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "thimble-ladder",
+              "target": "object:$offered"
+            },
+            {
+              "do": "speak",
+              "withPrev": true,
+              "who": "thimble",
+              "text": "Mind the gaps between the rungs. Mind the gaps...",
+              "mood": "tense",
+              "to": null
+            },
+            {
+              "do": "resolve",
+              "withPrev": false,
+              "problem": "the-rocks",
+              "outcome": "came across a ladder laid like a bridge"
+            }
+          ],
+          "next": "ashore",
+          "replaces": null
+        },
+        {
+          "id": "in-by-kite",
+          "source": "authored",
+          "sceneId": "the-landing",
+          "estSeconds": 12,
+          "actions": [
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "pip",
+              "acting": "take",
+              "target": "object:$offered"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "Grab the tail, Thimble! The wind'll do the rest!",
+              "mood": "wonder",
+              "to": "cast:thimble"
+            },
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "thimble-kite",
+              "target": "object:$offered"
+            },
+            {
+              "do": "speak",
+              "withPrev": true,
+              "who": "thimble",
+              "text": "I'm flying! A sailor, flying!",
+              "mood": "wonder",
+              "to": null
+            },
+            {
+              "do": "resolve",
+              "withPrev": false,
+              "problem": "the-rocks",
+              "outcome": "flew in on a kite tail"
+            }
+          ],
+          "next": "ashore",
+          "replaces": null
+        },
+        {
+          "id": "rocks-puzzled",
+          "source": "authored",
+          "sceneId": "the-landing",
+          "estSeconds": 20,
+          "actions": [
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "pip",
+              "acting": "take",
+              "target": "object:$offered"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "That won't reach her, I don't think.",
+              "mood": "neutral",
+              "to": null
+            },
+            {
+              "do": "emote",
+              "withPrev": true,
+              "who": "pip",
+              "acting": "examine",
+              "target": "object:$offered"
+            },
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "set-down",
+              "target": "object:$offered"
+            },
+            {
+              "do": "wait",
+              "withPrev": false,
+              "seconds": 0.6
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "Something long, maybe? Something she can hold on to?",
+              "mood": "tense",
+              "to": "reader"
+            },
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "pip",
+              "acting": "look",
+              "target": "reader"
+            },
+            {
+              "do": "wait",
+              "withPrev": false,
+              "seconds": 11
+            }
+          ],
+          "next": "rocks-tide",
+          "replaces": null
+        },
+        {
+          "id": "rocks-tide",
+          "source": "authored",
+          "sceneId": "the-landing",
+          "estSeconds": 14,
+          "actions": [
+            {
+              "do": "narrate",
+              "withPrev": false,
+              "text": "And then the sea, which had been so cross all night, gave one last great heave...",
+              "mood": "wonder"
+            },
+            {
+              "do": "room",
+              "withPrev": true,
+              "effect": "tide-in",
+              "what": null,
+              "at": null
+            },
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "thimble-heave",
+              "target": null
+            },
+            {
+              "do": "narrate",
+              "withPrev": true,
+              "text": "...and set the little mouse down on the steps, as gently as anything.",
+              "mood": "warm"
+            },
+            {
+              "do": "resolve",
+              "withPrev": false,
+              "problem": "the-rocks",
+              "outcome": "the sea itself set her down on the steps"
+            }
+          ],
+          "next": "ashore",
+          "replaces": null
+        },
+        {
+          "id": "ashore",
+          "source": "authored",
+          "sceneId": "the-landing",
+          "estSeconds": 42,
+          "actions": [
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "thimble",
+              "acting": "hop",
+              "target": null
+            },
+            {
+              "do": "speak",
+              "withPrev": true,
+              "who": "thimble",
+              "text": "Land! Real, dry, stay-where-it-is land!",
+              "mood": "relief",
+              "to": null
+            },
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "thimble",
+              "acting": "scared",
+              "target": null
+            },
+            {
+              "do": "speak",
+              "withPrev": true,
+              "who": "thimble",
+              "text": "Brr. I'm wet right through to my whiskers.",
+              "mood": "silly",
+              "to": null
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "Here, get in my coat. It's far too big for me anyway.",
+              "mood": "warm",
+              "to": "cast:thimble"
+            },
+            {
+              "do": "move",
+              "withPrev": false,
+              "who": "thimble",
+              "to": "mark:pip-side"
+            },
+            {
+              "do": "place",
+              "withPrev": false,
+              "what": "cast:wick",
+              "at": "wick-steps"
+            },
+            {
+              "do": "emote",
+              "withPrev": true,
+              "who": "wick",
+              "acting": "grumble",
+              "target": null
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "wick",
+              "text": "Pip? I could hear you all the way from the top.",
+              "mood": "neutral",
+              "to": "cast:pip"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "Wick! She's here! The light brought her home!",
+              "mood": "relief",
+              "to": "cast:wick"
+            },
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "wick",
+              "acting": "examine",
+              "target": "cast:thimble"
+            },
+            {
+              "do": "speak",
+              "withPrev": true,
+              "who": "wick",
+              "text": "Hmph. A mouse in a paper boat. Across the whole sea.",
+              "mood": "warm",
+              "to": null
+            },
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "wick",
+              "acting": "raise",
+              "target": null
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "wick",
+              "text": "Welcome home, little one. Every lost thing that comes home goes in the log.",
+              "mood": "warm",
+              "to": "cast:thimble"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "wick",
+              "text": "You write her in, lad. You were my eyes tonight.",
+              "mood": "warm",
+              "to": "cast:pip"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "Me? In the keeper's log?",
+              "mood": "wonder",
+              "to": "cast:wick"
+            },
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "pip",
+              "acting": "examine",
+              "target": "cast:wick"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "'Thimble, from the sewing basket. Came home by the light.'",
+              "mood": "warm",
+              "to": null
+            }
+          ],
+          "next": "homecoming",
+          "replaces": null
+        },
+        {
+          "id": "homecoming",
+          "source": "authored",
+          "sceneId": "the-landing",
+          "estSeconds": 30,
+          "actions": [
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "beam",
+              "target": null
+            },
+            {
+              "do": "room",
+              "withPrev": true,
+              "effect": "tide-out",
+              "what": null,
+              "at": null
+            },
+            {
+              "do": "narrate",
+              "withPrev": false,
+              "text": "And the sea, its work done, slipped quietly back out past the edge of the table.",
+              "mood": "warm"
+            },
+            {
+              "do": "room",
+              "withPrev": true,
+              "effect": "sea-off",
+              "what": null,
+              "at": null
+            },
+            {
+              "do": "emote",
+              "withPrev": false,
+              "who": "thimble",
+              "acting": "look",
+              "target": "reader"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "thimble",
+              "text": "Is that the Reader? The one who reaches down from the sky?",
+              "mood": "wonder",
+              "to": "cast:pip"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "That's them. They came all the way down with me.",
+              "mood": "warm",
+              "to": "cast:thimble"
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "thimble",
+              "text": "Much obliged, Reader. Truly.",
+              "mood": "warm",
+              "to": "reader"
+            },
+            {
+              "do": "wait",
+              "withPrev": false,
+              "seconds": 0.6
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "wick",
+              "text": "Same time tomorrow, keeper?",
+              "mood": "warm",
+              "to": "cast:pip"
+            },
+            {
+              "do": "wait",
+              "withPrev": false,
+              "seconds": 0.6
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "Same time tomorrow.",
+              "mood": "relief",
+              "to": "cast:wick"
+            }
+          ],
+          "next": "chapter-end",
+          "replaces": null
+        },
+        {
+          "id": "chapter-end",
+          "source": "authored",
+          "sceneId": "the-landing",
+          "estSeconds": 14,
+          "actions": [
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "keep",
+              "target": null
+            },
+            {
+              "do": "narrate",
+              "withPrev": true,
+              "text": "And whatever the Reader gave that night, the book kept safe, for another time.",
+              "mood": "warm"
+            },
+            {
+              "do": "wait",
+              "withPrev": false,
+              "seconds": 1.5
+            },
+            {
+              "do": "narrate",
+              "withPrev": false,
+              "text": "But the nights were growing longer, and the old keeper's eyes were growing dimmer. And the longest night of all was on its way.",
+              "mood": "wonder"
+            },
+            {
+              "do": "wait",
+              "withPrev": false,
+              "seconds": 1.5
+            },
+            {
+              "do": "cue",
+              "withPrev": false,
+              "cue": "chapter-end",
+              "target": null
+            }
+          ],
+          "next": null,
+          "replaces": null
+        }
+      ]
+    }
+  ],
+  "bridges": [
+    {
+      "id": "bridge-boat",
+      "source": "bridge",
+      "sceneId": null,
+      "estSeconds": 5,
+      "actions": [
+        {
+          "do": "narrate",
+          "withPrev": false,
+          "text": "Out on the dark water, a paper boat bobbed, and waited, and hoped.",
+          "mood": "neutral"
+        }
+      ],
+      "next": null,
+      "replaces": null
+    },
+    {
+      "id": "bridge-breath",
+      "source": "bridge",
+      "sceneId": null,
+      "estSeconds": 5,
+      "actions": [
+        {
+          "do": "narrate",
+          "withPrev": false,
+          "text": "The sea breathed in, and the sea breathed out.",
+          "mood": "neutral"
+        }
+      ],
+      "next": null,
+      "replaces": null
+    },
+    {
+      "id": "bridge-round",
+      "source": "bridge",
+      "sceneId": null,
+      "estSeconds": 5,
+      "actions": [
+        {
+          "do": "narrate",
+          "withPrev": false,
+          "text": "Up at the top of the lighthouse, the great lamp went round, and round.",
+          "mood": "neutral"
+        }
+      ],
+      "next": null,
+      "replaces": null
+    }
+  ]
+}

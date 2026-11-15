@@ -1,0 +1,62 @@
+{
+  "id": "018-the-landing",
+  "question": "Can runs 004, 007 and 011's set recipe paint the landing (stone steps down into the sea between dark rocks, at the foot of the lighthouse) so it registers with the shore's own sky and headland?",
+  "why": "Chapter 2's last spread needs a new place (playtests: 'the shore felt like a new place'), and chapter 3's second spread reuses it. Sky and headland come from shore-path, as the gap's do, so the lighthouse and the beam's origin don't move.",
+  "sameAcrossJobs": "seedream5_pro. The key is 1K and full-bleed; the ground and the two standing layers are 2K, as run 007. Standing layers on flat vivid magenta paper with a margin, cut with run 006's recipe; the ground is full-bleed and isn't cut. Run 007's lessons: give sizes as fractions of width, say 'no sky' on layers, measure what comes back and remap for free. Night values, matching shore-path's layer-1-sky-night. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges.",
+  "decideBy": [
+    "Every cut piece passes run 006's checks (one piece each, paper on all sides, no magenta residue, at least 97% of paint kept).",
+    "On the printed ground, the flat-topped rock sits right of centre and the bottom step left of centre, about 0.13 m apart at book size, so a crossing travels right to left as over the gap (measured, then remapped for free if off).",
+    "Thimble (run 017) and Pip stand on it in the emulator without floating, and the owner approves the spread in the headset."
+  ],
+  "learnEvenIfRejected": "Whether a set can be made from one new ground and two layers by reusing another set's sky and headland, which would make any later place cheap.",
+  "reusableOutput": "art/sets/the-landing/ (ground, two layers, set.json with marks landing-in, pip-step, step, moth-landing, rock, pip-side, wick-steps), for chapters 2 and 3 and the AI Storyteller.",
+  "estimateCredits": 32,
+  "capNote": "Lane B's 150 across runs 017-019; this cap leaves one 2K repaint.",
+  "capCredits": 41,
+  "jobs": [
+    {
+      "id": "landing-key",
+      "model": "seedream5_pro",
+      "ratio": "1376:768",
+      "refs": [
+        {
+          "file": "art/runs/018-the-landing/ref-headland.png"
+        }
+      ],
+      "prompt": "A wide landscape in exactly the painting style and colours of Figure 1, with no characters, at night under a soft moonlit sky. The same tall old stone lighthouse stands on its headland in the left third, its lamp unlit. At the foot of the headland, worn stone steps come down from the left and end at a flat landing stone at the water's edge. Calm dark blue-green sea fills the right half of the picture. A little way out on the water, right of centre, a single low flat-topped rock. Low dark sea rocks run along the back. Low clumps of rock in the near foreground at the far left and far right, dipping away to nothing toward the centre. Gentle night values, never black. No lit windows, no beams, no directional cast shadows. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. No text."
+    },
+    {
+      "id": "ground",
+      "model": "seedream5_pro",
+      "ratio": "2304:1728",
+      "refs": [
+        {
+          "file": "art/runs/018-the-landing/landing-key.png"
+        }
+      ],
+      "prompt": "The printed page of an open picture book, seen flat from directly above, in exactly the painting style of Figure 1. On the left half, worn grey stone steps coming down from the top left to a flat stone landing at the water's edge, painted as flat watercolour washes with no perspective. The right half is calm dark blue-green sea seen from above, in soft washes. A single low flat-topped grey rock sits in the water exactly one third of the image's width right of the centre, its top about one tenth of the image's width across. The gap of water between the landing's edge and the rock is exactly one third of the image's width. The whole picture fades gently to bare warm white paper at the left, right and top edges. The bottom sixth of the image is bare paper. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. No characters, no text, no border, not a photo of a book."
+    },
+    {
+      "id": "layer-3-far-rocks",
+      "model": "seedream5_pro",
+      "ratio": "2720:1530",
+      "refs": [
+        {
+          "file": "art/runs/018-the-landing/landing-key.png"
+        }
+      ],
+      "prompt": "Figure 1 is the composed scene. Paint only the low dark sea rocks along the back of Figure 1, as one long die-cut paper stage piece, flat-on, in exactly the same painting style and colours: a low irregular line of wet dark rocks with a little cream foam at their feet, spanning the whole width but never taller than one eighth of the image's width. No sky, no sea surface behind them, no lighthouse: the plain paper shows directly around them. A clean hard edge traced with a fine pencil line, and a perfectly straight flat bottom edge, painted continuously down to it. Leave a wide margin of empty paper on all four sides, with nothing touching the edge of the image. Gentle night values. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. On plain flat solid vivid magenta paper, one even colour. No text."
+    },
+    {
+      "id": "layer-4-near-steps",
+      "model": "seedream5_pro",
+      "ratio": "2720:1530",
+      "refs": [
+        {
+          "file": "art/runs/018-the-landing/landing-key.png"
+        }
+      ],
+      "prompt": "Figure 1 is the composed scene. Paint only two low near pieces from Figure 1, as exactly two separate die-cut paper stage pieces, flat-on, in exactly the same painting style and colours, with a wide empty space of paper between them across the middle. On the far left, the low stone side wall of the steps with a tuft of sea grass, sloping down toward the middle. On the far right, a low clump of wet dark rocks with a little foam. Neither piece is taller than one seventh of the image's width, and each is lowest at its inner end. The empty space between them is at least half of the image's width, centred. Each piece has a clean hard edge traced with a fine pencil line, and a perfectly straight flat bottom edge, painted continuously down to it. Leave a wide margin of empty paper on all four sides, with nothing touching the edge of the image. Gentle night values. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. On plain flat solid vivid magenta paper, one even colour. No text."
+    }
+  ]
+}

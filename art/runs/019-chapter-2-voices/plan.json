@@ -1,0 +1,34 @@
+{
+  "id": "019-chapter-2-voices",
+  "question": "Voices and the few new sounds for chapter 2, in the run 005 voices, with Thimble's voice chosen from run 005's small bright voices.",
+  "why": "Chapter 2 (docs/plans/2026-11-15-finish-chapters.md). Every line is voiced, as chapter 1's are; unvoiced lines break immersion (ticket 3, session 1).",
+  "sameAcrossJobs": "Runway text to speech with run 005's presets and settings (narrator Wanda, Pip Mabel, Wick Arjun), 1 credit a line of 200 characters or fewer. Thimble: one of the presets run 005 auditioned for Moth (Xylar, Ella, Pip), chosen by ear from the existing clips for free; if none fits, three one-line auditions (3 credits). Sound effects at 1 credit a second through eleven_text_to_sound_v2. Finished with run 010's finish.mjs into art/sound/ch2/.",
+  "decideBy": [
+    "Each clip decodes; tools/chapter-timings.ts re-times every path from the rendered lines and finds them inside 5 to 7 minutes, first turn by about 1:45.",
+    "The owner judges by ear on the Quest's speakers."
+  ],
+  "learnEvenIfRejected": "Whether a fourth voice from the same chain sits with the other three.",
+  "reusableOutput": "Chapter 2's lines and Thimble's voice (art/cast/thimble/voice.json) for chapter 3 and the AI Storyteller.",
+  "estimateCredits": 86,
+  "estimateNote": "79 new lines from the deduplicated ledger (narrator 17, Pip 42, Wick 10, Thimble 10; 4 more reuse chapter 1's), 4 credits of sound, 3 held for Thimble's audition. voiceJobs are written by build_plan.mjs from the final client/public/show/episode-2.json, as run 012's, once the lines freeze; lines already in the manifest are skipped.",
+  "trimOrder": "If the cap would be passed: drop the rope branch at the landing (2 lines), then the four chapter 1 carry lines (4), then the bridges (3).",
+  "capNote": "Lane B's 150 across runs 017-019.",
+  "capCredits": 89,
+  "soundJobs": [
+    {
+      "id": "small-splash",
+      "durationS": 2,
+      "loop": false,
+      "use": "Thimble lands on the step, and the tide's heave",
+      "promptText": "A tiny soft splash of sea water on stone, close and gentle, like a small animal hopping out of shallow water. No music."
+    },
+    {
+      "id": "nib-scratch",
+      "durationS": 2,
+      "loop": false,
+      "use": "Pip writes in the keeper's log",
+      "promptText": "A dip pen nib scratching a few short words on thick paper, close, quiet and careful. No music."
+    }
+  ],
+  "voiceJobs": []
+}

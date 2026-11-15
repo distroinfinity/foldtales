@@ -1,0 +1,52 @@
+{
+  "id": "017-thimble",
+  "question": "Can the run 003 recipe make Thimble, a speaking field mouse, who stands beside Pip as the same book's character at about 7 cm tall?",
+  "why": "Chapters 2 and 3 (docs/plans/2026-11-15-finish-chapters.md): Thimble is the lost thing that follows the light home, and keeps the lamp in chapter 3. Sprint master, Nov 15: a new character shows depth; her look is approved in the headset by the end of Nov 16, or she becomes a non-speaking page character.",
+  "sameAcrossJobs": "seedream5_pro at 1K (5 credits each). Pip's approved reference (art/refs/pip.png) is the style guide for the master; the master is Figure 1 for both sheets, as runs 001-003. Flat slate-blue paper, one even colour, so her cream belly and brass thimble survive cutting out (run 003's Moth). Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. Natural animal anatomy, gentle and dignified, not a cartoon.",
+  "decideBy": [
+    "Master: reads at once as a field mouse from the same book as Pip, in clothes, at natural proportions, and the thimble reads as a thimble.",
+    "Parts: every piece cuts out cleanly with art/tools/cutout.py (one piece each, paper on all sides, at least 97% of paint kept) and joins back into the master.",
+    "Heads: the three forward heads match within 5 px once aligned (run 003's test); the profile reads as the same mouse.",
+    "The owner approves her look in the headset, standing on the landing set beside Pip, by the end of Nov 16."
+  ],
+  "learnEvenIfRejected": "Whether the recipe holds for a character less than half Pip's height, and whether her small head keeps enough detail at book distance.",
+  "reusableOutput": "art/cast/thimble/ (parts, heads, rig.json), used by chapters 2 and 3 and open to the AI Storyteller.",
+  "estimateCredits": 15,
+  "capNote": "Lane B's share of the finish sprint is 150 credits across runs 017-019. This run's cap leaves one 1K repaint. Spend is reconciled per job against its known price, as run 015 learned.",
+  "capCredits": 20,
+  "jobs": [
+    {
+      "id": "thimble-master",
+      "model": "seedream5_pro",
+      "ratio": "1024:1024",
+      "refs": [
+        {
+          "file": "art/refs/pip.png"
+        }
+      ],
+      "prompt": "A new character for the same picture book as the fox in Figure 1, in exactly the same painting style: a young field mouse, warm russet-brown fur with a cream belly, round dark eyes, large rounded ears, a long thin tail, standing upright, wearing a small hand-knitted navy sailor's jersey with a cream stripe at the cuffs, and a brass sewing thimble worn as a hat. Full figure, standing, three-quarter view facing left, paws together, a brave small smile. Her height is about four tenths of the fox's height. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. Natural animal anatomy, gentle and dignified, not a cartoon. On plain flat solid slate-blue paper, one even colour. No scenery, no ground, no fox, no text."
+    },
+    {
+      "id": "thimble-parts-sheet",
+      "model": "seedream5_pro",
+      "ratio": "1024:1024",
+      "refs": [
+        {
+          "file": "art/runs/017-thimble/thimble-master.png"
+        }
+      ],
+      "prompt": "A paper-doll parts sheet of the mouse character in Figure 1, in exactly the same painting style and colours. Show these separate pieces laid out with wide empty space between them, none touching or overlapping: the body in the navy knitted jersey, facing forward, with no head and no arms; one jersey-sleeved arm with a small pink paw; a second jersey-sleeved arm with paw; the long thin tail; two hind legs with small pink feet. Each piece is complete and cleanly painted, as if cut out for a jointed puppet. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. Natural animal anatomy, gentle and dignified, not a cartoon. On plain flat solid slate-blue paper, one even colour. No scenery, no ground, no text."
+    },
+    {
+      "id": "thimble-heads-sheet",
+      "model": "seedream5_pro",
+      "ratio": "1024:1024",
+      "refs": [
+        {
+          "file": "art/runs/017-thimble/thimble-master.png"
+        }
+      ],
+      "prompt": "A head sheet for the mouse character in Figure 1, in exactly the same painting style, always wearing the same brass thimble as a hat. Six separate heads with ears, in two rows of three, with wide empty space between them, none touching. Top row, all facing straight forward and exactly identical in size, shape and placement of eyes, nose, ears and thimble: mouth closed; mouth open as if speaking; eyes closed. Bottom row: facing straight forward with wide frightened eyes; turned in full side profile facing left; looking up. Each head ends cleanly at the neck, as if cut out for a jointed puppet. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. Natural animal anatomy, gentle and dignified, not a cartoon. On plain flat solid slate-blue paper, one even colour. No scenery, no ground, no text."
+    }
+  ]
+}
