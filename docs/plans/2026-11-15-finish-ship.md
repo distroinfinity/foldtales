@@ -124,6 +124,38 @@ This lane makes what the other lanes build submittable and production-ready. It 
      - a comment saying `lowFps` is the 1% low (the 99th-percentile frame time), not the minimum.
   2. **A review-only hook in `client/src/index.ts`** (lane A's file, about 8 lines): `?perf=<id>` jumps to its beat and turns its effects on, through today's review room path.
 
+### Task 3: the contracts PR and the `?perf=` hook (Nov 16)
+
+- **PR #32, contracts v9** (approved, optional fields only): `session.testCase`, an id pattern and never free text; `frame_summary.slowFrames` and `worstFrameMs`; and a comment that `lowFps` is the 1% low. Checked on its branch with #31 merged: 811 of 811 tests, typecheck ok, bundle clean. **v9 follows lane B's v8 (#23).** If #23 merges later, it takes 10.
+- **The hook, for lane A to add after #26.** It needs `client/src/review/perf-cases.ts`, which is on `finish-ship`, on main first. I can ship that file alone in a tiny PR whenever the sprint master wants. The lines, against main's `client/src/index.ts` as of `05ded5c`:
+
+  ```ts
+  // 1. With the other imports:
+  import { perfCase } from './review/perf-cases.ts';
+
+  // 2. Under `const devRoomState = …` (review hooks):
+  // Review builds only: `?perf=<id>`, one of lane E's frame-rate fixtures (review/perf-cases.ts): it starts at its beat and holds its effects on.
+  const perf = perfCase(reviewQuery('perf'));
+
+  // 3. In scheduleDevRoom, straight after `runtime.clearReviewRoom();`:
+  for (const h of perf?.hold ?? []) {
+    if (h.effect === 'bottle') { const def = defs.get('bottle'); const art = def?.art.kind === 'asset' ? assets.textures.get(def.art.path) : undefined; if (def && art && !stage.objects.get('bottle')) stage.objects.add(def, art, { kind: 'away' }); }
+    runtime.addRoom({ do: 'room', withPrev: false, effect: h.effect, what: h.what ?? null, at: h.at ?? null }, Math.max(11_500, fromMs + 6_000));
+  }
+
+  // 4. In devRoomTick, the first line becomes:
+  if ((!devRoom.length && !perf) || !runtime.started) return;
+
+  // 5. The jump (`const jump = reviewQuery('jump');`) becomes:
+  const jump = reviewQuery('jump') ?? perf?.jump ?? null;
+
+  // 6. The session event (`telemetry.record({ kind: 'session', … })`) gains, once v9 (#32) is merged:
+  ...(perfCase(reviewQuery('perf')) ? { testCase: perfCase(reviewQuery('perf'))!.id } : {}),
+  ```
+
+  `reviewQuery` returns null outside review builds, so production never sees any of it.
+- **The client's side, on `finish-ship` once #32 merges:** `client/src/telemetry.ts` counts frames over 16.7 ms and the slowest frame per window. `scripts/telemetry-report.ts` then reads per test case, drops each session's first window (the transition into the fixture), and checks the observed `room_fx` against the case.
+
 ## 1. The deadline
 
 **Wednesday, Nov 18, 2026, at 12:00:00 PM PT (Pacific Standard Time, UTC−8).** That's 20:00 UTC, and **Thursday, Nov 19, at 1:30 AM in India**.
