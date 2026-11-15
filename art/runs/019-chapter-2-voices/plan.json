@@ -12,7 +12,7 @@
   "estimateCredits": 86,
   "estimateNote": "79 new lines from the deduplicated ledger (narrator 17, Pip 42, Wick 10, Thimble 10; 4 more reuse chapter 1's), 4 credits of sound, 3 held for Thimble's audition. voiceJobs are written by build_plan.mjs from the final client/public/show/episode-2.json, as run 012's, once the lines freeze; lines already in the manifest are skipped.",
   "trimOrder": "If the cap would be passed: drop the rope branch at the landing (2 lines), then the four chapter 1 carry lines (4), then the bridges (3).",
-  "capNote": "Lane B's 150 across runs 017-019.",
+  "capNote": "Lane B's 150 across runs 017-019. art/tools/generate.mjs checks each job's list price against this cap and the lane's 150 before spending, from the runs' own ledgers.",
   "capCredits": 89,
   "soundJobs": [
     {
@@ -30,5 +30,14 @@
       "promptText": "A dip pen nib scratching a few short words on thick paper, close, quiet and careful. No music."
     }
   ],
-  "voiceJobs": []
+  "voiceJobs": [],
+  "lane": {
+    "id": "B",
+    "capCredits": 150,
+    "runs": [
+      "017-thimble",
+      "018-the-landing",
+      "019-chapter-2-voices"
+    ]
+  }
 }

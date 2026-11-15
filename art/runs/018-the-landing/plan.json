@@ -11,7 +11,7 @@
   "learnEvenIfRejected": "Whether a set can be made from one new ground and two layers by reusing another set's sky and headland, which would make any later place cheap.",
   "reusableOutput": "art/sets/the-landing/ (ground, two layers, set.json with marks landing-in, pip-step, step, moth-landing, rock, pip-side, wick-steps), for chapters 2 and 3 and the AI Storyteller.",
   "estimateCredits": 32,
-  "capNote": "Lane B's 150 across runs 017-019; this cap leaves one 2K repaint.",
+  "capNote": "Lane B's 150 across runs 017-019; this cap leaves one 2K repaint. art/tools/generate.mjs checks each job's list price against this cap and the lane's 150 before spending, from the runs' own ledgers.",
   "capCredits": 41,
   "jobs": [
     {
@@ -58,5 +58,14 @@
       ],
       "prompt": "Figure 1 is the composed scene. Paint only two low near pieces from Figure 1, as exactly two separate die-cut paper stage pieces, flat-on, in exactly the same painting style and colours, with a wide empty space of paper between them across the middle. On the far left, the low stone side wall of the steps with a tuft of sea grass, sloping down toward the middle. On the far right, a low clump of wet dark rocks with a little foam. Neither piece is taller than one seventh of the image's width, and each is lowest at its inner end. The empty space between them is at least half of the image's width, centred. Each piece has a clean hard edge traced with a fine pencil line, and a perfectly straight flat bottom edge, painted continuously down to it. Leave a wide margin of empty paper on all four sides, with nothing touching the edge of the image. Gentle night values. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. On plain flat solid vivid magenta paper, one even colour. No text."
     }
-  ]
+  ],
+  "lane": {
+    "id": "B",
+    "capCredits": 150,
+    "runs": [
+      "017-thimble",
+      "018-the-landing",
+      "019-chapter-2-voices"
+    ]
+  }
 }
