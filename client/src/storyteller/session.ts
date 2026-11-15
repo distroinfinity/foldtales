@@ -21,7 +21,7 @@ import {
 } from '@tabletop/contracts';
 import type { SoundEngine } from '../sound/engine.ts';
 import type { LiveScheduler } from './live.ts';
-import { RECORDED, type RecordedId } from './recorded.ts';
+import type { RecordedId, RecordedLines } from './recorded.ts';
 
 /**
  * One story with the AI Storyteller, as a turn state machine: listening, then thinking (the turn
@@ -94,6 +94,8 @@ export interface SessionDeps {
   onEnded?(ending: StoryEnding): void;
   /** The set a redirect turns the page to: somewhere cozier. Defaults to the story's first set. */
   cozySet?: string;
+  /** This book's recorded lines (`storyteller.json` → `recorded`): who says each, and the words. */
+  recorded?: RecordedLines;
 }
 
 const CLOSING_LIGHT: StageAction[] = [
@@ -150,7 +152,8 @@ export function createStorySession(deps: SessionDeps) {
 
   /** A recorded line, played as a beat that speaks its words (the sound engine has its clip under the same line id). */
   const say = (id: RecordedId): void => {
-    const line = RECORDED[id];
+    const line = deps.recorded?.[id];
+    if (!line) return;
     const spoken: StageAction =
       line.speaker === 'narrator' || !deps.library.cast.some((c) => c.id === line.speaker)
         ? { do: 'narrate', withPrev: false, text: line.text, mood: 'warm' }
@@ -440,9 +443,9 @@ export function createStorySession(deps: SessionDeps) {
       if (state === 'listening') void turn({ kind: 'arrived', objectId });
       else arrivals.push(objectId);
     },
-    /** A painting didn't come (it failed, or failed the look check): Moth comes back empty-handed. */
+    /** A painting didn't come (it failed, or failed the look check): whoever fetched it comes back empty-handed. */
     paintMissed(): void {
-      if (!ended) say('moth-empty');
+      if (!ended) say('finder-empty');
     },
     /** Stop them mid-flow (a pinch on anyone): what's queued goes, and they listen. */
     interrupt(): void {

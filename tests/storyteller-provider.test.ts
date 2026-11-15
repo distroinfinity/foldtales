@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { BackendError, SIGN_IN_REQUIRED, type BackendApi, type StoryRecord } from '../contracts/src/index.ts';
-import { createStorytellerProvider, type PendingStory, type ProviderDeps } from '../client/src/storyteller/provider.ts';
+import { createStorytellerProvider, type DoorState, type PendingStory, type ProviderDeps } from '../client/src/storyteller/provider.ts';
 
 const memoryStorage = () => {
   const map = new Map<string, string>();
@@ -25,7 +25,7 @@ const record = (id: string, title: string, endedAt: string | null = '2026-11-16T
 function setup(over: Partial<ProviderDeps> = {}, api: Partial<BackendApi> = {}) {
   const storage = memoryStorage();
   const pending = memoryPending();
-  let reader: { id: string } | null = { id: 'ann' };
+  let reader = { id: 'ann' } as { id: string } | null;
   let generation = 1;
   const ends: string[] = [];
   const backendApi = {
@@ -39,11 +39,11 @@ function setup(over: Partial<ProviderDeps> = {}, api: Partial<BackendApi> = {}) 
   } as unknown as BackendApi;
   const deps: ProviderDeps = {
     built: () => true,
-    cachedReader: () => reader,
-    session: async () => reader,
+    cachedReader: (): { id: string } | null => reader,
+    session: async (): Promise<{ id: string } | null | 'failed'> => reader,
     lapsed: () => false,
     generation: () => generation,
-    mic: async () => 'granted',
+    mic: async (): Promise<'granted' | 'denied' | 'prompt'> => 'granted',
     backend: (call) => call(backendApi),
     online: () => true,
     storage,
@@ -54,8 +54,7 @@ function setup(over: Partial<ProviderDeps> = {}, api: Partial<BackendApi> = {}) 
   return { provider, storage, pending, ends, setReader: (r: { id: string } | null) => (reader = r), bump: () => (generation += 1) };
 }
 
-describe('the door', () => {
-  test.each([
+const doorCases: Array<[string, Partial<ProviderDeps>, Partial<BackendApi>, DoorState]> = [
     ['built off', { built: () => false }, {}, { kind: 'unavailable', why: 'service' }],
     ['signed out', { cachedReader: () => null }, {}, { kind: 'signed-out' }],
     ['the server forgot the session', { cachedReader: () => null, lapsed: () => true }, {}, { kind: 'session-expired' }],
@@ -68,8 +67,11 @@ describe('the door', () => {
     ['the backend can\'t be reached', {}, { storytellerAvailability: async () => Promise.reject(new BackendError('upstream_failed', 'down', true)) }, { kind: 'unavailable', why: 'service' }],
     ['a sign-in the server refuses', {}, { storytellerAvailability: async () => Promise.reject(new BackendError('unauthorized', SIGN_IN_REQUIRED)) }, { kind: 'session-expired' }],
     ['ready', {}, {}, { kind: 'ready' }],
-  ] as const)('%s', async (_name, over, api, door) => {
-    const { provider } = setup(over as Partial<ProviderDeps>, api as Partial<BackendApi>);
+];
+
+describe('the door', () => {
+  test.each(doorCases)('%s', async (_name, over, api, door) => {
+    const { provider } = setup(over, api);
     await provider.refresh();
     expect(provider.snapshot().door).toEqual(door);
   });

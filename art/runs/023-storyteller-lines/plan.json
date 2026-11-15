@@ -25,7 +25,7 @@
       "chars": 90
     },
     {
-      "id": "moth-picks",
+      "id": "finder-picks",
       "speaker": "moth",
       "text": "This one's been rattling all night!",
       "use": "Moth picks a lost thing from the drawer when the AI can't",
@@ -67,14 +67,14 @@
       "chars": 65
     },
     {
-      "id": "moth-empty",
+      "id": "finder-empty",
       "speaker": "moth",
       "text": "Couldn't find it anywhere! Maybe it's still lost.",
       "use": "A painting failed, or failed the look check",
       "chars": 49
     },
     {
-      "id": "moth-tired",
+      "id": "finder-tired",
       "speaker": "moth",
       "text": "My wings are tired, but your satchel's full of treasures.",
       "use": "The painting limit is reached",

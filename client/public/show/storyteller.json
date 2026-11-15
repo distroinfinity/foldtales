@@ -1,6 +1,21 @@
 {
   "firstSet": "the-lamp",
   "welcomeDrawer": ["odd-sock", "brass-key", "paper-boat"],
+  "recorded": {
+    "welcome-fallback": {"speaker": "pip", "text": "Oh! It's you. Tell us what tonight's story is about, or hand us something from the drawer."},
+    "finder-picks": {"speaker": "moth", "text": "This one's been rattling all night!"},
+    "slow": {"speaker": "narrator", "text": "The lamp flickers… now, where were we?"},
+    "offline": {"speaker": "narrator", "text": "The lamp has gone quiet. The story will wait right here."},
+    "online": {"speaker": "narrator", "text": "Ah, there's the light again."},
+    "redirect-a": {"speaker": "narrator", "text": "And just then, the page turned all by itself, to somewhere cozier."},
+    "redirect-b": {"speaker": "narrator", "text": "A gentle wind turned the page, and the story found a kinder path."},
+    "finder-empty": {"speaker": "moth", "text": "Couldn't find it anywhere! Maybe it's still lost."},
+    "finder-tired": {"speaker": "moth", "text": "My wings are tired, but your satchel's full of treasures."},
+    "resting": {"speaker": "narrator", "text": "That's all the story the lamp has oil for tonight."},
+    "close-fallback": {"speaker": "narrator", "text": "And so the story was gathered up, and tucked into the book for another night."},
+    "close-time": {"speaker": "narrator", "text": "The lamp burns low, and tonight's story comes to rest."},
+    "ears-down": {"speaker": "pip", "text": "I couldn't hear you just then. Show me instead?"}
+  },
   "entrances": {
     "the-lamp": { "pip": "pip", "wick": "wick", "moth": "lamp" },
     "shore-path": { "pip": "pip", "wick": "path-mid", "moth": "moth-near" },

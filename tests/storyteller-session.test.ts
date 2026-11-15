@@ -1,7 +1,10 @@
 import { createMockBackend, fixtureLibrary, MOCK_PROFILES, type MockOptions } from '../contracts/src/mocks/index.ts';
 import type { BackendApi, Beat, StoryTurnRequest, TurnEvent } from '../contracts/src/index.ts';
 import { describe, expect, test } from 'vitest';
-import { RECORDED } from '../client/src/storyteller/recorded.ts';
+import storyteller from '../client/public/show/storyteller.json';
+import { RECORDED_IDS, type RecordedId, type RecordedLines } from '../client/src/storyteller/recorded.ts';
+
+const RECORDED = storyteller.recorded as Record<RecordedId, { speaker: string; text: string }>;
 import { SHAPE, UNTITLED, createStorySession, type StoryEnding } from '../client/src/storyteller/session.ts';
 import type { LiveScheduler } from '../client/src/storyteller/live.ts';
 import type { SoundEngine } from '../client/src/sound/engine.ts';
@@ -53,6 +56,7 @@ function harness(options: { api?: BackendApi; mock?: MockOptions; stream?: (r: S
     nowMs: () => clock.ms,
     onEnded: (e) => ended.push(e),
     onError: (code, message) => errors.push(`${code}: ${message}`),
+    recorded: RECORDED as RecordedLines,
   });
   /** Moves the show clock on, a second at a time, letting the story answer between. */
   const run = async (seconds: number) => {
@@ -328,5 +332,14 @@ describe('in story, never silent', () => {
     h.session.heard('hello again');
     await h.run(1);
     expect(h.said()).toContain(RECORDED.online.text);
+  });
+});
+
+describe('the recorded lines', () => {
+  test("the book's data has every line, word for word as run 023 records them", async () => {
+    const { readFileSync } = await import('node:fs');
+    const plan = JSON.parse(readFileSync(new URL('../art/runs/023-storyteller-lines/plan.json', import.meta.url), 'utf8')) as { lineJobs: Array<{ id: string; speaker: string; text: string }> };
+    expect(plan.lineJobs.map((j) => j.id).sort()).toEqual([...RECORDED_IDS].sort());
+    for (const job of plan.lineJobs) expect(RECORDED[job.id as RecordedId]).toEqual({ speaker: job.speaker, text: job.text });
   });
 });

@@ -167,7 +167,7 @@ export function contextOf(request: StoryTurnRequest, ctx: StoryContext = { title
       : input.kind === 'close'
         ? 'Time to end the story, now: two to four lines that bring it to a warm, complete ending that pays off what the reader did. Then END | <summary>. No LISTEN, no question.'
         : premise && input.kind === 'quiet'
-          ? `The reader hasn't chosen yet. Moth picks one of the lost things from the drawer herself${drawer.length ? ` (${drawer.join(', ')})` : ''} and brings it to Pip: that is tonight's premise. Write TITLE and PLAN, then begin the story.`
+          ? `The reader hasn't chosen yet. one of the cast picks a lost thing from the drawer themselves${drawer.length ? ` (${drawer.join(', ')})` : ''} and brings it out: that is tonight's premise. Write TITLE and PLAN, then begin the story.`
           : input.kind === 'heard'
             ? `The reader said${input.to ? ` to ${input.to}` : ''}: "${input.text}"${premise ? ' That is tonight\'s premise: write TITLE and PLAN first, then begin the story.' : ''}`
             : input.kind === 'gift'
@@ -192,7 +192,7 @@ export function contextOf(request: StoryTurnRequest, ctx: StoryContext = { title
       : 'No room effects tonight.',
     ctx.recent.length && input.kind === 'open' ? `The reader's earlier stories (titles and endings only):\n${ctx.recent.map((r) => `- ${r.title}${r.summary ? `: ${r.summary}` : ''}`).join('\n')}` : '',
     ctx.title ? `Tonight's story: ${ctx.title}.${ctx.plan ? ` Its plan (private, never spoken): ${ctx.plan}` : ''}` : '',
-    ctx.paintsLeft === 0 ? "No more painting tonight: never PAINT. If the reader asks for something new, Moth says her wings are tired, and the cast uses what's on the page or in the satchel." : '',
+    ctx.paintsLeft === 0 ? "No more painting tonight: never PAINT. If the reader asks for something new, whoever fetches things is too tired to go again tonight, and the cast uses what's on the page or in the satchel." : '',
     shape,
     history.length ? `The story so far:\n${history.slice(-40).map((h) => `${h.who}: ${h.text}`).join('\n')}` : '',
     `NOW: ${what}`,
