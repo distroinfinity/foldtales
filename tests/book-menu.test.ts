@@ -15,7 +15,7 @@ const ctx = (over: Partial<MenuContext> = {}): MenuContext => ({
   stories: [],
   satchelCount: 2,
   soundOn: true,
-  light: 'dimmer',
+  light: 'dark',
   ending: { heading: 'The end of chapter 1', lines: ['You gave him his lantern.'], things: ['kite'], next: 'Continue to chapter 2' },
   ...over,
 });
@@ -35,7 +35,7 @@ describe('the book menu', () => {
     let s = ribbon(initialMenu());
     s = choose(s, 'contents', ctx()).state;
     s = choose(s, 'settings', ctx()).state;
-    expect(ids(s)).toEqual(['sound', 'back']);
+    expect(ids(s)).toEqual(['sound', 'light', 'back']);
     expect(ids(back(s))).toEqual(['chapters', 'storyteller', 'settings', 'back']);
     expect(cardShowing(ribbon(s))).toBe(false);
   });

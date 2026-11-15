@@ -650,6 +650,27 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
   // opens one once the book is open and writes how it reads from your eyes to data-card-report.
   const card = createCardView({ bookRoot: stage.book.root, pageY: stage.book.pageY, pageD: assets.book.closedSizeM[1], scene: world.scene });
   const cardProof = reviewQuery('card');
+  /**
+   * The first time: a small card stands on the table under the ribbon's tail, "Pinch the ribbon to pause",
+   * until the first time you use the ribbon on this headset. Its type is sized like the menu's.
+   */
+  const RIBBON_HINT_KEY = 'tt.ribbon-used';
+  let ribbonUsed = (() => {
+    try {
+      return localStorage.getItem(RIBBON_HINT_KEY) === '1';
+    } catch {
+      return false;
+    }
+  })();
+  const hint = createCardView({
+    bookRoot: stage.book.root,
+    pageY: stage.book.pageY,
+    pageD: assets.book.closedSizeM[1],
+    scene: world.scene,
+    // On the table just past the right page's front edge, beside where the ribbon hangs out (clear of Hold to talk).
+    stand: { x: assets.book.closedSizeM[0] * RIBBON_X_SHARE + 0.03, y: 0, z: assets.book.closedSizeM[1] / 2 + 0.03 },
+    widthEm: 9,
+  });
   const PROOF_CARDS: Record<string, CardSpec> = {
     pause: { over: 'Chapter 1', title: 'The night the light went out', choices: [{ id: 'carry-on', label: 'Carry on' }, { id: 'again', label: 'Start again' }, { id: 'contents', label: 'Contents' }, { id: 'away', label: 'Put the book away' }] },
     busiest: {
@@ -677,13 +698,22 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
   const paintedTonight: string[] = [];
   /** Sound and the room's light, kept on this headset. */
   const SETTINGS_KEY = 'tt.settings';
-  const settings: { soundOn: boolean } = (() => {
+  const settings: { soundOn: boolean; light: 'dark' | 'lighter' } = (() => {
     try {
-      return { soundOn: true, ...(JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? '{}') as { soundOn?: boolean }) };
+      return { soundOn: true, light: 'dark' as const, ...(JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? '{}') as { soundOn?: boolean; light?: 'dark' | 'lighter' }) };
     } catch {
-      return { soundOn: true };
+      return { soundOn: true, light: 'dark' as const };
     }
   })();
+  /** "Lighter" keeps the house lights from going all the way down: the dim stops at this share. */
+  const LIGHTER_DIM = 0.55;
+  const saveSettings = () => {
+    try {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    } catch {
+      // Kept for this visit only.
+    }
+  };
   const applySound = () => (sound as unknown as { setMuted?: (on: boolean) => void }).setMuted?.(!settings.soundOn);
   applySound();
 
@@ -704,7 +734,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       stories: storytellerSnapshot().finished,
       satchelCount: stage.objects.states().filter((o) => o.home.kind === 'satchel').length,
       soundOn: settings.soundOn,
-      light: 'dimmer',
+      light: settings.light,
       ending,
     };
   };
@@ -767,18 +797,27 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
         return putAway(effect.target.kind === 'storyteller' ? { kind: 'storyteller' } : effect.target);
       case 'toggle-sound':
         settings.soundOn = !settings.soundOn;
-        try {
-          localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-        } catch {
-          // Kept for this visit only.
-        }
+        saveSettings();
         applySound();
         return;
       case 'cycle-light':
+        settings.light = settings.light === 'dark' ? 'lighter' : 'dark';
+        saveSettings();
         return;
     }
   }
-  menuHooks.onRibbon = () => setMenu(ribbonPinched(menu));
+  menuHooks.onRibbon = () => {
+    if (!ribbonUsed) {
+      ribbonUsed = true;
+      hint.close();
+      try {
+        localStorage.setItem(RIBBON_HINT_KEY, '1');
+      } catch {
+        // The hint simply shows again next time.
+      }
+    }
+    setMenu(ribbonPinched(menu));
+  };
   menuHooks.showing = () => cardShowing(menu) && !cardProof;
   const commit = (id: string, generation: number) => {
     if (generation !== menu.generation || !card.ready) return;
@@ -807,7 +846,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
   };
   menuHooks.commit = (c) => commit(c.id, c.generation);
   /** Each frame: the card shows what the menu says, while the book is open; a hand near a choice brightens its rule. */
-  function cardStep(): void {
+  function cardStep(deltaMs: number): void {
     const want = cardShowing(menu) && controls.amount > 0.98 && !away.requested;
     if (want && shownGeneration !== menu.generation) {
       shownGeneration = menu.generation;
@@ -831,6 +870,11 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       }
     }
     card.setNear(near);
+    // The ribbon's hint: while the story plays with the book open, until the ribbon has been used once.
+    hint.frame(deltaMs, head);
+    const hintWanted = !ribbonUsed && runtime.started && !cardShowing(menu) && controls.amount > 0.98 && !away.requested;
+    if (hintWanted && !hint.shown) void hint.open({ lines: ['Pinch the ribbon to pause'], choices: [] }, head);
+    else if (!hintWanted && hint.shown && hint.spec) hint.close();
     // Back to a chapter that had already ended (a reload at its end): its end card, not a silent page.
     if (!storyMode && runtime.ended && wasEnded && menu.root === 'playing' && !readAgain.requested && runtime.started) {
       ending ??= chapterEnding(chapterN, null, defs, null);
@@ -841,7 +885,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       const top = menu.stack[menu.stack.length - 1];
       const ribbonAt = stage.book.root.localToWorld(new Vector3(assets.book.closedSizeM[0] * RIBBON_X_SHARE, stage.book.pageY + 0.01, assets.book.closedSizeM[1] / 2 - 0.012));
       const r3 = (v: Vector3) => [v.x, v.y, v.z].map((n) => +n.toFixed(3));
-      const info = JSON.stringify({ root: menu.root, top: top?.kind ?? null, gen: menu.generation, ready: card.ready, card: card.debug, shown: card.shown, spec: card.spec?.title ?? null, open: +controls.amount.toFixed(2), shownGen: shownGeneration, clockMs: Math.round(clock.ms), paused: clock.paused, ribbon: r3(ribbonAt), pinchL: controls.pinchPoint("left") && r3(controls.pinchPoint("left")!), pinchR: controls.pinchPoint("right") && r3(controls.pinchPoint("right")!), targets: Object.fromEntries(card.targets().map((t) => [t.id, r3(t.position)])) });
+      const info = JSON.stringify({ root: menu.root, top: top?.kind ?? null, gen: menu.generation, ready: card.ready, card: card.debug, hint: hint.ready ? Math.round(1000 * (hint.measure(head, stage.book.root.getWorldPosition(new Vector3()))?.minTextDeg ?? 0)) / 1000 : hint.shown, shown: card.shown, spec: card.spec?.title ?? null, open: +controls.amount.toFixed(2), shownGen: shownGeneration, clockMs: Math.round(clock.ms), paused: clock.paused, ribbon: r3(ribbonAt), pinchL: controls.pinchPoint("left") && r3(controls.pinchPoint("left")!), pinchR: controls.pinchPoint("right") && r3(controls.pinchPoint("right")!), targets: Object.fromEntries(card.targets().map((t) => [t.id, r3(t.position)])) });
       if (document.documentElement.dataset.menu !== info) document.documentElement.dataset.menu = info;
     }
     if (host.waiting.length && !clock.paused && !cardShowing(menu)) for (const resolve of host.waiting.splice(0)) resolve();
@@ -991,10 +1035,12 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
     }
   });
 
+  /** The room's light setting, through the hands' fold: the show's dim never goes past it. */
+  const roomLightFold = (fold: ReturnType<typeof controls.fold>) => (settings.light === 'lighter' ? { ...fold, dim: Math.min(fold.dim, LIGHTER_DIM) } : fold);
   let wasEnded = runtime.ended;
   const storyStep = guard('runtime', (deltaMs: number) => {
     card.frame(deltaMs, head);
-    if (!cardProof) cardStep();
+    if (!cardProof) cardStep(deltaMs);
     // The old printed end line gives way to the end card.
     stage.endPage.root.visible = false;
     if (cardProof && PROOF_CARDS[cardProof] && runtime.started && controls.amount > 0.98) {
@@ -1046,7 +1092,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
         wasEnded = false;
       }
     }
-    const { unfold, room: roomNow } = runtime.frame(deltaMs * speed, nowMs, head, { fold: controls.fold(), ribbon: controls.ribbonLift() }, { left: controls.pinchPoint('left'), right: controls.pinchPoint('right') });
+    const { unfold, room: roomNow } = runtime.frame(deltaMs * speed, nowMs, head, { fold: roomLightFold(controls.fold()), ribbon: controls.ribbonLift() }, { left: controls.pinchPoint('left'), right: controls.pinchPoint('right') });
     devRoomTick();
     shadowPlay.frame({
       renderer: world.renderer,

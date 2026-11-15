@@ -117,6 +117,10 @@ export interface CardViewDeps {
   pageY: number;
   pageD: number;
   scene: Object3D;
+  /** Where it stands, in the book's own frame (default: on the spread's middle line, a little toward you). */
+  stand?: { x: number; y: number; z: number };
+  /** A narrower card, in ems (a hint, not a menu). */
+  widthEm?: number;
 }
 
 export function createCardView(deps: CardViewDeps) {
@@ -164,7 +168,7 @@ export function createCardView(deps: CardViewDeps) {
   async function build(next: CardSpec, distanceM: number): Promise<void> {
     const ticket = ++building;
     const em = emFor(distanceM);
-    const width = cardWidthFor(em);
+    const width = deps.widthEm ? deps.widthEm * em : cardWidthFor(em);
     const textWidth = width - 2 * em;
     const column = columnFor(em) - 0.6 * em;
     const made: Array<{ what: string; text: Text }> = [];
@@ -188,6 +192,7 @@ export function createCardView(deps: CardViewDeps) {
         choices: choiceTexts.map(heightOf),
       },
       em,
+      width,
     );
     clear();
     const group = new Group();
@@ -238,7 +243,8 @@ export function createCardView(deps: CardViewDeps) {
   }
 
   function standAt(out: Vector3): Vector3 {
-    out.set(0, deps.pageY, (deps.pageD / 2) * STAND_AT_DEPTH_SHARE * 2);
+    if (deps.stand) out.set(deps.stand.x, deps.stand.y, deps.stand.z);
+    else out.set(0, deps.pageY, (deps.pageD / 2) * STAND_AT_DEPTH_SHARE * 2);
     return deps.bookRoot.localToWorld(out);
   }
 

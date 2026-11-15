@@ -102,7 +102,8 @@ export interface MenuContext {
   stories: Array<{ title: string; lines: string[] }>;
   satchelCount: number | null;
   soundOn: boolean;
-  light: 'dim' | 'dimmer' | 'darkest';
+  /** The room's light while the story plays: the full theatre dim, or lighter. */
+  light: 'dark' | 'lighter';
   /** The end card's contents, once the mode has ended. */
   ending: { heading: string; lines: string[]; things: string[]; next: string | null } | null;
 }
@@ -187,6 +188,7 @@ export function cardFor(s: MenuState, ctx: MenuContext): CardSpec | null {
         title: 'Settings',
         choices: [
           { id: 'sound', label: ctx.soundOn ? 'Sound: on' : 'Sound: off' },
+          { id: 'light', label: ctx.light === 'dark' ? 'Room: dark' : 'Room: lighter' },
           { id: 'back', label: 'Back' },
         ],
       };

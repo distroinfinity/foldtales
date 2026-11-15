@@ -69,10 +69,10 @@ export function cardWidthFor(em: number): number {
  * Places the measured blocks top to bottom: the small line over the title, the title, the lines,
  * the note, then the choices in rows of two. An odd last choice sits alone in the middle of its row.
  */
-export function arrangeCard(m: CardMeasure, em: number): CardGeometry {
+export function arrangeCard(m: CardMeasure, em: number, width?: number): CardGeometry {
   if (m.choices.length > MAX_CHOICES) throw new Error(`a card holds at most ${MAX_CHOICES} choices`);
   const columnM = columnFor(em);
-  const widthM = cardWidthFor(em);
+  const widthM = width ?? cardWidthFor(em);
   const textWidthM = widthM - 2 * MARGIN_EM * em;
   const top: CardGeometry['top'] = {};
   // Walk down from y = 0 (the card's top), then flip once the height is known.
