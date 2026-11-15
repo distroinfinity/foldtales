@@ -497,3 +497,15 @@ GoDaddy records:
 The upload-only Pages project was deleted to free the name. CI now only runs `pnpm check`. Build settings live in the dashboards; the values are in the owner's step list (session of Nov 15), repeated here:
 - **Pages:** build `pnpm install --frozen-lockfile && pnpm --filter @tabletop/client build`, output `client/dist`, root blank. Variables: `NODE_VERSION=24`, `TT_PUBLIC_BACKEND_URL=https://api.foldtales.xyz`, `TT_PUBLIC_STORYTELLER=off`.
 - **Railway:** source repo `distroinfinity/tabletop-theatre`, branch `main`, Wait for CI on. Watch paths: `backend/**`, `contracts/**`, `package.json`, `pnpm-lock.yaml`, `railway.json`. Start command `pnpm --filter @tabletop/backend start`.
+
+
+### Hosting: live (Nov 15)
+
+- **Site:** `https://www.foldtales.xyz`. A Cloudflare Pages project `foldtales`, Git-connected to `distroinfinity/tabletop-theatre`, building `main`, previews off. It was created with the API, with build command, output and variables as recorded above. GoDaddy forwards `foldtales.xyz` to it (301). The first build took 14 minutes, most of it compressing the art to KTX2, against Pages' 20-minute limit. **Risk:** as art grows, the build can time out. The fix then is to commit the art cache (`client/.art-cache`) or build in GitHub Actions and upload.
+- **Backend:** `https://api.foldtales.xyz` (Railway `backend`), Git-connected to `main`. It deploys only when its watch paths change, and answers `/healthz` with contract 4. Sign-in is off and the AI is off.
+- **Checked from the Mac:**
+  - the live page renders with no console errors;
+  - About and the book's art and data are served;
+  - the API's CORS allows `https://www.foldtales.xyz`.
+- **Cleaned up:** the misconfigured Worker `foldtales` (owner-approved), the upload-only Pages project, the GitHub Actions deploy jobs, and the unused GitHub variables.
+- **Next:** the owner opens `www.foldtales.xyz` on the Quest, with no USB.
