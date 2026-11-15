@@ -136,6 +136,9 @@ export interface Stories {
   claimSpeechToken(userId: string): void;
   reserveSpend(kind: SpendKind, units: number): Reservation | null;
   settleSpend(reservation: Reservation, actualUnits: number | null): void;
+  /** What one story used, by kind (voice characters, Claude tokens), to measure a story's cost. Anonymous: kept after deletion. */
+  addStorySpend(storyId: string, kind: SpendKind, units: number): void;
+  storySpend(storyId: string): Partial<Record<SpendKind, number>>;
   /** Everything a reader owns here. Aggregates (spend, the credit pool) stay. */
   forget(userId: string): void;
 }
@@ -154,6 +157,7 @@ export function openStories(db: DatabaseSync, limits: StoryLimits, now: () => Da
       UNIQUE (user_id, request_id)
     );
     CREATE INDEX IF NOT EXISTS stories_by_user ON stories (user_id, started_at);
+    CREATE TABLE IF NOT EXISTS story_spend (story_id TEXT NOT NULL, kind TEXT NOT NULL, units INTEGER NOT NULL, PRIMARY KEY (story_id, kind));
     CREATE INDEX IF NOT EXISTS stories_by_day ON stories (day);
     CREATE TABLE IF NOT EXISTS story_turns (story_id TEXT NOT NULL, turn_id TEXT NOT NULL, user_id TEXT NOT NULL, PRIMARY KEY (story_id, turn_id));
     CREATE TABLE IF NOT EXISTS paint_jobs (
@@ -195,6 +199,8 @@ export function openStories(db: DatabaseSync, limits: StoryLimits, now: () => Da
     spent: db.prepare('SELECT reserved FROM spend WHERE day = ? AND kind = ?'),
     spendAdd: db.prepare('INSERT INTO spend (day, kind, reserved) VALUES (?, ?, ?) ON CONFLICT (day, kind) DO UPDATE SET reserved = MAX(0, reserved + excluded.reserved)'),
     forgetStories: db.prepare('DELETE FROM stories WHERE user_id = ?'),
+    storySpend: db.prepare('INSERT INTO story_spend (story_id, kind, units) VALUES (?, ?, ?) ON CONFLICT (story_id, kind) DO UPDATE SET units = units + excluded.units'),
+    storySpent: db.prepare('SELECT kind, units FROM story_spend WHERE story_id = ?'),
     forgetTurns: db.prepare('DELETE FROM story_turns WHERE user_id = ?'),
     forgetJobs: db.prepare('DELETE FROM paint_jobs WHERE user_id = ?'),
     forgetTokens: db.prepare('DELETE FROM speech_tokens WHERE user_id = ?'),
@@ -396,6 +402,14 @@ export function openStories(db: DatabaseSync, limits: StoryLimits, now: () => Da
       // Unknown usage (a failure or a timeout) keeps the whole reservation: uncertain charges count.
       if (actualUnits === null) return;
       q.spendAdd.run(reservation.day, reservation.kind, actualUnits - reservation.units);
+    },
+
+    addStorySpend(storyId, kind, units) {
+      if (units > 0) q.storySpend.run(storyId, kind, Math.round(units));
+    },
+
+    storySpend(storyId) {
+      return Object.fromEntries((q.storySpent.all(storyId) as Array<{ kind: SpendKind; units: number }>).map((r) => [r.kind, Number(r.units)]));
     },
 
     forget(userId) {

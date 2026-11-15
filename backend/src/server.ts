@@ -58,7 +58,8 @@ const accounts = await openAccounts(
 // The AI is real once a key is set (backend only, never the client); without one it stays the mock.
 const key = process.env.ANTHROPIC_API_KEY;
 const claude = key ? createClaude(key, console.error, claudeSpend(stories)) : null;
-const voices = spendingVoices(createVoices(process.env.ELEVENLABS_API_KEY, readLiveVoices(join(process.cwd(), '..', 'art', 'voice', 'live.json'))), stories);
+const liveVoices = createVoices(process.env.ELEVENLABS_API_KEY, readLiveVoices(join(process.cwd(), '..', 'art', 'voice', 'live.json')));
+const voices = spendingVoices(liveVoices, stories);
 const anthropic = key ? new Anthropic({ apiKey: key, maxRetries: 0 }) : null;
 const moderate = claude ? createModerator(claude) : undefined;
 const checkLine = claude ? createLineCheck(claude) : async () => false;
@@ -94,6 +95,7 @@ const director =
           ...(moderate ? { moderate } : {}),
           checkLine,
           speechToken,
+          storyVoices: (storyId) => spendingVoices(liveVoices, stories, storyId),
           paintsLeft: (story) => (paintingOn() && process.env.RUNWAYML_API_SECRET ? Math.max(0, limits.paintsPerStory - story.paints) : 0),
           log: (m) => console.log(m),
         }),

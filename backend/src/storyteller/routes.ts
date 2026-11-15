@@ -30,6 +30,8 @@ export interface StorytellerDeps {
   checkLine: (text: string) => Promise<boolean>;
   /** A single-use token for listening, from the speech vendor. */
   speechToken: () => Promise<{ provider: string; token: string; expiresAt: string }>;
+  /** Voices that count their characters for this story (falls back to `voices`). */
+  storyVoices?: (storyId: string) => Voices;
   /** Paintings this story may still ask for (0 when painting is off). */
   paintsLeft?: (story: { paints: number }) => number;
   log?: (message: string) => void;
@@ -50,8 +52,12 @@ export function claudeSpend(stories: Stories): SpendGate {
   };
 }
 
-/** Voices that reserve their characters before each call. At the day's ceiling a line goes out as captions only. */
-export function spendingVoices(voices: Voices, stories: Stories): Voices {
+/**
+ * Voices that reserve their characters before each call. At the day's ceiling, or when the voice
+ * service fails (its quota spent, or down), a line goes out as captions only, and the log says why.
+ * With a story id, its characters are also counted for that story, to measure what a story costs.
+ */
+export function spendingVoices(voices: Voices, stories: Stories, storyId: string | null = null, log: (m: string) => void = console.log): Voices {
   return {
     get characters() {
       return voices.characters;
@@ -59,10 +65,15 @@ export function spendingVoices(voices: Voices, stories: Stories): Voices {
     sound: async () => null,
     async speak(speaker, text) {
       const reservation = stories.reserveSpend('tts', text.length);
-      if (!reservation) return null;
+      if (!reservation) {
+        log("voices: captions only (the day's voice ceiling is reached)");
+        return null;
+      }
       const voice = await voices.speak(speaker, text).catch(() => null);
-      // A failed call may still have been charged: the reservation stays.
+      // A failed call may still have been charged: the reservation stays, and the story counts it.
       if (voice) stories.settleSpend(reservation, text.length);
+      else log('voices: captions only (the voice service did not answer)');
+      if (storyId) stories.addStorySpend(storyId, 'tts', text.length);
       return voice;
     },
   };
@@ -103,11 +114,14 @@ export function storytellerHandlers(deps: StorytellerDeps): Pick<
     }
     const turnDeps: TurnDeps = {
       anthropic: deps.anthropic,
-      voices: deps.voices,
+      voices: deps.storyVoices ? deps.storyVoices(request.storyId) : deps.voices,
       checkLine: deps.checkLine,
       story: { title: row.title, plan: row.plan, recent: request.input.kind === 'open' ? stories.recent(userId, 3) : [], paintsLeft: deps.paintsLeft ? deps.paintsLeft(row) : undefined },
       onTitle: (title, plan) => stories.setTitle(request.storyId, title, plan),
-      onUsage: (tokens) => stories.settleSpend(reservation, tokens),
+      onUsage: (tokens) => {
+        stories.settleSpend(reservation, tokens);
+        stories.addStorySpend(request.storyId, 'claude', tokens ?? SPEND_ESTIMATE.turn);
+      },
       paint: (storyId, description, objectId) => deps.painter.start(userId, { storyId, objectId, description, image: null }),
       ...(deps.moderate ? { moderate: deps.moderate } : {}),
       ...(deps.log ? { log: deps.log } : {}),
@@ -121,6 +135,7 @@ export function storytellerHandlers(deps: StorytellerDeps): Pick<
     storyTurn: (request) => turn(request),
     endStory: async (request) => {
       const userId = reader();
+      deps.log?.(`storyteller: story ended (${request.reason}); used ${JSON.stringify(stories.storySpend(request.storyId))}`);
       // Already ended: the saved record, with no second check.
       const row = stories.get(userId, request.storyId);
       if (row && row.status === 'ended') return { record: stories.end(userId, request.storyId, request.reason, request.page) };

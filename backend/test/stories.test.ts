@@ -201,3 +201,17 @@ describe('stories', () => {
     db.close();
   });
 });
+
+test("a story's own spend is measured, and voices fall back to captions at the ceiling, said in the log", async () => {
+  const { spendingVoices } = await import('../src/storyteller/routes.ts');
+  const { stories } = setup({ spend: { claude: 100_000, tts: 1_000, stt: 1 } });
+  const { storyId } = stories.start('ann', 'a');
+  stories.reserveSpend('tts', 970);
+  const logs: string[] = [];
+  const voices = spendingVoices({ characters: 0, sound: async () => null, speak: async () => ({ url: 'data:x', durationMs: 1 }) }, stories, storyId, (m) => logs.push(m));
+  expect(await voices.speak('narrator', 'Twenty characters!!')).not.toBeNull();
+  expect(await voices.speak('narrator', 'Twenty characters!!')).toBeNull();
+  expect(logs).toEqual(["voices: captions only (the day's voice ceiling is reached)"]);
+  stories.addStorySpend(storyId, 'claude', 4200);
+  expect(stories.storySpend(storyId)).toEqual({ tts: 19, claude: 4200 });
+});
