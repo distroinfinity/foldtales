@@ -34,6 +34,8 @@ import { createWindowView, WINDOW_ART } from './room-fx/window.ts';
 import { createWeather, RAIN_ART } from './room-fx/weather.ts';
 import { createRoomDepth } from './room-fx/occluders.ts';
 import { createNightSky, SKY_ART } from './room-fx/sky.ts';
+import { createSnow, SNOW_ART } from './room-fx/snow.ts';
+import { createFog, FOG_ART } from './room-fx/fog.ts';
 import { createSoundEngine } from './sound/engine.ts';
 import narratorVoice from '../../art/voice/narrator.json';
 import { arrivalAt, OPEN_AT_MS } from './stage/arrival.ts';
@@ -57,7 +59,7 @@ import { buildEmber, buildWash } from './stage/wash.ts';
 import { createTelemetry } from './telemetry.ts';
 
 /** Room effects this build can show. Each joins as it's built, and the storyteller hears of only these. */
-const ROOM_EFFECTS_BUILT: import('@tabletop/contracts').RoomEffect[] = ['hunt', 'shadows', 'shadows-off', 'fireflies', 'fireflies-off', 'rain', 'thunder', 'clear', 'night-sky', 'stars-lantern', 'stars-kite', 'stars-fox', 'shooting-star', 'day'];
+const ROOM_EFFECTS_BUILT: import('@tabletop/contracts').RoomEffect[] = ['hunt', 'shadows', 'shadows-off', 'fireflies', 'fireflies-off', 'rain', 'thunder', 'clear', 'night-sky', 'stars-lantern', 'stars-kite', 'stars-fox', 'shooting-star', 'day', 'snow', 'fog'];
 
 const FLUSH_EVERY_MS = 10_000;
 const FRAMEBUFFER_SCALE = 1.4;
@@ -208,6 +210,13 @@ async function prepare(world: World) {
   const skyArt = { stars: assets.textures.get(SKY_ART.stars), moon: assets.textures.get(SKY_ART.moon), shooting: assets.textures.get(SKY_ART.shooting) };
   const nightSky = skyArt.stars && skyArt.moon && skyArt.shooting ? createNightSky({ stars: skyArt.stars, moon: skyArt.moon, shooting: skyArt.shooting }) : null;
   if (nightSky) for (const mesh of nightSky.meshes) world.scene.add(mesh);
+  // Snow that falls and settles on your table and couch; fog low along your floor.
+  const snowArt = { flakes: assets.textures.get(SNOW_ART.flakes), cover: assets.textures.get(SNOW_ART.cover) };
+  const snow = snowArt.flakes && snowArt.cover ? createSnow({ flakes: snowArt.flakes, cover: snowArt.cover }) : null;
+  if (snow) world.scene.add(snow.root);
+  const fogArt = FOG_ART.map((file) => assets.textures.get(file)).filter((ref) => ref !== undefined);
+  const fog = fogArt.length ? createFog(fogArt) : null;
+  if (fog) world.scene.add(fog.root);
   const runtime = createShowRuntime({
     manifest,
     spine: assets.spine,
@@ -334,8 +343,10 @@ async function prepare(world: World) {
   const devRoomState = { scheduled: false, lastMs: 0 };
   const scheduleDevRoom = (fromMs: number): void => {
     runtime.clearReviewRoom();
+    // Each in turn: snow takes a minute to settle, the rest about 35 s, with a short gap between.
+    const slots = devRoom.map((effect) => (effect === 'snow' ? 65_000 : 40_000));
     devRoom.forEach((effect, i) => {
-      const at = Math.max(11_500, fromMs + 6_000) + i * 40_000;
+      const at = Math.max(11_500, fromMs + 6_000) + slots.slice(0, i).reduce((a, b) => a + b, 0);
       if (effect === 'hunt') runtime.addRoom({ do: 'room', withPrev: false, effect: 'hunt', what: 'object:kite', at: 'room:couch' }, at);
       else if (effect === 'window-wall') {
         // The window effect on a wall, as in a room with no window.
@@ -350,6 +361,10 @@ async function prepare(world: World) {
         step('shooting-star', 15_000);
         step('stars-fox', 21_000);
         step('day', 35_000);
+      } else if (effect === 'snow' || effect === 'fog') {
+        // Snow for a minute, so it has time to settle; fog for 35 s.
+        runtime.addRoom({ do: 'room', withPrev: false, effect, what: null, at: null }, at);
+        runtime.addRoom({ do: 'room', withPrev: false, effect: 'clear', what: null, at: null }, at + (effect === 'snow' ? 60_000 : 35_000));
       } else if (effect === 'rain') {
         // A storm: rain, then three rolls of thunder, then it clears.
         runtime.addRoom({ do: 'room', withPrev: false, effect: 'rain', what: null, at: null }, at);
@@ -378,11 +393,11 @@ async function prepare(world: World) {
       else away.requested = true;
     },
   });
-  return { manifest, assets, stage, dim, sound, clock, runtime, roomMap, shadowPlay, fireflies, windowView, weather, roomDepth, nightSky, devRoomTick, wash, ember, log, pause, controls, soft, review, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, directorOn, storyConfig, moreTargets };
+  return { manifest, assets, stage, dim, sound, clock, runtime, roomMap, shadowPlay, fireflies, windowView, weather, roomDepth, nightSky, snow, fog, devRoomTick, wash, ember, log, pause, controls, soft, review, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, directorOn, storyConfig, moreTargets };
 }
 
 function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom: Checkpoint | null, target: EnterTarget | null = null): void {
-  const { manifest, assets, stage, sound, clock, runtime, roomMap, shadowPlay, fireflies, windowView, weather, roomDepth, nightSky, devRoomTick, wash, ember, log, pause, controls, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, storyConfig, moreTargets } = show;
+  const { manifest, assets, stage, sound, clock, runtime, roomMap, shadowPlay, fireflies, windowView, weather, roomDepth, nightSky, snow, fog, devRoomTick, wash, ember, log, pause, controls, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, storyConfig, moreTargets } = show;
   // The AI Storyteller, when that's the door the reader chose on the landing page.
   const storyMode = target?.kind === 'storyteller' && storyConfig !== null;
   let story: StorySession | null = null;
@@ -808,7 +823,9 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
         sound.thunder(lightningFrom.clone());
       }
     }
-    roomDepth.frame(roomNow.weather.on || roomNow.weather.sinceMs < 3000, roomMap);
+    roomDepth.frame(roomNow.weather.on || roomNow.weather.sinceMs < 6000, roomMap);
+    snow?.frame({ weather: roomNow.weather, nowMs, head, room: roomMap, bookOpen: controls.amount > 0.98 });
+    fog?.frame({ weather: roomNow.weather, nowMs, head, floorY: roomMap.floorY(), bookOpen: controls.amount > 0.98 });
     nightSky?.frame({ now: roomNow, nowMs, room: roomMap, head, book: stage.root.visible ? stage.root.getWorldPosition(bookAt) : null, bookOpen: controls.amount > 0.98 });
     windowView?.frame({ state: roomNow.window, nowMs, room: roomMap, bookOpen: controls.amount > 0.98, head, forward, book: stage.root.visible ? stage.root.getWorldPosition(bookAt) : null });
     // Which room effects are showing, each time that changes, so frame summaries can be read per effect.

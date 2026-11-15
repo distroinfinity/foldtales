@@ -9,12 +9,14 @@ import { puppetFiles } from '../puppet/puppet.ts';
 import { RoomSpec } from '../room/room.ts';
 import type { ShowManifest } from '../show/manifest.ts';
 import { wholeRef, type TexRef } from './texref.ts';
+import { FOG_ART } from '../room-fx/fog.ts';
 import { SKY_ART } from '../room-fx/sky.ts';
+import { SNOW_ART } from '../room-fx/snow.ts';
 import { RAIN_ART } from '../room-fx/weather.ts';
 import { WINDOW_ART } from '../room-fx/window.ts';
 
 /** Paintings the room effects use, loaded with the rest of the art. */
-const ROOM_FX_ART = [WINDOW_ART, RAIN_ART, ...Object.values(SKY_ART)];
+const ROOM_FX_ART = [WINDOW_ART, RAIN_ART, ...Object.values(SKY_ART), ...Object.values(SNOW_ART), ...FOG_ART];
 
 export interface StageAssets {
   book: BookSpec;
