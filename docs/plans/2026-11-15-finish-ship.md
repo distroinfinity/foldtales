@@ -156,6 +156,26 @@ This lane makes what the other lanes build submittable and production-ready. It 
   `reviewQuery` returns null outside review builds, so production never sees any of it.
 - **The client's side, on `finish-ship` once #32 merges:** `client/src/telemetry.ts` counts frames over 16.7 ms and the slowest frame per window. `scripts/telemetry-report.ts` then reads per test case, drops each session's first window (the transition into the fixture), and checks the observed `room_fx` against the case.
 
+### The emulated-headset pass (Nov 16, night)
+
+A dev build from this workspace (`iwsdk dev up --headless`), the IWSDK emulator's furnished living room, **emulated hands only, no controllers**. The backend wasn't running, so this also covered "backend down". Evidence: `docs/plans/evidence/2026-11-16-finish-ship/`.
+
+| Path | Result | Evidence |
+|---|---|---|
+| The page, first visit | Ready: "Open the book", with the art loaded through the new content-addressed cache layout | `01-page-ready.jpg` |
+| Into the book, hands only | The book found the coffee table, the lamp spread stood up, the beam swept the room and the room dimmed | `02-book-on-table-hands.jpg` |
+| **Chapter 1 with no input at all** (the zero-input path), in real time | Played to "The end of chapter one · Read it again" inside 7 minutes. No stall, and the page turns came on their own | `03-zero-input-end.jpg` |
+| **The VR Glasses view** (`metaVRGlasses` profile, gaze granted) | Looking at the book, the whole book is inside the glasses' 37°/25°/43° view with margin: cast, caption band, drawer and satchel. Looking straight ahead from 1.6 m instead, the talk tab at the near edge is at −43.8° (just outside) and the caption at −40.5°, so the book must be looked at, which is what a reader does | `04-glasses-view.jpg` |
+| **Gaze and pinch, either hand** | Gaze at the kite, pinch with the right hand: it lifted (+3 cm). Gaze at Pip, pinch with the **left** hand: the kite floated to him (x 0.18 → 0.02, beside Pip). A hand-over with no reaching | Positions from `scene transform` |
+| **A reload mid-chapter** | The page offered "Continue chapter 1" and "Start from the beginning". Continue reopened the book on the same spread | `05-reload-continued.jpg` |
+| Console, throughout | No errors from the book. Expected: the backend's `/api/v1/device` 500 (it was down), IWSDK's `THREE.Clock` deprecation, and the gaze notices (granted, source appeared; "no ray-interactable targets" because the book reads the gaze ray in its own code) | `browser logs` |
+
+**Not covered in the emulator, and why:**
+- **The offline cache:** the emulator only runs dev builds, which get no worker by design. It was tested in a real browser against a production build (task 2's table), and the owner checks it on the Quest (device script, step 10).
+- **The mute:** no setting calls it on this branch. Lane A's Sound setting does on main; `rampMaster` has a unit test.
+- **Frame rate:** emulator fps means nothing (`docs/technical-design.md`). That's the device script's sitting 2.
+- **Hand-driven grabs and pinches with near hands:** the book's targets are its own code, not IWSDK interactables, so the CLI has no targets to drive. My lane changes no interaction code. Gaze plus pinch exercised the same hand-over path.
+
 ### The owner's device script, Nov 17
 
 Run once, after the lanes' HEADSET GREENs, on the build that will be submitted: the live link once the lanes are merged, otherwise the review build over USB. **About 70 minutes of headset time, in two sittings.** Telemetry and the Mac watch the rest, so the owner only plays and says what they notice. Each line is one thing to do, and what to look or listen for.
