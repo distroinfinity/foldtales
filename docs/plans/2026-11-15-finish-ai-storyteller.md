@@ -4,7 +4,7 @@
 
 ## Owner's setup checklist (do this first, today)
 
-About 30 minutes of clicking, plus up to an hour waiting for DNS. **Type secrets only into Railway's dashboard, never into this chat or a `!` command,** so they stay out of every log.
+About 45 minutes of clicking, plus up to an hour waiting for DNS. **Type secrets only into Railway's dashboard, never into this chat or a `!` command,** so they stay out of every log.
 
 ### Already done (checked Nov 15, values not shown)
 
@@ -40,7 +40,44 @@ At [console.cloud.google.com](https://console.cloud.google.com), signed in as th
 
 Google says a new client can take from 5 minutes to a few hours to start working.
 
-### 2. Resend, for the email code on your phone (about 10 minutes, plus DNS)
+### 2. Facebook Login, the Meta-account option (about 15 minutes)
+
+Meta account sign-in isn't offered to web apps, so Facebook Login is the Meta-world choice beside Google and the phone code. At [developers.facebook.com](https://developers.facebook.com), signed in with the Facebook account that should own the app (register as a developer if it asks):
+
+- [ ] **My Apps → Create app.**
+  - App name `Foldtales`, app contact email: yours.
+  - Use case: **Authenticate and request data from users with Facebook Login**.
+  - Business portfolio: **I don't want to connect a business portfolio yet.**
+  - Finish, then **Create app** (it asks for your Facebook password).
+- [ ] **Use cases → Authenticate and request data… → Customize → Permissions:**
+  - `public_profile` is already there.
+  - Next to `email`, press **Add**.
+  - Nothing else.
+- [ ] **Use cases → … → Customize → Settings** (Facebook Login settings):
+  - Client OAuth login: **Yes**
+  - Web OAuth login: **Yes**
+  - Enforce HTTPS: **Yes**
+  - Use Strict Mode for redirect URIs: **Yes**
+  - Login from Devices: **No**
+  - Valid OAuth Redirect URIs, exactly: `https://api.foldtales.xyz/v1/auth/callback/facebook`
+  - Save.
+
+  **No local address.** Facebook only takes https here, and allows `localhost` only while the app is in Development mode. So Facebook is tested on the real link, in stage 2, before the sign-in buttons are shown to anyone. Google and the phone code are tested in this workspace first.
+- [ ] **App settings → Basic:**
+  - App domains: `foldtales.xyz`
+  - Privacy Policy URL: `https://www.foldtales.xyz/privacy/`
+  - User data deletion: choose **Data deletion instructions URL**, and enter `https://www.foldtales.xyz/privacy/`. Its "Deleting your book" section says how. In stage 2 it gains a line naming Facebook.
+  - Category: **Entertainment**.
+  - App icon (1024 × 1024): optional. Skip it unless publishing asks for one. If it does, tell me, and I'll export the book's cover from the existing art.
+  - **Save changes.**
+- [ ] **Publish** (left menu) → **Publish**, so the top bar says **Live**. In Development mode, only people with a role on the app can sign in. `email` and `public_profile` need no App Review. If Meta asks for a Data Use Checkup or business verification at this step, stop and tell me rather than filling it in.
+- [ ] **Into Railway**, the same Variables page as Google. From **App settings → Basic**, copy:
+  - `FACEBOOK_CLIENT_ID` = the App ID
+  - `FACEBOOK_CLIENT_SECRET` = the App secret (press **Show**)
+
+  Then **Deploy**. Facebook stays hidden on the site until stage 2 wires it in and I turn sign-in on.
+
+### 3. Resend, for the email code on your phone (about 10 minutes, plus DNS)
 
 - [ ] Sign up at [resend.com](https://resend.com) (free: 3,000 emails a month, 100 a day).
 - [ ] **Domains → Add domain:** `foldtales.xyz`, region **North Virginia (us-east-1)**, the same region as the Railway backend.
@@ -59,15 +96,16 @@ Google says a new client can take from 5 minutes to a few hours to start working
 - [ ] **API Keys → Create API key:** name `foldtales-railway`, permission **Sending access**, domain `foldtales.xyz`. It's shown once.
 - [ ] **Into Railway**, the same Variables page: `RESEND_API_KEY` = the key. **Deploy.**
 
-### 3. Tell me "done"
+### 4. Tell me "done"
 
 Then I, without showing any value:
 
 - set `RESEND_FROM=Foldtales <stories@foldtales.xyz>` on Railway;
-- copy `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` and `RESEND_API_KEY` from Railway into this workspace's `.env.workspace` (not the shared `.env.local`), so you can test sign-in here first;
+- copy `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` and `RESEND_API_KEY` from Railway into this workspace's `.env.workspace` (not the shared `.env.local`), so you can test sign-in here first (the Facebook pair stays on Railway only, since Facebook can't come back to a local address);
+- check that the Facebook app answers as Live for its App ID (no secret needed);
 - check that `api.foldtales.xyz/v1/auth/google/start` now goes to Google, and that a code email arrives at an address you give me.
 
-**Not yet:** `TT_ACCOUNTS=on` (Railway) and `TT_PUBLIC_ACCOUNTS=on` (the Pages build). They go on together, in stage 3, once sign-in has passed end to end in the headset: Google in Quest Browser, and the phone code.
+**Not yet:** `TT_ACCOUNTS=on` (Railway) and `TT_PUBLIC_ACCOUNTS=on` (the Pages build). They go on together, in stage 3, once sign-in has passed end to end in the headset: Google and Facebook in Quest Browser, and the phone code.
 
 ---
 
