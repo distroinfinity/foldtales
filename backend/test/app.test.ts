@@ -52,7 +52,7 @@ const callers: Record<RouteName, (api: BackendApi) => Promise<unknown>> = {
   reactToObject: (api) => collect(api.reactToObject(reactReq)),
   replyAsCharacter: (api) => collect(api.replyAsCharacter(replyReq)),
   speakLine: (api) => api.speakLine({ speaker: 'bramble', text: 'Hi', mood: 'warm' }),
-  speechToken: (api) => api.speechToken({}),
+  transcribe: (api) => api.transcribe({ storyId: 's', audio: { mime: 'audio/webm', base64: 'AAAA' } }),
   storytellerAvailability: (api) => api.storytellerAvailability({}),
   startStory: (api) => api.startStory({ requestId: 'r1' }),
   storyTurn: async (api) => {
