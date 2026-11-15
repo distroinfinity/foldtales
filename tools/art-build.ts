@@ -209,34 +209,27 @@ async function inParallel<T>(items: T[], limit: number, run: (item: T) => Promis
   await Promise.all(Array.from({ length: Math.max(1, Math.min(limit, items.length)) }, lane));
 }
 
-/**
- * Encodes every PNG in the named art folders. Character folders (`cast/*`) become one atlas each.
- *
- * The cache is content-addressed: each texture's bytes are stored under a key made from the cache
- * settings and its sources' names and bytes (`blobs/<key>.ktx2`). Changing a source and changing it
- * back, a missing blob, an interrupted build or a new encoder setting can't serve the wrong bytes.
- * `ktx2/` is then filled from the blobs on every build (the names the site serves), and blobs no
- * longer used are removed.
- */
-export async function buildArtCache({
-  artRoot,
-  folders,
-  cacheDir,
-  log = () => undefined,
-  threads = Math.max(1, Math.min(8, availableParallelism() - 1)),
-}: {
-  artRoot: string;
-  folders: string[];
-  cacheDir: string;
-  log?: (line: string) => void;
-  threads?: number;
-}): Promise<ArtIndex> {
+interface EncodeJob {
+  key: string;
+  label: string;
+  pixels: () => Promise<{ rgba: Uint8Array; width: number; height: number; hasAlpha: boolean }>;
+}
+
+export interface ArtPlan {
+  index: ArtIndex;
+  /** Served name (`ktx2/...`) to its blob's key. */
+  outputs: Map<string, string>;
+  /** Textures whose blob isn't in the cache yet. */
+  missing: EncodeJob[];
+}
+
+/** What the art needs, and which textures the cache lacks. Reads the sources' bytes and sizes, encodes nothing. */
+export async function planArtCache({ artRoot, folders, cacheDir }: { artRoot: string; folders: string[]; cacheDir: string }): Promise<ArtPlan> {
   const index: ArtIndex = { v: 1, files: {}, atlases: {} };
-  mkdirSync(cacheDir, { recursive: true });
   // `book` holds `book/drawer` too: each file is encoded once, whichever folder lists it first.
   const seen = new Set<string>();
   const outputs = new Map<string, string>(); // served name -> key
-  const jobs: Array<{ key: string; label: string; pixels: () => Promise<{ rgba: Uint8Array; width: number; height: number; hasAlpha: boolean }> }> = [];
+  const jobs: EncodeJob[] = [];
 
   for (const folder of folders) {
     const files = pngsUnder(join(artRoot, folder))
@@ -289,6 +282,36 @@ export async function buildArtCache({
     }
   }
 
+  return { index, outputs, missing: jobs };
+}
+
+/**
+ * Encodes every PNG in the named art folders. Character folders (`cast/*`) become one atlas each.
+ *
+ * The cache is content-addressed and committed (`client/.art-cache/blobs/`): each texture is stored
+ * under a key made from the cache settings and its sources' names and bytes. Changing a source and
+ * back, a missing blob, an interrupted build or a new encoder setting can't serve the wrong bytes.
+ * `ktx2/` (the names the site serves) and `ktx2.json` are rebuilt from the blobs every time and
+ * aren't committed. Blobs no longer used are kept unless `prune` is set, so a lane whose manifest
+ * doesn't list another lane's art never deletes it.
+ */
+export async function buildArtCache({
+  artRoot,
+  folders,
+  cacheDir,
+  log = () => undefined,
+  threads = Math.max(1, Math.min(8, availableParallelism() - 1)),
+  prune = false,
+}: {
+  artRoot: string;
+  folders: string[];
+  cacheDir: string;
+  log?: (line: string) => void;
+  threads?: number;
+  prune?: boolean;
+}): Promise<ArtIndex> {
+  mkdirSync(cacheDir, { recursive: true });
+  const { index, outputs, missing: jobs } = await planArtCache({ artRoot, folders, cacheDir });
   if (jobs.length > 0) {
     log(`encoding ${jobs.length} textures on ${threads} threads`);
     const pool = encoderPool(threads);
@@ -309,8 +332,10 @@ export async function buildArtCache({
     mkdirSync(dirname(join(cacheDir, rel)), { recursive: true });
     copyFileSync(blobPath(cacheDir, key), join(cacheDir, rel));
   }
-  const used = new Set([...outputs.values()].map((key) => `${key}.ktx2`));
-  for (const name of existsSync(join(cacheDir, 'blobs')) ? readdirSync(join(cacheDir, 'blobs')) : []) if (!used.has(name)) rmSync(join(cacheDir, 'blobs', name), { force: true });
+  if (prune) {
+    const used = new Set([...outputs.values()].map((key) => `${key}.ktx2`));
+    for (const name of existsSync(join(cacheDir, 'blobs')) ? readdirSync(join(cacheDir, 'blobs')) : []) if (!used.has(name)) rmSync(join(cacheDir, 'blobs', name), { force: true });
+  }
   writeFileSync(join(cacheDir, 'ktx2.json'), JSON.stringify(index));
   return index;
 }

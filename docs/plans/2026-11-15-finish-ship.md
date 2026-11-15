@@ -19,7 +19,16 @@ This lane makes what the other lanes build submittable and production-ready. It 
 
 ## Progress (Nov 16)
 
-### Task 1, the build: measured. The Actions deploy is withdrawn; committing the cache is now the safe option
+### Task 1, the build: done. The art cache is committed (sprint master, Nov 16)
+
+- **Committed:** `client/.art-cache/blobs/`, 72 KTX2 blobs, **59 MB**, only what the site ships (no source PNGs). `ktx2/` and `ktx2.json` are derived on every build and stay ignored.
+- **Measured from a fresh checkout,** as Pages builds: `pnpm --filter @tabletop/client build` took **34 s with nothing encoded**. It took 14 minutes on Pages before.
+- **Size, chapter by chapter:** chapter 1's art is 59 MB of blobs: sets 29 MB, the painted room 12 MB, the book 7 MB, room effects 6 MB, the cast 3 MB, objects 1 MB. Sets and the book are shared, so a later chapter adds only its new art. Lane B's plan adds the landing set (about 6 MB) and Thimble (about 1 MB). Snowy repaints, if lane C paints them, would add up to about 21 MB.
+- **`pnpm art:cache`** (`tools/art-cache.ts`) encodes any missing texture on every core and says what to commit. `--prune` deletes blobs nothing uses; that's lane E's job, once, before release.
+- **`tests/art-cache-committed.test.ts`** fails `pnpm check` if any texture the manifest's art folders need has no committed blob. It names each one.
+- **The rule for lanes B and C:** after adding or changing art in a folder the manifest lists, run `pnpm art:cache` and commit `client/.art-cache/blobs` in the same commit as the art. `pnpm check` fails until you do. Never delete blobs: pruning is off by default, so one lane can't remove another's.
+
+#### How we got here
 
 - **The three-chapter build, measured.** I encoded stand-ins for lane B's planned new art (`docs/plans/2026-11-15-finish-chapters.md`): the landing set (a copy of the gap's), Thimble (a copy of Moth), and in the worst case snowy repaints of three sets. The Mac was loaded by other lanes' builds (load average 19).
 

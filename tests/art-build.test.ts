@@ -65,7 +65,7 @@ describe('the compressed art cache', async () => {
   const { tmpdir } = await import('node:os');
   const { join } = await import('node:path');
   const sharp = (await import('sharp')).default;
-  const { buildArtCache, blobPath, cacheKey, CACHE_SETTINGS } = await import('../tools/art-build.ts');
+  const { buildArtCache, blobPath, cacheKey, CACHE_SETTINGS, planArtCache } = await import('../tools/art-build.ts');
 
   const png = (rgb: [number, number, number], alpha = false) =>
     sharp({ create: { width: 24, height: 20, channels: alpha ? 4 : 3, background: alpha ? { r: rgb[0], g: rgb[1], b: rgb[2], alpha: 0.5 } : { r: rgb[0], g: rgb[1], b: rgb[2] } } }).png().toBuffer();
@@ -94,15 +94,19 @@ describe('the compressed art cache', async () => {
     expect(served(cache, 'ktx2/sets/a/ground.ktx2').equals(first)).toBe(true);
   }, 120_000);
 
-  test('a missing blob is encoded again, and unused blobs are removed', async () => {
+  test('a missing blob is encoded again; unused blobs stay unless pruning is asked for', async () => {
     const cache = join(root, 'c2');
     const index = await buildArtCache({ artRoot: art, folders, cacheDir: cache, threads: 2 });
     expect(Object.keys(index.atlases)).toEqual(['cast/pip']);
     const blobs = readdirSync(join(cache, 'blobs'));
     expect(blobs).toHaveLength(2);
     rmSync(join(cache, 'blobs', blobs[0]!));
-    writeFileSync(join(cache, 'blobs', 'stale.ktx2'), 'old');
+    writeFileSync(join(cache, 'blobs', 'other-lane.ktx2'), 'theirs');
+    expect((await planArtCache({ artRoot: art, folders, cacheDir: cache })).missing).toHaveLength(1);
     await buildArtCache({ artRoot: art, folders, cacheDir: cache, threads: 2 });
+    expect(readdirSync(join(cache, 'blobs')).sort()).toEqual([...blobs, 'other-lane.ktx2'].sort());
+    expect((await planArtCache({ artRoot: art, folders, cacheDir: cache })).missing).toHaveLength(0);
+    await buildArtCache({ artRoot: art, folders, cacheDir: cache, threads: 2, prune: true });
     expect(readdirSync(join(cache, 'blobs')).sort()).toEqual([...blobs].sort());
   }, 120_000);
 
