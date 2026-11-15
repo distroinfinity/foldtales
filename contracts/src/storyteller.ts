@@ -1,16 +1,96 @@
 import { z } from 'zod';
 import { ReadyBeat, VoiceAsset } from './beats.ts';
-import { CanonEntry } from './events.ts';
 import { StageLibrary } from './library.ts';
 import { ObjectDef, ShowObject } from './objects.ts';
 import { ErrorCode, Id, LightMood, RoomLabel, RoomPlaceId, Vec3 } from './primitives.ts';
 import { RoomEffect } from './stage-actions.ts';
 
 /**
- * The AI Storyteller: an evening made up live with the reader. Each turn the client sends the
- * stage as it stands, the reader's room and what just happened; the backend streams back voiced
- * beats in order, built only from the stage library, until the cast turns to listen.
+ * The AI Storyteller: a story of about ten minutes, made up live with the reader. The backend owns
+ * the story's record (who it belongs to, its counts, title, plan and saved page); the client owns
+ * its clock and its ending. Each turn the client sends the stage as it stands, the reader's room
+ * and what just happened; the backend streams back voiced beats in order, built only from the
+ * stage library, until the cast turns to listen.
  */
+
+/**
+ * Refusals the client tells apart without parsing text, beside `SIGN_IN_REQUIRED`. Each is the
+ * message of a `quota_exceeded` error, except `STORYTELLER_RESTING` (`upstream_failed`, not
+ * retryable) and `NO_STORY` (`bad_request`).
+ */
+export const STORIES_TODAY_USED = 'tonight\'s stories are told';
+export const STORYTELLER_RESTING = 'the storyteller is resting';
+export const STORY_OVER = 'this story has ended';
+export const PAINTINGS_USED = 'no more paintings for this story';
+export const NO_STORY = 'no story in progress';
+
+/** Where a story is in its shape. The client decides it from its clock and turn count. */
+export const StoryPhase = z.enum(['welcome', 'middle', 'closing']);
+export type StoryPhase = z.infer<typeof StoryPhase>;
+
+/** Why a story ended. */
+export const EndReason = z.enum(['time', 'turns', 'reader', 'cap', 'failed', 'left']);
+export type EndReason = z.infer<typeof EndReason>;
+
+/** Whether this reader can start a story now. Asking reserves nothing. */
+export const StorytellerAvailability = z.strictObject({
+  status: z.enum(['ready', 'used-today', 'resting']),
+  storiesLeftToday: z.number().int().nonnegative(),
+  /** When today's allowance starts again (the next UTC midnight). */
+  resetsAt: z.iso.datetime(),
+});
+export type StorytellerAvailability = z.infer<typeof StorytellerAvailability>;
+
+/** What one story may still use. */
+export const StoryAllowance = z.strictObject({
+  turns: z.number().int().nonnegative(),
+  paintings: z.number().int().nonnegative(),
+});
+export type StoryAllowance = z.infer<typeof StoryAllowance>;
+
+/** Reserves one of today's stories. The same `requestId` from the same reader returns the same story. */
+export const StartStoryRequest = z.strictObject({ requestId: Id });
+export type StartStoryRequest = z.infer<typeof StartStoryRequest>;
+
+export const StartStoryResponse = z.strictObject({
+  storyId: Id,
+  allowance: StoryAllowance,
+  availability: StorytellerAvailability,
+});
+export type StartStoryResponse = z.infer<typeof StartStoryResponse>;
+
+/** The page the headset shows at the end, as it saves it. */
+export const StoryPage = z.strictObject({
+  title: z.string().min(1).max(80),
+  summary: z.string().min(1).max(400).nullable(),
+  /** Names of the things painted for this story that really arrived on the page. */
+  things: z.array(z.string().min(1).max(60)).max(12),
+});
+export type StoryPage = z.infer<typeof StoryPage>;
+
+/** Ends a story and saves its page. Idempotent: a second call returns the saved record. */
+export const EndStoryRequest = z.strictObject({ storyId: Id, reason: EndReason, page: StoryPage });
+export type EndStoryRequest = z.infer<typeof EndStoryRequest>;
+
+/** A story on the reader's shelf, as saved after moderation. */
+export const StoryRecord = z.strictObject({
+  id: Id,
+  title: z.string().min(1).max(80),
+  summary: z.string().min(1).max(400).nullable(),
+  things: z.array(z.string().min(1).max(60)).max(12),
+  startedAt: z.iso.datetime(),
+  endedAt: z.iso.datetime().nullable(),
+  /** The last change, for the library's list. */
+  updatedAt: z.iso.datetime(),
+});
+export type StoryRecord = z.infer<typeof StoryRecord>;
+
+export const EndStoryResponse = z.strictObject({ record: StoryRecord });
+export type EndStoryResponse = z.infer<typeof EndStoryResponse>;
+
+/** The reader's shelf, newest first. */
+export const ListStoriesResponse = z.strictObject({ stories: z.array(StoryRecord).max(30) });
+export type ListStoriesResponse = z.infer<typeof ListStoriesResponse>;
 
 /** A place in the reader's real room, from Space Setup, in stage space (metres from the book's spine). */
 export const RoomPlace = z.strictObject({
@@ -50,24 +130,32 @@ export const TurnInput = z.discriminatedUnion('kind', [
   z.strictObject({ kind: z.literal('arrived'), objectId: Id }),
   /** The reader has been quiet this long since the cast turned to listen. */
   z.strictObject({ kind: z.literal('quiet'), seconds: z.number().nonnegative() }),
+  /** Time to end: the story's last turn, which closes it with an `ending`. */
+  z.strictObject({ kind: z.literal('close'), reason: EndReason }),
 ]);
 export type TurnInput = z.infer<typeof TurnInput>;
 
 export const StoryTurnRequest = z.strictObject({
-  sessionId: Id,
+  /** From `startStory`. */
+  storyId: Id,
+  /** New for every turn. A turn id runs once: a repeat gets `recover`, never a second performance. */
+  turnId: Id,
+  phase: StoryPhase,
+  /** Time with the book open since the story began, seconds. */
+  activeSeconds: z.number().nonnegative(),
   library: StageLibrary,
   stage: StageNow,
   room: z.array(RoomPlace).max(24),
   input: TurnInput,
   /** The evening so far as plain lines, oldest first ('reader' for what the reader said). */
   history: z.array(z.strictObject({ who: z.string().min(1), text: z.string().min(1) })).max(120),
-  canon: z.array(CanonEntry),
 });
 export type StoryTurnRequest = z.infer<typeof StoryTurnRequest>;
 
 /**
- * One turn, in order. `beat` is validated and voiced: its lines' `voice.url` is the audio itself as
- * a data URL. A turn ends with exactly one of `listen`, `redirect` or `error`.
+ * One turn, in order. `beat` is validated, checked and voiced: its lines' `voice.url` is the audio
+ * itself as a data URL. A turn ends with exactly one of `listen`, `redirect`, `ending`, `recover`
+ * or `error`.
  */
 export const TurnEvent = z.discriminatedUnion('kind', [
   z.strictObject({ kind: z.literal('beat'), ready: ReadyBeat }),
@@ -77,16 +165,25 @@ export const TurnEvent = z.discriminatedUnion('kind', [
   z.strictObject({ kind: z.literal('paint'), jobId: Id, objectId: Id, description: z.string().min(1).max(200) }),
   /** The cast turns to the reader and waits. */
   z.strictObject({ kind: z.literal('listen'), who: Id.nullable() }),
-  /** Moderation's in-story narrator line, instead of the turn. Voiced, like a beat's lines. */
+  /** The story has its name (checked, and saved with the story). */
+  z.strictObject({ kind: z.literal('titled'), title: z.string().min(1).max(80) }),
+  /** Moderation's in-story narrator line, instead of the rest of the turn. The page turns somewhere cozier. */
   z.strictObject({ kind: z.literal('redirect'), text: z.string().min(1), voice: VoiceAsset }),
+  /** The close turn's last word: the story's title and summary, checked and saved. */
+  z.strictObject({ kind: z.literal('ending'), title: z.string().min(1).max(80), summary: z.string().min(1).max(400).nullable() }),
+  /** This turn id already ran (or is running): nothing is performed again. The client plays its own line and moves on. */
+  z.strictObject({ kind: z.literal('recover') }),
   z.strictObject({ kind: z.literal('error'), code: ErrorCode, message: z.string() }),
 ]);
 export type TurnEvent = z.infer<typeof TurnEvent>;
 
-export const isTurnEnd = (event: TurnEvent): boolean => event.kind === 'listen' || event.kind === 'redirect' || event.kind === 'error';
+export const isTurnEnd = (event: TurnEvent): boolean =>
+  event.kind === 'listen' || event.kind === 'redirect' || event.kind === 'ending' || event.kind === 'recover' || event.kind === 'error';
 
+/** Painting belongs to a story, and is identified by the object it becomes: asking twice paints once. */
 export const PaintRequest = z.strictObject({
-  sessionId: Id,
+  storyId: Id,
+  objectId: Id,
   /** What to paint, in the story's words. */
   description: z.string().min(1).max(200),
   /** A camera frame of a real thing the reader showed, if they agreed to send it. */
