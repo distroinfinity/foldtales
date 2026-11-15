@@ -4,7 +4,7 @@ import { CanonEntry, ShowEvent } from './events.ts';
 import { StageLibrary } from './library.ts';
 import { ShowObject } from './objects.ts';
 import { ErrorCode, Id, Mood, type RouteName } from './primitives.ts';
-import { EndStoryRequest, EndStoryResponse, ListStoriesResponse, PaintRequest, PaintResult, StartStoryRequest, StartStoryResponse, StoryTurnRequest, StorytellerAvailability, TurnEvent, isTurnEnd } from './storyteller.ts';
+import { EndStoryRequest, EndStoryResponse, ListStoriesResponse, PaintRequest, PaintResult, StartStoryRequest, StartStoryResponse, StoryTurnRequest, StorytellerAvailability, TranscribeRequest, TranscribeResponse, TurnEvent, isTurnEnd } from './storyteller.ts';
 import { TelemetryBatch } from './telemetry.ts';
 import { CONTRACT_VERSION } from './version.ts';
 
@@ -134,12 +134,8 @@ export const routes = {
     request: z.strictObject({ speaker: Id, text: z.string().min(1), mood: Mood }),
     response: VoiceAsset,
   },
-  speechToken: {
-    path: '/v1/speech/token',
-    request: empty,
-    // Opaque, because the speech vendor is undecided.
-    response: z.strictObject({ provider: z.string().min(1), token: z.string().min(1), expiresAt: z.iso.datetime() }),
-  },
+  /** Hold to talk: the clip goes to the backend, which returns the words. The headset never holds a speech vendor's token. */
+  transcribe: { path: '/v1/storyteller/transcribe', request: TranscribeRequest, response: TranscribeResponse },
   memoryAppend: {
     path: '/v1/memory/append',
     request: z.strictObject({ seriesId: Id, events: z.array(ShowEvent) }),

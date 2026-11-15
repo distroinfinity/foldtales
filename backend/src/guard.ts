@@ -38,7 +38,7 @@ export function readCaps(env: Record<string, string | undefined>): Caps {
   return Object.fromEntries(entries) as Caps;
 }
 
-const AI_ROUTES = new Set<RouteName>(['planBeat', 'planSpine', 'reactToObject', 'replyAsCharacter', 'speakLine', 'speechToken', 'storyTurn', 'paintProp', 'paintResult', 'soundEffect']);
+const AI_ROUTES = new Set<RouteName>(['planBeat', 'planSpine', 'reactToObject', 'replyAsCharacter', 'speakLine', 'transcribe', 'storyTurn', 'paintProp', 'paintResult', 'soundEffect']);
 const MEMORY_ROUTES = new Set<RouteName>(['memoryAppend', 'memoryRead', 'memoryDelete']);
 const routeOfPath = new Map(Object.entries(routes).map(([name, route]) => [route.path as string, name as RouteName]));
 const ACCOUNT_PATHS = new Set<string>(Object.values(accountRoutes).map((route) => route.path));
