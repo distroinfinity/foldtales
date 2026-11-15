@@ -1,4 +1,4 @@
-import { BackendError, CONTRACT_HEADER, CONTRACT_VERSION, SESSION_HEADER, SIGN_IN_REQUIRED, createHttpBackend, type ReplyChunk, type ShowEvent } from '@tabletop/contracts';
+import { BackendError, CONTRACT_HEADER, CONTRACT_VERSION, SESSION_HEADER, SIGN_IN_REQUIRED, TRANSCRIBE_MAX_BASE64, createHttpBackend, type ReplyChunk, type ShowEvent } from '@tabletop/contracts';
 import { createMockBackend, fixtureLibrary } from '@tabletop/contracts/mocks';
 import { describe, expect, test } from 'vitest';
 import { createApp } from '../src/app.ts';
@@ -50,6 +50,7 @@ async function collect(stream: AsyncIterable<ReplyChunk>): Promise<ReplyChunk[]>
 }
 
 const line = { speaker: 'someone', text: 'hello', mood: 'neutral' } as const;
+const clip = { storyId: 's', audio: { mime: 'audio/webm', base64: 'AAAA' } } as const;
 const replyRequest = { castId: 'bramble', playerId: 'ann', heard: 'hi', sceneSummary: 'A brook', library: fixtureLibrary(), objects: [], canon: [], recent: [] };
 const event = (id: string, seq: number | null, seriesId = 's'): ShowEvent =>
   ({ v: 1, id, seq, seriesId, episodeId: null, actor: { kind: 'app' }, showMs: 0, at: NOON.toISOString(), type: 'session.resumed', data: {} }) as ShowEvent;
@@ -58,12 +59,12 @@ describe('tokens', () => {
   test('an AI route needs a valid token and a valid session', async () => {
     const { api, device } = harness();
     const { token } = await device();
-    expect(await codeOf(api(undefined, undefined, 'session-ann').speechToken({}))).toBe('unauthorized');
-    expect(await codeOf(api(`${token}x`, undefined, 'session-ann').speechToken({}))).toBe('unauthorized');
-    expect(await codeOf(api(token, undefined, 'session-ann').speechToken({}))).toBe('ok');
-    const guest = api(token).speechToken({});
+    expect(await codeOf(api(undefined, undefined, 'session-ann').transcribe(clip))).toBe('unauthorized');
+    expect(await codeOf(api(`${token}x`, undefined, 'session-ann').transcribe(clip))).toBe('unauthorized');
+    expect(await codeOf(api(token, undefined, 'session-ann').transcribe(clip))).toBe('ok');
+    const guest = api(token).transcribe(clip);
     await expect(guest).rejects.toMatchObject({ code: 'unauthorized', message: SIGN_IN_REQUIRED });
-    expect(await codeOf(api(token, undefined, 'forged').speechToken({}))).toBe('unauthorized');
+    expect(await codeOf(api(token, undefined, 'forged').transcribe(clip))).toBe('unauthorized');
   });
 
   test('a guest keeps memory and telemetry, keyed by the device', async () => {
@@ -78,7 +79,7 @@ describe('tokens', () => {
     const { api, clock, device } = harness();
     const { token } = await device();
     clock.now = new Date(NOON.getTime() + 31 * 86_400_000);
-    expect(await codeOf(api(token, undefined, 'session-ann').speechToken({}))).toBe('unauthorized');
+    expect(await codeOf(api(token, undefined, 'session-ann').transcribe(clip))).toBe('unauthorized');
   });
 
   test('renewing, even expired, keeps the device and its memory', async () => {
@@ -120,7 +121,7 @@ describe('new identities', () => {
 describe('browser access', () => {
   const headers = `content-type,authorization,${CONTRACT_HEADER},${SESSION_HEADER}`;
   const preflight = (app: ReturnType<typeof harness>['app'], origin: string) =>
-    app.request('/v1/speech/token', { method: 'OPTIONS', headers: { origin, 'access-control-request-method': 'POST', 'access-control-request-headers': headers } });
+    app.request('/v1/storyteller/transcribe', { method: 'OPTIONS', headers: { origin, 'access-control-request-method': 'POST', 'access-control-request-headers': headers } });
 
   test('a full preflight then the authenticated POST works from a preview', async () => {
     const { app, device } = harness();
@@ -131,7 +132,7 @@ describe('browser access', () => {
     expect(answer.headers.get('access-control-allow-origin')).toBe(origin);
     const allowed = answer.headers.get('access-control-allow-headers')!.toLowerCase();
     for (const header of headers.split(',')) expect(allowed).toContain(header.toLowerCase());
-    const post = await app.request('/v1/speech/token', {
+    const post = await app.request('/v1/storyteller/transcribe', {
       method: 'POST',
       headers: {
         origin,
@@ -140,7 +141,7 @@ describe('browser access', () => {
         [CONTRACT_HEADER]: String(CONTRACT_VERSION),
         [SESSION_HEADER]: 'session-ann',
       },
-      body: '{}',
+      body: JSON.stringify(clip),
     });
     expect(post.status).toBe(200);
     expect(post.headers.get('access-control-allow-origin')).toBe(origin);
@@ -297,5 +298,25 @@ describe('readCaps', () => {
   test('takes zero, and refuses nonsense', () => {
     expect(readCaps({ CAP_GLOBAL: '0' }).global).toBe(0);
     expect(() => readCaps({ CAP_GLOBAL: 'lots' })).toThrow('CAP_GLOBAL');
+  });
+});
+
+describe('a hold of the tab fits under the body limit', () => {
+  // 30 s of Opus at 32 kbps is 120,000 bytes; base64 makes it 160,000 characters.
+  const opus30s = Math.ceil((30 * 32_000) / 8 / 3) * 4;
+  test.each([
+    ['30 s of Opus at 32 kbps', opus30s],
+    ['the most a hold may send', TRANSCRIBE_MAX_BASE64],
+  ])('%s', async (_name, chars) => {
+    const { device } = harness();
+    const { api } = await device();
+    expect(opus30s).toBe(160_000);
+    await expect(api.transcribe({ storyId: 's', audio: { mime: 'audio/webm', base64: 'A'.repeat(chars) } })).resolves.toEqual({ text: '' });
+  });
+
+  test('more than that is refused, never sent on', async () => {
+    const { device } = harness();
+    const { api } = await device();
+    expect(await codeOf(api.transcribe({ storyId: 's', audio: { mime: 'audio/webm', base64: 'A'.repeat(TRANSCRIBE_MAX_BASE64 + 4) } }))).toBe('bad_request');
   });
 });

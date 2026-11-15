@@ -3,4 +3,4 @@
  * to a wire shape bumps this, additive or not. Old cached clients then take the authored
  * path until they update.
  */
-export const CONTRACT_VERSION = 5;
+export const CONTRACT_VERSION = 7;

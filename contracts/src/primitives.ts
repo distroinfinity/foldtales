@@ -80,7 +80,7 @@ export const ROUTE_NAMES = [
   'paintResult',
   'soundEffect',
   'speakLine',
-  'speechToken',
+  'transcribe',
   'memoryAppend',
   'memoryRead',
   'memoryDelete',

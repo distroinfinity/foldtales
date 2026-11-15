@@ -63,6 +63,22 @@ export interface SoundEngine {
   ambience(name: 'rain' | 'sea', level: number): void;
   /** A roll of thunder from far off, in the direction `at`. A clip named `thunder` is used if there is one. */
   thunder(at: Vector3): void;
+  /**
+   * The settings' mute: ramps both buses' masters (show and ui) to silence and back, without a click.
+   * Everything goes through those masters, so the music bed, when there is one, mutes with the show.
+   * Kept across the buses being created later.
+   */
+  setMuted(on: boolean): void;
+}
+
+/** A bus master's level when not muted. */
+const MASTER_GAIN = 0.9;
+
+/** Moves a master to silence (or back) from wherever it is now, over about a fifth of a second. */
+export function rampMaster(gain: Pick<AudioParam, 'value' | 'cancelScheduledValues' | 'setValueAtTime' | 'setTargetAtTime'>, muted: boolean, now: number): void {
+  gain.cancelScheduledValues(now);
+  gain.setValueAtTime(gain.value, now);
+  gain.setTargetAtTime(muted ? 0 : MASTER_GAIN, now, 0.05);
 }
 
 interface Bus {
@@ -73,7 +89,7 @@ interface Bus {
 
 function makeBus(): Bus {
   const ctx = new AudioContext();
-  const master = new GainNode(ctx, { gain: 0.9 });
+  const master = new GainNode(ctx, { gain: MASTER_GAIN });
   master.connect(ctx.destination);
   const noise = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
   const data = noise.getChannelData(0);
@@ -90,12 +106,14 @@ export function createSoundEngine(sources?: SoundSources): SoundEngine {
   let voiceIn: AudioNode | null = null;
   const buffers = new Map<string, AudioBuffer>();
   const turns = new Map<string, number>();
+  let muted = false;
 
   const ensure = (): Record<SoundBus, Bus> | null => {
     if (buses) return buses;
     try {
       buses = { show: makeBus(), ui: makeBus() };
       showRunning = createSuspender(buses.show.ctx);
+      if (muted) for (const bus of Object.values(buses)) bus.master.gain.value = 0;
     } catch {
       buses = null;
     }
@@ -436,6 +454,12 @@ export function createSoundEngine(sources?: SoundSources): SoundEngine {
     resume() {
       ensure();
       showRunning?.set(true);
+    },
+    setMuted(on) {
+      muted = on;
+      const b = ensure();
+      if (!b) return;
+      for (const bus of Object.values(b)) rampMaster(bus.master.gain, on, bus.ctx.currentTime);
     },
     roomTone(on) {
       const b = ensure();

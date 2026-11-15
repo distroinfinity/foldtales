@@ -23,6 +23,28 @@ export const STORYTELLER_RESTING = 'the storyteller is resting';
 export const STORY_OVER = 'this story has ended';
 export const PAINTINGS_USED = 'no more paintings for this story';
 export const NO_STORY = 'no story in progress';
+/** Listening is busy (the speech service's rate limit): a retryable `quota_exceeded`. "I couldn't hear you just then." */
+export const LISTENING_BUSY = 'listening is busy';
+
+/**
+ * The most audio one hold may send, as base64: 30 s of Opus at 32 kbps is about 160,000
+ * characters, so this leaves room and still fits the backend's 512 KB body limit.
+ */
+export const TRANSCRIBE_MAX_BASE64 = 480_000;
+
+/** What the reader said while holding the tab, recorded on the headset and sent when they let go. */
+export const TranscribeRequest = z.strictObject({
+  storyId: Id,
+  audio: z.strictObject({
+    mime: z.enum(['audio/webm', 'audio/ogg', 'audio/mp4', 'audio/wav']),
+    base64: z.string().min(1).max(TRANSCRIBE_MAX_BASE64),
+  }),
+});
+export type TranscribeRequest = z.infer<typeof TranscribeRequest>;
+
+/** The words heard. Empty means nothing was caught. */
+export const TranscribeResponse = z.strictObject({ text: z.string().max(600) });
+export type TranscribeResponse = z.infer<typeof TranscribeResponse>;
 
 /** Where a story is in its shape. The client decides it from its clock and turn count. */
 export const StoryPhase = z.enum(['welcome', 'middle', 'closing']);
