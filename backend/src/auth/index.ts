@@ -36,16 +36,16 @@ export function readAuthSettings(
   if (!env.RESEND_API_KEY) log(dev ? 'auth: no RESEND_API_KEY, so email codes are printed here' : 'auth: no RESEND_API_KEY, so email sign-in is off');
   const sendCode = codeSender({
     resendKey: env.RESEND_API_KEY,
-    from: env.RESEND_FROM ?? 'Tabletop Theater <onboarding@resend.dev>',
+    from: env.RESEND_FROM ?? 'Foldtales <onboarding@resend.dev>',
     dev,
     log,
   });
   return { secret, baseURL: baseURL.replace(/\/+$/, ''), clientOrigins, google, sendCode };
 }
 
-function createAuth(db: DatabaseSync, settings: AuthSettings, books: BookStore) {
+function createAuth(db: DatabaseSync, settings: AuthSettings, books: BookStore, forget: (userId: string) => void) {
   return betterAuth({
-    appName: 'Tabletop Theater',
+    appName: 'Foldtales',
     secret: settings.secret,
     baseURL: settings.baseURL,
     basePath: AUTH_BASE_PATH,
@@ -58,6 +58,7 @@ function createAuth(db: DatabaseSync, settings: AuthSettings, books: BookStore) 
         // Better Auth removes the user, sessions and accounts; the book, links and codes are ours.
         afterDelete: async (user) => {
           books.forget(user.id);
+          forget(user.id);
           db.prepare('DELETE FROM deviceCode WHERE userId = ?').run(user.id);
         },
       },
@@ -98,9 +99,10 @@ export interface Accounts {
 }
 
 /** Better Auth on the store's own connection, with its tables migrated before the server listens. */
-export async function openAccounts(db: DatabaseSync, settings: AuthSettings, now: () => Date = () => new Date()): Promise<Accounts> {
+/** `forget` removes what other stores keep for a deleted reader (the Storyteller's stories). */
+export async function openAccounts(db: DatabaseSync, settings: AuthSettings, now: () => Date = () => new Date(), forget: (userId: string) => void = () => {}): Promise<Accounts> {
   const books = openBookStore(db);
-  const auth = createAuth(db, settings, books);
+  const auth = createAuth(db, settings, books, forget);
   const { runMigrations } = await getMigrations(auth.options);
   await runMigrations();
 

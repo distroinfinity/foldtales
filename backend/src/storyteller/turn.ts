@@ -39,10 +39,10 @@ const MAX_PAINTS = 1;
 
 /** What each room effect does, in the words the storyteller reads. Only the ones the client says it can show are offered. */
 const ROOM_HELP: Record<RoomEffect, string> = {
-  rain: 'painted rain falls across the reader\'s whole room and it darkens',
+  rain: 'fine painted rain falls across the reader\'s whole room, and they hear it',
   snow: 'snow falls in the room and settles on their real table and couch',
   fog: 'fog rolls along their floor',
-  thunder: 'a thunder flash lights their walls (only while it rains)',
+  thunder: 'thunder rolls from outside, heard, not seen (only while it rains)',
   clear: 'the weather in the room ends',
   'night-sky': 'the room goes dark and stars and the moon come out on their ceiling',
   'stars-lantern': 'the Lantern constellation lights up overhead (only with the night sky)',
@@ -115,6 +115,9 @@ SET <set id>               turn the page to another set (then use that set's mar
 PAINT <new-object-id> | <what it looks like>   something new that isn't in the library is fetched and painted into the story (at most one per turn; only when the story really wants a new thing)
 ROOM <effect> [object:<id>] [at:<room place>]   an effect in the reader's real room. Only the effects listed for tonight. Write it on the line just before the words that talk about it
 LISTEN <who>               end the turn: the cast turns to the reader and waits
+TITLE | <the story's name> once, when the reader gives the story its premise: a storybook title under 60 characters
+PLAN | <private plan>       once, after TITLE: one or two sentences, never spoken: the problem, two moments to ask the reader, and how it ends
+END | <summary>             only on the story's last turn, after its last lines: two or three short sentences of what happened, for the story's page
 
 Rules:
 - Only name cast, objects, marks, sets, actings and cues listed for this turn. Anything else is thrown away.
@@ -128,13 +131,22 @@ Rules:
 - The reader's real room is listed as room places (couch-1, window-1…). Characters stay on the book and can talk about the giant's couch or window; ROOM effects use these places with at:, such as ROOM hunt object:kite at:couch-1. When the reader asks for something in their room ("make it rain", "where's my kite?"), use the ROOM effect that does it if it's listed; if none is, say so kindly in story and do something on the page instead.
 - If the reader asks for something unkind or out of tone, the narrator gently turns the page to something cozier, in story.
 - Never repeat a line from the evening so far.
-- Never guess the reader's name, age or gender: call them "giant", "you", or by a name they've told you.`;
+- Never guess the reader's name, age or gender: call them "giant", "you", or by a name they've told you.
+- A story lasts about ten minutes. It has a beginning (the reader's premise), a middle with two or three moments where the story turns to the reader, and a warm, complete ending. Follow the story's plan, bending it to what the reader does.
+- When the reader is quiet after a question, never wait: a character decides it themselves, out loud and in character, and the story goes on.`;
 
 function castOf(request: StoryTurnRequest) {
   return new Map(request.library.cast.map((c) => [c.id, c]));
 }
 
-function contextOf(request: StoryTurnRequest): string {
+/** What the backend keeps about the story, for the prompt: its name, its private plan, and the reader's last stories. */
+export interface StoryContext {
+  title: string | null;
+  plan: string | null;
+  recent: Array<{ title: string; summary: string | null }>;
+}
+
+export function contextOf(request: StoryTurnRequest, ctx: StoryContext = { title: null, plan: null, recent: [] }): string {
   const { library, stage, room, input, history } = request;
   const here = new Set(stage.cast.map((c) => c.id));
   const set = library.sets.find((s) => s.id === stage.setId);
@@ -145,18 +157,28 @@ function contextOf(request: StoryTurnRequest): string {
   const sets = library.sets.map((s) => `- ${s.id}: ${s.description}${s.id === stage.setId ? ' (showing now)' : ''}`);
   const marks = set?.marks.map((m) => `${m.id} (${m.label})`).join(', ') ?? '';
   const objects = stage.objects.map((o) => `- ${o.id}: the ${o.def.name}. ${o.def.description}${o.origin === 'satchel' ? " (in the reader's satchel: kept from an earlier evening)" : ''}${o.history.length ? ` (${o.history.map((h) => h.text).join(' ')})` : ''}`);
+  const drawer = stage.objects.filter((o) => o.origin === 'drawer').map((o) => `${o.id} (the ${o.def.name})`);
+  const premise = request.phase === 'welcome' && (input.kind === 'heard' || input.kind === 'gift' || input.kind === 'quiet');
   const what =
     input.kind === 'open'
-      ? 'The evening begins: the book has just opened. Greet the reader and start something.'
-      : input.kind === 'heard'
-        ? `The reader said${input.to ? ` to ${input.to}` : ''}: "${input.text}"`
-        : input.kind === 'gift'
-          ? `The reader handed the ${stage.objects.find((o) => o.id === input.objectId)?.def.name ?? input.objectId} to ${input.castId}.`
-          : input.kind === 'arrived'
-            ? `The ${stage.objects.find((o) => o.id === input.objectId)?.def.name ?? input.objectId} has just arrived on the page (newly painted, or the reader took it out of their satchel). Use it.`
-            : input.kind === 'quiet'
-              ? `The reader has been quiet for ${Math.round(input.seconds)} seconds. Carry the story on a little, then invite them again.`
-              : 'Time to end the story: bring it to a warm, complete ending in a few lines, then LISTEN.';
+      ? `The story begins: the book has just opened. Greet the reader warmly${ctx.recent.length ? ', and remember one of their earlier stories in a line' : ''}. Then invite them: tell us what tonight's story is about, or hand us something lost from the drawer${drawer.length ? ` (${drawer.join(', ')})` : ''}, and we'll find out whose it is. Then LISTEN.`
+      : input.kind === 'close'
+        ? 'Time to end the story, now: two to four lines that bring it to a warm, complete ending that pays off what the reader did. Then END | <summary>. No LISTEN, no question.'
+        : premise && input.kind === 'quiet'
+          ? `The reader hasn't chosen yet. Moth picks one of the lost things from the drawer herself${drawer.length ? ` (${drawer.join(', ')})` : ''} and brings it to Pip: that is tonight's premise. Write TITLE and PLAN, then begin the story.`
+          : input.kind === 'heard'
+            ? `The reader said${input.to ? ` to ${input.to}` : ''}: "${input.text}"${premise ? ' That is tonight\'s premise: write TITLE and PLAN first, then begin the story.' : ''}`
+            : input.kind === 'gift'
+              ? `The reader handed the ${stage.objects.find((o) => o.id === input.objectId)?.def.name ?? input.objectId} to ${input.castId}.${premise ? ' That lost thing is tonight\'s premise: whose is it? Write TITLE and PLAN first, then begin the story.' : ''}`
+              : input.kind === 'arrived'
+                ? `The ${stage.objects.find((o) => o.id === input.objectId)?.def.name ?? input.objectId} has just arrived on the page (newly painted, or the reader took it out of their satchel). Use it.`
+                : `The reader has been quiet for ${Math.round(input.seconds)} seconds. If the story asked them something, a character decides it now, out loud. Carry the story on.`;
+  const shape =
+    request.phase === 'closing'
+      ? 'The story is winding down: head for its ending in this turn or the next.'
+      : request.phase === 'middle'
+        ? `The story is in its middle (${Math.round(request.activeSeconds / 60)} of about 10 minutes).`
+        : 'The story is at its very beginning.';
   return [
     `Cast:\n${cast.join('\n')}`,
     `Sets:\n${sets.join('\n')}\nMarks on the set showing now: ${marks}`,
@@ -166,7 +188,10 @@ function contextOf(request: StoryTurnRequest): string {
     stage.roomFx?.available.length
       ? `Room effects you can use tonight (ROOM): ${stage.roomFx.available.map((e) => `${e}: ${ROOM_HELP[e]}`).join('; ')}.${stage.roomFx.on.length ? ` Showing in the room now: ${stage.roomFx.on.join(', ')}.` : ''}`
       : 'No room effects tonight.',
-    history.length ? `The evening so far:\n${history.slice(-40).map((h) => `${h.who}: ${h.text}`).join('\n')}` : '',
+    ctx.recent.length && input.kind === 'open' ? `The reader's earlier stories (titles and endings only):\n${ctx.recent.map((r) => `- ${r.title}${r.summary ? `: ${r.summary}` : ''}`).join('\n')}` : '',
+    ctx.title ? `Tonight's story: ${ctx.title}.${ctx.plan ? ` Its plan (private, never spoken): ${ctx.plan}` : ''}` : '',
+    shape,
+    history.length ? `The story so far:\n${history.slice(-40).map((h) => `${h.who}: ${h.text}`).join('\n')}` : '',
     `NOW: ${what}`,
   ]
     .filter(Boolean)
@@ -180,6 +205,10 @@ type Step =
   | { kind: 'set'; setId: string }
   | { kind: 'paint'; objectId: string; description: string }
   | { kind: 'listen'; who: string | null }
+  /** The story's name, its private plan, and (on the close) its page's summary. */
+  | { kind: 'title'; text: string }
+  | { kind: 'plan'; text: string }
+  | { kind: 'end'; summary: string }
   /** A room effect that can't happen: the line about it is dropped too, so nothing is promised. */
   | { kind: 'refused' };
 
@@ -290,6 +319,16 @@ export function parseStep(line: string, request: StoryTurnRequest, setId: string
       const who = words[1];
       return { kind: 'listen', who: who && cast.has(who) ? who : null };
     }
+    case 'TITLE': {
+      const text = tail.replace(/["*]/g, '').trim().slice(0, 60);
+      return text.length >= 3 ? { kind: 'title', text } : null;
+    }
+    case 'PLAN':
+      return tail.length >= 10 ? { kind: 'plan', text: tail.slice(0, 600) } : null;
+    case 'END': {
+      const summary = tail.replace(/["*]/g, '').trim().slice(0, 400);
+      return summary.length >= 10 ? { kind: 'end', summary } : null;
+    }
     default:
       return null;
   }
@@ -311,18 +350,38 @@ export interface TurnDeps {
   anthropic: Anthropic;
   voices: Voices;
   log?: (message: string) => void;
-  /** Is what the reader said fit for the book? Runs alongside the turn. */
+  /** Is what the reader said fit for the book? Runs alongside the turn. Fails open: Claude's PG rules are the next line. */
   moderate?: (text: string) => Promise<boolean>;
-  /** Starts painting something new; returns the job id at once. */
-  paint?: (storyId: string, description: string, objectId: string) => string;
+  /**
+   * Is a generated line (or a title or summary) fit to be heard or saved? Fails closed: false on
+   * any error or timeout. A line is released only once this has passed.
+   */
+  checkLine?: (text: string) => Promise<boolean>;
+  /** Starts painting something new; returns the job id at once, or null when no more can be painted. */
+  paint?: (storyId: string, description: string, objectId: string) => string | null;
+  /** The story's name, its plan and the reader's last stories, from the backend's record. */
+  story?: StoryContext;
+  /** The story was named (checked), with its private plan. */
+  onTitle?: (title: string, plan: string | null) => void;
+  /** The real token count of the turn's Claude call, for the spend ledger. Null when it isn't known. */
+  onUsage?: (tokens: number | null) => void;
 }
 
-/** The turn as a stream of events, ending in exactly one of listen, redirect or error. */
+/** What the narrator says instead of the rest of a turn that failed a check. The client plays its own recording of it. */
+export const REDIRECT_LINE = 'And just then, the page turned all by itself, to somewhere cozier.';
+
+/**
+ * The turn as a stream of events, ending in exactly one of listen, redirect, ending or error. A
+ * close turn (`input.kind === 'close'`) ends with `ending` instead of `listen`.
+ */
 export async function* storyTurn(request: StoryTurnRequest, deps: TurnDeps): AsyncGenerator<TurnEvent> {
   const started = Date.now();
   let setId = request.stage.setId;
+  const closing = request.input.kind === 'close';
+  const ctx = deps.story ?? { title: null, plan: null, recent: [] };
   const used = new Set(request.history.map((h) => lineIdOf(h.who === 'reader' ? 'reader' : h.who, h.text)));
   const sceneOf = (id: string): Scene => ({ id, setId: id, summary: id, objects: [], problem: null, entry: 'x', beats: [{ id: 'x', source: 'authored', sceneId: id, estSeconds: 1, actions: [{ do: 'wait', withPrev: false, seconds: 1 }], next: null, replaces: null }] });
+  const check = deps.checkLine ?? (async () => true);
 
   const fit = request.input.kind === 'heard' && deps.moderate ? deps.moderate(request.input.text) : Promise.resolve(true);
   const stream = deps.anthropic.messages.stream(
@@ -330,7 +389,7 @@ export async function* storyTurn(request: StoryTurnRequest, deps: TurnDeps): Asy
       model: MODEL,
       max_tokens: 1500,
       system: [{ type: 'text', text: RULES, cache_control: { type: 'ephemeral' } }],
-      messages: [{ role: 'user', content: contextOf(request) }],
+      messages: [{ role: 'user', content: contextOf(request, ctx) }],
       thinking: { type: 'between_tools' },
       output_config: { effort: 'low' },
     },
@@ -343,15 +402,21 @@ export async function* storyTurn(request: StoryTurnRequest, deps: TurnDeps): Asy
   let steps = 0;
   let paints = 0;
   let listened: string | null | undefined;
+  let title: string | null = null;
+  let plan: string | null = null;
+  let summary: string | null = null;
   /** Room effects on as the turn goes, so a later step can rely on an earlier one (rain, then thunder). */
   const roomOn = new Set<string>(request.stage.roomFx?.on ?? []);
   /** A refused room effect takes the next line with it: that's the line describing it. */
   let dropNextLine = false;
   let firstAt: number | null = null;
+  /** Marks a line that failed its check: the turn stops there. */
+  const BLOCKED = Symbol('blocked');
+  type Ready = TurnEvent | null | typeof BLOCKED;
   /** In order; each entry knows when it's ready, so voiced lines go out while the rest is written. */
-  const queue: Array<{ done: boolean; value: TurnEvent | null; wait: Promise<TurnEvent | null> }> = [];
-  const enqueue = (p: Promise<TurnEvent | null>): void => {
-    const entry = { done: false, value: null as TurnEvent | null, wait: p };
+  const queue: Array<{ done: boolean; value: Ready; wait: Promise<Ready> }> = [];
+  const enqueue = (p: Promise<Ready>): void => {
+    const entry = { done: false, value: null as Ready, wait: p };
     entry.wait = p.then((v) => {
       entry.done = true;
       entry.value = v;
@@ -360,15 +425,19 @@ export async function* storyTurn(request: StoryTurnRequest, deps: TurnDeps): Asy
     queue.push(entry);
   };
 
-  /** Voices a line now (in parallel with the next being written), and yields in order. */
-  const voiced = async (beat: Beat): Promise<TurnEvent | null> => {
+  /** Checks and voices a line at once (in parallel with the next being written); it's released only if the check passed. */
+  const voiced = async (beat: Beat): Promise<Ready> => {
     const lineList = linesOf(beat);
     const voice: Record<string, VoiceAsset> = {};
-    await Promise.all(
-      lineList.map(async (l) => {
-        voice[l.lineId] = (await deps.voices.speak(l.speaker, l.text).catch(() => null)) ?? { url: null, durationMs: estimateSpeechMs(l.text) };
-      }),
-    );
+    const [checks] = await Promise.all([
+      Promise.all(lineList.map((l) => check(l.text).catch(() => false))),
+      Promise.all(
+        lineList.map(async (l) => {
+          voice[l.lineId] = (await deps.voices.speak(l.speaker, l.text).catch(() => null)) ?? { url: null, durationMs: estimateSpeechMs(l.text) };
+        }),
+      ),
+    ]);
+    if (checks.some((ok) => !ok)) return BLOCKED;
     const ready: ReadyBeat = { beat, voice };
     return { kind: 'beat', ready };
   };
@@ -404,23 +473,52 @@ export async function* storyTurn(request: StoryTurnRequest, deps: TurnDeps): Asy
       setId = step.setId;
       enqueue(Promise.resolve({ kind: 'set', setId }));
     } else if (step.kind === 'paint') {
-      if (paints >= MAX_PAINTS) return;
+      if (paints >= MAX_PAINTS || closing) return;
       paints += 1;
       if (!deps.paint) return;
       const paint = deps.paint;
       // Painting costs credits: it only starts once moderation has passed the turn.
-      enqueue(fit.then((ok) => (ok ? { kind: 'paint' as const, jobId: paint(request.storyId, step.description, step.objectId), objectId: step.objectId, description: step.description } : null)));
+      enqueue(
+        fit.then((ok) => {
+          if (!ok) return null;
+          const jobId = paint(request.storyId, step.description, step.objectId);
+          return jobId ? { kind: 'paint' as const, jobId, objectId: step.objectId, description: step.description } : null;
+        }),
+      );
+    } else if (step.kind === 'title') {
+      // Named once, at the premise; a story that already has a name keeps it.
+      if (!ctx.title && !title && !closing) {
+        title = step.text;
+        enqueue(check(step.text).catch(() => false).then((ok) => (ok ? { kind: 'titled' as const, title: step.text } : null)));
+      }
+    } else if (step.kind === 'plan') {
+      plan ??= step.text;
+    } else if (step.kind === 'end') {
+      summary ??= step.summary;
     } else listened = step.who;
   };
 
-  let unfit = false;
-  const redirect = async (): Promise<TurnEvent> => {
-    const text = 'And just then, the page turned all by itself, to somewhere cozier.';
-    const voice = (await deps.voices.speak(NARRATOR, text).catch(() => null)) ?? { url: null, durationMs: estimateSpeechMs(text) };
-    return { kind: 'redirect', text, voice };
+  const redirect = (): TurnEvent => ({ kind: 'redirect', text: REDIRECT_LINE, voice: { url: null, durationMs: estimateSpeechMs(REDIRECT_LINE) } });
+  /** Hands on a ready event; a blocked line stops the turn. */
+  let releasedTitle: string | null = null;
+  const release = (e: Ready): TurnEvent | 'blocked' | null => {
+    if (e === BLOCKED) return 'blocked';
+    if (e?.kind === 'titled') {
+      releasedTitle = e.title;
+      deps.onTitle?.(e.title, plan);
+    }
+    return e;
   };
+  let usageReported = false;
+  const reportUsage = (tokens: number | null): void => {
+    if (usageReported) return;
+    usageReported = true;
+    deps.onUsage?.(tokens);
+  };
+
   try {
     let i = 0;
+    let unfit = false;
     for await (const event of stream) {
       if (event.type !== 'content_block_delta' || event.delta.type !== 'text_delta') continue;
       buffer += event.delta.text;
@@ -435,17 +533,25 @@ export async function* storyTurn(request: StoryTurnRequest, deps: TurnDeps): Asy
         unfit = true;
         break;
       }
-      // Hand on whatever is voiced, in order, while the rest is written.
+      // Hand on whatever is checked and voiced, in order, while the rest is written.
       while (i < queue.length && queue[i]!.done) {
-        const e = queue[i++]!.value;
+        const e = release(queue[i++]!.value);
+        if (e === 'blocked') {
+          unfit = true;
+          break;
+        }
         if (e) {
           if (firstAt === null && e.kind === 'beat') firstAt = Date.now();
           yield e;
         }
       }
+      if (unfit) break;
     }
     if (unfit) {
-      yield await redirect();
+      stream.abort();
+      reportUsage(null);
+      deps.log?.('storyteller: a check stopped the turn');
+      yield redirect();
       return;
     }
     if (buffer.trim()) {
@@ -454,22 +560,41 @@ export async function* storyTurn(request: StoryTurnRequest, deps: TurnDeps): Asy
     }
     if (pending.length) enqueue(Promise.resolve({ kind: 'beat', ready: { beat: beatOf(request, setId, pending, null), voice: {} } }));
     const final = await stream.finalMessage();
-    if (final.stop_reason === 'refusal') throw Object.assign(new Error('refused'), { refused: true });
-    if (!(await fit)) {
-      yield await redirect();
+    const u = final.usage;
+    reportUsage(u ? u.input_tokens + u.output_tokens + (u.cache_read_input_tokens ?? 0) + (u.cache_creation_input_tokens ?? 0) : null);
+    // Claude's own refusal is told in story, like a failed check.
+    if (final.stop_reason === 'refusal' || !(await fit)) {
+      yield redirect();
       return;
     }
+    // A title that arrives after its plan still carries the plan.
     for (; i < queue.length; i++) {
-      const e = await queue[i]!.wait;
+      const e = release(await queue[i]!.wait);
+      if (e === 'blocked') {
+        yield redirect();
+        return;
+      }
       if (e) {
         if (firstAt === null && e.kind === 'beat') firstAt = Date.now();
         yield e;
       }
     }
+    // The plan is usually written after the title: save it with whichever name the story has.
+    const named = releasedTitle ?? ctx.title;
+    if (plan && named) deps.onTitle?.(named, plan);
     deps.log?.(`storyteller turn: first voiced beat ${firstAt ? firstAt - started : '-'} ms, all ${Date.now() - started} ms, ${lines} lines, ${steps} steps`);
+    if (closing) {
+      const checkedSummary = summary && (await check(summary).catch(() => false)) ? summary : null;
+      yield { kind: 'ending', title: ctx.title ?? UNTITLED, summary: checkedSummary };
+      return;
+    }
     yield { kind: 'listen', who: listened ?? null };
   } catch (cause) {
+    reportUsage(null);
     deps.log?.(`storyteller turn failed: ${String(cause)}`);
-    yield { kind: 'error', code: (cause as { refused?: boolean }).refused ? 'moderated' : 'upstream_failed', message: 'the story slipped' };
+    yield { kind: 'error', code: 'upstream_failed', message: 'the story slipped' };
   }
 }
+
+/** A story's name before the cast gives it one. */
+export const UNTITLED = "Tonight's story";
