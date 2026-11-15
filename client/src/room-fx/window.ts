@@ -1,11 +1,12 @@
-import { Mesh, PlaneGeometry, ShaderMaterial, Vector2, Vector3, Vector4 } from '@iwsdk/core';
+import { Mesh, PlaneGeometry, ShaderMaterial, Vector3, Vector4 } from '@iwsdk/core';
 import type { TexRef } from '../paint/texref.ts';
 import type { RoomMap } from './room-map.ts';
 import type { Lasting } from './state.ts';
 
 /**
- * A window onto the story: the shore at night, the lighthouse on its headland, the moon and the sea,
- * with the lamp's beam turning out there in time with the book's. It opens on whatever the room has
+ * A window onto the story: the shore at night, the moon over the headland's rocks and the sea, with
+ * the book's lighthouse beam sweeping across it from outside (owner, Nov 15: the lighthouse stands on
+ * the book, so the window shows no second one). It opens on whatever the room has
  * (owner, Nov 15: "wall, window, anything that we can use, but not trying to fit it"):
  * - a real window (or a door): the painting fills it, a little inside its frame;
  * - a wall: a painted opening with a soft watercolour edge, on the wall you face, beside the book;
@@ -15,10 +16,10 @@ import type { Lasting } from './state.ts';
 
 /** The window's painting, made for free from the shore's layers (`art/tools/make_window_night.py`). */
 export const WINDOW_ART = 'fx/window-night.png';
-/** The part of the painting a window shows: inside the sky's painted edge, round the lighthouse and the sea. */
-const VIEW = { u0: 0.1, u1: 0.92, v0: 0.0, v1: 0.9 };
-/** Where the lighthouse lamp is in the painting, measured from the headland layer. */
-const LAMP_UV = new Vector2(0.197, 0.852);
+/** The part of the painting a window shows: inside the sky's painted edge, the moon, rocks and sea. */
+const VIEW = { u0: 0.2, u1: 0.92, v0: 0.0, v1: 0.88 };
+/** Where a tall window's slice is kept: round the moon above the sea. */
+const FOCUS_U = 0.55;
 /** The glass only, inside the real frame. */
 const INSET = 0.9;
 const FADE_MS = 3000;
@@ -43,7 +44,6 @@ export function createWindowView(art: TexRef): WindowView {
       uMap: { value: art.texture },
       uRect: { value: new Vector4(...art.uv) },
       uView: { value: new Vector4(VIEW.u0, VIEW.v0, VIEW.u1, VIEW.v1) },
-      uLamp: { value: LAMP_UV },
       uAngle: { value: 0 },
       uFade: { value: 0 },
       uOpening: { value: 0 },
@@ -57,25 +57,21 @@ export function createWindowView(art: TexRef): WindowView {
     fragmentShader: /* glsl */ `
       uniform sampler2D uMap;
       uniform vec4 uRect, uView;
-      uniform vec2 uLamp;
       uniform float uAngle, uFade, uOpening;
       varying vec2 vUv;
       void main() {
         // vUv covers the glass; uView is the part of the painting it shows, already fitted to the glass.
         vec2 p = mix(uView.xy, uView.zw, vUv);
         vec3 c = texture2D(uMap, mix(uRect.xy, uRect.zw, p)).rgb;
-        // The lamp's beam, seen from the side: a soft band reaching out from the lamp as it turns,
-        // longest side-on, and a bright flare as it faces you.
-        float s = sin(uAngle), f = cos(uAngle);
-        vec2 d = p - uLamp;
-        d.x *= 2.1;
-        float along = d.x * sign(s);
-        float reach = abs(s) * 1.1;
-        float band = step(0.0, along) * (1.0 - smoothstep(reach * 0.6, reach, along))
-          * exp(-pow(d.y / (0.012 + 0.05 * along), 2.0));
-        float flare = pow(max(f, 0.0), 10.0) * exp(-dot(d, d) * 60.0);
-        float glow = exp(-dot(d, d) * 900.0);
-        c += vec3(1.0, 0.86, 0.55) * (0.55 * band + 0.9 * flare + 0.6 * glow);
+        // The book's beam crosses the view once a turn, from outside: a broad soft band of warm light
+        // sweeping across, brightest low over the water, with a glint on the sea as it passes.
+        float turn = fract(uAngle / 6.2831853);
+        float pass = 1.0 - step(0.32, turn);
+        float x = mix(-0.25, 1.25, turn / 0.32);
+        float band = pass * exp(-pow((vUv.x - x) / 0.13, 2.0));
+        float low = smoothstep(0.55, 0.05, vUv.y);
+        float glint = low * (0.5 + 0.5 * sin(p.x * 140.0 + p.y * 40.0)) * smoothstep(0.25, 0.0, vUv.y);
+        c += vec3(1.0, 0.86, 0.55) * band * (0.22 + 0.3 * low + 0.5 * glint);
         // In glass: soft at the edge, as a view is through a frame. On a wall: a painted opening, a
         // rounded shape with an uneven watercolour edge and a little pooled colour round it.
         vec2 e = min(vUv, 1.0 - vUv);
@@ -198,7 +194,7 @@ export function createWindowView(art: TexRef): WindowView {
       if (aspect < artAspect) {
         // A tall window: a slice, kept round the lighthouse and the sea beside it.
         const span = ((VIEW.u1 - VIEW.u0) * aspect) / artAspect;
-        const centre = Math.min(VIEW.u1 - span / 2, Math.max(VIEW.u0 + span / 2, LAMP_UV.x + span * 0.32));
+        const centre = Math.min(VIEW.u1 - span / 2, Math.max(VIEW.u0 + span / 2, FOCUS_U));
         view.set(centre - span / 2, VIEW.v0, centre + span / 2, VIEW.v1);
       } else {
         const span = ((VIEW.v1 - VIEW.v0) * artAspect) / aspect;
