@@ -68,7 +68,7 @@ Color is never the only signal. Story Circle players are told apart by their sat
 
 ## The book is the only UI
 
-No floating panels, no chat, no settings window.
+No floating panels, no chat, no settings window. The book's menu is a **paper card that pops up from the open spread** (finish sprint, Nov 16): standing, turned to face you, in the book's own paper and ink, with a gold rule under each choice. It's part of the book, as a pop-up is. Its type is sized from your eyes' distance, at least 1° tall, and each choice is at least the 64 mm hand target. The set stays where it is underneath, held. At most four choices to a card; a longer list pages with More and Back.
 
 **The 2D page** (owner, Nov 14) is the cover of the same book, at night. It follows these rules too, and the plan is `docs/plans/2026-11-14-product-front-door.md`.
 
@@ -90,11 +90,12 @@ The foot holds Chapters, "No table? Read in the painted room", About and Privacy
 
 | Control | Does |
 |---|---|
-| **Closing the book** | Pauses, and opening it resumes |
-| **Ribbon** | Pauses without closing (my default, confirm in the headset) |
-| **Top tab, gold** | Opens your satchel |
-| **Lower tab, sage** | Opens the contents page: every chapter's page, to reread or play again, and Tonight's lost thing (ticket 3) |
-| **End-of-chapter page** | "The end of chapter one" and "Read it again", printed on the page. Close the book to stop |
+| **Shutting the book** | Pauses, and opening it resumes. No card |
+| **Ribbon** | **The one control** (sprint master, Nov 16; it replaces the sage tab and the wrist tag). Pinch it and the pause card pops up: Carry on, Start again (in the Storyteller, End the story here), Contents, Put the book away. Pinch it again to carry on. At an ending, it opens the contents |
+| **The contents** | Chapters (each one's state, and Continue, Start or Read again), the AI Storyteller (Start a new story, Your stories), Settings (sound, the room's light), and how many things are in your satchel |
+| **Top tab, gold** | Opens your satchel: its latch, not a menu |
+| **End card** | A chapter's: "The end of chapter 1", what lasts, what you kept, then Continue to chapter 2 (or Read again) and Put the book away. A story's: its title, two or three lines, what was painted, Tell another, Your stories |
+| **Put the book away** | The way out: the book closes, your place is kept, and the page offers where you were. Another chapter or the Storyteller chosen inside the book opens from the page, in one tap once the microphone (if needed) is allowed |
 | **Drawer pull** | Opens the Lost and Found. It also slides open when a character asks for something |
 | **Spine** | Moves the book |
 | **Paper ear** | Appears on a character while it's listening |

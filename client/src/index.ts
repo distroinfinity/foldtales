@@ -47,7 +47,7 @@ import { reviewOverride } from './stage/review.ts';
 import { createFrameGuard } from './stage/frame-guard.ts';
 import { startPlacement } from './stage/placement-runtime.ts';
 import { createSessionFlow } from './stage/session-flow.ts';
-import { cardFor, cardShowing, choose, ended, holdsStory, initialMenu, restarted, ribbon as ribbonPinched, type MenuContext, type MenuEffect, type MenuState } from './stage/book-menu.ts';
+import { cardFor, cardShowing, choose, ended, holdsStory, initialMenu, restarted, returned, ribbon as ribbonPinched, type MenuContext, type MenuEffect, type MenuState } from './stage/book-menu.ts';
 import { chapterEnding } from './book/end-sheet.ts';
 import { cancelEntry, chooseEntry, consumeEntry, pendingEntry, prepareEntry, type Entry } from './landing/entry.ts';
 import { primaryLabel, readLibrary } from './landing/library.ts';
@@ -956,6 +956,8 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
   /** A new XR session: warm every shader up, and if the story is under way, arrive again, shut. */
   function beginSession(session: XRSession): void {
     warmedSession = session;
+    // Back in the book after putting it away: the menu answers again, with nothing open.
+    setMenu(returned(menu));
     vr = session.environmentBlendMode === 'opaque' && !!room;
     roomMap.reset();
     roomPlaced = false;
@@ -1372,7 +1374,7 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, world
        * (the microphone, for the Storyteller) is met. This build holds chapter 1 only.
        */
       const thisChapter = 1;
-      let entry: Entry | null = fresh ? null : pendingEntry();
+      let entry: Entry | null = pendingEntry();
       let entryProblem: string | null = null;
       if (entry?.target.kind === 'chapter' && entry.target.n !== thisChapter) {
         entryProblem = `Chapter ${entry.target.n} couldn't open.`;

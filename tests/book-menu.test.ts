@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { back, cardFor, cardShowing, choose, ended, holdsStory, initialMenu, ribbon, type MenuContext } from '../client/src/stage/book-menu.ts';
+import { back, cardFor, cardShowing, choose, ended, holdsStory, initialMenu, returned, ribbon, type MenuContext } from '../client/src/stage/book-menu.ts';
 
 const ctx = (over: Partial<MenuContext> = {}): MenuContext => ({
   mode: 'chapter',
@@ -35,7 +35,7 @@ describe('the book menu', () => {
     let s = ribbon(initialMenu());
     s = choose(s, 'contents', ctx()).state;
     s = choose(s, 'settings', ctx()).state;
-    expect(ids(s)).toEqual(['sound', 'light', 'back']);
+    expect(ids(s)).toEqual(['sound', 'back']);
     expect(ids(back(s))).toEqual(['chapters', 'storyteller', 'settings', 'back']);
     expect(cardShowing(ribbon(s))).toBe(false);
   });
@@ -84,6 +84,16 @@ describe('the book menu', () => {
     expect(ids(list, c)).toEqual(['more', 'back']);
     expect(ids(choose(list, 'more', c).state, c)).toEqual(['back']);
     expect(ids(back(list), c)).toEqual(['tell-another', 'stories', 'put-away']);
+  });
+
+  it('after putting the book away and coming back, the ribbon answers again; an ending stays an ending', () => {
+    const away = choose(ribbon(initialMenu()), 'put-away', ctx()).state;
+    expect(ribbon(away)).toBe(away);
+    const back1 = returned(away);
+    expect(back1.leaving).toBe(false);
+    expect(ids(ribbon(back1))).toEqual(['carry-on', 'again', 'contents', 'put-away']);
+    const endedAway = choose(ended(initialMenu()), 'put-away', ctx()).state;
+    expect(returned(endedAway).root).toBe('ending');
   });
 
   it('every change bumps the generation', () => {

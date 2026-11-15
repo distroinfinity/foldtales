@@ -494,6 +494,22 @@ Seams and the thin path first. Each phase ends green (`pnpm check`: typecheck, t
 
 ---
 
+## Stage 3: build log
+
+Stage 2 was approved with changes on Nov 16 (Codex: 1 P0, 9 P1, 1 P2). The big change: **the menus are a paper card that pops up from the spread**, standing and turned to face the reader, not type printed flat on the pages (flat type measured about 0.39° at 0.9 m). The API shapes and ownership are in `docs/plans/2026-11-16-finish-api-shapes.md` (approved, with amendment 1). Lanes B and D's stub types are copied verbatim into `client/src/stage/seams.ts`, which becomes re-exports when their PRs land (approved).
+
+| Phase | What | Shown |
+|---|---|---|
+| 0 (00db10b) | `book/card-layout.ts` (pure layout, type at 1.2° of the eyes' distance, two choices to a row in 64 mm cells, More and Back paging) and `book/card-view.ts` (the paper card, troika type, gold rules, the pop-up fold, a measuring report). Review flags `?card=pause|busiest&bookscale=` | Emulator, measured from the head at book scales 0.6, 1.0 and 1.3: smallest type 1.04–1.10°, targets 64 mm apart, the card within ±10.2° across and +12.4/−13.8° of its centre (the glasses' view: 37°, +25°, −43°), at most 24.5° above the book's centre |
+| 1 (42d37de) | `stage/book-menu.ts` (the menu's state machine: pause, contents, chapters, a chapter, the Storyteller, your stories, settings, the end card; Back; the ribbon's return to the root; a generation), the host wiring in `index.ts`, input cancellation (`hands.cancelAll`, `controls.cancelAll`, `gestures.drop`), the card's look-and-pinch captured at the pinch's start. The wrist tag and the sage tab removed | Emulator, emulated hands: right hand ribbon → left Contents → right Settings → left Sound → Back, Back → left Carry on; the story clock held at 16 915 ms throughout and ran on after |
+| 2 | `landing/entry.ts` (the entry target), the page's button from `libraryState()` or the entry, Back to…, the reload for the other mode, the menu answering again after a return. On a Quest 3 the card answers hands only (a pinch in the air no longer chooses the line the head faces) | Emulator: Put the book away → the page offers Continue chapter 1 → Continue → the book re-arrives and carries on; Contents → the AI Storyteller → Start a new story → the book is put away, the page reloads set to the Storyteller ("Let them hear you", "Back to chapter 1"); Back → Continue chapter 1 |
+
+**Found on the way:** the card's pop step went back down every other frame once it stood (fixed); the emulator's "grasp" anchor sits several centimetres from the closed pinch, so the checks aim by the measured pinch point.
+
+**Known flake under load:** `tests/handover.test.ts` "during shore-walk" can pass its 5 s timeout in the full run while five lanes build on this machine (load average above 30); it passes on its own.
+
+---
+
 ## Review log
 
 **Codex, stage 1 (Nov 15), with the sprint master's rulings:**

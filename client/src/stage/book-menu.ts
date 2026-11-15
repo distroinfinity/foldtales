@@ -82,6 +82,11 @@ export function restarted(s: MenuState): MenuState {
   return bump(s, { root: 'playing', stack: [], leaving: false });
 }
 
+/** Back in the book after putting it away (same page load): nothing open, and the menu answers again. */
+export function returned(s: MenuState): MenuState {
+  return s.leaving || s.stack.length ? bump(s, { leaving: false, stack: [] }) : s;
+}
+
 export function leaving(s: MenuState): MenuState {
   return bump(s, { leaving: true, stack: [] });
 }
@@ -182,7 +187,6 @@ export function cardFor(s: MenuState, ctx: MenuContext): CardSpec | null {
         title: 'Settings',
         choices: [
           { id: 'sound', label: ctx.soundOn ? 'Sound: on' : 'Sound: off' },
-          { id: 'light', label: `Room light: ${ctx.light}` },
           { id: 'back', label: 'Back' },
         ],
       };
