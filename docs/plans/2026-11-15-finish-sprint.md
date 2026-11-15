@@ -46,6 +46,8 @@
 3. The sprint master runs **one Codex review** and approves, with changes.
 4. **Stage 2, plan:** tasks, files, checks, art runs with estimates. Stop and report. Codex reviews, the sprint master approves.
 5. **Stage 3, build:** the thinnest playable version first, then deepen. `pnpm check` and `pnpm test` green. Mac proofs for flat pages; emulator checks for XR. Commit on the lane's branch, push, and open a PR when it's ready to review.
-6. Codex reviews the PR once. The lane fixes. **The owner tests in the lane's workspace and signs off.** The sprint master merges.
+6. Codex reviews the PR once. The lane fixes.
+7. **First-round user testing is the lane's own** (owner, Nov 16). In the emulated headset with emulated hands, the lane plays its work as a first-time reader, end to end, then the edge paths: doing nothing, pausing, leaving and coming back, a reload, and its failure cases. It monitors the console, fps, timings and the look bar, fixes everything it finds, and re-runs until clean. Only then does it report **HEADSET GREEN**, with at most eight headset steps for the owner.
+8. **The owner tests in the headset once per lane, after green,** for feel, look and sound, not to find bugs, and signs off. The sprint master merges.
 
 Never ship test visuals, never put keys in the client, and never import from `spikes/`.
