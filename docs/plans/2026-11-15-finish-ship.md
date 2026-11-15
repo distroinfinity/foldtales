@@ -92,6 +92,38 @@ This lane makes what the other lanes build submittable and production-ready. It 
 - `bookCached(): Promise<boolean>` from `client/src/offline/cache.ts`. True only when a worker is active and holds a complete cache.
 - **Landed early, for lane A:** PR #27 (`finish-ship-api`, commit `24e4220`) holds just these two, with tests, and no worker, so `bookCached()` is false until this branch lands.
 
+### Notices, credits and legal copy (Nov 16)
+
+- **`notices.txt`** ships at the site's root, built by `client/vite/notices-plugin.ts` from the modules the build actually bundled: 45 packages, each with its own licence text verbatim. It also covers:
+  - the Basis Universal transcoder (Apache-2.0, with its NOTICE);
+  - Tailwind's generated CSS;
+  - the Magic UI components we adapted;
+  - yoga-layout, which ships no licence file (its MIT text, kept in `client/vite/licences/`).
+
+  The offline cache holds it. Tests: `tests/notices.test.ts`.
+- **One gap:** `@drawcall/uikitml` 0.1.8 comes in through IWSDK and publishes no licence anywhere. It's listed as "none published". Reported to the sprint master.
+- **`docs/legal-copy.md`:** what each service requires of us, the Terms page text (new, for lane A), the Privacy text, About's credits, and where "Powered by Runway" goes, reconciled with the competition's brand rule. Live voices are OpenAI's and speech-in is Groq's. ElevenLabs is named only for the recorded chapter voices.
+- **Findings for other lanes:**
+  - OpenAI's terms require telling listeners the voices are AI-generated (lane D's copy).
+  - Groq's Zero Data Retention is a self-serve setting; switch it on (owner or lane D).
+- `CREDITS.md` is updated to match.
+
+### Task 3: the frame-rate fixtures, defined (Nov 16)
+
+- **The cases:** `client/src/review/perf-cases.ts`, 21 of them.
+  - Chapter 1's four spreads.
+  - Each effect alone, on the shore.
+  - Seven heavy combinations the rules allow: rain+sea, rain+window, snow+window, night-sky+sea, sea+window, night-sky+fireflies, rain+shadows.
+  - Chapters 2 and 3's spreads join once lane B's engine lands.
+- **Each held for the whole session:** every case's effects are checked against the real `roomAt` at 10, 30 and 60 s (`tests/perf-cases.test.ts`). Invalid ones fail, as they should: rain with the night sky, snow with the night sky, rain with snow, and three big effects at once.
+- **Waiting on:**
+  1. **A contracts change, for the sprint master's approval** (its own PR, nothing opened yet). All of it is additive and optional:
+     - `session.testCase?: string`, from the review link's `?perf=`;
+     - `frame_summary.slowFrames?: number`, frames over 16.7 ms (60 fps) in the window, as Codex's missed-frame count;
+     - `frame_summary.worstFrameMs?: number`;
+     - a comment saying `lowFps` is the 1% low (the 99th-percentile frame time), not the minimum.
+  2. **A review-only hook in `client/src/index.ts`** (lane A's file, about 8 lines): `?perf=<id>` jumps to its beat and turns its effects on, through today's review room path.
+
 ## 1. The deadline
 
 **Wednesday, Nov 18, 2026, at 12:00:00 PM PT (Pacific Standard Time, UTC−8).** That's 20:00 UTC, and **Thursday, Nov 19, at 1:30 AM in India**.
