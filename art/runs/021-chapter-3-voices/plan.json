@@ -9,13 +9,590 @@
   ],
   "learnEvenIfRejected": "How far the 1.3x rule holds for a third chapter, and for Thimble's voice.",
   "reusableOutput": "Chapter 3's lines.",
-  "estimateCredits": 83,
+  "estimateCredits": 81,
   "estimateNote": "83 lines across both versions of the chapter (ruling 3): 76 from the deduplicated ledger (narrator 18 with the three bridges, Pip 31, Wick 18, Thimble 9; 2 more reuse chapter 1's, 4 more are played in several beats and voiced once) and the hunt's page version's 7 (lane B's lines). voiceJobs are written by build_plan.mjs from the frozen client/public/show/episode-3.json and episode-3.page-hunt.json, skipping every line already in the manifest; nothing is run before Thimble's voice is chosen.",
   "trimOrder": "If the cap would be passed or voices run long: the three bridges (3 lines), then the-edge's narrator line, across's 'Forty years of lost things coming home, all in here.', too-long's 'He's been gone too long. Much too long.' Each trim reported to lane B.",
-  "capNote": "Lane C's 150 across runs 020-022. At 84 the cap leaves one retake once both hunt versions are voiced; lane C asks to move 6 of its 12 unallocated credits here (cap 90), for retakes after the owner listens.",
-  "capCredits": 84,
+  "capNote": "Lane C's 150 across runs 020-022 (020: 45, 021: 90, 022: 9; 144 in all). Raised from 84 to 90 by the sprint master (Nov 16), so the owner's retakes fit once both hunt versions are voiced.",
+  "capCredits": 90,
   "soundJobs": [],
-  "voiceJobs": [],
+  "voiceJobs": [
+    {
+      "id": "narrator-on-the-longest-night-of-the-year-the-sno",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "On the longest night of the year, the snow came all the way to the edge of the table.",
+      "lineId": "line_1ai4k3q92hl",
+      "beat": "opening"
+    },
+    {
+      "id": "pip-snow-it-s-snowing-on-the-reader-too-look",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Snow! It's snowing on the Reader too! Look!",
+      "lineId": "line_1y4bmybm4qf",
+      "beat": "opening"
+    },
+    {
+      "id": "wick-longest-night-of-the-year-i-ll-fetch-the",
+      "role": "wick",
+      "presetId": "Arjun",
+      "promptText": "Longest night of the year. I'll fetch the oil up from the store, same as every night.",
+      "lineId": "line_o63bdgiaib",
+      "beat": "errand"
+    },
+    {
+      "id": "pip-i-ll-go-you-can-t-see-the-steps-in-the",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "I'll go! You can't see the steps in the...",
+      "lineId": "line_26rykeg6qky",
+      "beat": "errand"
+    },
+    {
+      "id": "wick-forty-winters-i-ve-walked-those-steps-la",
+      "role": "wick",
+      "presetId": "Arjun",
+      "promptText": "Forty winters I've walked those steps, lad. I don't need eyes for them.",
+      "lineId": "line_1b02z1pr2cs",
+      "beat": "errand"
+    },
+    {
+      "id": "narrator-and-down-he-went-one-paw-on-the-wall-cou",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "And down he went, one paw on the wall, counting every step.",
+      "lineId": "line_1mww3h944pi",
+      "beat": "errand"
+    },
+    {
+      "id": "pip-the-glass-is-frosting-over-the-light-can",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "The glass is frosting over! The light can't get out!",
+      "lineId": "line_22fwp9n3qhr",
+      "beat": "errand"
+    },
+    {
+      "id": "pip-have-you-got-anything-to-wipe-it-clear",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Have you got anything to wipe it clear?",
+      "lineId": "line_132nbnz54t2",
+      "beat": "frost-ask"
+    },
+    {
+      "id": "pip-that-s-it-rub-rub-rub",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "That's it! Rub, rub, rub...",
+      "lineId": "line_i6sf6ajlgu",
+      "beat": "frost-wipe"
+    },
+    {
+      "id": "pip-there-shine-all-the-way-down-the-steps",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "There! Shine all the way down the steps!",
+      "lineId": "line_ps32ufyqu",
+      "beat": "frost-wipe"
+    },
+    {
+      "id": "pip-thank-you-but-that-won-t-wipe-the-frost",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Thank you! But that won't wipe the frost.",
+      "lineId": "line_22vm414zser",
+      "beat": "frost-puzzled"
+    },
+    {
+      "id": "pip-something-soft-maybe-something-warm",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Something soft, maybe? Something warm?",
+      "lineId": "line_1h2t3edt36v",
+      "beat": "frost-puzzled"
+    },
+    {
+      "id": "narrator-thimble-had-polished-a-great-many-thimbl",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "Thimble had polished a great many thimbles in her time. She knew exactly what to do.",
+      "lineId": "line_wchczecmoq",
+      "beat": "frost-thimble"
+    },
+    {
+      "id": "narrator-the-lamp-shone-the-snow-fell-and-the-old",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "The lamp shone. The snow fell. And the old keeper didn't come back.",
+      "lineId": "line_21nmzb4i85v",
+      "beat": "too-long"
+    },
+    {
+      "id": "pip-he-s-been-gone-too-long-much-too-long",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "He's been gone too long. Much too long.",
+      "lineId": "line_1dtceogt0r4",
+      "beat": "too-long"
+    },
+    {
+      "id": "pip-but-a-keeper-never-leaves-the-light",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "But a keeper never leaves the light.",
+      "lineId": "line_dvwu7el707",
+      "beat": "too-long"
+    },
+    {
+      "id": "pip-will-you-come-with-me-into-the-snow",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Will you come with me? Into the snow?",
+      "lineId": "line_15xxfvgnnru",
+      "beat": "too-long"
+    },
+    {
+      "id": "narrator-so-down-went-the-little-fox-a-hundred-an",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "So down went the little fox, a hundred and twelve steps, into the longest night.",
+      "lineId": "line_139ekbddbka",
+      "beat": "too-long"
+    },
+    {
+      "id": "narrator-at-the-bottom-of-the-steps-the-snow-had",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "At the bottom of the steps, the snow had covered everything. The path, the rocks, and every footprint.",
+      "lineId": "line_25hn6i697cv",
+      "beat": "the-snow"
+    },
+    {
+      "id": "pip-wick-wick-where-are-you",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Wick? Wick! Where are you?",
+      "lineId": "line_vjkb0fmjgm",
+      "beat": "the-snow"
+    },
+    {
+      "id": "pip-his-footprints-just-stop-the-snow-s-fill",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "His footprints just stop. The snow's filled them in.",
+      "lineId": "line_153v9o80hn4",
+      "beat": "the-snow"
+    },
+    {
+      "id": "narrator-then-something-glinted-not-on-the-page-b",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "Then something glinted. Not on the page, but out in the Reader's room.",
+      "lineId": "line_81ao2hkjun",
+      "beat": "the-snow"
+    },
+    {
+      "id": "pip-there-can-you-bring-it-to-me",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "There! Can you bring it to me?",
+      "lineId": "line_1933r6onq10",
+      "beat": "glint-ask"
+    },
+    {
+      "id": "pip-wick-s-logbook-he-never-goes-anywhere-wi",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Wick's logbook! He never goes anywhere without it.",
+      "lineId": "line_2fesh3fk1o7",
+      "beat": "log-found"
+    },
+    {
+      "id": "pip-thank-you-but-it-s-the-shiny-thing-i-nee",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Thank you. But it's the shiny thing I need, the one the light found.",
+      "lineId": "line_5bkjzycy01",
+      "beat": "glint-puzzled"
+    },
+    {
+      "id": "narrator-and-the-light-being-a-lighthouse-light-b",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "And the light, being a lighthouse light, brought it the rest of the way home.",
+      "lineId": "line_e3qc3mc8n2",
+      "beat": "log-return"
+    },
+    {
+      "id": "pip-he-s-lost-wick-s-lost-out-in-the-snow",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "He's lost. Wick's lost, out in the snow.",
+      "lineId": "line_123pfsmo50q",
+      "beat": "lost"
+    },
+    {
+      "id": "pip-every-lost-thing-follows-the-light-home",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Every lost thing follows the light home. But how can he follow it, if he can't see it?",
+      "lineId": "line_ovn3gkl1sk",
+      "beat": "lost"
+    },
+    {
+      "id": "pip-then-the-light-will-just-have-to-be-bigg",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Then the light will just have to be bigger than the dark. Moth?",
+      "lineId": "line_2agk97qgt9z",
+      "beat": "beacon-moth"
+    },
+    {
+      "id": "narrator-and-up-went-the-little-light-high-above",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "And up went the little light, high above the snow.",
+      "lineId": "line_1fgp4qk484i",
+      "beat": "beacon-moth"
+    },
+    {
+      "id": "pip-the-kite-from-the-night-thimble-came-can",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "The kite from the night Thimble came! Can I borrow it again?",
+      "lineId": "line_11tr4wg2hss",
+      "beat": "beacon-kite"
+    },
+    {
+      "id": "pip-the-ladder-from-the-night-thimble-came-c",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "The ladder from the night Thimble came! Can I borrow it again?",
+      "lineId": "line_11pica9ww8f",
+      "beat": "beacon-ladder"
+    },
+    {
+      "id": "pip-wick-wick-follow-the-light",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Wick! Wick! Follow the light!",
+      "lineId": "line_1cgd1rhaznn",
+      "beat": "calling"
+    },
+    {
+      "id": "wick-pip-is-that-your-light-lad-brightest-lit",
+      "role": "wick",
+      "presetId": "Arjun",
+      "promptText": "Pip? Is that your light, lad? Brightest little light I ever saw.",
+      "lineId": "line_p394rpomjb",
+      "beat": "the-edge"
+    },
+    {
+      "id": "narrator-the-old-keeper-stood-at-the-edge-of-the",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "The old keeper stood at the edge of the gap, with the snow coming down, and no way to tell where the ground stopped.",
+      "lineId": "line_xzy1rqpp6p",
+      "beat": "the-edge"
+    },
+    {
+      "id": "wick-forty-winters-on-this-shore-and-tonight",
+      "role": "wick",
+      "presetId": "Arjun",
+      "promptText": "Forty winters on this shore, and tonight I can't find my own way home.",
+      "lineId": "line_2196ik2mt20",
+      "beat": "the-edge"
+    },
+    {
+      "id": "pip-i-got-over-this-gap-once-with-help-can-y",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "I got over this gap once, with help. Can you help me get him across?",
+      "lineId": "line_1p07v6adgcx",
+      "beat": "wick-ask"
+    },
+    {
+      "id": "pip-hold-still-wick-and-catch",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Hold still, Wick. And catch!",
+      "lineId": "line_1kuors6my3k",
+      "beat": "wick-rope"
+    },
+    {
+      "id": "wick-hmph-now-where-did-you-learn-that",
+      "role": "wick",
+      "presetId": "Arjun",
+      "promptText": "Hmph. Now where did you learn that?",
+      "lineId": "line_bjyghe5piu",
+      "beat": "wick-rope"
+    },
+    {
+      "id": "pip-one-rung-at-a-time-wick-i-ve-got-you",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "One rung at a time, Wick. I've got you.",
+      "lineId": "line_20jviwugn4h",
+      "beat": "wick-ladder"
+    },
+    {
+      "id": "wick-don-t-look-down-eh-easy-for-some",
+      "role": "wick",
+      "presetId": "Arjun",
+      "promptText": "Don't look down, eh? Easy for some.",
+      "lineId": "line_1r4nfuopwg7",
+      "beat": "wick-ladder"
+    },
+    {
+      "id": "wick-a-kite-at-my-age",
+      "role": "wick",
+      "presetId": "Arjun",
+      "promptText": "A kite? At my age?",
+      "lineId": "line_1lq31o18qgw",
+      "beat": "wick-kite"
+    },
+    {
+      "id": "wick-oh-oh-my-hmph-rather-nice-actually",
+      "role": "wick",
+      "presetId": "Arjun",
+      "promptText": "Oh. Oh my. Hmph. Rather nice, actually.",
+      "lineId": "line_2dhfn5jxtri",
+      "beat": "wick-kite"
+    },
+    {
+      "id": "pip-i-don-t-think-that-ll-get-him-over",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "I don't think that'll get him over.",
+      "lineId": "line_2ah9u2w2ldn",
+      "beat": "wick-puzzled"
+    },
+    {
+      "id": "pip-something-long-maybe-something-to-hold-o",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Something long, maybe? Something to hold on to?",
+      "lineId": "line_11xqx71i6z6",
+      "beat": "wick-puzzled"
+    },
+    {
+      "id": "narrator-then-pip-saw-it-wick-s-own-rope-right-wh",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "Then Pip saw it. Wick's own rope, right where he'd left it, the night the light went out.",
+      "lineId": "line_2bk0xpon3yf",
+      "beat": "wick-rope-self"
+    },
+    {
+      "id": "wick-hmph-not-bad-keeper-not-bad-at-all",
+      "role": "wick",
+      "presetId": "Arjun",
+      "promptText": "Hmph. Not bad, keeper. Not bad at all.",
+      "lineId": "line_22pm93jte88",
+      "beat": "across"
+    },
+    {
+      "id": "pip-you-dropped-this-the-light-found-it-all",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "You dropped this. The light found it, all the way out in the Reader's room.",
+      "lineId": "line_xl7dnbkv8w",
+      "beat": "across"
+    },
+    {
+      "id": "wick-forty-years-of-lost-things-coming-home-a",
+      "role": "wick",
+      "presetId": "Arjun",
+      "promptText": "Forty years of lost things coming home, all in here.",
+      "lineId": "line_2f3old29n5w",
+      "beat": "across"
+    },
+    {
+      "id": "wick-you-brought-us-all-home-tonight-lad-time",
+      "role": "wick",
+      "presetId": "Arjun",
+      "promptText": "You brought us all home tonight, lad. Time you kept the lamp.",
+      "lineId": "line_1rbgr8b9vf8",
+      "beat": "across"
+    },
+    {
+      "id": "wick-the-lamp-and-the-log-and-all-of-it-they",
+      "role": "wick",
+      "presetId": "Arjun",
+      "promptText": "The lamp, and the log, and all of it. They're yours, keeper.",
+      "lineId": "line_27os67dgjnw",
+      "beat": "across"
+    },
+    {
+      "id": "pip-mine-but-who-ll-grumble-at-me",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Mine? But who'll grumble at me?",
+      "lineId": "line_ss9wo5glsr",
+      "beat": "across"
+    },
+    {
+      "id": "wick-i-ll-grumble-from-my-comfy-chair-loudly",
+      "role": "wick",
+      "presetId": "Arjun",
+      "promptText": "I'll grumble from my comfy chair. Loudly.",
+      "lineId": "line_weteo7g1dp",
+      "beat": "across"
+    },
+    {
+      "id": "narrator-and-just-then-the-snow-stopped-the-cloud",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "And just then, the snow stopped, the clouds opened, and the whole sky came out.",
+      "lineId": "line_2g7xnrpwz4u",
+      "beat": "the-sky"
+    },
+    {
+      "id": "wick-i-don-t-need-eyes-for-the-stars-lad-i-kn",
+      "role": "wick",
+      "presetId": "Arjun",
+      "promptText": "I don't need eyes for the stars, lad. I know them all by heart.",
+      "lineId": "line_1asv7z2q2pz",
+      "beat": "the-sky"
+    },
+    {
+      "id": "wick-there-s-the-lantern-every-keeper-s-first",
+      "role": "wick",
+      "presetId": "Arjun",
+      "promptText": "There's the Lantern. Every keeper's first star.",
+      "lineId": "line_hgy1lwwckb",
+      "beat": "the-sky"
+    },
+    {
+      "id": "wick-and-the-kite-with-her-long-tail",
+      "role": "wick",
+      "presetId": "Arjun",
+      "promptText": "And the Kite, with her long tail.",
+      "lineId": "line_1jbowjozf4z",
+      "beat": "the-sky"
+    },
+    {
+      "id": "pip-and-that-one-it-looks-like-a-fox",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "And that one? It looks like a fox.",
+      "lineId": "line_qda1ee7el5",
+      "beat": "the-sky"
+    },
+    {
+      "id": "wick-don-t-know-that-one-must-be-new",
+      "role": "wick",
+      "presetId": "Arjun",
+      "promptText": "Don't know that one. Must be new.",
+      "lineId": "line_1o6jmp1fq7e",
+      "beat": "the-sky"
+    },
+    {
+      "id": "wick-they-say-every-keeper-gets-a-star-looks",
+      "role": "wick",
+      "presetId": "Arjun",
+      "promptText": "They say every keeper gets a star. Looks like that one's yours.",
+      "lineId": "line_1mi0habd7g8",
+      "beat": "the-sky"
+    },
+    {
+      "id": "pip-a-shooting-star-quick-make-a-wish",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "A shooting star! Quick, make a wish!",
+      "lineId": "line_15r7es19vmz",
+      "beat": "the-sky"
+    },
+    {
+      "id": "narrator-they-climbed-the-hundred-and-twelve-step",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "They climbed the hundred and twelve steps together. And the old keeper didn't count them once.",
+      "lineId": "line_1q3c0lwr7ke",
+      "beat": "morning"
+    },
+    {
+      "id": "narrator-and-when-the-stars-had-faded-and-the-mor",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "And when the stars had faded, and the morning came over the edge of the table...",
+      "lineId": "line_1294wg3xvgk",
+      "beat": "morning"
+    },
+    {
+      "id": "narrator-the-new-keeper-put-out-the-lamp-himself",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "...the new keeper put out the lamp himself, for the very first time. And the old keeper fell asleep in his comfy chair.",
+      "lineId": "line_2b1phliki6g",
+      "beat": "morning"
+    },
+    {
+      "id": "narrator-the-snow-fell-soft-as-a-held-breath",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "The snow fell, soft as a held breath.",
+      "lineId": "line_yfhgis0uam",
+      "beat": "bridge-snow"
+    },
+    {
+      "id": "narrator-up-at-the-top-a-small-mouse-kept-the-gre",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "Up at the top, a small mouse kept the great lamp turning.",
+      "lineId": "line_1wtvnj1ehyt",
+      "beat": "bridge-mouse"
+    },
+    {
+      "id": "narrator-somewhere-out-in-the-white-an-old-badger",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "Somewhere out in the white, an old badger counted his steps.",
+      "lineId": "line_z3n77e0b4h",
+      "beat": "bridge-counting"
+    },
+    {
+      "id": "narrator-then-something-glinted-half-buried-in-th",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "Then something glinted, half buried in the snow at the foot of the steps.",
+      "lineId": "line_gxlhlm8rx8",
+      "beat": "the-snow"
+    },
+    {
+      "id": "pip-there-in-the-snow-can-you-reach-it-for-m",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "There, in the snow! Can you reach it for me?",
+      "lineId": "line_t7hek5kd82",
+      "beat": "glint-ask"
+    },
+    {
+      "id": "pip-thank-you-but-it-s-the-shiny-thing-i-nee-2",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Thank you. But it's the shiny thing I need, there in the snow.",
+      "lineId": "line_ux3f7ru0nv",
+      "beat": "glint-puzzled"
+    },
+    {
+      "id": "narrator-so-the-little-fox-dug-it-out-of-the-snow",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "So the little fox dug it out of the snow himself.",
+      "lineId": "line_roxy54ikbn",
+      "beat": "log-return"
+    },
+    {
+      "id": "pip-you-dropped-this-it-was-in-the-snow-at-t",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "You dropped this. It was in the snow at the bottom of the steps.",
+      "lineId": "line_1xp8ckx2sub",
+      "beat": "across"
+    }
+  ],
   "lane": {
     "id": "C",
     "capCredits": 150,
@@ -25,6 +602,6 @@
       "022-chapter-3-sound"
     ]
   },
-  "approved": "Sprint master, Nov 16: approved at this cap (stage 1 rulings, docs/plans/2026-11-16-finish-chapter-3.md).",
+  "approved": "Sprint master, Nov 16: approved at 84 (stage 1 rulings), raised to 90 (Nov 16).",
   "thimblePreset": null
 }

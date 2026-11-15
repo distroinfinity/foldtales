@@ -18,7 +18,8 @@
     "sound/m2",
     "sets/the-lamp",
     "room-fx",
-    "sound/room"
+    "sound/room",
+    "sound/ch3"
   ],
   "book": "book/book.json",
   "room": "room/room.json",
@@ -890,6 +891,294 @@
     "line_hxj90k4k4k": {
       "url": "sound/m2/pip-that-s-all-right-i-ve-still-got-my-light.mp3",
       "durationMs": 2400
+    },
+    "line_1ai4k3q92hl": {
+      "url": "sound/ch3/narrator-on-the-longest-night-of-the-year-the-sno.mp3",
+      "durationMs": 4880
+    },
+    "line_1y4bmybm4qf": {
+      "url": "sound/ch3/pip-snow-it-s-snowing-on-the-reader-too-look.mp3",
+      "durationMs": 3680
+    },
+    "line_o63bdgiaib": {
+      "url": "sound/ch3/wick-longest-night-of-the-year-i-ll-fetch-the.mp3",
+      "durationMs": 5760
+    },
+    "line_26rykeg6qky": {
+      "url": "sound/ch3/pip-i-ll-go-you-can-t-see-the-steps-in-the.mp3",
+      "durationMs": 2960
+    },
+    "line_1b02z1pr2cs": {
+      "url": "sound/ch3/wick-forty-winters-i-ve-walked-those-steps-la.mp3",
+      "durationMs": 4720
+    },
+    "line_1mww3h944pi": {
+      "url": "sound/ch3/narrator-and-down-he-went-one-paw-on-the-wall-cou.mp3",
+      "durationMs": 4480
+    },
+    "line_22fwp9n3qhr": {
+      "url": "sound/ch3/pip-the-glass-is-frosting-over-the-light-can.mp3",
+      "durationMs": 3760
+    },
+    "line_132nbnz54t2": {
+      "url": "sound/ch3/pip-have-you-got-anything-to-wipe-it-clear.mp3",
+      "durationMs": 2400
+    },
+    "line_i6sf6ajlgu": {
+      "url": "sound/ch3/pip-that-s-it-rub-rub-rub.mp3",
+      "durationMs": 2560
+    },
+    "line_ps32ufyqu": {
+      "url": "sound/ch3/pip-there-shine-all-the-way-down-the-steps.mp3",
+      "durationMs": 3040
+    },
+    "line_22vm414zser": {
+      "url": "sound/ch3/pip-thank-you-but-that-won-t-wipe-the-frost.mp3",
+      "durationMs": 3280
+    },
+    "line_1h2t3edt36v": {
+      "url": "sound/ch3/pip-something-soft-maybe-something-warm.mp3",
+      "durationMs": 3440
+    },
+    "line_wchczecmoq": {
+      "url": "sound/ch3/narrator-thimble-had-polished-a-great-many-thimbl.mp3",
+      "durationMs": 5520
+    },
+    "line_21nmzb4i85v": {
+      "url": "sound/ch3/narrator-the-lamp-shone-the-snow-fell-and-the-old.mp3",
+      "durationMs": 5280
+    },
+    "line_1dtceogt0r4": {
+      "url": "sound/ch3/pip-he-s-been-gone-too-long-much-too-long.mp3",
+      "durationMs": 3360
+    },
+    "line_dvwu7el707": {
+      "url": "sound/ch3/pip-but-a-keeper-never-leaves-the-light.mp3",
+      "durationMs": 2480
+    },
+    "line_15xxfvgnnru": {
+      "url": "sound/ch3/pip-will-you-come-with-me-into-the-snow.mp3",
+      "durationMs": 2640
+    },
+    "line_139ekbddbka": {
+      "url": "sound/ch3/narrator-so-down-went-the-little-fox-a-hundred-an.mp3",
+      "durationMs": 5680
+    },
+    "line_25hn6i697cv": {
+      "url": "sound/ch3/narrator-at-the-bottom-of-the-steps-the-snow-had.mp3",
+      "durationMs": 6880
+    },
+    "line_vjkb0fmjgm": {
+      "url": "sound/ch3/pip-wick-wick-where-are-you.mp3",
+      "durationMs": 2720
+    },
+    "line_153v9o80hn4": {
+      "url": "sound/ch3/pip-his-footprints-just-stop-the-snow-s-fill.mp3",
+      "durationMs": 3760
+    },
+    "line_81ao2hkjun": {
+      "url": "sound/ch3/narrator-then-something-glinted-not-on-the-page-b.mp3",
+      "durationMs": 5040
+    },
+    "line_1933r6onq10": {
+      "url": "sound/ch3/pip-there-can-you-bring-it-to-me.mp3",
+      "durationMs": 2080
+    },
+    "line_2fesh3fk1o7": {
+      "url": "sound/ch3/pip-wick-s-logbook-he-never-goes-anywhere-wi.mp3",
+      "durationMs": 3760
+    },
+    "line_5bkjzycy01": {
+      "url": "sound/ch3/pip-thank-you-but-it-s-the-shiny-thing-i-nee.mp3",
+      "durationMs": 5040
+    },
+    "line_e3qc3mc8n2": {
+      "url": "sound/ch3/narrator-and-the-light-being-a-lighthouse-light-b.mp3",
+      "durationMs": 4320
+    },
+    "line_123pfsmo50q": {
+      "url": "sound/ch3/pip-he-s-lost-wick-s-lost-out-in-the-snow.mp3",
+      "durationMs": 3920
+    },
+    "line_ovn3gkl1sk": {
+      "url": "sound/ch3/pip-every-lost-thing-follows-the-light-home.mp3",
+      "durationMs": 6240
+    },
+    "line_2agk97qgt9z": {
+      "url": "sound/ch3/pip-then-the-light-will-just-have-to-be-bigg.mp3",
+      "durationMs": 4160
+    },
+    "line_1fgp4qk484i": {
+      "url": "sound/ch3/narrator-and-up-went-the-little-light-high-above.mp3",
+      "durationMs": 3440
+    },
+    "line_11tr4wg2hss": {
+      "url": "sound/ch3/pip-the-kite-from-the-night-thimble-came-can.mp3",
+      "durationMs": 3600
+    },
+    "line_11pica9ww8f": {
+      "url": "sound/ch3/pip-the-ladder-from-the-night-thimble-came-c.mp3",
+      "durationMs": 3600
+    },
+    "line_1cgd1rhaznn": {
+      "url": "sound/ch3/pip-wick-wick-follow-the-light.mp3",
+      "durationMs": 2960
+    },
+    "line_p394rpomjb": {
+      "url": "sound/ch3/wick-pip-is-that-your-light-lad-brightest-lit.mp3",
+      "durationMs": 5120
+    },
+    "line_xzy1rqpp6p": {
+      "url": "sound/ch3/narrator-the-old-keeper-stood-at-the-edge-of-the.mp3",
+      "durationMs": 6560
+    },
+    "line_2196ik2mt20": {
+      "url": "sound/ch3/wick-forty-winters-on-this-shore-and-tonight.mp3",
+      "durationMs": 5760
+    },
+    "line_1p07v6adgcx": {
+      "url": "sound/ch3/pip-i-got-over-this-gap-once-with-help-can-y.mp3",
+      "durationMs": 4800
+    },
+    "line_1kuors6my3k": {
+      "url": "sound/ch3/pip-hold-still-wick-and-catch.mp3",
+      "durationMs": 2880
+    },
+    "line_bjyghe5piu": {
+      "url": "sound/ch3/wick-hmph-now-where-did-you-learn-that.mp3",
+      "durationMs": 2400
+    },
+    "line_20jviwugn4h": {
+      "url": "sound/ch3/pip-one-rung-at-a-time-wick-i-ve-got-you.mp3",
+      "durationMs": 2800
+    },
+    "line_1r4nfuopwg7": {
+      "url": "sound/ch3/wick-don-t-look-down-eh-easy-for-some.mp3",
+      "durationMs": 2880
+    },
+    "line_1lq31o18qgw": {
+      "url": "sound/ch3/wick-a-kite-at-my-age.mp3",
+      "durationMs": 2400
+    },
+    "line_2dhfn5jxtri": {
+      "url": "sound/ch3/wick-oh-oh-my-hmph-rather-nice-actually.mp3",
+      "durationMs": 4320
+    },
+    "line_2ah9u2w2ldn": {
+      "url": "sound/ch3/pip-i-don-t-think-that-ll-get-him-over.mp3",
+      "durationMs": 1920
+    },
+    "line_11xqx71i6z6": {
+      "url": "sound/ch3/pip-something-long-maybe-something-to-hold-o.mp3",
+      "durationMs": 3680
+    },
+    "line_2bk0xpon3yf": {
+      "url": "sound/ch3/narrator-then-pip-saw-it-wick-s-own-rope-right-wh.mp3",
+      "durationMs": 6160
+    },
+    "line_22pm93jte88": {
+      "url": "sound/ch3/wick-hmph-not-bad-keeper-not-bad-at-all.mp3",
+      "durationMs": 3680
+    },
+    "line_xl7dnbkv8w": {
+      "url": "sound/ch3/pip-you-dropped-this-the-light-found-it-all.mp3",
+      "durationMs": 4240
+    },
+    "line_2f3old29n5w": {
+      "url": "sound/ch3/wick-forty-years-of-lost-things-coming-home-a.mp3",
+      "durationMs": 4560
+    },
+    "line_1rbgr8b9vf8": {
+      "url": "sound/ch3/wick-you-brought-us-all-home-tonight-lad-time.mp3",
+      "durationMs": 3920
+    },
+    "line_27os67dgjnw": {
+      "url": "sound/ch3/wick-the-lamp-and-the-log-and-all-of-it-they.mp3",
+      "durationMs": 4640
+    },
+    "line_ss9wo5glsr": {
+      "url": "sound/ch3/pip-mine-but-who-ll-grumble-at-me.mp3",
+      "durationMs": 2960
+    },
+    "line_weteo7g1dp": {
+      "url": "sound/ch3/wick-i-ll-grumble-from-my-comfy-chair-loudly.mp3",
+      "durationMs": 3680
+    },
+    "line_2g7xnrpwz4u": {
+      "url": "sound/ch3/narrator-and-just-then-the-snow-stopped-the-cloud.mp3",
+      "durationMs": 5840
+    },
+    "line_1asv7z2q2pz": {
+      "url": "sound/ch3/wick-i-don-t-need-eyes-for-the-stars-lad-i-kn.mp3",
+      "durationMs": 4560
+    },
+    "line_hgy1lwwckb": {
+      "url": "sound/ch3/wick-there-s-the-lantern-every-keeper-s-first.mp3",
+      "durationMs": 3760
+    },
+    "line_1jbowjozf4z": {
+      "url": "sound/ch3/wick-and-the-kite-with-her-long-tail.mp3",
+      "durationMs": 2800
+    },
+    "line_qda1ee7el5": {
+      "url": "sound/ch3/pip-and-that-one-it-looks-like-a-fox.mp3",
+      "durationMs": 2720
+    },
+    "line_1o6jmp1fq7e": {
+      "url": "sound/ch3/wick-don-t-know-that-one-must-be-new.mp3",
+      "durationMs": 2880
+    },
+    "line_1mi0habd7g8": {
+      "url": "sound/ch3/wick-they-say-every-keeper-gets-a-star-looks.mp3",
+      "durationMs": 4800
+    },
+    "line_15r7es19vmz": {
+      "url": "sound/ch3/pip-a-shooting-star-quick-make-a-wish.mp3",
+      "durationMs": 2960
+    },
+    "line_1q3c0lwr7ke": {
+      "url": "sound/ch3/narrator-they-climbed-the-hundred-and-twelve-step.mp3",
+      "durationMs": 5440
+    },
+    "line_1294wg3xvgk": {
+      "url": "sound/ch3/narrator-and-when-the-stars-had-faded-and-the-mor.mp3",
+      "durationMs": 4640
+    },
+    "line_2b1phliki6g": {
+      "url": "sound/ch3/narrator-the-new-keeper-put-out-the-lamp-himself.mp3",
+      "durationMs": 7520
+    },
+    "line_yfhgis0uam": {
+      "url": "sound/ch3/narrator-the-snow-fell-soft-as-a-held-breath.mp3",
+      "durationMs": 3600
+    },
+    "line_1wtvnj1ehyt": {
+      "url": "sound/ch3/narrator-up-at-the-top-a-small-mouse-kept-the-gre.mp3",
+      "durationMs": 3840
+    },
+    "line_z3n77e0b4h": {
+      "url": "sound/ch3/narrator-somewhere-out-in-the-white-an-old-badger.mp3",
+      "durationMs": 4240
+    },
+    "line_gxlhlm8rx8": {
+      "url": "sound/ch3/narrator-then-something-glinted-half-buried-in-th.mp3",
+      "durationMs": 4720
+    },
+    "line_t7hek5kd82": {
+      "url": "sound/ch3/pip-there-in-the-snow-can-you-reach-it-for-m.mp3",
+      "durationMs": 3280
+    },
+    "line_ux3f7ru0nv": {
+      "url": "sound/ch3/pip-thank-you-but-it-s-the-shiny-thing-i-nee-2.mp3",
+      "durationMs": 4960
+    },
+    "line_roxy54ikbn": {
+      "url": "sound/ch3/narrator-so-the-little-fox-dug-it-out-of-the-snow.mp3",
+      "durationMs": 3360
+    },
+    "line_1xp8ckx2sub": {
+      "url": "sound/ch3/pip-you-dropped-this-it-was-in-the-snow-at-t.mp3",
+      "durationMs": 3520
     }
   },
   "sets": [

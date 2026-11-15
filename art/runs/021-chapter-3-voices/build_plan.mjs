@@ -11,6 +11,9 @@ import { linesOf } from '../../../contracts/src/beats.ts';
 
 const args = process.argv.slice(2);
 const check = args.includes('--check');
+// Writes jobs only for speakers whose voice is chosen, and lists the rest, so the narrator's, Pip's and
+// Wick's lines can be voiced while Thimble's voice (lane B) is still being chosen.
+const deferUnchosen = args.includes('--defer-unchosen');
 const given = args.filter((a) => !a.startsWith('--'));
 const episodes = given.length
   ? given
@@ -39,16 +42,24 @@ if (check) {
 const slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40).replace(/-$/, '');
 const ids = new Set();
 const jobs = [];
+const deferred = [];
 for (const line of lines.values()) {
   if (manifest.voiceLines[line.lineId]) continue;
   const presetId = PRESETS[line.speaker];
+  if (!presetId && deferUnchosen) {
+    deferred.push(line);
+    continue;
+  }
   if (!presetId) throw new Error(`no voice chosen for ${line.speaker}: lane B's art/cast/thimble/voice.json, or plan.thimblePreset`);
   let id = `${line.speaker}-${slug(line.text)}`;
   for (let n = 2; ids.has(id); n++) id = `${line.speaker}-${slug(line.text)}-${n}`;
   ids.add(id);
   jobs.push({ id, role: line.speaker, presetId, promptText: line.text, lineId: line.lineId, beat: line.beat });
 }
+// Jobs already finished stay in the plan (the tool skips them), so a second batch adds to the first.
+for (const old of plan.voiceJobs) if (!jobs.some((j) => j.id === old.id) && !manifest.voiceLines[old.lineId]) jobs.push(old);
 const soundCredits = plan.soundJobs.reduce((sum, j) => sum + j.durationS, 0);
-if (jobs.length + soundCredits > plan.capCredits) throw new Error(`${jobs.length} lines and ${soundCredits} s of sound pass the approved cap of ${plan.capCredits}: trim first (${plan.trimOrder})`);
-fs.writeFileSync(planPath, `${JSON.stringify({ ...plan, voiceJobs: jobs, estimateCredits: jobs.length + soundCredits }, null, 2)}\n`);
-console.log(`${jobs.length} lines to voice (${lines.size} playable across ${episodes.length} version(s), ${lines.size - jobs.length} already voiced), ${soundCredits} credits of sound; cap ${plan.capCredits}`);
+if (deferred.length) console.log(`deferred until their voice is chosen: ${deferred.length} lines (${[...new Set(deferred.map((l) => l.speaker))].join(', ')})`);
+if (jobs.length + deferred.length + soundCredits > plan.capCredits) throw new Error(`${jobs.length} lines and ${soundCredits} s of sound pass the approved cap of ${plan.capCredits}: trim first (${plan.trimOrder})`);
+fs.writeFileSync(planPath, `${JSON.stringify({ ...plan, voiceJobs: jobs, estimateCredits: jobs.length + deferred.length + soundCredits }, null, 2)}\n`);
+console.log(`${jobs.length} lines to voice now, ${deferred.length} deferred (${lines.size} playable across ${episodes.length} version(s), ${lines.size - jobs.length - deferred.length} already voiced), ${soundCredits} credits of sound; cap ${plan.capCredits}`);

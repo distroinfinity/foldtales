@@ -271,9 +271,21 @@ Nothing is spent before the sprint master approves each run. 12 credits stay una
 **Nov 16, 01:30 IST (lane B's landing and the hunt's page version in; the engine PR #24 and lane A's host still open):**
 
 - **The hunt's page version** (`client/public/show/episode-3.page-hunt.json` and `.page-hunt.canon.json`), from lane B's table in the story file: the logbook is `place`d on the page with `cue beam` instead of the room hunt, the ask waits 18 s, and lane B's seven lines and canon text replace the room ones. One staging change, for lane B: the logbook is placed at **`far-side`** (the bottom step), not `pip-step`, because `pip-step` is where Pip already stands, so the logbook would sit inside his feet. Every spine check in `tests/chapter-3.test.ts` now runs on both versions (22 pass, 4 wait by name). Page version timings: quick 1:36–1:38 / 5:18–5:20; zero input 1:58–2:00 / 6:25–6:27; late wrong 2:15–2:17 / 6:54–6:55; holding 2:10–2:12 / 6:45–6:47.
-- **Run 021:** 83 lines to voice across both versions (76 + 7), against a cap of 84: one retake left. Ask below.
+- **Run 021:** 81 lines to voice across both versions: the 76, plus 5 spoken lines from the page version (two of lane B's seven are canon text, not voiced). Cap raised from 84 to 90 by the sprint master (lane C: 144 of 150).
 - **Run 020's free pass on the landing** (`art/sets/the-landing-snow/`): the pale treads and the rock's top lift toward the paper, the dark sea keeps its paint, the far rocks and the near wall get caps. Each ground's paper is now measured on its own edges, so bare paper stays exactly as it was. On the Mac the landing reads as cold, pale stone rather than deep snow: with the lamp's ground, the second candidate for a paid repaint, decided in the emulator.
 - **The emulator pass (the owner's first-round rule) can't start yet:** chapter 3 can only be loaded once the host calls `loadChapter(n)` with the chapter's spine. Lane B's engine PR (#24) adds `loadChapter` but doesn't touch `index.ts`, and lane A's open PR (#26) doesn't read `?chapter=n` yet. Lane C doesn't patch the host (ruling 2). Until one of them lands, no chapter 3 page load exists to test.
+
+**Ready to wire, the moment lane B's #24 and lane A's host are on main.** Chapter 3's entry in the manifest's `chapters` list, in #24's shape (`n`, `episode`, `onStage`, `where`):
+
+```json
+{ "n": 3, "episode": "show/episode-3.json",
+  "onStage": [{ "cast": "pip", "mark": "pip" }, { "cast": "wick", "mark": "wick" }, { "cast": "thimble", "mark": "thimble" }, { "cast": "moth", "mark": "moth-lamp" }],
+  "where": ["Stopped at the lamp, in the snow.", "Stopped at the foot of the steps.", "Stopped at the gap, in the snow."] }
+```
+
+If the hunt fails, `episode` becomes `show/episode-3.page-hunt.json` (its canon file sits beside it under the name `loadChapter` looks for). Then: the three snowy sets as manifest entries with their base sets' marks (and each scene's `setId` to its snowy set), `sets/*-snow` in `artFolders`, and `tests/chapter-3.test.ts`'s waiting checks switch on. **Still owed by #24 for chapter 3** (as of its branch now): `loadChapter` doesn't read `episode-3.carry.json` yet (E4), and the minimum for one carried consequence (ruling 5) depends on it.
+
+**Nov 16, later: run 021 batch 1 voiced** (sprint master: cap raised to 90; "keep everything ready"). The narrator's, Pip's and Wick's 72 lines across both versions, 72 credits by the run's own ledger, finished into `art/sound/ch3/` and the manifest's `voiceLines` (`art/runs/021-chapter-3-voices/results.md`). Thimble's 9 lines wait for her voice (lane B). Re-timed from the real voices: room version quick 1:32–1:34 / 5:08–5:10, zero input 1:52–1:54 / 6:15–6:17, late wrong 2:10–2:12 / 6:46–6:48, holding 2:04–2:06 / 6:35–6:37; page version the same turns, ends 5:05–6:55. `tests/chapter-3.test.ts`: 23 pass (the voice check is live: every narrator, Pip and Wick line has its clip), 4 wait. Lane C's spend so far: 72 of 144.
 
 ## Appendix: the line ledger
 
