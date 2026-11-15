@@ -37,3 +37,7 @@ Characters, objects and scene problems are data, not code, so a new cast or worl
 
 - **Ask for Space Setup from inside the book.** The browser can start Space Setup once per session (`initiateRoomCapture`). A reader with no Space Setup could be offered it before a room effect, instead of only getting fallbacks.
 - **Match your real lamps.** Light estimation isn't offered by IWSDK today. If it comes, the room dim could follow how bright your room really is.
+
+## Cut from v1, Nov 15 (the finish sprint)
+
+- **Story Circle:** two headsets in one room, then remote (ticket 5, M5). Cut by the owner to finish the single-player product.
