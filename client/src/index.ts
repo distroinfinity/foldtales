@@ -783,7 +783,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
     // Lightning and its thunder come from your window's side (the room's nearest window), or far off ahead.
     const lightningWindow = roomMap.resolve('room:window', 'face');
     const lightningFrom = lightningWindow?.label === 'window' ? lightningWindow.centre : lightningAt.copy(head).addScaledVector(forward, 6).setY(head.y + 1.5);
-    show.dim.weather({ storm: sky.storm, night: 0, flash: sky.flash, flashFrom: lightningFrom });
+    show.dim.weather({ storm: sky.storm, night: 0, flash: sky.flash, window: lightningWindow?.label === 'window' ? lightningWindow : null });
     // The storm's sound: rain all round you, and each thunder once.
     sound.ambience('rain', sky.storm);
     if (roomNow.thunderMs !== null && roomNow.thunderMs < 400) {
