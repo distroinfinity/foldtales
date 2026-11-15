@@ -1,0 +1,39 @@
+{
+  "id": "014-room-weather-sky",
+  "question": "Can rain, snow, fog, stars, the moon and a shooting star be painted pieces in the book's watercolour style that still read when they fill the reader's real room?",
+  "why": "Room comes alive (docs/plans/2026-11-15-room-comes-alive.md): the storm, the night sky on the ceiling, and snow and fog need painted pieces. Procedural streaks and dots would be test visuals; the look bar asks for the book's own paint. Owner approved up to 180 credits for the ticket's art and sound on Nov 15, this run at most 35.",
+  "sameAcrossJobs": "seedream5_pro, the shore's night sky from run 011 as Figure 1 for paint and colour, run 006's parts-sheet wording (pieces well apart, wide paper margin, no sticker border), flat vivid magenta paper for cut pieces. The snow cover is full-bleed and isn't cut.",
+  "decideBy": [
+    "Every cut piece passes run 006's checks: one piece each, paper border on all sides, no magenta residue, at least 97% of paint kept.",
+    "On the Mac, the pieces scattered over a photo of a real room read as painted rain, snow, fog and stars, not as clip art or dots.",
+    "The owner judges them in the headset, in the storm, the night sky, and snow and fog."
+  ],
+  "learnEvenIfRejected": "Whether thin, pale, near-transparent strokes (rain, fog) survive the magenta cut-out, and whether a wash painted full-bleed can be made to tile for free.",
+  "reusableOutput": "A small library of weather and sky pieces (art/fx/weather/, art/fx/sky/) any chapter or the storyteller can use: rain strokes, snowflakes, fog wisps, a snow cover wash, stars, a crescent moon, a shooting star.",
+  "estimateCredits": 23,
+  "capNote": "Two 2K sheets (about 9 each) and one 1K wash (about 5). The rest of the 35 is for one repaint of a sheet whose pieces fail the checks.",
+  "capCredits": 35,
+  "jobs": [
+    {
+      "id": "weather-sheet",
+      "model": "seedream5_pro",
+      "ratio": "2720:1530",
+      "refs": [{ "file": "art/runs/014-room-weather-sky/ref-night-sky.png" }],
+      "prompt": "A paper-doll parts sheet of separate weather pieces, in exactly the painting style and colours of Figure 1. Top row: eight long thin raindrop streaks, each a single slender slanted stroke of pale silvery blue watercolour, about eight times as long as it is wide, slightly tapered at both ends, each a little different. Middle row: eight soft snowflakes, each a small rounded watercolour flake of pale cream-white with a faint blue-grey shadow, some simple round soft flakes and some delicate six-armed ones, all about the same size. Bottom row: four long soft wisps of fog, each a gentle horizontal wash of pale blue-grey, about five times as wide as it is tall, soft-edged with a faint pencil outline. Every piece stands alone with wide empty paper between pieces, nothing touching or overlapping, and a wide margin of empty paper on all four sides. Each piece has a clean edge traced with a fine graphite pencil line. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain. On plain flat solid vivid magenta paper, one even color. No pink or purple in the painting. No text, no labels, no frame."
+    },
+    {
+      "id": "sky-sheet",
+      "model": "seedream5_pro",
+      "ratio": "2720:1530",
+      "refs": [{ "file": "art/runs/014-room-weather-sky/ref-night-sky.png" }],
+      "prompt": "A paper-doll parts sheet of separate night sky pieces, in exactly the painting style and colours of Figure 1. Top row: six small stars, each a simple soft five- or four-pointed watercolour star of pale warm gold and cream, a few slightly different in size, painted flat with no glow around them. Middle left: one crescent moon, pale cream with a faint gold edge and a few soft grey-blue craters, about three times the size of a star. Middle right: one shooting star, a small bright pale gold star at the left end of a long tapering trail of soft cream and pale gold watercolour that fades to a thin point, the trail about eight times as long as the star is wide, slanting gently downward to the right. Every piece stands alone with wide empty paper between pieces, nothing touching or overlapping, and a wide margin of empty paper on all four sides. Each piece has a clean edge traced with a fine graphite pencil line. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain. On plain flat solid vivid magenta paper, one even color. No pink or purple in the painting. No text, no labels, no frame, no background sky."
+    },
+    {
+      "id": "snow-cover",
+      "model": "seedream5_pro",
+      "ratio": "1376:768",
+      "refs": [{ "file": "art/runs/014-room-weather-sky/ref-night-sky.png" }],
+      "prompt": "Seen from straight above, an even layer of freshly fallen snow covering a flat surface, filling the whole picture edge to edge, in the painting style of Figure 1. Soft cream-white snow with gentle uneven drifts, faint pale blue-grey shadows in the hollows, and a few tiny sparkles, evenly spread with no single feature or object, so the picture could repeat side by side. Hand-painted traditional watercolor with visible paper grain, from a vintage natural history picture book. Soft pigment washes, gentle edges. No objects, no footprints, no horizon, no sky, no text."
+    }
+  ]
+}

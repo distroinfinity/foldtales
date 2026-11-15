@@ -31,6 +31,8 @@ import { effectsOn } from './room-fx/state.ts';
 import { castShadows, createShadowPlay } from './room-fx/shadows.ts';
 import { createFireflies } from './room-fx/fireflies.ts';
 import { createWindowView, WINDOW_ART } from './room-fx/window.ts';
+import { createWeather, RAIN_ART } from './room-fx/weather.ts';
+import { createRoomDepth } from './room-fx/occluders.ts';
 import { createSoundEngine } from './sound/engine.ts';
 import narratorVoice from '../../art/voice/narrator.json';
 import { arrivalAt, OPEN_AT_MS } from './stage/arrival.ts';
@@ -54,7 +56,7 @@ import { buildEmber, buildWash } from './stage/wash.ts';
 import { createTelemetry } from './telemetry.ts';
 
 /** Room effects this build can show. Each joins as it's built, and the storyteller hears of only these. */
-const ROOM_EFFECTS_BUILT: import('@tabletop/contracts').RoomEffect[] = ['hunt', 'shadows', 'shadows-off', 'fireflies', 'fireflies-off'];
+const ROOM_EFFECTS_BUILT: import('@tabletop/contracts').RoomEffect[] = ['hunt', 'shadows', 'shadows-off', 'fireflies', 'fireflies-off', 'rain', 'thunder', 'clear'];
 
 const FLUSH_EVERY_MS = 10_000;
 const FRAMEBUFFER_SCALE = 1.4;
@@ -195,6 +197,12 @@ async function prepare(world: World) {
   const windowArt = assets.textures.get(WINDOW_ART);
   const windowView = windowArt ? createWindowView(windowArt) : null;
   if (windowView) world.scene.add(windowView.mesh);
+  // Weather: painted rain all round you, the room greying, and thunder on your walls.
+  const weather = createWeather(assets.textures.get(RAIN_ART) ?? null);
+  world.scene.add(weather.rain);
+  // Your real walls and furniture, invisibly, so room effects hide behind them.
+  const roomDepth = createRoomDepth();
+  world.scene.add(roomDepth.root);
   const runtime = createShowRuntime({
     manifest,
     spine: assets.spine,
@@ -329,7 +337,12 @@ async function prepare(world: World) {
         runtime.addRoom({ do: 'room', withPrev: false, effect: 'window', what: null, at: 'room:wall' }, at);
         runtime.addRoom({ do: 'room', withPrev: false, effect: 'window-off', what: null, at: null }, at + 35_000);
       }
-      else if (effect === 'shadows' || effect === 'fireflies' || effect === 'window') {
+      else if (effect === 'rain') {
+        // A storm: rain, then three rolls of thunder, then it clears.
+        runtime.addRoom({ do: 'room', withPrev: false, effect: 'rain', what: null, at: null }, at);
+        for (const t of [9_000, 18_000, 27_000]) runtime.addRoom({ do: 'room', withPrev: false, effect: 'thunder', what: null, at: null }, at + t);
+        runtime.addRoom({ do: 'room', withPrev: false, effect: 'clear', what: null, at: null }, at + 35_000);
+      } else if (effect === 'shadows' || effect === 'fireflies' || effect === 'window') {
         runtime.addRoom({ do: 'room', withPrev: false, effect, what: null, at: null }, at);
         runtime.addRoom({ do: 'room', withPrev: false, effect: `${effect}-off`, what: null, at: null }, at + 35_000);
       }
@@ -352,11 +365,11 @@ async function prepare(world: World) {
       else away.requested = true;
     },
   });
-  return { manifest, assets, stage, dim, sound, clock, runtime, roomMap, shadowPlay, fireflies, windowView, devRoomTick, wash, ember, log, pause, controls, soft, review, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, directorOn, storyConfig, moreTargets };
+  return { manifest, assets, stage, dim, sound, clock, runtime, roomMap, shadowPlay, fireflies, windowView, weather, roomDepth, devRoomTick, wash, ember, log, pause, controls, soft, review, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, directorOn, storyConfig, moreTargets };
 }
 
 function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom: Checkpoint | null, target: EnterTarget | null = null): void {
-  const { manifest, assets, stage, sound, clock, runtime, roomMap, shadowPlay, fireflies, windowView, devRoomTick, wash, ember, log, pause, controls, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, storyConfig, moreTargets } = show;
+  const { manifest, assets, stage, sound, clock, runtime, roomMap, shadowPlay, fireflies, windowView, weather, roomDepth, devRoomTick, wash, ember, log, pause, controls, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, wrist, away, canonData, defs, storyConfig, moreTargets } = show;
   // The AI Storyteller, when that's the door the reader chose on the landing page.
   const storyMode = target?.kind === 'storyteller' && storyConfig !== null;
   let story: StorySession | null = null;
@@ -763,6 +776,9 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       hands: [controls.fingertip('left'), controls.fingertip('right')],
       onRise: (at) => sound.play('spark', at),
     });
+    const sky = weather.frame({ weather: roomNow.weather, thunderMs: roomNow.thunderMs, nowMs, head, floorY: roomMap.floorY(), ceilingY: roomMap.ceilingY(), bookOpen: controls.amount > 0.98 });
+    show.dim.weather({ storm: sky.storm, night: 0, flash: sky.flash });
+    roomDepth.frame(roomNow.weather.on || roomNow.weather.sinceMs < 3000, roomMap);
     windowView?.frame({ state: roomNow.window, nowMs, room: roomMap, bookOpen: controls.amount > 0.98, head, forward, book: stage.root.visible ? stage.root.getWorldPosition(bookAt) : null });
     // Which room effects are showing, each time that changes, so frame summaries can be read per effect.
     const fxOn = effectsOn(roomNow);

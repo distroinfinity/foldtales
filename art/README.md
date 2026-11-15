@@ -18,7 +18,7 @@ Generated art is a product asset, not a temp file. Credits are only spent on pla
 - `cast/<who>/`: finished puppet pieces and each character's `rig.json`. These are product assets.
 - `book/`: the book's cover, spine, page edge, ribbon, tabs and drawer pull, with `book.json` saying where each goes.
 - `sets/<set>/`: a set's layers and printed ground, with `set.json` giving hinges, sizes and anchors in stage space.
-- `fx/`: small effect pieces such as smoke and leaves.
+- `fx/`: small effect pieces such as smoke and leaves. `fx/weather/` and `fx/sky/` hold the room effects' rain, snow, fog, stars and moon (run 014); `fx/window-night.png` is the window's view, made free from the shore set.
 - `m1-proof.html`: the M1 moment with the real pieces, in CSS 3D. Reference only.
 - `cast/prototype.html`: the approved acting for all three characters. Reference only.
 - `book/drawer/`: the drawer's tray, front and side, with `drawer.json` saying where it slides and where each drawer object stands.
@@ -74,5 +74,8 @@ Generated art is a product asset, not a temp file. Credits are only spent on pla
 - **White pieces can't go through the sticker-rim stripper,** which eats pale paper inward (run 011's wick).
 - **Real lines run about 1.3× the caption estimate** across a whole episode (run 010, 83 lines). Write episodes against that, and re-time from the rendered voice.
 - **Quiet foley prompts come back near -30 dB** and need up to +19 dB in finishing (run 010).
+- **Thin washes on magenta paper take its colour** (run 014's fog came out lilac). Recolour after cutting by keeping lightness and alpha, or paint washes on neutral paper.
+- **"A slender stroke" paints as an outlined teardrop** (run 014's rain). Ask for a fine hairline streak with no outline.
+- **A full-bleed texture repeats for free** by blending it with its half-offset self under a soft window (run 014's snow).
 - **In CSS 3D proofs, keep puppet cards narrow** (0.7 of their height, as `m1-proof.html`). A wider card let Chrome draw the layer behind in front of the puppet (run 007).
 

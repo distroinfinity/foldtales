@@ -54,6 +54,8 @@ export interface DimView {
   mesh: Mesh;
   /** Positions on your head each frame, so the room around you dims and the book stays lit. */
   update(head: Vector3, book: Vector3, bookWidthM: number, dim: number, beam?: BeamLight | null, spot?: SpotLight | null): void;
+  /** The room's weather: a storm's blue-grey and extra dark, a deeper night, and a thunder flash, each 0 to 1. */
+  weather(look: { storm: number; night: number; flash: number }): void;
   /** After `update`: another pool of light (shadow play's lit wall), shown if it's stronger than the one set this frame. */
   lift(head: Vector3, spot: SpotLight): void;
   /** Review only: adjusts the darkness, the pool's own dimming and the falloff, live. */
@@ -83,6 +85,9 @@ export function buildDim(): DimView {
       uSpotDir: { value: new Vector3(0, -1, 0) },
       uSpotAngle: { value: 0.1 },
       uSpotStrength: { value: 0 },
+      uStorm: { value: 0 },
+      uNight: { value: 0 },
+      uFlash: { value: 0 },
     },
     vertexShader: /* glsl */ `
       varying vec3 vDir;
@@ -93,7 +98,7 @@ export function buildDim(): DimView {
         gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
       }`,
     fragmentShader: /* glsl */ `
-      uniform float uDim, uMax, uPool, uInner, uOuter, uBeamAz, uBeamStrength, uBeamHalf, uSpotAngle, uSpotStrength;
+      uniform float uDim, uMax, uPool, uInner, uOuter, uBeamAz, uBeamStrength, uBeamHalf, uSpotAngle, uSpotStrength, uStorm, uNight, uFlash;
       uniform vec3 uBookDir, uLamp, uSpotDir;
       varying vec3 vDir;
       varying vec3 vWorld;
@@ -101,8 +106,10 @@ export function buildDim(): DimView {
         float angle = acos(clamp(dot(normalize(vDir), uBookDir), -1.0, 1.0));
         float edge = smoothstep(uInner, uOuter, angle);
         float alpha = uDim * mix(uPool, uMax, edge);
-        // Night navy at the edges, a faint warm amber in the pool around the book.
-        vec3 color = mix(vec3(0.09, 0.07, 0.04), vec3(0.03, 0.04, 0.10), edge);
+        // Weather: a storm darkens the room further and greys it; a night sky darkens it most.
+        alpha = min(0.96, alpha + uDim * edge * (0.08 * uStorm + 0.12 * uNight));
+        // Night navy at the edges, a faint warm amber in the pool around the book; storm blue-grey.
+        vec3 color = mix(vec3(0.09, 0.07, 0.04), mix(vec3(0.03, 0.04, 0.10), vec3(0.06, 0.07, 0.10), uStorm), edge);
         // The lamp's beam, seen from the lamp: where it falls, the dim lifts and your walls warm.
         vec2 fromLamp = vWorld.xz - uLamp.xz;
         float az = atan(fromLamp.x, fromLamp.y);
@@ -113,7 +120,9 @@ export function buildDim(): DimView {
         float toSpot = acos(clamp(dot(normalize(vDir), uSpotDir), -1.0, 1.0));
         float spot = uSpotStrength * (1.0 - smoothstep(uSpotAngle * 0.45, uSpotAngle, toSpot));
         alpha *= (1.0 - 0.9 * beam) * (1.0 - 0.85 * spot);
-        gl_FragColor = vec4(color * alpha + vec3(1.0, 0.8, 0.48) * (0.24 * beam + 0.16 * spot), alpha);
+        // Thunder: for a moment the dark lifts off your walls, and they flash cool white.
+        alpha *= 1.0 - 0.8 * uFlash;
+        gl_FragColor = vec4(color * alpha + vec3(1.0, 0.8, 0.48) * (0.24 * beam + 0.16 * spot) + vec3(0.75, 0.82, 1.0) * 0.22 * uFlash, alpha);
       }`,
     side: BackSide,
     transparent: true,
@@ -134,6 +143,11 @@ export function buildDim(): DimView {
       if (shape.max !== undefined) material.uniforms.uMax!.value = shape.max;
       if (shape.pool !== undefined) material.uniforms.uPool!.value = shape.pool;
       if (shape.falloff !== undefined) falloff = shape.falloff;
+    },
+    weather({ storm, night, flash }) {
+      material.uniforms.uStorm!.value = storm;
+      material.uniforms.uNight!.value = night;
+      material.uniforms.uFlash!.value = flash;
     },
     lift(head, spot) {
       if (spot.strength <= material.uniforms.uSpotStrength!.value) return;
