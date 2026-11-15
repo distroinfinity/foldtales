@@ -4,7 +4,7 @@
 
 ## Progress
 
-*Last updated Nov 15, 2026. A workstream is ticked when it's merged to main, and a milestone when the owner signs it off in the headset. ⏸ means held by the owner's choice. **Now: M3 signed off (the AI Storyteller, PR #9). The owner writes more chapters; "Your room comes alive" builds room effects for both the chapters and the Storyteller.***
+*Last updated Nov 15, 2026. A workstream is ticked when it's merged to main, and a milestone when the owner signs it off in the headset. ⏸ means held by the owner's choice. **Now: M3 signed off (the AI Storyteller, PR #9). The owner writes more chapters; "Your room comes alive" is merged (PR #13), a catalogue of room effects for both the chapters and the Storyteller.***
 
 **The product is two ways (owner, Nov 14, after ticket 3's first headset session):**
 1. **Defined stories:** authored chapters and books, theatrical experiences. Chapter 1 is the first. The owner writes more, in parallel.
@@ -28,7 +28,7 @@ Why: AI lines spliced into the written chapter didn't land ("If a story is alrea
   - [x] Repo and contracts. Plan: `docs/superpowers/plans/2026-11-09-repo-and-contracts.md`
   - [x] Pip on the table
   - [x] Deploy and backend: CI, device tokens, caps, memory, telemetry and the report
-  - [ ] ⏸ Hosting: Cloudflare previews per branch, the live Railway backend, and the live cap test. Workflow and config are committed, and deploys stay off until `BACKEND_URL` is set
+  - [x] Hosting: live since Nov 15 (ticket 7). Cloudflare Pages and Railway build main from GitHub; no per-branch previews, by the owner's choice
 - [x] **1. First 30 seconds** (PR #6). Plan: `docs/plans/2026-11-12-ticket-1-first-30-seconds.md`
   - [x] Painted Stage Kit
   - [x] Stage and room
@@ -46,7 +46,11 @@ Why: AI lines spliced into the written chapter didn't land ("If a story is alrea
   - [x] Memory and satchel: chapter-end memory recorded; the Storyteller keeps everything painted for you in your satchel, per device (carrying into later chapters follows the owner's new chapters)
   - [x] Stop the show: the wrist tag (pause, start again, put the book away)
   - Moved on: "your room" to **Your room comes alive** below; "show them something real" (the camera) and "you're in the cast" (voice cloning) to `docs/v2-ideas.md`
-- [ ] **Your room comes alive** ← next (Superset workspace "Ticket 4: Your room comes alive", branch `ticket-4-room-comes-alive`, started Nov 15). Effects that act on the real room, for the chapters and the Storyteller: weather in the room, shadow play on the wall, a treasure hunt with the beam, the night sky on the ceiling, the sea on the floor, things that leave the page, the window as the story's window. Plan first, owner approval before code
+- [x] **Your room comes alive** (Superset workspace "Ticket 4: Your room comes alive", branch `ticket-4-room-comes-alive`, started Nov 15). Effects that act on the real room, for the chapters and the Storyteller: weather in the room, shadow play on the wall, a treasure hunt with the beam, the night sky on the ceiling, the sea on the floor, things that leave the page, the window as the story's window. Plan: `docs/plans/2026-11-15-room-comes-alive.md`, approved by the owner on Nov 15. A catalogue for upcoming chapters and the Storyteller, not added to chapter 1: `docs/room-effects.md`. PR #13, merged Nov 15 on emulator checks at the owner's choice; gulls, the bottle, the walking hunt and the room sound mix get their first headset look later
+  - [x] Contracts: the `room` stage action (PR #14, merged Nov 15)
+  - [x] The room-effects layer and the chapter side (room map, room state, the dim's spot)
+  - [x] The effects: shadow play ✅, fireflies ✅, window ✅, rain ✅, night sky ✅, snow ✅, sea and paper boat ✅; gulls, the bottle and the treasure hunt built and checked in the emulator, to see in the headset; fog dropped. Room sound from run 016 (61 credits)
+  - [x] The storyteller's `ROOM` step, offered every built effect whose art loaded and this room supports
 - [ ] **Defined stories: more chapters** (the owner, in parallel, Nov 14)
 - [ ] **4. Voices and Talk**
   - [x] Voice audition (run 005): full cast chosen from measurements, since the owner delegated it. Not yet compared by ear. Plan: `docs/superpowers/plans/2026-11-09-voice-audition.md`
@@ -61,7 +65,7 @@ Why: AI lines spliced into the written chapter didn't land ("If a story is alrea
   - [x] The page: the hero and the scroll that opens the book, in the painted reading room, on every device (PR #11, merged Nov 15; the owner's look check: "Yes, move on")
   - [x] Your book on any headset: the book snapshot follows the account (finished chapters, started ones); the exact place and keepsakes stay on the headset. Live when sign-in is switched on
   - [ ] **Later, once the product is nearly done: turn sign-in on and test it.** Built and tested on the Mac, switched off for now (owner, Nov 14). Set up Resend (needs a domain and its DNS records), a Google sign-in client, and the server's sign-in secrets (`BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `TT_CLIENT_HOST`). Then turn on `TT_ACCOUNTS=on` (server) and `TT_PUBLIC_ACCOUNTS=on` (site) together. Test on the Quest: Google in Quest Browser, the phone code, and a second headset.
-  - [x] **Host it on foldtales.xyz** (owner, Nov 15). Live: https://www.foldtales.xyz (Cloudflare Pages) and https://api.foldtales.xyz (Railway), each deploying main from GitHub. The AI is on in production behind the caps. Notes in PR #15: the site on Cloudflare Pages through the existing CI, and the backend on Railway at api.foldtales.xyz. The AI stays off in production for now. Steps in the plan's "Hosting on foldtales.xyz"; this also releases ticket 0's held hosting task.
+  - [x] **Host it on foldtales.xyz** (owner, Nov 15). Live: https://www.foldtales.xyz (Cloudflare Pages) and https://api.foldtales.xyz (Railway), each deploying main from GitHub, with no per-branch previews. The AI is on in production behind the caps (keys on Railway; the site's build no longer sets `TT_PUBLIC_STORYTELLER=off`). Notes in PR #15 and the plan's "Hosting: live (Nov 15)"; this also releases ticket 0's held hosting task.
   - [ ] **Foldtales as a complete product: every surface, flow and journey, planned end to end** (owner, Nov 15). For a fresh session: **plan first, the owner approves before any code**.
     - **Why:** the owner says the product doesn't yet feel like a finished whole. "The overhaul of user journeys and product journeys needs to be planned well and executed." The surfaces should be "presented well as a finished product to the customer". Examples:
       - The wrist quit menu is "very absurd right now".
@@ -225,6 +229,21 @@ The AI layer. Director and memory are clubbed because you can only judge them to
 - **Blocked by:** 2. **Blocks:** 5's full show, 6.
 - **Agent verifies:** P4: hundreds of simulated shows with injected slowness and failure, no stall, no repeat, time-box met, and every gift acknowledged. P2's rubric across the library. Next episode differs with and without each consequence, undo reverses it, and data survives reload.
 - **You verify:** hand over odd things. Does what you gave change the ending? Turn off Wi-Fi mid-episode. Play the returning evening, including closing the book mid-scene. Start three stories of your own.
+
+### Your room comes alive
+
+Added by the owner on Nov 14, after the AI Storyteller's second headset session: "More things which interact with my living place." Not new characters: effects that act on your real room, like the lamp's beam. One shared layer, called by a new `room` stage action from written chapters and from the storyteller. Plan: `docs/plans/2026-11-15-room-comes-alive.md`.
+
+| Workstream | What it does |
+|---|---|
+| **Contracts** | The `room` action, room places as targets, the ceiling label, what's on and what's possible in the storyteller's request, a `room_fx` telemetry event. Its own small PR (#14), merged first |
+| **Room-effects layer** | Room map from Space Setup with fallbacks, effect state worked out from the show's timeline, the dim's tint, flash and spot, sound placed in the room |
+| **The seven effects** | In order: treasure hunt, shadow play, fireflies, storm, night sky, snow and fog, sea with boat, bottle and gulls, window |
+| **Storyteller** | A `ROOM` step, and the rule "only describe what the stage really shows" widened to list the room effects, so the cast only promises what a `ROOM` step makes happen |
+
+- **Blocked by:** 2 (the stage and the beam), and 3 for the storyteller side (merged Nov 15). **Blocks:** nothing.
+- **Agent verifies:** `pnpm test`, typecheck and build stay green. Each effect in the emulator's living room, with no planes, and in the painted room, against the look bar. Pause and resume mid-effect. Fps per effect from telemetry. A scripted check that the storyteller never promises a room effect without making it happen.
+- **You verify:** each effect in your own room, in build order, and up to 180 Runway credits for art and sound (asked first).
 
 ### 4. Voices and Talk
 

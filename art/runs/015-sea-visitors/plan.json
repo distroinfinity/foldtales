@@ -1,0 +1,39 @@
+{
+  "id": "015-sea-visitors",
+  "question": "Can the night sea, its foam, a paper boat, a bottle with a message and a gull be painted pieces in the book's watercolour style that still read in the reader's real room?",
+  "why": "Room comes alive (docs/plans/2026-11-15-room-comes-alive.md, docs/room-effects.md): the sea round you, the paper boat, the bottle that washes up and the gulls that perch need painted pieces. Owner's go-ahead on Nov 15, within the 180 credits approved for the room effects' art and sound; this run at most 35.",
+  "sameAcrossJobs": "seedream5_pro, the window's night shore (made from runs 004 and 011) as Figure 1 for paint and colour, run 006's parts-sheet wording with pieces well apart, flat vivid magenta paper for cut pieces. Run 014's lessons: no thin translucent washes on magenta (the water is full-bleed, not cut), and no outlined teardrop strokes. The water wash is full-bleed and isn't cut.",
+  "decideBy": [
+    "Every cut piece passes run 006's checks: one piece each, paper border on all sides, no magenta residue, at least 97% of paint kept.",
+    "On the Mac, the pieces on night navy read as the sea, a paper boat, a bottle and a gull from the book, not clip art.",
+    "The owner judges them in the headset, in the sea, the boat, the bottle and the gulls."
+  ],
+  "learnEvenIfRejected": "Whether foam (white, broken, lacy) cuts cleanly from magenta, and whether a calm water wash painted full-bleed tiles for free as the snow did.",
+  "reusableOutput": "A small sea and visitors library (art/fx/sea/, art/objects/ for the boat and bottle): wave crests, foam edges, a repeating night-water wash, a paper boat, a bottle with a message, a gull in three poses.",
+  "estimateCredits": 23,
+  "capNote": "Two 2K sheets (about 9 each) and one 1K wash (about 5). The rest of the 35 is for one repaint of a sheet whose pieces fail the checks.",
+  "capCredits": 35,
+  "jobs": [
+    {
+      "id": "sea-sheet",
+      "model": "seedream5_pro",
+      "ratio": "2720:1530",
+      "refs": [{ "file": "art/runs/015-sea-visitors/ref-night-shore.png" }],
+      "prompt": "A paper-doll parts sheet of separate sea pieces, in exactly the painting style and colours of Figure 1. Top two rows: six long low curling wave crests seen from the side, each a solid band of deep night-blue and teal watercolour water about five times as wide as it is tall, with a lacy cream-white foam edge along its curling top. Bottom row: four long irregular strips of broken sea foam seen from above, each a lacy band of cream-white foam with small holes and bubbles, about eight times as long as it is wide. Every piece stands alone with wide empty paper between pieces, nothing touching or overlapping, and a wide margin of empty paper on all four sides. Each piece has a clean edge traced with a fine graphite pencil line. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain. On plain flat solid vivid magenta paper, one even color. No pink or purple in the painting. No text, no labels, no frame, no sky, no horizon."
+    },
+    {
+      "id": "visitors-sheet",
+      "model": "seedream5_pro",
+      "ratio": "2720:1530",
+      "refs": [{ "file": "art/runs/015-sea-visitors/ref-night-shore.png" }],
+      "prompt": "A paper-doll parts sheet of separate pieces from a seaside picture book, in exactly the painting style and colours of Figure 1, all the same scale as each other. Top row, left to right: a small folded paper boat seen from the side, of cream writing paper with faint ink lines and soft folds; the same paper boat seen from three-quarters; a small old green glass bottle lying on its side with a cork and a rolled-up cream paper message tied with string inside it. Bottom row, left to right: a herring gull standing perched, seen from the side, white and soft grey with a yellow beak and pink legs; the same gull flying with its wings raised high; the same gull flying with its wings swept down. Natural proportions, small and believable. Every piece stands alone with wide empty paper between pieces, nothing touching or overlapping, and a wide margin of empty paper on all four sides. Each piece has a clean edge traced with a fine graphite pencil line. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain. On plain flat solid vivid magenta paper, one even color. No pink or purple in the painting except the gull's legs. No text, no labels, no frame, no water, no background."
+    },
+    {
+      "id": "water-wash",
+      "model": "seedream5_pro",
+      "ratio": "1376:768",
+      "refs": [{ "file": "art/runs/015-sea-visitors/ref-night-shore.png" }],
+      "prompt": "Seen from straight above, the surface of a calm sea at night, filling the whole picture edge to edge, in the painting style and colours of Figure 1. Deep night-blue and teal watercolour water with soft lighter ripples and a few faint pale moonlit glints, evenly spread with no single feature, so the picture could repeat side by side. Hand-painted traditional watercolor with visible paper grain, from a vintage natural history picture book. Soft pigment washes, gentle edges. No boats, no foam lines, no shore, no horizon, no sky, no text."
+    }
+  ]
+}

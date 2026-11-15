@@ -35,7 +35,9 @@ export type Home =
   /** Left behind on another spread, or not yet on this one: not shown, not taken. */
   | { kind: 'away' }
   /** Placed by a crossing or a cue, which poses it every frame. */
-  | { kind: 'posed' };
+  | { kind: 'posed' }
+  /** Out in the reader's real room, on a place from the room map, nudged across it by `offset` metres (world x, z). */
+  | { kind: 'room'; place: string; offset: [number, number] };
 
 export interface ObjectState {
   id: string;
@@ -114,9 +116,13 @@ export interface ObjectsView {
   add(def: ObjectDef, ref: TexRef, home: Home): void;
   /** Takes painted things away again (a new evening). */
   removeLive(): void;
+  /** Where a room place's surface is in the world, for things out in the room. Null until the room is known. */
+  setRoom(point: ((place: string) => Vector3 | null) | null): void;
 }
 
 const SHADOW_LIFT = 0.0007;
+/** Out in your room a thing shows this tall (metres), so it can be found from across it; back on the book it's book-sized again. */
+const ROOM_HEIGHT_M = 0.24;
 const HELD_SCALE = 1.06;
 
 export function createObjects(initial: ObjectState[], deps: ObjectsDeps): ObjectsView {
@@ -127,6 +133,7 @@ export function createObjects(initial: ObjectState[], deps: ObjectsDeps): Object
   const glows = new Map<string, number>();
   const hidden = new Set<string>();
   let pageShown = true;
+  let roomPoint: ((place: string) => Vector3 | null) | null = null;
   /** The object system's own clock: the last frame's time. Every flight is timed on it, whoever starts it. */
   let clockMs = 0;
   const tmp = new Vector3();
@@ -255,7 +262,7 @@ export function createObjects(initial: ObjectState[], deps: ObjectsDeps): Object
       for (const state of states.values()) {
         const v = views.get(state.id)!;
         if (!state.grabbable || !shownInWorld(v.holder) || flights.has(state.id)) continue;
-        if (!['drawer', 'page', 'table', 'satchel'].includes(state.home.kind)) continue;
+        if (!['drawer', 'page', 'table', 'satchel', 'room'].includes(state.home.kind)) continue;
         const centre = v.card.getWorldPosition(new Vector3());
         v.card.getWorldScale(tmp);
         out.push({ id: state.id, centre, radius: Math.max(0.032, (Math.max(v.w, v.h) / 2) * tmp.y * 0.8) });
@@ -275,7 +282,7 @@ export function createObjects(initial: ObjectState[], deps: ObjectsDeps): Object
         const home = state.home;
         const parent = parentFor(state, receivers);
         const show = !hidden.has(state.id) && parent !== null && home.kind !== 'carried' && home.kind !== 'pocket' && home.kind !== 'away';
-        v.holder.visible = show && (pageShown || home.kind === 'table' || home.kind === 'hand' || home.kind === 'satchel');
+        v.holder.visible = show && (pageShown || home.kind === 'table' || home.kind === 'hand' || home.kind === 'satchel' || home.kind === 'room');
         v.shadow.visible = false;
         if (!parent) continue;
         reparent(v.holder, parent);
@@ -284,6 +291,8 @@ export function createObjects(initial: ObjectState[], deps: ObjectsDeps): Object
         v.holder.position.set(0, 0, 0);
         v.card.rotation.set(0, 0, 0);
         let surfaceY: number | null = null;
+        /** How much bigger than book-size it's drawn, for its shadow. */
+        let size = 1;
         switch (home.kind) {
           case 'drawer':
             mount(state.id, 'centre');
@@ -346,11 +355,28 @@ export function createObjects(initial: ObjectState[], deps: ObjectsDeps): Object
             surfaceY = below.y;
             break;
           }
+          case 'room': {
+            mount(state.id, 'base');
+            const at = roomPoint?.(home.place) ?? null;
+            if (!at) {
+              v.holder.visible = false;
+              break;
+            }
+            at.x += home.offset[0];
+            at.z += home.offset[1];
+            // Big enough to find across the room, nearer its own size close by (a bottle at your feet).
+            const near = Math.max(0.35, Math.min(1, at.distanceTo(head) / 2.5));
+            surfaceY = deps.bookRoot.worldToLocal(at.clone()).y;
+            v.holder.position.copy(deps.loose.worldToLocal(at));
+            size = Math.max(1, (ROOM_HEIGHT_M * near) / (v.h * (deps.loose.getWorldScale(tmp2).y || 1)));
+            v.holder.scale.setScalar(size);
+            break;
+          }
           case 'carried':
             break;
         }
         // Standing things turn to face you, as the characters do. Things in a paw turn with the paw.
-        if ((home.kind === 'page' && home.lie === undefined) || home.kind === 'table' || home.kind === 'hand' || (home.kind === 'posed' && !poses.get(state.id)?.lying)) {
+        if ((home.kind === 'page' && home.lie === undefined) || home.kind === 'table' || home.kind === 'room' || home.kind === 'hand' || (home.kind === 'posed' && !poses.get(state.id)?.lying)) {
           v.holder.getWorldPosition(tmp);
           const dx = head.x - tmp.x;
           const dz = head.z - tmp.z;
@@ -358,6 +384,12 @@ export function createObjects(initial: ObjectState[], deps: ObjectsDeps): Object
           const yaw = Math.atan2(dx, dz);
           const parentYaw = 2 * Math.atan2(parentQuat.y, parentQuat.w);
           v.holder.rotation.y = yaw - parentYaw;
+          // Out in the room, below your eyes (a bottle at your feet): lean back toward you, so it doesn't
+          // shrink to a sliver seen from above. Leaning about its base keeps it standing where it is.
+          if (home.kind === 'room') {
+            v.holder.rotation.order = 'YXZ';
+            v.holder.rotation.x = -Math.min(1.2, Math.max(0, Math.atan2(head.y - tmp.y, Math.hypot(dx, dz)) - 0.35));
+          }
         }
         // A flight eases from where it was to its new home, in world space, then hands over to the home.
         const flight = flights.get(state.id);
@@ -388,7 +420,7 @@ export function createObjects(initial: ObjectState[], deps: ObjectsDeps): Object
           const spread = 1 + Math.min(1.2, lift * 9);
           v.shadow.visible = true;
           v.shadow.position.set(p.x, surfaceY + SHADOW_LIFT, p.z);
-          v.shadow.scale.set(v.w * 1.2 * spread, Math.min(v.w, 0.04) * 0.9 * spread, 1);
+          v.shadow.scale.set(v.w * size * 1.2 * spread, Math.min(v.w * size, 0.04 * size) * 0.9 * spread, 1);
           (v.shadow.material as MeshBasicMaterial).opacity = 0.5 / spread;
         }
       }
@@ -413,6 +445,9 @@ export function createObjects(initial: ObjectState[], deps: ObjectsDeps): Object
       // Painted for you: yours, so a page turn carries it along to your satchel rather than leaving it behind.
       states.set(def.id, { id: def.id, home, given: false, grabbable: true, touched: true });
       build(def.id, def, ref);
+    },
+    setRoom(point) {
+      roomPoint = point;
     },
     removeLive() {
       for (const id of live) {

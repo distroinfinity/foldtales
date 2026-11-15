@@ -16,7 +16,9 @@
     "sound/m1",
     "room",
     "sound/m2",
-    "sets/the-lamp"
+    "sets/the-lamp",
+    "room-fx",
+    "sound/room"
   ],
   "book": "book/book.json",
   "room": "room/room.json",
@@ -494,6 +496,37 @@
     "hop": {
       "files": [
         "sound/m2/hop-land.mp3"
+      ]
+    },
+    "rain": {
+      "files": [
+        "sound/room/rain-loop.mp3"
+      ]
+    },
+    "sea": {
+      "files": [
+        "sound/room/sea-loop.mp3"
+      ]
+    },
+    "thunder": {
+      "files": [
+        "sound/room/thunder-a.mp3",
+        "sound/room/thunder-b.mp3"
+      ]
+    },
+    "gull": {
+      "files": [
+        "sound/room/gull-calls.mp3"
+      ]
+    },
+    "wash": {
+      "files": [
+        "sound/room/bottle-wash.mp3"
+      ]
+    },
+    "shooting": {
+      "files": [
+        "sound/room/shooting-star.mp3"
       ]
     }
   },
@@ -1153,7 +1186,9 @@
     "objects/spool/object.json",
     "objects/brass-key/object.json",
     "objects/rope-coil/object.json",
-    "objects/lamp-wick/object.json"
+    "objects/lamp-wick/object.json",
+    "objects/paper-boat/object.json",
+    "objects/bottle/object.json"
   ],
   "extraObjects": [
     {

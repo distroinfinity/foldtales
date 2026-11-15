@@ -71,6 +71,8 @@ export interface ControlsDeps {
   extras?: () => ExtraTarget[];
   /** VR Glasses: look at a target and pinch. Called with the gaze ray in world space. */
   onGazeSelect?: (origin: Vector3, direction: Vector3) => void;
+  /** Quest 3, with no eye tracking: a pinch that took nothing, with where your head points. Only things out in the room answer it. */
+  onHeadSelect?: (origin: Vector3, direction: Vector3) => void;
 }
 
 function readHand(frame: XRFrame, source: XRInputSource, space: XRReferenceSpace): HandFrame | null {
@@ -87,7 +89,7 @@ function readHand(frame: XRFrame, source: XRInputSource, space: XRReferenceSpace
 }
 
 /** The book is the only UI: shut the cover to pause, open it to resume, pinch the ribbon, slide it by the spine. */
-export function createBookControls({ world, stageRoot, book, sound, pause, glow, cards, onMoved, onResized, extras, onGazeSelect }: ControlsDeps): BookControls {
+export function createBookControls({ world, stageRoot, book, sound, pause, glow, cards, onMoved, onResized, extras, onGazeSelect, onHeadSelect }: ControlsDeps): BookControls {
   /** The gaze ray, if this device has one (VR Glasses, or the glasses emulator). */
   const gaze = { origin: new Vector3(), direction: new Vector3(), valid: false };
   let listening: XRSession | null = null;
@@ -315,7 +317,7 @@ export function createBookControls({ world, stageRoot, book, sound, pause, glow,
         gaze.direction.set(0, 0, -1).applyQuaternion(new Quaternion(q.x, q.y, q.z, q.w));
         gaze.valid = true;
       }
-      if (listening !== frame.session && onGazeSelect) {
+      if (listening !== frame.session && (onGazeSelect || onHeadSelect)) {
         listening = frame.session;
         // The pinch arrives on the gaze source, or (in the glasses emulator) on the pinching hand. A hand's
         // pinch counts only if it didn't take hold of something within reach, so a near grab never also fires at what you look at.
@@ -324,10 +326,14 @@ export function createBookControls({ world, stageRoot, book, sound, pause, glow,
           if (side === 'left' || side === 'right') grabbedThisPinch[side] = false;
         });
         frame.session.addEventListener('select', (event) => {
-          if (!gaze.valid || !enabledNow) return;
+          if (!enabledNow) return;
           const side = event.inputSource.handedness;
           const fromHand = side === 'left' || side === 'right';
-          if (event.inputSource.targetRayMode === 'gaze' || (fromHand && !grabbedThisPinch[side])) onGazeSelect(gaze.origin.clone(), gaze.direction.clone());
+          if (!gaze.valid) {
+            if (fromHand && !grabbedThisPinch[side] && onHeadSelect) onHeadSelect(world.camera.getWorldPosition(new Vector3()), world.camera.getWorldDirection(new Vector3()));
+            return;
+          }
+          if (onGazeSelect && (event.inputSource.targetRayMode === 'gaze' || (fromHand && !grabbedThisPinch[side]))) onGazeSelect(gaze.origin.clone(), gaze.direction.clone());
         });
       }
       const hands: Record<HandSide, HandFrame | null> = { left: null, right: null };

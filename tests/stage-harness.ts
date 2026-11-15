@@ -134,6 +134,7 @@ export function stage() {
       satchel,
       spark: new Sprite(),
       spans: new Map(),
+      room: null,
     },
     clock,
   });

@@ -28,6 +28,8 @@ export interface HandsDeps {
   table: () => Array<{ x: number; z: number }> | null;
   /** Read it again. */
   onReadAgain(): void;
+  /** Out in your room, away from the book: where a thing let go of comes to rest, if the room is known. */
+  roomBelow?: (world: Vector3) => Home | null;
   endPage: { readAgain: Object3D; setNear(near: boolean): void };
 }
 
@@ -130,7 +132,10 @@ export function createObjectHands(deps: HandsDeps) {
 
   const settle = (id: string, side: HandSide): void => {
     const at = lastPoint[side] ?? deps.objects.worldOf(id, new Vector3());
-    const home = restingHome(at, deps, bookOpen, id);
+    // Let go out in your room, it stays there, on whatever is under your hand.
+    const book = deps.book.root.getWorldPosition(new Vector3());
+    const far = Math.hypot(at.x - book.x, at.z - book.z) > 0.9;
+    const home = (far ? deps.roomBelow?.(at) : null) ?? restingHome(at, deps, bookOpen, id);
     deps.objects.send(id, home, nowMs, 260, 0);
     deps.sound.play(home.kind === 'satchel' ? 'satchel' : home.kind === 'page' || home.kind === 'drawer' ? 'setdown' : 'settle', at);
   };
@@ -286,6 +291,26 @@ export function createObjectHands(deps: HandsDeps) {
         else if (best.t.onRelease) best.t.onRelease('right', p);
         else best.t.onGrab?.('right', p);
       }
+    },
+    /**
+     * Seated, on a Quest 3: look at something out in your room and pinch, and it floats back to the
+     * table beside the book, within reach. Nothing else answers a head-aimed pinch.
+     */
+    headSelect(origin: Vector3, direction: Vector3): void {
+      const dir = direction.clone().normalize();
+      const CONE = (8 * Math.PI) / 180;
+      let best: { id: string; a: number } | null = null;
+      for (const t of deps.objects.grabTargets()) {
+        if (deps.objects.get(t.id)?.home.kind !== 'room') continue;
+        const a = dir.angleTo(t.centre.clone().sub(origin));
+        if (a < CONE && (!best || a < best.a)) best = { id: t.id, a };
+      }
+      if (!best) return;
+      const st = deps.objects.get(best.id);
+      if (st) st.touched = true;
+      const from = deps.objects.worldOf(best.id, new Vector3());
+      deps.objects.send(best.id, { kind: 'table', at: [0.26, 0, 0.1] }, nowMs, 1400, 0.25 * (deps.stageRoot.scale.x || 1));
+      deps.sound.play('whoosh', from);
     },
     /** For the drawer: put anything you hold back down before it closes. */
     holding: (): string[] => [held.left, held.right].filter((x): x is string => x !== null),
