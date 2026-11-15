@@ -41,3 +41,4 @@ Characters, objects and scene problems are data, not code, so a new cast or worl
 ## Cut from v1, Nov 15 (the finish sprint)
 
 - **Story Circle:** two headsets in one room, then remote (ticket 5, M5). Cut by the owner to finish the single-player product.
+- **Talk in the written chapters:** at a chapter's asks (the lantern, the wick, the gap), say your idea instead of handing something over, such as "Pip, use your coat as a sail!", and Pip acts it out in voice. This is shape B in `docs/plans/2026-11-14-ai-mode-research.md`. Cut by the owner on Nov 15: the AI inside a written chapter didn't land in ticket 3's first session, the chapters are hands-only by design, and lanes B and C are building chapters 2 and 3. Worth trying once those exist. Your voice belongs to the AI Storyteller in v1.
