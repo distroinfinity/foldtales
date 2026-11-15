@@ -8,7 +8,10 @@ import type { Place, RoomMap } from './room-map.ts';
  * how they stand. Drawn after the room dim (which must reach past the walls) and before the effects.
  */
 
-const material = new MeshBasicMaterial({ colorWrite: false });
+// Transparent, so it draws in the transparent pass after the room dim (renderOrder -1000) and before the
+// effects. Opaque, three.js would draw it before every transparent thing, and a real wall nearer than the
+// dim's sphere would hide the dim behind it: lit patches on the walls (owner, Nov 15).
+const material = new MeshBasicMaterial({ colorWrite: false, transparent: true, depthWrite: true });
 /** Tops sit a little low, so the book and a thing on a seat never sink into them. */
 const TOP_DROP_M = 0.015;
 const FURNITURE = new Set(['table', 'couch', 'bed', 'shelf', 'storage', 'screen', 'other']);

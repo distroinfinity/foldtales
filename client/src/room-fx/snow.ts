@@ -18,7 +18,8 @@ const RADIUS_M = 3.2;
 const SETTLE_MS = 15_000;
 const MELT_MS = 6000;
 /** What snow settles on. The floor only near you. */
-const SETTLES_ON = new Set(['table', 'couch', 'bed', 'floor']);
+/** Not the floor (owner, Nov 15: snow on the floor didn't look good). */
+const SETTLES_ON = new Set(['table', 'couch', 'bed']);
 const FLOOR_REACH_M = 2.2;
 /** One repeat of the painted snow, in metres. */
 const COVER_TILE_M = 0.7;
