@@ -2,7 +2,19 @@ import { describe, expect, test } from 'vitest';
 import type { Spine, StageAction } from '../contracts/src/index.ts';
 import type { RuntimeSnapshot } from '../client/src/show/runtime.ts';
 import { markOf } from '../client/src/show/manifest.ts';
-import { manifest, playTo, playUntil, stage } from './stage-harness.ts';
+import { stageLook } from '../client/src/paint/card-material.ts';
+import { manifest, playTo, playUntil, stage, type Harness } from './stage-harness.ts';
+
+/** What the reader sees of the lantern: lit painting, glow, the pool of light, and the one in Pip's paw. */
+const seen = (s: Harness) => {
+  const object = s.root.getObjectByName('object:lantern')!;
+  return {
+    lit: object.getObjectByName('lit')?.visible ?? false,
+    glow: object.getObjectByName('glow')?.visible ?? false,
+    pool: stageLook.poolStrength.value > 0,
+    inPaw: s.puppets.get('pip')!.root.getObjectByName('lantern')!.visible,
+  };
+};
 
 const hi = markOf(manifest, 'shore-path', 'light-high')!;
 
@@ -42,7 +54,9 @@ function lifting(what: 'kite' | 'ladder' | 'moth'): Spine {
 
 describe('the light goes up high, and comes back down', () => {
   test.each(['kite', 'ladder', 'moth'] as const)('with the %s: up, settled, restored, and back in the paw', (what) => {
-    // Up by 1.6 s at the latest; down starts at 7.8 s at the earliest.
+    // Before: in Pip's paw. Up by 1.6 s at the latest; down starts at 7.8 s at the earliest.
+    const before = seen(playTo(stage(lifting(what)), 500));
+    expect(before.inPaw).toBe(true);
     const s = playTo(stage(lifting(what)), 7000);
     const lantern = s.objects.get('lantern')!.home;
     expect(lantern).toMatchObject({ kind: 'page', at: [hi[0], hi[1], hi[2]] });
@@ -57,9 +71,16 @@ describe('the light goes up high, and comes back down', () => {
     again.runtime.restore(structuredClone(saved) as RuntimeSnapshot, s.clock.ms);
     playTo(again, s.clock.ms + 50);
     expect(again.objects.get('lantern')!.home).toEqual(lantern);
+    // Up high it's still lit, with its glow and its pool, and the same after a restore.
+    expect(seen(again)).toEqual({ lit: true, glow: true, pool: true, inPaw: false });
+    playTo(s, 7050);
+    expect(seen(s)).toEqual({ lit: true, glow: true, pool: true, inPaw: false });
     // Then it comes down: the lantern in Pip's paw, the kite or ladder at his feet, and the beat after plays.
     playUntil(s, 'end');
     expect(s.objects.get('lantern')!.home).toEqual({ kind: 'carried', cast: 'pip' });
+    // Back down, it looks as it did before it went up.
+    playTo(s, s.clock.ms + 1500);
+    expect(seen(s)).toEqual(before);
     if (what !== 'moth') expect(s.objects.get(what)!.home).toMatchObject({ kind: 'page', at: [expect.any(Number), 0, expect.any(Number)] });
   });
 });

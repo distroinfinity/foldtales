@@ -286,6 +286,12 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
     return out;
   };
 
+  /** A keeper's light set up high by light-up (on the page, above it), while its keeper's light is lit. */
+  function raisedLit(objectId: string, cast: string, state: { lights: Map<string, { lit: boolean }> }): boolean {
+    const home = views.objects.get(objectId)?.home;
+    return home?.kind === 'page' && home.at[1] > 0.01 && (state.lights.get(cast)?.lit ?? true);
+  }
+
   /** The once-only effects of an action starting: things moving between homes. */
   function applyStart(item: { action: import('@tabletop/contracts').StageAction; startMs: number }, nowMs: number): void {
     const a = item.action;
@@ -316,7 +322,7 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
           views.objects.send(lightId, { kind: 'page', at: [hi[0], hi[1], hi[2]] }, nowMs, 1500, 0.03, from);
           const id = objectOf(a.target);
           if (id && views.objects.get(id)) {
-            const flies = defs.get(views.objects.get(id)!.def?.id ?? id)?.tags.includes('flies') ?? false;
+            const flies = defs.get(id)?.tags.includes('flies') ?? false;
             views.objects.send(id, { kind: 'page', at: flies ? [hi[0] + 0.006, hi[1] + 0.04, hi[2] - 0.004] : [hi[0], 0, hi[2] - 0.004] }, nowMs, 1500, flies ? 0.05 : 0.02);
           }
         }
@@ -928,6 +934,15 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
           pool = POOL_STRENGTH * Math.min(1, (stand - 0.5) * 2) * pose.glow;
         }
       }
+      // A keeper's light held up high (light-up) stays lit as its keeper's light is: its pool goes with it.
+      if (pool === 0) {
+        for (const [objectId, cast] of lightObjects) {
+          if (!raisedLit(objectId, cast, state)) continue;
+          views.objects.worldOf(objectId, stageLook.poolPos.value);
+          pool = POOL_STRENGTH;
+          break;
+        }
+      }
       stageLook.poolStrength.value = pool;
       stageLook.poolRadius.value = POOL_RADIUS_M * worldScale.x;
 
@@ -969,6 +984,10 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
       views.objects.setPageShown(stackStand > 0.05 && !(turn && turn.layers !== null && turn.layers < 0.05));
       for (const [objectId, cast] of lightObjects) {
         const s = views.objects.get(objectId);
+        if (raisedLit(objectId, cast, state)) {
+          views.objects.setGlow(objectId, 1);
+          continue;
+        }
         if (s?.home.kind !== 'hand') {
           views.objects.setGlow(objectId, 0);
           continue;

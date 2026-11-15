@@ -49,6 +49,16 @@ function parse(store: Store, key: string): Checkpoint | null {
  */
 export function writeCheckpoint(store: Store, checkpoint: Checkpoint): void {
   const text = JSON.stringify(checkpoint);
+  // From before places were kept per chapter, the latest place may be the only copy of another
+  // chapter's: keep it under that chapter's own key before the latest is overwritten.
+  const latest = parse(store, LATEST_KEY);
+  if (latest && latest.episodeId !== checkpoint.episodeId && !parse(store, checkpointKey(latest.episodeId))) {
+    try {
+      store.setItem(checkpointKey(latest.episodeId), JSON.stringify(latest));
+    } catch {
+      // Without storage there's nothing to keep.
+    }
+  }
   try {
     store.setItem(checkpointKey(checkpoint.episodeId), text);
   } catch {

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { readCheckpoint } from './checkpoint.ts';
+import { clearCheckpoint, readCheckpoint } from './checkpoint.ts';
 import { whereIn } from './chapters.ts';
 
 /** The furthest chapter and its state. Account sync reads and writes this key, so its shape stays. */
@@ -132,12 +132,14 @@ export function readLocalChapters(store: Store, seriesId: string, now = Date.now
 }
 
 /**
- * A book merged with the account, written back: each chapter only moves forward, so remote
- * progress never undoes this headset's, and this headset's never undoes the account's. The saved
- * place stays on the headset that made it. Replaces the account's writing of `tt.progress`.
+ * A book merged with the account, written back (lane D calls this with `mergeBooks()`'s result).
+ * Each chapter only moves forward, so remote progress never undoes this headset's. The merge's
+ * resume decision is honoured: a chapter it says is finished, and no longer to be resumed, loses an
+ * older saved place here (one made before the book's time), while a newer place, a reread begun
+ * after that finish, is kept. The saved place itself stays on the headset that made it.
  */
-export function writeLocalChapters(store: Store, seriesId: string, book: Pick<LocalChapters, 'chapters'>, now = new Date()): void {
-  const { states } = readChapterStates(store, seriesId);
+export function writeLocalChapters(store: Store, seriesId: string, book: LocalChapters, now = new Date()): void {
+  const { states, updatedAt } = readChapterStates(store, seriesId);
   let changed = false;
   for (const [key, state] of Object.entries(book.chapters)) {
     const n = Number(key);
@@ -146,8 +148,19 @@ export function writeLocalChapters(store: Store, seriesId: string, book: Pick<Lo
     if (next !== (states.get(n) ?? 'unread')) changed = true;
     states.set(n, next);
   }
-  if (!changed) return;
-  storeStates(store, seriesId, states, now);
+  const bookTime = Date.parse(book.updatedAt);
+  for (const [n, state] of states) {
+    if (state !== 'finished' || book.resume?.chapter === n || !Number.isFinite(bookTime)) continue;
+    const episodeId = `chapter-${n}`;
+    const place = readCheckpoint(store, now.getTime(), { seriesId, episodeId });
+    if (place && Date.parse(place.savedAt) < bookTime) {
+      clearCheckpoint(store, episodeId);
+      changed = true;
+    }
+  }
+  const later = updatedAt && Date.parse(updatedAt) >= bookTime ? null : book.updatedAt;
+  if (!changed && !later) return;
+  storeStates(store, seriesId, states, later && Number.isFinite(bookTime) ? new Date(bookTime) : now);
   notifyLibrary();
 }
 

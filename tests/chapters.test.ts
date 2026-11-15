@@ -197,13 +197,13 @@ describe("the account's view of this headset's book", () => {
     writeProgress(s, { seriesId: SERIES, chapter: 2, state: 'started' });
     let calls = 0;
     const stop = subscribeLibrary(() => (calls += 1));
-    writeLocalChapters(s, SERIES, { chapters: { '1': 'started', '2': 'finished', '3': 'started' } });
+    writeLocalChapters(s, SERIES, { chapters: { '1': 'started', '2': 'finished', '3': 'started' }, resume: null, updatedAt: '2026-11-16T18:00:00.000Z' }, new Date(now));
     stop();
     expect([...readChapterStates(s, SERIES).states]).toEqual([[1, 'finished'], [2, 'finished'], [3, 'started']]);
     expect(calls).toBe(1);
     expect(readProgress(s, SERIES)).toMatchObject({ chapter: 3, state: 'started' });
     // Nothing new: nothing written, nobody told.
-    writeLocalChapters(s, SERIES, { chapters: { '1': 'finished' } });
+    writeLocalChapters(s, SERIES, { chapters: { '1': 'finished' }, resume: null, updatedAt: '2026-11-16T18:00:00.000Z' }, new Date(now));
     expect(calls).toBe(1);
   });
 
@@ -216,4 +216,38 @@ describe("the account's view of this headset's book", () => {
     expect([...s.data.keys()]).toEqual(['tt.other']);
     expect(readLocalChapters(s, SERIES, now)).toEqual({ chapters: {}, resume: null, updatedAt: '1970-01-01T00:00:00.000Z' });
   });
+});
+
+describe('what the account merged, written back, is what the library shows', () => {
+  test('a finish from another headset, newer than the place saved here, clears that place', () => {
+    const s = storage();
+    writeProgress(s, { seriesId: SERIES, chapter: 1, state: 'started' });
+    writeCheckpoint(s, place('chapter-1', 1, { savedAt: '2026-11-16T19:00:00.000Z' }));
+    // mergeBooks(): chapter 1 finished on another headset at 20:00, so nothing to resume.
+    writeLocalChapters(s, SERIES, { chapters: { '1': 'finished' }, resume: null, updatedAt: '2026-11-16T20:00:00.000Z' }, new Date(now));
+    expect(readLocalChapters(s, SERIES, now)).toEqual({ chapters: { '1': 'finished' }, resume: null, updatedAt: '2026-11-16T20:00:00.000Z' });
+    expect(libraryState(s, now, SERIES).chapters[0]).toMatchObject({ state: 'finished', canResume: false });
+  });
+
+  test('a reread begun after that finish keeps its place', () => {
+    const s = storage();
+    writeProgress(s, { seriesId: SERIES, chapter: 1, state: 'finished' });
+    writeCheckpoint(s, place('chapter-1', 2, { savedAt: '2026-11-16T19:30:00.000Z' }));
+    writeLocalChapters(s, SERIES, { chapters: { '1': 'finished' }, resume: { chapter: 1, savedAt: '2026-11-16T19:30:00.000Z' }, updatedAt: '2026-11-16T19:00:00.000Z' }, new Date(now));
+    expect(libraryState(s, now, SERIES).chapters[0]).toMatchObject({ state: 'finished', canResume: true, where: 'Stopped at the gap.' });
+  });
+});
+
+test("a chapter 1 place saved before places were per chapter survives chapter 2's first save", () => {
+  const s = storage();
+  s.setItem('tt.checkpoint', JSON.stringify(place('chapter-1', 1)));
+  writeCheckpoint(s, place('chapter-2', 0));
+  expect(readCheckpoint(s, now, { seriesId: SERIES, episodeId: 'chapter-1' })?.episodeId).toBe('chapter-1');
+  expect(readCheckpoint(s, now, { seriesId: SERIES, episodeId: 'chapter-2' })?.episodeId).toBe('chapter-2');
+  // A newer place chapter 1 already had under its own key is never replaced by the old latest one.
+  const t = storage();
+  t.setItem('tt.checkpoint', JSON.stringify(place('chapter-1', 0, { savedAt: '2026-11-16T18:00:00.000Z' })));
+  t.setItem(checkpointKey('chapter-1'), JSON.stringify(place('chapter-1', 2, { savedAt: '2026-11-16T19:00:00.000Z' })));
+  writeCheckpoint(t, place('chapter-2', 0));
+  expect(readCheckpoint(t, now, { seriesId: SERIES, episodeId: 'chapter-1' })?.savedAt).toBe('2026-11-16T19:00:00.000Z');
 });

@@ -28,11 +28,13 @@ const clamp01 = (v: number): number => Math.max(0, Math.min(1, v));
 const easeInOut = (v: number): number => (v < 0.5 ? 2 * v * v : 1 - (-2 * v + 2) ** 2 / 2);
 
 /**
- * Where the boat is on the floor, relative to the sea's centre: on its circle, or, once it has
- * turned for home (`homeMs` ago), sailing from where it left the circle to the water's inner edge
- * on the book's side, and fading there. Pure, so a resume lands in the same place.
+ * Where the boat is on the floor, relative to the sea's centre, all in story time: `sailedMs` since
+ * it was launched, and, once it has turned for home, `homeMs` since then. On its circle, or sailing
+ * from where it left the circle to the water's inner edge on the book's side, fading there. Pure,
+ * so a pause, a resume or a restored place lands it exactly where the story left it.
  */
-export function boatAt(nowMs: number, homeMs: number | null, towardBook: { x: number; z: number } | null): { x: number; z: number; alpha: number } {
+export function boatAt(sailedMs: number, homeMs: number | null, towardBook: { x: number; z: number } | null): { x: number; z: number; alpha: number } {
+  const nowMs = sailedMs;
   const circle = (ms: number) => {
     const a = (ms / 1000 / BOAT_LAP_S) * Math.PI * 2;
     return { x: Math.sin(a) * BOAT_CIRCLE_M, z: -Math.cos(a) * BOAT_CIRCLE_M };
@@ -182,7 +184,7 @@ export function createSea(art: { water: TexRef; boat: TexRef | null }): SeaView 
       // The boat sails a slow circle once it's been launched, bobbing on the swell.
       if (boat && boatMaterial) {
         const home = now.boatHomeMs;
-        const at = boatAt(nowMs, home, book ? { x: book.x - centre.x, z: book.z - centre.z } : null);
+        const at = boatAt(now.boatMs ?? 0, home, book ? { x: book.x - centre.x, z: book.z - centre.z } : null);
         const launched = now.boatMs !== null && sea.on && at.alpha > 0.001;
         boat.visible = launched;
         if (launched) {
