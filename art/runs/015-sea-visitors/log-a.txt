@@ -1,0 +1,6 @@
+Run 015-sea-visitors: Can the night sea, its foam, a paper boat, a bottle with a message and a gull be painted pieces in the book's watercolour style that still read in the reader's real room?
+balance 110515, cap 35
+done sea-sheet: 150s, 9 credits
+done visitors-sheet: 147s, 259 credits
+cap reached at 268, stopping before water-wash
+finished, total spent 268

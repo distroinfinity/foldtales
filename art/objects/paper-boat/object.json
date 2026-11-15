@@ -1,0 +1,22 @@
+{
+  "id": "paper-boat",
+  "name": "paper boat",
+  "description": "A small boat folded from cream writing paper, with faint ink lines on its sides.",
+  "tags": [
+    "floats",
+    "lightweight",
+    "fragile"
+  ],
+  "art": {
+    "kind": "asset",
+    "path": "objects/paper-boat/paper-boat.png"
+  },
+  "size": {
+    "heightM": 0.055
+  },
+  "pivot": [
+    50.0,
+    50.0
+  ],
+  "provenance": "library"
+}

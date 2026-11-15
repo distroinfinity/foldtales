@@ -1153,7 +1153,9 @@
     "objects/spool/object.json",
     "objects/brass-key/object.json",
     "objects/rope-coil/object.json",
-    "objects/lamp-wick/object.json"
+    "objects/lamp-wick/object.json",
+    "objects/paper-boat/object.json",
+    "objects/bottle/object.json"
   ],
   "extraObjects": [
     {
