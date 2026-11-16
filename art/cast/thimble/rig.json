@@ -1,0 +1,111 @@
+{
+  "note": "First fit, from thimble-master.png; not yet seen on the Quest. Pixels at the parts' own size, relative to the point between Thimble's feet. Pivot is a percentage of the part. Higher z sits in front. Parts are cut from thimble-parts-sheet.png and drawn at scale 0.574; heads from thimble-heads-sheet.png at 1, because the master's head is about 1.5 times the body's paint scale. legs.png is both legs placed as the master stands, with the feet level; the socks sit behind the belly. tail.png is the sheet's tail turned 100 degrees so it runs back from the hip. The rest pose has both arms hanging; the master's paws-clasped pose is acting, not rig. Head offsets are measured: each head is registered on the forward head by its nose and eyes (profile by its thimble brim and eye height).",
+  "parts": {
+    "tail": {
+      "file": "parts/tail.png",
+      "x": 119,
+      "y": -103,
+      "pivot": [
+        2,
+        11
+      ],
+      "z": 1,
+      "scale": 0.492
+    },
+    "armBack": {
+      "file": "parts/arm-back.png",
+      "x": -116,
+      "y": -339,
+      "pivot": [
+        74,
+        7
+      ],
+      "z": 2,
+      "scale": 0.574
+    },
+    "legs": {
+      "file": "parts/legs.png",
+      "x": -105,
+      "y": -206,
+      "pivot": [
+        50,
+        0
+      ],
+      "z": 3,
+      "scale": 0.574
+    },
+    "body": {
+      "file": "parts/body.png",
+      "x": -82,
+      "y": -358,
+      "pivot": [
+        50,
+        100
+      ],
+      "z": 4,
+      "scale": 0.574
+    },
+    "arm": {
+      "file": "parts/arm.png",
+      "x": 67,
+      "y": -331,
+      "pivot": [
+        24,
+        7
+      ],
+      "z": 7,
+      "scale": 0.574
+    }
+  },
+  "chinShadow": {
+    "x": -45,
+    "y": -348,
+    "width": 139,
+    "height": 36,
+    "z": 5
+  },
+  "rules": [
+    "The head turns and tilts from the chin. Keep its slide small, or it comes off the collar.",
+    "Every head's neck is cut on the same curve, so it ends on the front rib of the collar. Re-cut it if a head is repainted.",
+    "A soft shadow under the chin seats the head in the collar.",
+    "armBack stays behind the body and does not act. arm is the near arm: it raises, examines and holds.",
+    "The blink head's face sits 13 px lower in its outline than the forward head's, so the thimble and ears rise a little on a blink while the eyes and nose stay put."
+  ],
+  "head": {
+    "x": -135,
+    "y": -652,
+    "pivot": [
+      50,
+      92
+    ],
+    "z": 6,
+    "scale": 1.0,
+    "offsets": {
+      "forward": [
+        0,
+        0
+      ],
+      "talk": [
+        2,
+        -2
+      ],
+      "blink": [
+        9,
+        -13
+      ],
+      "scared": [
+        -3,
+        -3
+      ],
+      "profile": [
+        -15,
+        7
+      ],
+      "up": [
+        24,
+        9
+      ]
+    },
+    "files": "heads/<name>.png"
+  }
+}

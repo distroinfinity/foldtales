@@ -1,5 +1,7 @@
 import { ObjectDef, Spine, type ShowObject } from '@tabletop/contracts';
 import { ChapterCanon, keptAfter, memoryOf } from '../memory/memory.ts';
+import { applyCarries, CarryFile, chooseCarries, readCarryChoice, writeCarryChoice } from './carry.ts';
+import { readCheckpoint } from './checkpoint.ts';
 import { indexedDbLogStore, type LogStore } from './log.ts';
 import { ShowManifest } from './manifest.ts';
 
@@ -49,8 +51,13 @@ type Fetch = (url: string) => Promise<{ ok: boolean; status: number; json(): Pro
 
 export interface ChapterDeps {
   fetchJson?: Fetch;
-  /** The series log, for what earlier chapters kept. IndexedDB by default. */
+  /** The series log, for what earlier chapters kept and recorded. IndexedDB by default. */
   log?: LogStore;
+  /** Where this browser keeps places and the carry choice a chapter started with. localStorage by default. */
+  store?: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
+  now?: number;
+  /** Whether this page load resumes the chapter or starts it; a saved carry choice is reused only on a resume. */
+  from?: 'start' | 'resume';
 }
 
 /** Prepares chapter n for this page load. Rejects if it can't (no such chapter, or its data won't load). */
@@ -66,12 +73,26 @@ export async function loadChapter(n: number, deps: ChapterDeps = {}): Promise<Ch
   const entry = chapters.find((c) => c.n === n);
   if (!entry) throw new Error(`there is no chapter ${n} in this build`);
   const path = entry.episode;
-  const episode = Spine.parse(await get(`./${path}`));
+  let episode = Spine.parse(await get(`./${path}`));
   // A chapter without a canon file still plays; it just records nothing at its end.
   const canon = await get(`./${path.replace(/\.json$/, '.canon.json')}`)
     .then((raw) => ChapterCanon.parse(raw))
     .catch(() => null);
-  const satchel = n > 1 ? await carriedIn(manifest, get, deps.log ?? indexedDbLogStore(), `chapter-${n - 1}`) : [];
+  const before = n > 1 ? await carriedIn(manifest, get, deps.log ?? indexedDbLogStore(), `chapter-${n - 1}`) : { satchel: [], facts: new Map<string, string>() };
+  const satchel = before.satchel;
+  // What carries from the chapters before: each carry slot's next, chosen from their facts and the
+  // satchel; a chapter being resumed keeps the choice it started with.
+  const carryFile = await get(`./${path.replace(/\.json$/, '.carry.json')}`)
+    .then((raw) => CarryFile.parse(raw))
+    .catch(() => null);
+  if (carryFile) {
+    const store = deps.store ?? (typeof localStorage === 'undefined' ? null : localStorage);
+    const resuming = deps.from === 'resume' && store ? readCheckpoint(store, deps.now ?? Date.now(), { seriesId: manifest.libraryVersion, episodeId: episode.id }) !== null : false;
+    const kept = store && resuming ? readCarryChoice(store, episode.id) : null;
+    const choice = kept ?? chooseCarries(carryFile, episode, before.facts, new Set(satchel.map((o) => o.id)));
+    if (store && !kept) writeCarryChoice(store, episode.id, choice);
+    episode = applyCarries(episode, choice);
+  }
   const sceneOf = new Map(episode.scenes.flatMap((scene, i) => scene.beats.map((beat) => [beat.id, i] as const)));
   return {
     n,
@@ -89,8 +110,8 @@ export async function loadChapter(n: number, deps: ChapterDeps = {}): Promise<Ch
   };
 }
 
-/** What the chapter before kept, from this series' log. A log that can't be read carries nothing in. */
-async function carriedIn(manifest: ShowManifest, get: (url: string) => Promise<unknown>, log: LogStore, before: string): Promise<ShowObject[]> {
+/** What the chapter before kept, and every fact earlier chapters recorded, from this series' log. A log that can't be read carries nothing in. */
+async function carriedIn(manifest: ShowManifest, get: (url: string) => Promise<unknown>, log: LogStore, before: string): Promise<{ satchel: ShowObject[]; facts: Map<string, string> }> {
   try {
     const events = (await log.all()).filter((e) => e.seriesId === manifest.libraryVersion);
     const defs = new Map<string, ObjectDef>();
@@ -99,8 +120,9 @@ async function carriedIn(manifest: ShowManifest, get: (url: string) => Promise<u
       defs.set(def.id, def);
     }
     for (const def of manifest.extraObjects) defs.set(def.id, def);
-    return keptAfter(memoryOf(events, defs), before, defs, events);
+    const memory = memoryOf(events, defs);
+    return { satchel: keptAfter(memory, before, defs, events), facts: memory.facts };
   } catch {
-    return [];
+    return { satchel: [], facts: new Map() };
   }
 }

@@ -1,0 +1,22 @@
+{
+  "id": "thimble-boat",
+  "name": "Thimble's paper boat",
+  "description": "A small boat folded from cream writing paper, gone soft and saggy from the whole sea.",
+  "tags": [
+    "floats",
+    "lightweight",
+    "fragile"
+  ],
+  "art": {
+    "kind": "asset",
+    "path": "objects/thimble-boat/thimble-boat.png"
+  },
+  "size": {
+    "heightM": 0.055
+  },
+  "pivot": [
+    50,
+    50
+  ],
+  "provenance": "library"
+}

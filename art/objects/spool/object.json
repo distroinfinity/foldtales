@@ -6,7 +6,8 @@
     "rope",
     "ties",
     "rolls",
-    "lightweight"
+    "lightweight",
+    "thread"
   ],
   "art": {
     "kind": "asset",

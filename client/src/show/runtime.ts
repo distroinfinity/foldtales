@@ -907,6 +907,8 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
           puppet.setVariant(light.part, lit ? 'base' : light.outVariant);
           puppet.setPartVisible(light.part, carrying);
         }
+        // A part that is also an object (a logbook) shows only while the object is out of play.
+        if (entry.linkedPart) puppet.setPartVisible(entry.linkedPart.part, (views.objects.get(entry.linkedPart.object)?.home.kind ?? 'posed') === 'posed');
         const smoke = lightState && !lightState.lit ? lightOutAt(lightState.localMs).smoke : 0;
         const flare = lightState?.lit ? 1 + 0.8 * Math.max(0, 1 - lightState.localMs / 900) : 1;
         puppet.apply(pose, { stand, glow: lit && carrying && light ? flare : 0, smoke: carrying ? smoke : 0 });
