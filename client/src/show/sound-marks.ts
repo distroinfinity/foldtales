@@ -51,6 +51,8 @@ const CUE_SOUNDS: Partial<Record<CueKind, SoundName>> = {
   beam: 'chime',
   'drop-held': 'clink',
   relight: 'flare',
+  'light-up': 'whoosh',
+  'light-down': 'setdown',
   'set-down': 'setdown',
   wear: 'rustle',
   'page-turn': 'page',

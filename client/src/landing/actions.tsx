@@ -80,7 +80,7 @@ export function OpenTheBook({ state, library, onSignIn, signedIn, compact = fals
         </p>
       ) : (
         <p id="open-detail" className="m-0 text-[15px] text-page/55">
-          {choice.detail}
+          {ready?.detail ?? choice.detail}
         </p>
       )}
       {ready?.restart && (

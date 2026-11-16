@@ -236,7 +236,8 @@ export function buildBook({ book, sets, textures, bookBase, soft, castOnStage }:
   ribbon.position.z = ribbonL / 2;
   ribbonPivot.add(ribbon);
   right.add(ribbonPivot);
-  for (const [key, fromFar] of [['tab-gold', 0.06], ['tab-sage', 0.1]] as const) {
+  // The gold tab is the satchel's latch. The ribbon is the book's one control, so the sage tab is gone.
+  for (const [key, fromFar] of [['tab-gold', 0.06]] as const) {
     const spec = book.parts[key];
     const tabRef = tex(artJoin(bookBase, spec.file));
     const tab = flatUp(new Mesh(sheet(tabRef, ...spec.sizeM), card(tabRef, { doubleSided: true })));
