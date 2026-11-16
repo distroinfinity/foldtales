@@ -1,8 +1,6 @@
 # Submission: the Devpost form and the video
 
-Lane E, Nov 16. Every claim here is about something built. Lines marked **[if merged]** describe work still in an open PR or branch on Nov 16:
-- chapters 2 and 3 (lanes B and C, PR #35);
-- the AI Storyteller (lane D, PR #30).
+Lane E, Nov 16. Every claim here is about something built. Lines marked **[if merged]** describe chapters 2 and 3 and the room effects they bring (lanes B and C, PR #35), still open on Nov 16. The AI Storyteller merged on Nov 16 (PR #30); its lines stand as long as it is live on the deployed site on Nov 18.
 
 On Nov 18, before submitting, delete each marked line whose work didn't merge, and drop the marks. `tests/submission.test.ts` checks the tagline's length and the description's word count.
 
@@ -34,7 +32,7 @@ A painted pop-up storybook opens on your real table. Reach in, hand the characte
 
 **Your room is part of the story.** Mixed reality isn't a backdrop here. The book settles on whatever table your Quest has found, sized to it and within reach, and the lighthouse's beam lights up your real room. **[if merged]** The story reaches further into the room around you: shadow play on your wall, fireflies, rain and snow falling around you, stars and the moon on your ceiling, the sea across your floor with a paper boat sailing on it, and your real window becoming the story's window. Chapter 2 brings the sea in across your floor; chapter 3 puts the night sky on your ceiling.
 
-**The AI Storyteller.** **[if merged]** Beside the written chapters, the same cast improvises a new story with you. Say what tonight's story is about, or just hand them something; they answer in their own voices, can paint what you ask for, and can bring weather into your room. The app always owns the ending, and the story finishes cleanly if the AI is slow or unavailable.
+**The AI Storyteller.** Beside the written chapters, the same cast improvises a new story with you. Say what tonight's story is about, or just hand them something; they answer in their own voices, can paint what you ask for, and can bring weather into your room. The app always owns the ending, and the story finishes cleanly if the AI is slow or unavailable.
 
 **How we built it.** Foldtales is built for the web with Meta's Immersive Web SDK and Three.js, so it opens from a link with nothing to install. Every character is a cut-out puppet, painted in watercolour and pencil, rigged in layers and animated at twelve poses a second like stop-motion. The art was painted with AI from our own designs and references, then cut out, finished and rigged by hand; chapter voices were recorded with ElevenLabs, and a quiet CC0 piano bed plays under the story. Chapter 1 runs at 85–90 fps on Quest 3, and the site caches itself for instant return visits.
 
@@ -44,7 +42,7 @@ A painted pop-up storybook opens on your real table. Reach in, hand the characte
 ### How hands are used
 
 <!-- hands -->
-Everything is done with your hands, and no controllers are needed. Pinch or grab a character or object to pick it up, and bring it to a character to hand it over: they take it and turn it over. Hold a page's corner and turn it as you would paper, or look at the corner and pinch. Pull the drawer open to choose what to give. Shut the cover to pause, drag the spine to move the book, and stretch it with both hands to resize it. Pinch the ribbon for the book's one menu: carry on, start again, contents, put the book away. Every control works with either hand alone and within reach when seated. Nothing fires from looking alone. **[if merged]** In the AI Storyteller, press the paper talk button on the table with a fingertip or a pinch to speak, or hand things over without speaking.
+Everything is done with your hands, and no controllers are needed. Pinch or grab a character or object to pick it up, and bring it to a character to hand it over: they take it and turn it over. Hold a page's corner and turn it as you would paper, or look at the corner and pinch. Pull the drawer open to choose what to give. Shut the cover to pause, drag the spine to move the book, and stretch it with both hands to resize it. Pinch the ribbon for the book's one menu: carry on, start again, contents, put the book away. Every control works with either hand alone and within reach when seated. Nothing fires from looking alone. In the AI Storyteller, press the paper talk button on the table with a fingertip or a pinch to speak, or hand things over without speaking.
 <!-- /hands -->
 
 ### Designed for the narrow field of view (VR Glasses)
@@ -56,7 +54,7 @@ The whole book, its caption band and its controls fit inside the glasses' 74° �
 ### Testing instructions
 
 <!-- testing -->
-On a Meta Quest 3 or 3S, open https://www.foldtales.xyz in Quest Browser and tap Open the book. Allow the browser to use the room when asked. Sit at a table if you can (Space Setup helps the book find it); without one, choose "No table? Read in the painted room". Use your hands only. Chapter 1 takes about six minutes. Pinch the ribbon at the book's near edge to pause or leave. **[if merged]** The AI Storyteller needs sign-in (a code finished on your phone, or Google) and the microphone.
+On a Meta Quest 3 or 3S, open https://www.foldtales.xyz in Quest Browser and tap Open the book. Allow the browser to use the room when asked. Sit at a table if you can (Space Setup helps the book find it); without one, choose "No table? Read in the painted room". Use your hands only. Chapter 1 takes about six minutes. Pinch the ribbon at the book's near edge to pause or leave. The AI Storyteller needs sign-in (a code finished on your phone, or Google) and the microphone.
 <!-- /testing -->
 
 ## The video's shot list (under 3:00, real Quest footage)
@@ -80,10 +78,10 @@ On a Meta Quest 3 or 3S, open https://www.foldtales.xyz in Quest Browser and tap
 | 4 | 0:50–1:05 | Turn the page by hand to the shore; lean to show the layers' parallax | Chapter 1 | The leaf following the pinch |
 | 5 | 1:05–1:25 | Pull the drawer, pick the kite, hand it over at the gap; Pip crosses on it | Chapter 1, the gap | What you gave decides the crossing |
 | 6 | 1:25–1:50 | **Your room joins in:** rain all round, snow settling on the real table, the sea on the floor with the paper boat, stars on the ceiling | Review links, one effect each (`?room=`) | Two or three seconds each, framed wide |
-| 7 | 1:50–2:25 | **[if merged]** The AI Storyteller: ask for tonight's story, hand over the paper boat, and they answer in voice; a painting arrives | The Storyteller, signed in | One continuous exchange, not cut mid-line |
+| 7 | 1:50–2:25 | The AI Storyteller: ask for tonight's story, hand over the paper boat, and they answer in voice; a painting arrives | The Storyteller, signed in | One continuous exchange, not cut mid-line |
 | 8 | 2:25–2:40 | The ribbon's menu card, and putting the book away | Any chapter | One pinch, one card |
 | 9 | 2:40–2:55 | The end page and "More chapters on the way" on the page; title card: Foldtales, www.foldtales.xyz | Chapter 1's end and the page | Hold for the URL |
 
 **Cut list if the edit runs long:** drop shot 8 first, then shorten shot 6 to two effects. Never cut shots 1, 3 or 5.
 
-**If shot 7 can't be filmed** (PR #30 not merged, or the AI not live by Nov 18), give its 35 seconds to shots 5 and 6, and drop the Storyteller line from the description.
+**If shot 7 can't be filmed** (the AI not live on the deployed site by Nov 18), give its 35 seconds to shots 5 and 6, and drop the Storyteller line from the description.
