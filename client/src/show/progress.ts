@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { readCheckpoint } from './checkpoint.ts';
+import { clearCheckpoint, readCheckpoint } from './checkpoint.ts';
 import { whereIn } from './chapters.ts';
 
 /** The furthest chapter and its state. Account sync reads and writes this key, so its shape stays. */
@@ -25,6 +25,7 @@ const ChapterStates = z.strictObject({
   v: z.literal(1),
   seriesId: z.string().min(1),
   chapters: z.record(z.string().regex(/^[1-9][0-9]{0,2}$/), z.enum(['started', 'finished'])),
+  updatedAt: z.iso.datetime().optional(),
 });
 
 type Store = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
@@ -50,22 +51,40 @@ export function readProgress(store: Store, seriesId: string): Progress | null {
 }
 
 /**
- * Every chapter's state. Reads both keys and takes the furthest of each, so a book merged from
- * the account (which writes only `tt.progress`: earlier chapters finished) still counts.
+ * Every chapter's state, from `tt.chapters`, which is the record. Nothing is inferred: starting
+ * chapter 3 directly doesn't finish chapters 1 and 2. A browser from before chapters were kept one
+ * by one has only `tt.progress`, from the single-chapter build, and is read from that once.
  */
-export function readChapterStates(store: Store, seriesId?: string): { seriesId: string | null; states: Map<number, ChapterState> } {
+export function readChapterStates(store: Store, seriesId?: string): { seriesId: string | null; states: Map<number, ChapterState>; updatedAt: string | null } {
   const states = new Map<number, ChapterState>();
-  const progress = readJson(store, KEY, Progress);
   const own = readJson(store, CHAPTERS_KEY, ChapterStates);
+  const progress = own ? null : readJson(store, KEY, Progress);
   const series = seriesId ?? own?.seriesId ?? progress?.seriesId ?? null;
+  if (own && own.seriesId === series) {
+    for (const [key, state] of Object.entries(own.chapters)) states.set(Number(key), state);
+    return { seriesId: series, states, updatedAt: own.updatedAt ?? null };
+  }
   if (progress && progress.seriesId === series) {
     for (let n = 1; n < progress.chapter; n++) states.set(n, 'finished');
-    states.set(progress.chapter, further(states.get(progress.chapter) ?? 'unread', progress.state));
+    states.set(progress.chapter, progress.state);
+    return { seriesId: series, states, updatedAt: progress.updatedAt };
   }
-  if (own && own.seriesId === series) {
-    for (const [key, state] of Object.entries(own.chapters)) states.set(Number(key), further(states.get(Number(key)) ?? 'unread', state));
+  return { seriesId: series, states, updatedAt: null };
+}
+
+/** Writes every chapter's state, and `tt.progress` as the furthest chapter for code that still reads it. */
+function storeStates(store: Store, seriesId: string, states: Map<number, ChapterState>, now: Date, latest?: { chapter: number; state: 'started' | 'finished' }): void {
+  const chapters: Record<string, 'started' | 'finished'> = {};
+  for (const [n, state] of states) if (state !== 'unread') chapters[String(n)] = state;
+  const furthest = readJson(store, KEY, Progress);
+  const top = Math.max(0, ...Object.keys(chapters).map(Number));
+  const summary = latest && (!furthest || furthest.seriesId !== seriesId || latest.chapter >= furthest.chapter) ? latest : top > 0 && (!furthest || furthest.seriesId !== seriesId || top > furthest.chapter) ? { chapter: top, state: chapters[String(top)]! } : null;
+  try {
+    store.setItem(CHAPTERS_KEY, JSON.stringify({ v: 1, seriesId, chapters, updatedAt: now.toISOString() }));
+    if (summary) store.setItem(KEY, JSON.stringify({ v: 1, seriesId, ...summary, updatedAt: now.toISOString() }));
+  } catch {
+    // The landing page simply greets you as new.
   }
-  return { seriesId: series, states };
 }
 
 /**
@@ -75,17 +94,84 @@ export function readChapterStates(store: Store, seriesId?: string): { seriesId: 
  */
 export function writeProgress(store: Store, progress: Omit<Progress, 'v' | 'updatedAt'>, now = new Date()): void {
   const { states } = readChapterStates(store, progress.seriesId);
-  const furthest = readJson(store, KEY, Progress);
   states.set(progress.chapter, further(states.get(progress.chapter) ?? 'unread', progress.state));
-  const chapters: Record<string, 'started' | 'finished'> = {};
-  for (const [n, state] of states) if (state !== 'unread') chapters[String(n)] = state;
+  storeStates(store, progress.seriesId, states, now, { chapter: progress.chapter, state: progress.state });
+  notifyLibrary();
+}
+
+// ---- the account's view of this headset's book (lane D calls these at its boundary) ----------
+
+/** This headset's book as the account syncs it: the shape of `LocalBook` in `client/src/account/merge.ts`. */
+export interface LocalChapters {
+  chapters: Record<string, ChapterState>;
+  resume: { chapter: number; savedAt: string } | null;
+  updatedAt: string;
+}
+
+const EPOCH = '1970-01-01T00:00:00.000Z';
+
+/**
+ * Each chapter's own state (nothing inferred), and the latest saved place while it's fresh and
+ * not at an end. Replaces the account's reading of `tt.progress` and `tt.checkpoint`.
+ */
+export function readLocalChapters(store: Store, seriesId: string, now = Date.now()): LocalChapters {
+  const { states, updatedAt } = readChapterStates(store, seriesId);
+  const chapters: Record<string, ChapterState> = {};
+  for (const [n, state] of states) chapters[String(n)] = state;
+  let resume: LocalChapters['resume'] = null;
   try {
-    store.setItem(CHAPTERS_KEY, JSON.stringify({ v: 1, seriesId: progress.seriesId, chapters }));
-    if (!furthest || furthest.seriesId !== progress.seriesId || progress.chapter >= furthest.chapter)
-      store.setItem(KEY, JSON.stringify({ v: 1, ...progress, updatedAt: now.toISOString() }));
+    const latest = JSON.parse(store.getItem('tt.checkpoint') ?? 'null') as { episodeId?: unknown } | null;
+    const episodeId = typeof latest?.episodeId === 'string' ? latest.episodeId : null;
+    const n = episodeId ? Number(/^chapter-(\d+)$/.exec(episodeId)?.[1]) : NaN;
+    const place = episodeId ? readCheckpoint(store, now, { seriesId, episodeId }) : null;
+    if (place && Number.isInteger(n) && n > 0) resume = { chapter: n, savedAt: place.savedAt };
   } catch {
-    // The landing page simply greets you as new.
+    resume = null;
   }
+  return { chapters, resume, updatedAt: updatedAt ?? EPOCH };
+}
+
+/**
+ * A book merged with the account, written back (lane D calls this with `mergeBooks()`'s result).
+ * Each chapter only moves forward, so remote progress never undoes this headset's. The merge's
+ * resume decision is honoured: a chapter it says is finished, and no longer to be resumed, loses an
+ * older saved place here (one made before the book's time), while a newer place, a reread begun
+ * after that finish, is kept. The saved place itself stays on the headset that made it.
+ */
+export function writeLocalChapters(store: Store, seriesId: string, book: LocalChapters, now = new Date()): void {
+  const { states, updatedAt } = readChapterStates(store, seriesId);
+  let changed = false;
+  for (const [key, state] of Object.entries(book.chapters)) {
+    const n = Number(key);
+    if (!Number.isInteger(n) || n < 1) continue;
+    const next = further(states.get(n) ?? 'unread', state);
+    if (next !== (states.get(n) ?? 'unread')) changed = true;
+    states.set(n, next);
+  }
+  const bookTime = Date.parse(book.updatedAt);
+  for (const [n, state] of states) {
+    if (state !== 'finished' || book.resume?.chapter === n || !Number.isFinite(bookTime)) continue;
+    const episodeId = `chapter-${n}`;
+    const place = readCheckpoint(store, now.getTime(), { seriesId, episodeId });
+    if (place && Date.parse(place.savedAt) < bookTime) {
+      clearCheckpoint(store, episodeId);
+      changed = true;
+    }
+  }
+  const later = updatedAt && Date.parse(updatedAt) >= bookTime ? null : book.updatedAt;
+  if (!changed && !later) return;
+  storeStates(store, seriesId, states, later && Number.isFinite(bookTime) ? new Date(bookTime) : now);
+  notifyLibrary();
+}
+
+/** Every key this module and the checkpoints keep, for an identity reset to clear (lane D). */
+export function forgetLocalChapters(store: Pick<Storage, 'removeItem' | 'key' | 'length'>): void {
+  const keys: string[] = [];
+  for (let i = 0; i < store.length; i++) {
+    const key = store.key(i);
+    if (key && (key === KEY || key === CHAPTERS_KEY || key.startsWith('tt.checkpoint'))) keys.push(key);
+  }
+  for (const key of keys) store.removeItem(key);
   notifyLibrary();
 }
 
@@ -118,8 +204,12 @@ export function landingChoice(progress: Progress | null, canResume: boolean): { 
   return { label: 'Open the book', restartLabel: null, resume: false };
 }
 
-/** The chapters in this build. Titles as the product names them (product workspace, Nov 14). */
-export const CHAPTERS: ReadonlyArray<{ n: number; title: string; episodeId: string }> = [{ n: 1, title: 'The lamp goes out', episodeId: 'chapter-1' }];
+/**
+ * The chapters in this build, for the page, which reads them without loading any chapter. Each
+ * title is its episode's own (`title` in `episode-N.json`), as the cards and the end page print it;
+ * `tests/chapter-seam.test.ts` keeps the two the same.
+ */
+export const CHAPTERS: ReadonlyArray<{ n: number; title: string; episodeId: string }> = [{ n: 1, title: 'The night the light went out', episodeId: 'chapter-1' }];
 
 /** Whether the AI Storyteller is built and switched on in this build. Sign-in is checked by the landing page. */
 export const STORYTELLER_AVAILABLE = true;

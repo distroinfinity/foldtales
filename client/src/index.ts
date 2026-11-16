@@ -580,7 +580,8 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
   }).catch(() => undefined);
   const trim = (t: string) => (t.length > 70 ? `…${t.slice(-67)}` : t);
   const ears = createEars({
-    token: () => storyAccess.withBackend((api) => api.speechToken({})).then((t) => (t && t.provider !== 'mock' ? t.token : null)).catch(() => null),
+    // Contracts v7 moves listening to the backend (`transcribe`); lane D's PR brings the new ears. Until then, by hand.
+    token: async () => null,
     heard: (text) => {
       if (!text) {
         runtime.setHint("Didn’t catch that. Hold the button and try again.");

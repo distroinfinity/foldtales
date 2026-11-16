@@ -20,10 +20,44 @@ const TIDE_MS = 6000;
 const TILE_M = 1.1;
 const BOAT_CIRCLE_M = 1.55;
 const BOAT_LAP_S = 70;
+/** How long the boat takes to sail home toward the book, and when it starts to fade. */
+export const BOAT_HOME_MS = 9000;
+const BOAT_FADE_FROM = 0.7;
+
+const clamp01 = (v: number): number => Math.max(0, Math.min(1, v));
+const easeInOut = (v: number): number => (v < 0.5 ? 2 * v * v : 1 - (-2 * v + 2) ** 2 / 2);
+
+/**
+ * Where the boat is on the floor, relative to the sea's centre, all in story time: `sailedMs` since
+ * it was launched, and, once it has turned for home, `homeMs` since then. On its circle, or sailing
+ * from where it left the circle to the water's inner edge on the book's side, fading there. Pure,
+ * so a pause, a resume or a restored place lands it exactly where the story left it.
+ */
+export function boatAt(sailedMs: number, homeMs: number | null, towardBook: { x: number; z: number } | null): { x: number; z: number; alpha: number } {
+  const nowMs = sailedMs;
+  const circle = (ms: number) => {
+    const a = (ms / 1000 / BOAT_LAP_S) * Math.PI * 2;
+    return { x: Math.sin(a) * BOAT_CIRCLE_M, z: -Math.cos(a) * BOAT_CIRCLE_M };
+  };
+  if (homeMs === null) return { ...circle(nowMs), alpha: 1 };
+  const from = circle(nowMs - homeMs);
+  const k = clamp01(homeMs / BOAT_HOME_MS);
+  const alpha = 1 - clamp01((k - BOAT_FADE_FROM) / (1 - BOAT_FADE_FROM));
+  const len = towardBook ? Math.hypot(towardBook.x, towardBook.z) : 0;
+  // No book to sail to: it only fades where it turned.
+  if (!towardBook || len < 1e-3) return { ...from, alpha };
+  const reach = INNER_M + 0.12;
+  const to = { x: (towardBook.x / len) * reach, z: (towardBook.z / len) * reach };
+  const p = easeInOut(k);
+  // A gentle curve, not a straight line: it bows out a little toward the side it came from.
+  const bow = Math.sin(Math.PI * p) * 0.25;
+  return { x: from.x + (to.x - from.x) * p + -(to.z - from.z) * bow * 0.3, z: from.z + (to.z - from.z) * p + (to.x - from.x) * bow * 0.3, alpha };
+}
 
 export interface SeaView {
   meshes: Mesh[];
-  frame(opts: { now: RoomNow; nowMs: number; head: Vector3; floorY: number; bookOpen: boolean }): void;
+  /** `book` is the book's world position, which the boat sails toward when it turns for home; null if it isn't shown. */
+  frame(opts: { now: RoomNow; nowMs: number; head: Vector3; floorY: number; bookOpen: boolean; book?: Vector3 | null }): void;
 }
 
 export function createSea(art: { water: TexRef; boat: TexRef | null }): SeaView {
@@ -126,7 +160,7 @@ export function createSea(art: { water: TexRef; boat: TexRef | null }): SeaView 
 
   return {
     meshes,
-    frame({ now, nowMs, head, floorY, bookOpen }) {
+    frame({ now, nowMs, head, floorY, bookOpen, book = null }) {
       const sea = now.sea;
       const t = Math.min(1, sea.sinceMs / (sea.on ? RISE_MS : 4000));
       const amount = (sea.on ? t : 1 - t) * (bookOpen ? 1 : 0);
@@ -149,15 +183,16 @@ export function createSea(art: { water: TexRef; boat: TexRef | null }): SeaView 
 
       // The boat sails a slow circle once it's been launched, bobbing on the swell.
       if (boat && boatMaterial) {
-        const launched = now.boatMs !== null && sea.on;
+        const home = now.boatHomeMs;
+        const at = boatAt(now.boatMs ?? 0, home, book ? { x: book.x - centre.x, z: book.z - centre.z } : null);
+        const launched = now.boatMs !== null && sea.on && at.alpha > 0.001;
         boat.visible = launched;
         if (launched) {
           const s = nowMs / 1000;
-          const a = (s / BOAT_LAP_S) * Math.PI * 2;
-          boat.position.set(centre.x + Math.sin(a) * BOAT_CIRCLE_M, floorY + boat.scale.y / 2 + 0.01 + 0.012 * Math.sin(s * 1.3), centre.z - Math.cos(a) * BOAT_CIRCLE_M);
+          boat.position.set(centre.x + at.x, floorY + boat.scale.y / 2 + 0.01 + 0.012 * Math.sin(s * 1.3), centre.z + at.z);
           boat.lookAt(tmp.set(head.x, boat.position.y, head.z));
           boat.rotateZ(0.06 * Math.sin(s * 0.9));
-          boatMaterial.uniforms.uAlpha!.value = Math.min(1, (now.boatMs ?? 0) / 1500) * amount;
+          boatMaterial.uniforms.uAlpha!.value = Math.min(1, (now.boatMs ?? 0) / 1500) * amount * at.alpha;
         }
       }
     },

@@ -9,4 +9,6 @@ interface ImportMetaEnv {
   readonly TT_PUBLIC_ACCOUNTS?: string;
   /** 'off' keeps the AI Storyteller's door closed ("coming soon"). On by default. */
   readonly TT_PUBLIC_STORYTELLER?: string;
+  /** 'off' ships the kill-switch worker and unregisters the offline cache. On by default in production builds. */
+  readonly TT_PUBLIC_SW?: string;
 }

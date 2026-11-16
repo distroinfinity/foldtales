@@ -65,3 +65,9 @@ test('an acting id outside the table is rejected on a cast member', () => {
 test('actingHeads may be partial', () => {
   expect(CastMember.safeParse(fixtureLibrary().cast[1]).success).toBe(true);
 });
+
+test('chapters 2 and 3 can name the spool as thread and the logbook as pages, apart from the bottle', () => {
+  const ids = TAG_VOCABULARY.map((t) => t.id);
+  expect(ids).toEqual(expect.arrayContaining(['thread', 'pages', 'message']));
+  expect(codes(lib((l) => l.objects[0]!.tags.push('thread', 'pages')))).toEqual([]);
+});

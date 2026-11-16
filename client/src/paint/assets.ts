@@ -71,13 +71,14 @@ export async function loadStageAssets(
   manifest: ShowManifest,
   artBase: string,
   renderer: WebGLRenderer,
-  options: { allowKtx2: boolean; onProgress?: (done: number, total: number) => void },
+  /** `spine` is the chapter this page load plays (`loadChapter(n).episode`); chapter 1's from the manifest if absent. */
+  options: { allowKtx2: boolean; onProgress?: (done: number, total: number) => void; spine?: Spine },
 ): Promise<StageAssets> {
   const [bookRaw, drawerRaw, satchelRaw, spineRaw, setRaws, objectRaws, rigRaws] = await Promise.all([
     json(`${artBase}/${manifest.book}`),
     json(`${artBase}/${manifest.drawer}`),
     json(`${artBase}/${manifest.satchel}`),
-    json(`./${manifest.episode}`),
+    options.spine ?? json(`./${manifest.episode}`),
     Promise.all(manifest.sets.map((set) => json(`${artBase}/${set.file}`))),
     Promise.all(manifest.objectFiles.map((file) => json(`${artBase}/${file}`))),
     Promise.all(manifest.cast.map((entry) => json(`${artBase}/${entry.member.rig}/rig.json`))),

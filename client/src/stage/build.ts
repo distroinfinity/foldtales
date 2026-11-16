@@ -10,6 +10,7 @@ import type { SoftPieces } from '../paint/soft.ts';
 import { buildPuppet, type PuppetView } from '../puppet/puppet.ts';
 import { buildLeaves, type LeavesView } from '../show/leaves.ts';
 import type { ShowManifest } from '../show/manifest.ts';
+import type { ObjectDef, Spine } from '@tabletop/contracts';
 
 export interface Stage {
   /** Placed on your table by its spine. Scaled as a whole from tray to desk. */
@@ -95,21 +96,8 @@ export function buildStage(manifest: ShowManifest, assets: StageAssets, soft: So
   const satchel = buildSatchel(assets.satchel, (file) => assets.textures.get(file)!, dirOf(manifest.satchel), soft.shadow);
   satchelLayer.add(satchel.root);
 
-  // Objects: the episode's copies, each starting where its scene puts it. A carried light starts in the paw.
   const defs = new Map(assets.objects.map((o) => [o.id, o]));
-  const initial: ObjectState[] = [];
-  const carriers = new Map(manifest.cast.flatMap((c) => (c.light?.object ? [[c.light.object, c.member.id] as const] : [])));
-  for (const scene of assets.spine.scenes) {
-    for (const o of scene.objects) {
-      if (initial.some((s) => s.id === o.id)) continue;
-      const carrier = carriers.get(o.id);
-      // A carried light starts in its keeper's paw; the drawer's presets in the drawer; a thing on a set waits off the page until a beat places it.
-      const home = carrier ? { kind: 'carried' as const, cast: carrier } : o.origin === 'drawer' ? { kind: 'drawer' as const } : { kind: 'away' as const };
-      initial.push({ id: o.id, home, given: false, grabbable: true });
-    }
-  }
-  // Props a crossing uses that the reader never hands over, like a rope already in a paw.
-  for (const def of assets.objects) if (!initial.some((s) => s.id === def.id)) initial.push({ id: def.id, home: { kind: 'posed' }, given: false, grabbable: false });
+  const initial = startingObjects(manifest, assets.spine, assets.objects);
   const litArt = new Map<string, import('../paint/texref.ts').TexRef>();
   const glowAt = new Map<string, [number, number]>();
   for (const entry of manifest.cast) {
@@ -172,4 +160,27 @@ export function buildStage(manifest: ShowManifest, assets: StageAssets, soft: So
   const leaves = buildLeaves(leafTextures);
   book.root.add(leaves.root);
   return { root, book, puppets, actors, heads, leaves, caption, endPage, objects, drawer, satchel, spark, spans };
+}
+
+/**
+ * Where every object starts: the episode's copies where their scenes put them, every keeper's light
+ * in its paw (in every chapter, listed or not), and anything else posed out of sight.
+ */
+export function startingObjects(manifest: Pick<ShowManifest, 'cast'>, spine: Spine, objects: readonly ObjectDef[]): ObjectState[] {
+  const defs = new Map(objects.map((o) => [o.id, o]));
+  const initial: ObjectState[] = [];
+  const carriers = new Map(manifest.cast.flatMap((c) => (c.light?.object ? [[c.light.object, c.member.id] as const] : [])));
+  for (const scene of spine.scenes) {
+    for (const o of scene.objects) {
+      if (initial.some((s) => s.id === o.id)) continue;
+      const carrier = carriers.get(o.id);
+      // A carried light starts in its keeper's paw; the drawer's presets in the drawer; a thing on a set waits off the page until a beat places it.
+      const home = carrier ? { kind: 'carried' as const, cast: carrier } : o.origin === 'drawer' ? { kind: 'drawer' as const } : { kind: 'away' as const };
+      initial.push({ id: o.id, home, given: false, grabbable: true });
+    }
+  }
+  for (const [object, cast] of carriers) if (defs.has(object) && !initial.some((s) => s.id === object)) initial.push({ id: object, home: { kind: 'carried', cast }, given: false, grabbable: true });
+  // Props a crossing uses that the reader never hands over, like a rope already in a paw.
+  for (const def of objects) if (!initial.some((s) => s.id === def.id)) initial.push({ id: def.id, home: { kind: 'posed' }, given: false, grabbable: false });
+  return initial;
 }
