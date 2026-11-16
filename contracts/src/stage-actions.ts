@@ -31,6 +31,8 @@ export const ROOM_EFFECTS = {
   'tide-in': { ms: 6000, what: false },
   'tide-out': { ms: 6000, what: false },
   boat: { ms: 8000, what: false },
+  /** The circling paper boat turns out of its circle and sails across the floor toward the book. */
+  'boat-home': { ms: 9000, what: false },
   bottle: { ms: 6000, what: true },
   'sea-off': { ms: 4000, what: false },
   shadows: { ms: 1500, what: false },
