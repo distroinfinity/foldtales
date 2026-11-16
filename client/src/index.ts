@@ -49,8 +49,10 @@ import { startPlacement } from './stage/placement-runtime.ts';
 import { createSessionFlow } from './stage/session-flow.ts';
 import { cardFor, cardShowing, choose, ended, holdsStory, initialMenu, restarted, returned, ribbon as ribbonPinched, type MenuContext, type MenuEffect, type MenuState } from './stage/book-menu.ts';
 import { chapterEnding } from './book/end-sheet.ts';
-import { cancelEntry, chooseEntry, consumeEntry, pendingEntry, prepareEntry, type Entry } from './landing/entry.ts';
-import { primaryLabel, readLibrary } from './landing/library.ts';
+import { cancelEntry, chooseEntry, consumeEntry, needsReload, pendingEntry, prepareEntry, type Entry } from './landing/entry.ts';
+import { preparedChoice, primaryLabel, readLibrary } from './landing/library.ts';
+import { carryIntoSatchel } from './stage/carry.ts';
+import { chapterManifest, prepareWithFallback } from './stage/chapter-load.ts';
 import { loadChapter, recordFinished, storytellerSnapshot, type ChapterData, type StoryEnding } from './stage/seams.ts';
 import type { ExtraTarget as CardExtra } from './stage/controls.ts';
 import { createLiveScheduler } from './storyteller/live.ts';
@@ -134,7 +136,8 @@ async function fetchManifest(): Promise<ShowManifest> {
 
 /** Stage one of preloading: fetch, decode and upload everything before the button is offered. */
 async function prepare(world: World, chapter: ChapterData) {
-  const manifest = await fetchManifest();
+  // Who stands where as the first spread opens is the chapter's (the runtime's opening placement reads it here).
+  const manifest = chapterManifest(await fetchManifest(), chapter);
   const [assets] = await Promise.all([
     // Review builds can ask for `?art=png`, and the coverage material needs straight-alpha PNG.
     loadStageAssets(manifest, './art', world.renderer, {
@@ -238,11 +241,16 @@ async function prepare(world: World, chapter: ChapterData) {
     clock,
   });
   // What the chapter before kept comes with you: in the satchel from the first page (lane B's carry).
+  const carry = carryIntoSatchel(stage.objects.snapshot(), chapter.satchel.map((o) => o.def.id));
+  if (carry.reveal.length) {
+    stage.objects.restore(carry.states);
+    for (const id of carry.reveal) stage.objects.setVisible(id, true);
+  }
   for (const carried of chapter.satchel) {
+    if (!carry.missing.includes(carried.def.id)) continue;
     const def = carried.def;
     const art = def.art.kind === 'asset' ? assets.textures.get(def.art.path) : undefined;
-    if (!art || stage.objects.get(def.id)) continue;
-    stage.objects.add(def, art, { kind: 'satchel' });
+    if (art) stage.objects.add(def, art, { kind: 'satchel' });
   }
   const initialObjects = stage.objects.snapshot();
   const wash = buildWash();
@@ -1143,7 +1151,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
         startEpisode();
         setMenu(restarted(menu));
         controls.lowerRibbon();
-        clearCheckpoint(localStorage);
+        clearCheckpoint(localStorage, assets.spine.id);
         writeProgress(localStorage, { seriesId: series, chapter: chapterN, state: 'started' });
         log.append('beat.started', { beatId: assets.spine.scenes[0]!.entry, fallback: null });
         controls.reopen();
@@ -1441,14 +1449,22 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, world
   };
   let chapterProblem: string | null = null;
   const asked = askedChapter();
-  loadChapter(asked)
-    .catch((cause: unknown) => {
-      // That chapter couldn't be prepared: chapter 1 instead, and the page says so in one line.
-      reportError('chapter', cause);
-      if (asked !== 1) chapterProblem = `Chapter ${asked} couldn't open.`;
-      return loadChapter(1);
+  const sceneBefore = new Set(world.scene.children);
+  /** Loads and prepares a chapter: its data, its art (decoded and uploaded) and its stage. */
+  const attempt = (n: number) => loadChapter(n).then((chapter) => prepare(world, chapter));
+  // That chapter couldn't be prepared: whatever it put in the scene goes, chapter 1 is tried once, and the page says so.
+  prepareWithFallback(
+    asked,
+    attempt,
+    () => {
+      for (const child of [...world.scene.children]) if (!sceneBefore.has(child)) world.scene.remove(child);
+    },
+    (cause) => reportError('chapter', cause),
+  )
+    .then(({ show, problem }) => {
+      chapterProblem = problem;
+      return show;
     })
-    .then((chapter) => prepare(world, chapter))
     .then((show) => {
       const series = show.manifest.libraryVersion;
       /** The chapter this page load prepared (lane B's loadChapter). */
@@ -1474,7 +1490,7 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, world
         try {
           if (mode === 'story') run(world, show, null, { kind: 'storyteller' });
           else {
-            if (!resume) clearCheckpoint(localStorage);
+            if (!resume) clearCheckpoint(localStorage, show.assets.spine.id);
             run(world, show, resume ? saved : null, null);
           }
         } catch (cause) {
@@ -1530,7 +1546,7 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, world
         }
         const p = primaryLabel(readLibrary(localStorage));
         // This page prepared another chapter than the library's next (a review link's ?chapter=n): the button says which.
-        if (p.target.kind === 'chapter' && p.target.n !== thisChapter) return { label: `Open chapter ${thisChapter}`, detail: 'About six minutes. You only need your hands.', restartLabel: null, resume: false, mode: 'chapter' };
+        if (p.target.kind === 'chapter' && p.target.n !== thisChapter) return { ...preparedChoice(thisChapter, saved !== null, entryProblem), restartLabel: null, mode: 'chapter' };
         const resume = p.target.kind === 'chapter' && p.target.from === 'resume';
         return { label: p.label, detail: entryProblem ? `${entryProblem} ${p.detail}` : p.detail, restartLabel: p.secondary, resume, mode: 'chapter' };
       };
@@ -1588,9 +1604,8 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, world
                   entry = null;
                   if (back) {
                     chooseEntry(back, null);
-                    const backMode = back.kind === 'storyteller' ? 'story' : 'chapter';
-                    // The other mode already ran on this page load: a fresh load prepares the one you're going back to.
-                    if (ranMode && ranMode !== backMode) {
+                    // Another chapter than the prepared one, or the other mode after one ran: a fresh load prepares it.
+                    if (needsReload(back, { chapter: thisChapter, ran: ranMode })) {
                       location.reload();
                       return;
                     }
@@ -1642,7 +1657,9 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, world
           // Put away to go somewhere else: a choice for the other mode needs a fresh page load, made now,
           // so the next tap opens it straight away.
           const next = pendingEntry();
-          if (next && (next.target.kind === 'storyteller') !== (ranMode === 'story')) {
+          // Put away to go somewhere this load didn't prepare (another chapter, or the other mode): reload now,
+          // so the next tap opens it straight away.
+          if (next && needsReload(next.target, { chapter: thisChapter, ran: ranMode })) {
             location.reload();
             return;
           }

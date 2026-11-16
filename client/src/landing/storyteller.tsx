@@ -92,7 +92,22 @@ const DEFAULT_WORDS: Record<DoorState['kind'], DoorWords> = {
   'limit-reached': { line: 'The AI Storyteller is resting for tonight. The chapters are here any time.' },
   ready: { button: 'Start a new story', quiet: 'Your stories' },
 };
-const wordsFor = (kind: DoorState['kind']): DoorWords => ({ ...DEFAULT_WORDS[kind], ...((STORY as { door?: Partial<Record<DoorState['kind'], DoorWords>> }).door?.[kind] ?? {}) });
+/** Lane D's words in page-content.json: `button`, `note`, `secondary`, keyed by state (offline and service apart). */
+type LaneDWords = { button?: string; note?: string | null; secondary?: string };
+const doorKey = (door: DoorState): string => (door.kind === 'unavailable' ? `unavailable-${door.why}` : door.kind);
+const wordsFor = (door: DoorState): DoorWords => {
+  const theirs = (STORY as { door?: Record<string, LaneDWords | undefined> }).door?.[doorKey(door)];
+  const until = door.kind === 'limit-reached' ? door.until : null;
+  const fill = (text: string | null | undefined) => (text ? text.replace('{time}', until ?? 'tomorrow evening') : undefined);
+  const mine = DEFAULT_WORDS[door.kind];
+  return {
+    button: theirs?.button ?? mine.button,
+    line: theirs && 'note' in theirs ? (fill(theirs.note) ?? undefined) : mine.line,
+    quiet: theirs?.secondary ?? mine.quiet,
+  };
+};
+/** Required with OpenAI's voices: said plainly that the cast's voices are made by AI (lane D's words). */
+const VOICES_NOTE = (STORY as { voicesNote?: string }).voicesNote ?? 'The cast’s voices in the AI Storyteller are made by AI, not people.';
 
 const doorButton = 'inline-flex min-h-14 cursor-pointer items-center justify-center rounded-[12px] border border-sage/60 bg-sage/20 px-8 text-[18px] font-medium text-page transition-colors hover:bg-sage/30 disabled:cursor-default disabled:opacity-50 disabled:hover:bg-sage/20';
 const quietLink = 'cursor-pointer border-0 bg-transparent p-2 font-[inherit] text-[16px] text-page/75 underline decoration-page/30 underline-offset-4 hover:text-page';
@@ -116,7 +131,7 @@ function Door({ device, signedIn, onSignIn, enterStoryteller, playByHand, openBo
   if (device !== 'headset') return null;
   if (!STORYTELLER_ON) return <p className="m-0 max-w-[40ch] text-[16px] leading-relaxed text-page/70">The AI Storyteller opens here soon. The chapters are ready now.</p>;
   const door = snap.door;
-  const w = wordsFor(door.kind);
+  const w = wordsFor(door);
   const line = w.line && <p className="m-0 max-w-[46ch] text-[15px] leading-relaxed text-page/60">{w.line}</p>;
   const chaptersBeside = openBook && (
     <button type="button" className={quietLink} onClick={openBook}>
@@ -174,7 +189,7 @@ function Door({ device, signedIn, onSignIn, enterStoryteller, playByHand, openBo
     case 'limit-reached':
       return box(
         <button type="button" className={doorButton} disabled>
-          {door.kind === 'unavailable' ? (door.why === 'offline' ? 'No internet connection' : 'Not available just now') : 'Resting for tonight'}
+          {w.button ?? (door.kind === 'unavailable' ? (door.why === 'offline' ? 'No internet connection' : 'Not available just now') : 'Resting for tonight')}
         </button>,
         chaptersBeside,
       );
@@ -210,8 +225,9 @@ export function Storyteller(props: DoorProps) {
         <Door {...props} />
       </div>
       {/* Things are painted for you live, by Runway: said once, quietly, like a caption. */}
-      <p className="m-0 mt-6 text-center text-[14px] text-page/55">
-        <a className="text-page/55 no-underline hover:text-page/80 hover:underline" href="https://runwayml.com" target="_blank" rel="noopener">
+      <p className="m-0 mx-auto mt-6 max-w-[46ch] px-5 text-center text-[14px] leading-relaxed text-page/55">
+        {VOICES_NOTE}{' '}
+        <a className="whitespace-nowrap text-page/55 no-underline hover:text-page/80 hover:underline" href="https://runwayml.com" target="_blank" rel="noopener">
           Powered by Runway
         </a>
       </p>
