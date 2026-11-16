@@ -113,8 +113,8 @@ export function App({ device }: { device: Device }) {
 
       <main>
         <Hero device={device} ready={artReady} title={BOOK_TITLE} tagline={TAGLINE} openBook={action(true)} door={doorProps} />
-        <HowItWorks />
         <Story hero={storyIntro} />
+        <HowItWorks />
         <Storyteller {...doorProps} />
 
         <section className="px-5 pb-20 pt-[16vh] text-center" aria-labelledby="end-title">

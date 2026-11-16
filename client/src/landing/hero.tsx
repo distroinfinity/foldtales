@@ -117,36 +117,41 @@ function Words({ title, line, children }: { title: string; line: string; childre
 /** Three things, with real renders and very few words. */
 export function HowItWorks() {
   return (
-    <section className="mx-auto max-w-[1320px] px-5 py-[10vh] md:px-10" aria-labelledby="how-title">
-      <h2 id="how-title" className="display m-0 text-[clamp(32px,3.6vw,52px)] leading-[1.02] text-page">
-        A book you can reach into.
-      </h2>
-      <div className="mt-10 grid gap-10 md:grid-cols-2 md:gap-8">
-        <div className="flex flex-col gap-4">
-          <Shot src={RENDERS.reachIn} alt="Wick and Pip at the top of the lighthouse, standing up from the open book on a table." />
-          <Words title="Reach in" line="Pick things up, hand them to the characters, turn the pages. Your hands are all you need." />
-        </div>
-        <div className="flex flex-col gap-4">
-          <div className="grid grid-cols-3 gap-2">
-            <Shot cutout src="pip-talk.webp" alt="Pip, talking." />
-            <Shot cutout src="wick.webp" alt="Wick, with his logbook." />
-            <Shot cutout src="moth.webp" alt="Moth." />
+    <div className="relative">
+      {/* The scrolled story above ends on its room: fade that last frame into the page as it leaves,
+          rather than a hard edge. Over the story's last 24vh only, so the story itself is untouched. */}
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-full h-[24vh] bg-gradient-to-b from-room/0 via-room/70 to-room" />
+      <section className="mx-auto max-w-[1320px] px-5 py-[10vh] md:px-10" aria-labelledby="how-title">
+        <h2 id="how-title" className="display m-0 text-[clamp(32px,3.6vw,52px)] leading-[1.02] text-page">
+          A book you can reach into.
+        </h2>
+        <div className="mt-10 grid gap-10 md:grid-cols-2 md:gap-8">
+          <div className="flex flex-col gap-4">
+            <Shot src={RENDERS.reachIn} alt="Wick and Pip at the top of the lighthouse, standing up from the open book on a table." />
+            <Words title="Reach in" line="Pick things up, hand them to the characters, turn the pages. Your hands are all you need." />
           </div>
-          <Words title="Ask for anything" line="With the AI Storyteller, the cast answers in their own voices, and paints what you ask for into the story.">
-            <a className="mt-3 inline-block text-[14px] text-page/60 no-underline hover:text-page/85 hover:underline" href="https://runwayml.com" target="_blank" rel="noopener">
-              Powered by Runway
-            </a>
-          </Words>
+          <div className="flex flex-col gap-4">
+            <div className="grid grid-cols-3 gap-2">
+              <Shot cutout src="pip-talk.webp" alt="Pip, talking." />
+              <Shot cutout src="wick.webp" alt="Wick, with his logbook." />
+              <Shot cutout src="moth.webp" alt="Moth." />
+            </div>
+            <Words title="Ask for anything" line="With the AI Storyteller, the cast answers in their own voices, and paints what you ask for into the story.">
+              <a className="mt-3 inline-block text-[14px] text-page/60 no-underline hover:text-page/85 hover:underline" href="https://runwayml.com" target="_blank" rel="noopener">
+                Powered by Runway
+              </a>
+            </Words>
+          </div>
         </div>
-      </div>
-      <div className="mt-14">
-        <Words title="Your room joins in" line="The story reaches past the book: the lamp's beam crosses your walls, the sea comes in over your floor, the stars come out on your ceiling." />
-        <div className="mt-6 grid gap-5 md:grid-cols-3">
-          <Shot src={RENDERS.beam} alt="The lighthouse lamp's beam sweeping up the wall of a room." label="The lamp's beam, on your walls" />
-          <Shot src={RENDERS.sea} alt="The sea in a ring on the floor around the table the book stands on." label="The sea, on your floor" />
-          <Shot src={RENDERS.sky} alt="Paper stars and a crescent moon on the ceiling." label="The night sky, on your ceiling" />
+        <div className="mt-14">
+          <Words title="Your room joins in" line="The story reaches past the book: the lamp's beam crosses your walls, the sea comes in over your floor, the stars come out on your ceiling." />
+          <div className="mt-6 grid gap-5 md:grid-cols-3">
+            <Shot src={RENDERS.beam} alt="The lighthouse lamp's beam sweeping up the wall of a room." label="The lamp's beam, on your walls" />
+            <Shot src={RENDERS.sea} alt="The sea in a ring on the floor around the table the book stands on." label="The sea, on your floor" />
+            <Shot src={RENDERS.sky} alt="Paper stars and a crescent moon on the ceiling." label="The night sky, on your ceiling" />
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </div>
   );
 }
