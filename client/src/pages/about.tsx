@@ -21,8 +21,10 @@ mount(
       <li>Type: Fraunces and Atkinson Hyperlegible Next, under the SIL Open Font License.</li>
       <li>Code: Immersive Web SDK and Three.js, troika-three-text, React, Motion, Tailwind CSS, Better Auth, Hono, and components adapted from Magic UI, each under the MIT licence.</li>
     </ul>
-    <p>
-      The full list is in <code>CREDITS.md</code>.
+    <p className="text-[15px] opacity-70">
+      <a href="https://runwayml.com" target="_blank" rel="noopener">
+        Powered by Runway
+      </a>
     </p>
   </Shell>,
 );
