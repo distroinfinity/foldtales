@@ -81,7 +81,7 @@
             {
               "do": "narrate",
               "withPrev": false,
-              "text": "The next night, the lamp burned bright, and a new keeper stood on the gallery. A very small one, in a very big coat.",
+              "text": "The next night, up at the very top of the tall lighthouse, the lamp burned bright, and a new keeper stood on its gallery. A very small one, in a very big coat.",
               "mood": "wonder"
             },
             {
@@ -106,6 +106,19 @@
               "text": "Hmph. So they did. Evening, whoever you are.",
               "mood": "warm",
               "to": "reader"
+            },
+            {
+              "do": "wait",
+              "withPrev": false,
+              "seconds": 0.4
+            },
+            {
+              "do": "speak",
+              "withPrev": false,
+              "who": "pip",
+              "text": "Look how far down the sea is, Wick!",
+              "mood": "wonder",
+              "to": "cast:wick"
             }
           ],
           "next": "trim",

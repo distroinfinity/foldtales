@@ -84,3 +84,11 @@ done narrator-the-sea-breathed-in-and-the-sea-breathed: 8.7s, 1 credits
 done narrator-up-at-the-top-of-the-lighthouse-the-grea: 5.7s, 1 credits
 round voice ended: committed 83 of cap 89
 exit=0
+round sound: balance 109487, committed 83, cap 89
+skip small-splash, already generated
+skip nib-scratch, already generated
+round sound ended: committed 83 of cap 89
+round voice: balance 109487, committed 83, cap 89
+done narrator-the-next-night-up-at-the-very-top-of-the: 9s, 1 credits
+done pip-look-how-far-down-the-sea-is-wick: 6.3s, 1 credits
+round voice ended: committed 85 of cap 89
