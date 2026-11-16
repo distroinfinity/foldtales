@@ -915,3 +915,47 @@ The screenshots are in the session scratchpad's `emu/` folder: `/private/tmp/cla
 - mic refused;
 - sign-in cancelled;
 - one real-AI pass.
+
+---
+
+## Launch: turning the Storyteller on at foldtales.xyz
+
+*For the sprint master, in order. Each step has its check. Written Nov 17, after #30 merged (`main` at 37b2cd6; the API answers contract 9).*
+
+**Already in place (checked Nov 17):**
+- On Railway's `backend`: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `RESEND_API_KEY`, `RESEND_FROM=Foldtales <stories@foldtales.xyz>`, `GROQ_API_KEY`, `ANTHROPIC_API_KEY`, `RUNWAYML_API_SECRET`, `BETTER_AUTH_*`, `TT_CLIENT_HOST=www.foldtales.xyz`, and `TT_STORYTELLER=off`.
+- Google's redirect URI for `api.foldtales.xyz` is registered, and Resend's domain is verified.
+
+**Not needed any more:**
+- `ELEVENLABS_API_KEY` isn't read; leave it or remove it.
+- `TT_ACCOUNTS`: the backend no longer reads it. AI routes always need a signed-in reader, and the account routes always need a session, so setting it is harmless and changes nothing.
+
+### Steps
+
+1. **Railway, with the Storyteller still off.** Set `OPENAI_API_KEY` (the voices) and `TT_PAINTING=on` (live painting: 100 credits in all, every picture, name and description checked). Deploy.
+   - *Check:* `https://api.foldtales.xyz/healthz` answers contract 9. The deploy log's first lines say `voices: openai ; listening: groq ; storyteller OFF ; painting on`.
+2. **Cloudflare Pages, project `foldtales`.** Set `TT_PUBLIC_ACCOUNTS=on` and remove `TT_PUBLIC_STORYTELLER` (today it's `off`). These are read at build time, so retry the latest production deployment, or push to `main`.
+   - *Check, on the Mac:* `www.foldtales.xyz` shows "Sign in" at the top. Signing in with Google comes back signed in, and an email code arrives from `stories@foldtales.xyz`. The Storyteller door says it can't open just now, because the AI is still off.
+3. **Railway: remove `TT_STORYTELLER`** (or set it to anything but `off`). Deploy.
+   - *Check:* the deploy log says `storyteller on`. On the Mac, signed in, the door shows "Let them hear you" or "Start a new story".
+4. **The owner's headset steps** (below).
+5. **Rollback, if anything is wrong:** set `TT_STORYTELLER=off` on Railway and deploy. That's all. Every AI call is refused as resting, the door says the Storyteller can't open, and sign-in and the chapters keep working. Never roll back by turning sign-in off: guests can't reach the AI either way.
+
+### The owner's steps on the live site (Quest Browser, `www.foldtales.xyz`)
+
+1. **Sign in with Google** from the page's "Sign in", in the headset. *Look:* Google's own page, then back on Foldtales, signed in ("<your name>'s book" at the top). Also try the phone code once, from a phone at `www.foldtales.xyz/link/`.
+2. **The welcome email.** *Look:* "Your book is ready." in your inbox, sent once, with the "Open Foldtales" button.
+3. **Into a story.** Scroll to "Or make up a new story, out loud", tap "Let them hear you", and allow the microphone. *Look:* straight into the book, the drawer slides out, and the cast greets you and offers two ideas.
+4. **A spoken premise.** Hold the gold "Hold to talk" tab and say what tonight's story is about. *Listen:* the narrator names the story within about 5 seconds, then the cast carries on, each in their own voice.
+5. **The four voices.** *Listen:*
+   - the narrator is warm and unhurried;
+   - Pip is young and bright;
+   - Wick is old and gruff-kind;
+   - Moth is light and fluttery.
+
+   If one is wrong, say which: it's one line in `art/voice/live.json`, and run 023 is recorded after your approval.
+6. **A painting.** Ask them for something new: "Can you find me a little blue teapot?" *Look:* it arrives on the page within about 30 s, the caption says "Powered by Runway", and it's in your satchel next time.
+7. **The ending.** Either wait (it ends by itself at about 10 minutes), or open the ribbon's menu and choose "End the story here". *Look:* the lamp's beam sweeps your room, and the end card shows the title and two or three lines.
+8. **Your stories.** Put the book away. *Look:* on the page, "Your book" lists the story under "Your stories, with the AI Storyteller".
+
+Also worth a minute: start a story with "or play by hand" and say nothing. It should carry on alone and end by itself.
