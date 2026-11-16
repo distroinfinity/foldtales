@@ -49,7 +49,7 @@ export function huntAt(ms: number, target: number, foundMs: number | null): Hunt
 
 /**
  * Where the hunt hides the lost thing (PR #45 review): somewhere you'd look, in front of you toward
- * the book where Pip points, never behind you, on the book's own table, or on the seat or bed you're
+ * the book where the story sends you, never behind you, on the book's own table, or on the seat or bed you're
  * on. The story's `room:` place (the couch) or the next kind down, if one qualifies; else the floor
  * ahead of you and to your right, where room-map's stand-in floor goes.
  */
