@@ -156,6 +156,19 @@ This lane makes what the other lanes build submittable and production-ready. It 
   `reviewQuery` returns null outside review builds, so production never sees any of it.
 - **The client's side, on `finish-ship` once #32 merges:** `client/src/telemetry.ts` counts frames over 16.7 ms and the slowest frame per window. `scripts/telemetry-report.ts` then reads per test case, drops each session's first window (the transition into the fixture), and checks the observed `room_fx` against the case.
 
+### Tasks 6 and 8: the music plan, the form copy and the shot list (Nov 16, afternoon)
+
+- **The music bed:** `art/runs/027-music-bed/plan.json`, **waiting for the sprint master's approval.**
+  - Runway's API has no music model, so it's ElevenLabs Music on our own key (Creator plan, active).
+  - Rights, read Nov 16: on Creator, "all online and offline commercial use" is permitted, except film, TV, radio and "Studio Games". A Studio Game must be monetized, and Foldtales is free (it would also qualify as an Indie Game). No attribution is required.
+  - Three 90-second candidates: about 4,000 plan credits, or $0.68–$1.35. No Runway credits.
+  - Before the video, a private YouTube test with the chosen bed checks for Content ID claims.
+- **`docs/submission.md`:** the tagline (134 characters), the description (481 words, or 354 if nothing marked merges), how hands are used, the field-of-view paragraph, testing instructions, and the shot list.
+  - Written from a sourced brief of what's actually on main.
+  - Chapters 2 and 3 and the AI Storyteller are marked **[if merged]** (PR #35, PR #30), to cut on Nov 18 if they don't land.
+  - `tests/submission.test.ts` checks the lengths.
+- **Still open for the owner:** the target launch date. I suggest "Spring 2027, on the Meta Horizon Store and Meta VR Glasses".
+
 ### Codex's review of PR #33, fixed (Nov 16)
 
 Codex found 4 P1s and 3 P2s ("merge after fixes"). Points 6 and 7 were lane A's. Point 6 (the manifest link) landed in #26. Point 7 (About's link to the notices) came to me with the sprint master's agreement.
