@@ -95,6 +95,30 @@ export function memoryOf(events: readonly ShowEvent[], defs: ReadonlyMap<string,
   return { canon, facts, satchel, chapters };
 }
 
+/**
+ * What a chapter hands on: the keepsakes its page kept, less anything given back since, each with
+ * its history. Empty if that chapter was never finished.
+ */
+export function keptAfter(memory: Memory, episodeId: string, defs: ReadonlyMap<string, ObjectDef>, events: readonly ShowEvent[]): ShowObject[] {
+  const record = memory.chapters.find((c) => c.episodeId === episodeId);
+  if (!record) return [];
+  const standing = new Set(memory.canon.map((c) => c.id));
+  const histories = new Map<string, Array<{ episodeId: string; text: string }>>();
+  for (const e of events) {
+    if (e.type !== 'object.kept' || !e.episodeId) continue;
+    const list = histories.get(e.data.objectId) ?? [];
+    if (!list.some((h) => h.episodeId === e.episodeId)) list.push({ episodeId: e.episodeId, text: e.data.history });
+    histories.set(e.data.objectId, list);
+  }
+  const out: ShowObject[] = [];
+  for (const id of record.page.keepsakes ?? []) {
+    const def = defs.get(id);
+    if (!def || !standing.has(keepId(id))) continue;
+    out.push({ id, def, owner: 'reader', origin: 'satchel', history: histories.get(id) ?? [] });
+  }
+  return out;
+}
+
 export type Append = ShowLog['append'];
 
 /**

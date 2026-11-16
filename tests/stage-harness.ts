@@ -41,7 +41,9 @@ export const ref = (path: string): TexRef => {
 export const head = new Vector3(0, 0.45, 0.55);
 
 /** One complete stage, the way the client builds it, minus the browser-only text and audio. */
-export function stage() {
+/** A whole stage on chapter 1, or on `chapter`'s spine for a chapter-specific check. */
+export function stage(chapter: Spine = spine) {
+  const spine = chapter;
   const files = new Set<string>();
   for (const s of sets) {
     for (const f of bookFiles(book, 'book', s.spec, s.base)) files.add(f);

@@ -320,7 +320,8 @@ export function createObjects(initial: ObjectState[], deps: ObjectsDeps): Object
               v.card.rotation.set(-Math.PI / 2, 0, home.lie);
             } else {
               mount(state.id, 'base');
-              v.holder.position.set(home.at[0], deps.pageY + 0.0006, home.at[2]);
+              // A mark's height lifts it off the page (a light held up high); its shadow stays on the page.
+              v.holder.position.set(home.at[0], deps.pageY + 0.0006 + home.at[1], home.at[2]);
             }
             surfaceY = deps.pageY;
             break;
