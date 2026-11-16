@@ -1,17 +1,18 @@
 import { DoubleSide, Mesh, MeshBasicMaterial, Object3D, PlaneGeometry, Vector3 } from '@iwsdk/core';
 import { Text } from 'troika-three-text';
 import captionFont from '@fontsource/atkinson-hyperlegible-next/files/atkinson-hyperlegible-next-latin-500-normal.woff?url';
-import type { ExtraTarget } from './controls.ts';
 import type { HandSide } from './gestures.ts';
+import { createTalkPress, TALK_TRAVEL_M, type Ray } from './talk-press.ts';
 
 /**
  * The AI Storyteller's "Hold to talk": a paper button with a gold rim, lying on the table in front
- * of the book. Press it with a fingertip (or pinch it) and keep holding while you talk; it glows
- * once it's really listening; lift your finger when you're done.
+ * of the book. Press it with a fingertip and keep it down while you talk; it glows once it's really
+ * listening; lift your finger when you're done. From further away (or on VR Glasses), look or point at
+ * it and pinch, and hold the pinch. A pinch beside it, or a hand merely near it, never opens the
+ * microphone: there's no grab target here (Codex review of #52, P2; `talk-press.ts`).
  */
 
 const INK = '#2B2420';
-const REACH_UP_M = 0.05;
 
 export interface TalkTabDeps {
   bookRoot: Object3D;
@@ -21,6 +22,15 @@ export interface TalkTabDeps {
   pageD: number;
   hold(): void;
   release(): void;
+  /** A press landed (the paper "tock"): hands have no haptics. */
+  pressed?(): void;
+}
+
+/** One hand, in the world: its index fingertip, whether it's pinching, and its pointing ray. */
+export interface TalkHandWorld {
+  tip: Vector3 | null;
+  pinching: boolean;
+  ray: { origin: Vector3; direction: Vector3 } | null;
 }
 
 export function createTalkTab(deps: TalkTabDeps) {
@@ -57,25 +67,30 @@ export function createTalkTab(deps: TalkTabDeps) {
   const tab = root;
 
   let state: 'idle' | 'opening' | 'listening' | 'sending' = 'idle';
-  let held: HandSide | null = null;
-  let pressedBy: HandSide | null = null;
-  const at = new Vector3();
-  const local = new Vector3();
-  /** A fingertip on the button: within its edges (and a little over), and touching or nearly. */
-  const onButton = (tip: Vector3, margin: number, height: number) => {
-    root.worldToLocal(local.copy(tip));
-    return Math.abs(local.x) < W / 2 + margin && Math.abs(local.y) < H / 2 + margin && local.z < height && local.z > -0.03;
+  const press = createTalkPress({ w: W, h: H });
+  const faceZ = face.position.z;
+  const labelZ = label.position.z;
+  const a = new Vector3();
+  const b = new Vector3();
+  /** A point in the tab's frame. */
+  const toLocal = (v: Vector3 | null) => (v ? root.worldToLocal(a.copy(v)).clone() : null);
+  /** A ray in the tab's frame. */
+  const rayToLocal = (ray: { origin: Vector3; direction: Vector3 } | null): Ray | null => {
+    if (!ray) return null;
+    const o = root.worldToLocal(a.copy(ray.origin)).clone();
+    const d = root.worldToLocal(b.copy(ray.origin).add(ray.direction)).sub(o).normalize();
+    return { origin: o, direction: d };
+  };
+  const letGo = () => {
+    if (press.holder) deps.release();
+    press.reset();
   };
 
   return {
     root,
     setShown(on: boolean): void {
       root.visible = on;
-      if (!on && (held || pressedBy)) {
-        held = null;
-        pressedBy = null;
-        deps.release();
-      }
+      if (!on) letGo();
     },
     /** The ears' state: lifts while held, glows gold when listening. */
     setState(next: 'idle' | 'opening' | 'listening' | 'sending'): void {
@@ -89,52 +104,35 @@ export function createTalkTab(deps: TalkTabDeps) {
     get state() {
       return state;
     },
-    /** Pressed with a fingertip: held while the finger rests on it, let go when it lifts away. */
-    frame(tips: Record<HandSide, Vector3 | null>): void {
-      if (!root.visible) return;
-      if (pressedBy) {
-        const tip = tips[pressedBy];
-        if (!tip || !onButton(tip, 0.02, 0.045)) {
-          pressedBy = null;
-          if (!held) deps.release();
-        }
-        return;
-      }
-      if (held) return;
-      for (const side of ['right', 'left'] as const) {
-        const tip = tips[side];
-        if (tip && onButton(tip, 0.006, 0.022)) {
-          pressedBy = side;
-          console.info(`talk: pressed with ${side} fingertip`);
-          deps.hold();
-          return;
-        }
-      }
+    /** Who holds it now, and how: a pressed fingertip, or a far pinch. */
+    get holder() {
+      return press.holder;
     },
-    targets(): ExtraTarget[] {
-      if (!root.visible) return [];
-      face.getWorldPosition(at);
-      return [
+    /** Every frame: fingertips press it, a far look or point with a pinch holds it. */
+    frame(hands: Record<HandSide, TalkHandWorld>, gaze: { origin: Vector3; direction: Vector3 } | null): void {
+      if (!root.visible) return;
+      root.updateWorldMatrix(true, false);
+      const step = press.step(
         {
-          proxy: { id: 'talk-tab', position: { x: at.x, y: at.y, z: at.z }, radiusM: 0.042, reachUpM: REACH_UP_M },
-          onGrab: (hand) => {
-            if (pressedBy) return;
-            held = hand;
-            console.info(`talk: held with ${hand}`);
-            deps.hold();
-          },
-          onRelease: () => {
-            if (!held) return;
-            held = null;
-            deps.release();
-          },
-          onCancel: () => {
-            if (!held) return;
-            held = null;
-            deps.release();
-          },
+          left: { tip: toLocal(hands.left.tip), pinching: hands.left.pinching, ray: rayToLocal(hands.left.ray) },
+          right: { tip: toLocal(hands.right.tip), pinching: hands.right.pinching, ray: rayToLocal(hands.right.ray) },
         },
-      ];
+        rayToLocal(gaze),
+      );
+      // The paper goes down with the finger, and its gold edge lights where a hand is on it.
+      face.position.z = faceZ - step.depth * TALK_TRAVEL_M * 0.5;
+      label.position.z = labelZ - step.depth * TALK_TRAVEL_M * 0.5;
+      if (state === 'idle') rimMaterial.opacity = step.near ? 1 : 0.85;
+      if (step.started && step.holder) {
+        console.info(`talk: ${step.holder.by === 'touch' ? 'pressed with' : 'pinched from afar with'} ${step.holder.hand} hand`);
+        deps.pressed?.();
+        deps.hold();
+      }
+      if (step.ended) deps.release();
+    },
+    /** Where its face is, for the emulator and the review record. */
+    position(): Vector3 | null {
+      return root.visible ? face.getWorldPosition(new Vector3()) : null;
     },
   };
 }

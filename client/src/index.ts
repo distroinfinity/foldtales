@@ -715,8 +715,8 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       void ears.hold();
     },
     release: () => ears.release(),
+    pressed: () => sound.play('tap', talk.position() ?? stage.root.position, undefined, 'ui'),
   });
-  moreTargets.push(() => talk.targets());
   // The pop-up card the book's printed pages stand on. Review builds: `?card=pause` or `?card=busiest`
   // opens one once the book is open and writes how it reads from your eyes to data-card-report.
   const card = createCardView({ bookRoot: stage.book.root, pageY: stage.book.pageY, pageD: assets.book.closedSizeM[1], scene: world.scene });
@@ -994,7 +994,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       const top = menu.stack[menu.stack.length - 1];
       const ribbonAt = stage.book.root.localToWorld(new Vector3(assets.book.closedSizeM[0] * RIBBON_X_SHARE, stage.book.pageY + 0.01, assets.book.closedSizeM[1] / 2 - 0.012));
       const r3 = (v: Vector3) => [v.x, v.y, v.z].map((n) => +n.toFixed(3));
-      const info = JSON.stringify({ objects: Object.fromEntries(hands.targets().filter((t) => t.proxy.id.startsWith("object:")).slice(0, 6).map((t) => [t.proxy.id.slice(7), { at: [t.proxy.position.x, t.proxy.position.y, t.proxy.position.z].map((n) => +n.toFixed(3)), home: stage.objects.get(t.proxy.id.slice(7))?.home.kind }])), mode: storyMode ? "story" : "chapter", story: story !== null, talk: earsOn, root: menu.root, top: top?.kind ?? null, gen: menu.generation, ready: card.ready, card: card.debug, ghost: ghostHand.playing && ghostHand.debug, grabbable: hands.targets().map((t) => `${t.proxy.id}@${r3(new Vector3(t.proxy.position.x, t.proxy.position.y, t.proxy.position.z)).join(",")}`), holding: [controls.holding("left"), controls.holding("right")], flat: +controls.flatness.toFixed(2), head: r3(head), bookAt: r3(stage.book.root.getWorldPosition(new Vector3())), bookScale: +stage.root.scale.x.toFixed(2), shown: card.shown, spec: card.spec?.title ?? null, open: +controls.amount.toFixed(2), shownGen: shownGeneration, clockMs: Math.round(clock.ms), paused: clock.paused, ribbon: r3(ribbonAt), pinchL: controls.pinchPoint("left") && r3(controls.pinchPoint("left")!), pinchR: controls.pinchPoint("right") && r3(controls.pinchPoint("right")!), targets: Object.fromEntries(card.targets().map((t) => [t.id, r3(t.position)])), talkAt: talk.targets()[0] ? [talk.targets()[0]!.proxy.position.x, talk.targets()[0]!.proxy.position.y, talk.targets()[0]!.proxy.position.z].map((n) => +n.toFixed(3)) : null });
+      const info = JSON.stringify({ objects: Object.fromEntries(hands.targets().filter((t) => t.proxy.id.startsWith("object:")).slice(0, 6).map((t) => [t.proxy.id.slice(7), { at: [t.proxy.position.x, t.proxy.position.y, t.proxy.position.z].map((n) => +n.toFixed(3)), home: stage.objects.get(t.proxy.id.slice(7))?.home.kind }])), mode: storyMode ? "story" : "chapter", story: story !== null, talk: earsOn, root: menu.root, top: top?.kind ?? null, gen: menu.generation, ready: card.ready, card: card.debug, ghost: ghostHand.playing && ghostHand.debug, grabbable: hands.targets().map((t) => `${t.proxy.id}@${r3(new Vector3(t.proxy.position.x, t.proxy.position.y, t.proxy.position.z)).join(",")}`), holding: [controls.holding("left"), controls.holding("right")], flat: +controls.flatness.toFixed(2), head: r3(head), bookAt: r3(stage.book.root.getWorldPosition(new Vector3())), bookScale: +stage.root.scale.x.toFixed(2), shown: card.shown, spec: card.spec?.title ?? null, open: +controls.amount.toFixed(2), shownGen: shownGeneration, clockMs: Math.round(clock.ms), paused: clock.paused, ribbon: r3(ribbonAt), pinchL: controls.pinchPoint("left") && r3(controls.pinchPoint("left")!), pinchR: controls.pinchPoint("right") && r3(controls.pinchPoint("right")!), targets: Object.fromEntries(card.targets().map((t) => [t.id, r3(t.position)])), talkAt: talk.position() ? r3(talk.position()!) : null, talkHolder: talk.holder });
       if (document.documentElement.dataset.menu !== info) document.documentElement.dataset.menu = info;
     }
     if (host.waiting.length && !clock.paused && !cardShowing(menu)) for (const resolve of host.waiting.splice(0)) resolve();
@@ -1307,7 +1307,10 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
     // The tab is there while the Storyteller's book is open and playing; a pause lets the microphone go.
     // Without the microphone the story plays by hand: no tab that can't hear you.
     const canTalk = story !== null && !story.ended && micAllowed && runtime.started && !held() && controls.amount > 0.98;
-    if (story) talk.frame({ left: controls.fingertip('left'), right: controls.fingertip('right') });
+    if (story) {
+      const hand = (side: 'left' | 'right') => ({ tip: controls.fingertip(side), pinching: controls.pinching(side), ray: controls.ray(side) });
+      talk.frame({ left: hand('left'), right: hand('right') }, controls.gazeRay());
+    }
     if (canTalk !== earsOn) {
       earsOn = canTalk;
       talk.setShown(canTalk);
