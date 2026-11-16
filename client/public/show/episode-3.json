@@ -939,10 +939,22 @@
               "to": "cast:moth"
             },
             {
+              "do": "move",
+              "withPrev": true,
+              "who": "moth",
+              "to": "cast:pip"
+            },
+            {
               "do": "cue",
               "withPrev": false,
               "cue": "light-up",
               "target": "cast:moth"
+            },
+            {
+              "do": "move",
+              "withPrev": true,
+              "who": "moth",
+              "to": "mark:light-high"
             },
             {
               "do": "narrate",
@@ -1050,6 +1062,12 @@
               "withPrev": false,
               "cue": "light-down",
               "target": null
+            },
+            {
+              "do": "move",
+              "withPrev": true,
+              "who": "moth",
+              "to": "mark:moth-landing"
             }
           ],
           "next": "page-two",
