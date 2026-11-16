@@ -10,7 +10,6 @@ import { createBackendAccess, withDeadline } from './backend.ts';
 import { OVER_STACK } from './book/book-view.ts';
 import { preloadFonts } from './book/text.ts';
 import { setLandingState, type LandingState } from './landing/landing.ts';
-import { askForMicrophone } from './landing/microphone.ts';
 import { buildDim } from './light/dim.ts';
 import { loadStageAssets, uploadAll } from './paint/assets.ts';
 import { makeSoftPieces } from './paint/soft.ts';
@@ -22,7 +21,7 @@ import type { RuntimeSnapshot } from './show/runtime.ts';
 import { createShowClock } from './show/clock.ts';
 import { createShowLog, indexedDbLogStore } from './show/log.ts';
 import { libraryOf, ShowManifest } from './show/manifest.ts';
-import { BackendError, SIGN_IN_REQUIRED, estimateSpeechMs, linesOf, type ReadyBeat, type ShowObject } from '@tabletop/contracts';
+import { BackendError, LISTENING_BUSY, SIGN_IN_REQUIRED, estimateSpeechMs, linesOf, type ReadyBeat, type ShowObject } from '@tabletop/contracts';
 import { createDirector } from './director/director.ts';
 import { ChapterCanon, recordChapterEnd } from './memory/memory.ts';
 import { createPauseControl } from './show/pause.ts';
@@ -50,14 +49,15 @@ import { createSessionFlow } from './stage/session-flow.ts';
 import { cardFor, cardShowing, choose, ended, holdsStory, initialMenu, restarted, returned, ribbon as ribbonPinched, type MenuContext, type MenuEffect, type MenuState } from './stage/book-menu.ts';
 import { chapterEnding } from './book/end-sheet.ts';
 import { cancelEntry, chooseEntry, consumeEntry, needsReload, pendingEntry, prepareEntry, type Entry } from './landing/entry.ts';
-import { preparedChoice, primaryLabel, readLibrary } from './landing/library.ts';
+import { hasSavedPlace, preparedChoice, primaryLabel, readLibrary } from './landing/library.ts';
 import { carryIntoSatchel } from './stage/carry.ts';
 import { chapterManifest, prepareWithFallback } from './stage/chapter-load.ts';
-import { loadChapter, recordFinished, storytellerSnapshot, type ChapterData, type StoryEnding } from './stage/seams.ts';
+import { askMicrophone, loadChapter, recordFinished, storytellerSnapshot, type ChapterData, type StoryEnding } from './stage/seams.ts';
 import type { ExtraTarget as CardExtra } from './stage/controls.ts';
 import { createLiveScheduler } from './storyteller/live.ts';
 import { createStorySession, type StorySession } from './storyteller/session.ts';
 import { createEars } from './storyteller/ears.ts';
+import { preloadRecorded, type RecordedLines } from './storyteller/recorded.ts';
 import { createTalkTab } from './stage/talk.ts';
 import { createKeepsakes } from './storyteller/keepsakes.ts';
 import type { ExtraTarget } from './stage/controls.ts';
@@ -151,12 +151,13 @@ async function prepare(world: World, chapter: ChapterData) {
   // What this chapter records when it ends, beside its episode data.
   const canonData = chapter.canon;
   const storyConfig = await fetch('./show/storyteller.json')
-    .then((r) => (r.ok ? (r.json() as Promise<{ firstSet: string; entrances: Record<string, Record<string, string>> }>) : null))
+    .then((r) => (r.ok ? (r.json() as Promise<{ firstSet: string; entrances: Record<string, Record<string, string>>; recorded?: RecordedLines }>) : null))
     .catch(() => null);
   const soft = makeSoftPieces();
   // Review builds only: `?review=cast` stands the whole cast on the open book, cycling every acting.
   const review = reviewQuery('review') === 'cast';
   const stage = buildStage(manifest, assets, soft, review);
+  stage.endPage.setChapter(chapter.n);
   stage.root.visible = false;
   world.scene.add(stage.root);
   // Built before the upload, so every texture goes up with the settings its material gave it.
@@ -468,12 +469,21 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
     stage.objects.removeLive();
     runtime.useScheduler(live, live.spine, initialObjects);
     sound.clearLines();
+    // Lane D's wiring (handoff, Nov 16): the recorded lines play with no network, so they're loaded first.
+    void preloadRecorded(cfg.recorded ?? {}, (id, url, ms) => sound.addLine(id, url, ms));
     // The last evening, if any, is over: nothing it was still writing may play into this one.
     story?.dispose();
     // Everything this session asks for belongs to the generation it was made in.
     const sessionGen = host.generation;
     suspended = false;
     const session: StorySession = createStorySession({
+      cozySet: cfg.firstSet,
+      recorded: cfg.recorded ?? {},
+      // The story ended by itself (its time, its turns, tonight's limit): the same end card as "End the story here".
+      onEnded: (result) => {
+        if (sessionGen !== host.generation) return;
+        showStoryEnd(result, session.storyId);
+      },
       withBackend: (call) => storyAccess.withBackend(call),
       stream: (request) =>
         (async function* () {
@@ -535,7 +545,10 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
         if (state === 'performing') storyHint.blocked = null;
         if (state === 'listening' && storyHint.blocked) storyHint.base = storyHint.blocked;
         else if (state === 'listening') {
-          storyHint.base = micAllowed ? `Your turn: hold the button to talk to ${name === "They" ? "them" : name}.` : "They can't hear you yet: allow the microphone on the page outside the book.";
+          // A story plays by hand too, so without the microphone the turn is a gift, or simply watching.
+          const turn = micAllowed ? `Your turn: hold the button to talk to ${name === "They" ? "them" : name}, or hand them something.` : 'Your turn: hand them something, or just watch.';
+          // While something painted is on the page, its painter is named with it (Runway's terms).
+          storyHint.base = paintedTonight.length ? `${turn} Paintings: Powered by Runway.` : turn;
         } else storyHint.base = state === 'thinking' ? (storyHint.heard ? `You: ${storyHint.heard}` : '…') : null;
         if (state !== 'thinking') storyHint.heard = null;
         runtime.setHint(storyHint.base);
@@ -562,6 +575,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       if (!result || result.status === 'pending') continue;
       if (result.status === 'failed') {
         console.info(`storyteller: the painting didn't come (${result.reason})`);
+        session?.paintMissed();
         return;
       }
       const def = { ...result.object, id: job.objectId };
@@ -578,10 +592,22 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       stage.objects.add(def, ref, { kind: 'page', at: [0.035, 0, 0.055] });
       world.renderer.initTexture(texture);
       sound.play('chime', stage.book.root.getWorldPosition(new Vector3()), undefined, 'ui');
+      // Where a painting appears, its painter is named (Runway's terms; plain text, owner, Nov 17).
+      runtime.setHint(`Painted for you: the ${def.name}. Powered by Runway.`);
       paintedTonight.push(def.name);
       session?.arrived(def.id);
       return;
     }
+    // It never came in time: whoever fetched it comes back empty-handed.
+    if (story === session && gen === host.generation) session?.paintMissed();
+  }
+  /**
+   * The story opens with the drawer out: the Lost and Found's things are a hands-only way in, since
+   * handing one over at the welcome is tonight's premise (lane D's plan, stage 1).
+   */
+  function openStory(): void {
+    story?.open();
+    if (runtime.drawerAmount < 0.5) runtime.toggleDrawer();
   }
   /** A new evening: a fresh session, and what you kept from earlier evenings back in your satchel. */
   function beginStory(): void {
@@ -621,8 +647,17 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
   }).catch(() => undefined);
   const trim = (t: string) => (t.length > 70 ? `…${t.slice(-67)}` : t);
   const ears = createEars({
-    // Contracts v7 moves listening to the backend (`transcribe`); lane D's PR brings the new ears. Until then, by hand.
-    token: async () => null,
+    // The clip goes to our backend, which hears it; a busy listener is said plainly, and the story plays on.
+    transcribe: async (audio) => {
+      const storyId = story?.storyId;
+      if (!storyId) return null;
+      try {
+        return await storyAccess.withBackend((api) => api.transcribe({ storyId, audio }));
+      } catch (cause) {
+        return cause instanceof BackendError && cause.message === LISTENING_BUSY ? 'busy' : null;
+      }
+    },
+    missed: () => runtime.setHint('I couldn’t hear you just then. Hold the button and try again, or hand them something.'),
     heard: (text) => {
       if (!text) {
         runtime.setHint("Didn’t catch that. Hold the button and try again.");
@@ -632,7 +667,6 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       runtime.setHint(`You: ${storyHint.heard}`);
       story?.heard(text);
     },
-    hearing: (text) => runtime.setHint(`You: ${trim(text)}`),
     onState: (state) => {
       talk.setState(state === 'off' ? 'idle' : state);
       if (state === 'opening') runtime.setHint('Wait for the tab to glow, then speak.');
@@ -809,17 +843,25 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
     syncLifecycle();
     shownGeneration = -1;
   }
+  /**
+   * A story's end card, and its page saved under the backend's own story id (kept on the headset
+   * until the server has it). A story the backend never reserved has no page to save.
+   */
+  function showStoryEnd(result: StoryEnding | null, storyId: string | null): void {
+    ending = { heading: result?.title ?? menuContext().heading.title, lines: result?.lines ?? [], things: result?.things ?? [...paintedTonight], next: null };
+    if (storyId) void recordFinished({ id: storyId, title: ending.heading, lines: ending.lines, things: ending.things });
+    setMenu(ended(menu));
+  }
   async function endStoryHere(): Promise<void> {
     const gen = ++host.generation;
     ears.stop();
+    const storyId = story?.storyId ?? null;
     const ending0 = life(story)?.end?.();
     const result = ending0 ? await ending0.catch(() => null) : null;
     if (gen !== host.generation) return;
-    ending = { heading: result?.title ?? menuContext().heading.title, lines: result?.lines ?? [], things: result?.things ?? [...paintedTonight], next: null };
-    void recordFinished({ id: `story-${Date.now()}`, title: ending.heading, lines: ending.lines, things: ending.things });
     story?.dispose();
     story = null;
-    setMenu(ended(menu));
+    showStoryEnd(result, storyId);
   }
   /** Leaves for the page: the place is kept, nothing late lands, and the page shows `target` if one was chosen. */
   function putAway(target: EnterTarget | null): void {
@@ -942,7 +984,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       const top = menu.stack[menu.stack.length - 1];
       const ribbonAt = stage.book.root.localToWorld(new Vector3(assets.book.closedSizeM[0] * RIBBON_X_SHARE, stage.book.pageY + 0.01, assets.book.closedSizeM[1] / 2 - 0.012));
       const r3 = (v: Vector3) => [v.x, v.y, v.z].map((n) => +n.toFixed(3));
-      const info = JSON.stringify({ objects: Object.fromEntries(hands.targets().filter((t) => t.proxy.id.startsWith("object:")).slice(0, 6).map((t) => [t.proxy.id.slice(7), { at: [t.proxy.position.x, t.proxy.position.y, t.proxy.position.z].map((n) => +n.toFixed(3)), home: stage.objects.get(t.proxy.id.slice(7))?.home.kind }])), mode: storyMode ? "story" : "chapter", story: story !== null, talk: earsOn, root: menu.root, top: top?.kind ?? null, gen: menu.generation, ready: card.ready, card: card.debug, hint: hint.ready ? Math.round(1000 * (hint.measure(head, stage.book.root.getWorldPosition(new Vector3()))?.minTextDeg ?? 0)) / 1000 : hint.shown, shown: card.shown, spec: card.spec?.title ?? null, open: +controls.amount.toFixed(2), shownGen: shownGeneration, clockMs: Math.round(clock.ms), paused: clock.paused, ribbon: r3(ribbonAt), pinchL: controls.pinchPoint("left") && r3(controls.pinchPoint("left")!), pinchR: controls.pinchPoint("right") && r3(controls.pinchPoint("right")!), targets: Object.fromEntries(card.targets().map((t) => [t.id, r3(t.position)])) });
+      const info = JSON.stringify({ objects: Object.fromEntries(hands.targets().filter((t) => t.proxy.id.startsWith("object:")).slice(0, 6).map((t) => [t.proxy.id.slice(7), { at: [t.proxy.position.x, t.proxy.position.y, t.proxy.position.z].map((n) => +n.toFixed(3)), home: stage.objects.get(t.proxy.id.slice(7))?.home.kind }])), mode: storyMode ? "story" : "chapter", story: story !== null, talk: earsOn, root: menu.root, top: top?.kind ?? null, gen: menu.generation, ready: card.ready, card: card.debug, hint: hint.ready ? Math.round(1000 * (hint.measure(head, stage.book.root.getWorldPosition(new Vector3()))?.minTextDeg ?? 0)) / 1000 : hint.shown, shown: card.shown, spec: card.spec?.title ?? null, open: +controls.amount.toFixed(2), shownGen: shownGeneration, clockMs: Math.round(clock.ms), paused: clock.paused, ribbon: r3(ribbonAt), pinchL: controls.pinchPoint("left") && r3(controls.pinchPoint("left")!), pinchR: controls.pinchPoint("right") && r3(controls.pinchPoint("right")!), targets: Object.fromEntries(card.targets().map((t) => [t.id, r3(t.position)])), talkAt: talk.targets()[0] ? [talk.targets()[0]!.proxy.position.x, talk.targets()[0]!.proxy.position.y, talk.targets()[0]!.proxy.position.z].map((n) => +n.toFixed(3)) : null });
       if (document.documentElement.dataset.menu !== info) document.documentElement.dataset.menu = info;
     }
     if (host.waiting.length && !clock.paused && !cardShowing(menu)) for (const resolve of host.waiting.splice(0)) resolve();
@@ -1107,8 +1149,6 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
     card.frame(deltaMs, head);
     syncLifecycle();
     if (!cardProof) cardStep(deltaMs);
-    // The old printed end line gives way to the end card.
-    stage.endPage.root.visible = false;
     if (cardProof && PROOF_CARDS[cardProof] && runtime.started && controls.amount > 0.98) {
       if (cardProofAt === null) {
         cardProofAt = nowMs;
@@ -1144,7 +1184,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
         setMenu(restarted(menu));
         controls.lowerRibbon();
         controls.reopen();
-        story!.open();
+        openStory();
       } else {
         readAgain.requested = false;
         runtime.reset(initialObjects);
@@ -1159,6 +1199,8 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       }
     }
     const { unfold, room: roomNow } = runtime.frame(deltaMs * speed, nowMs, head, { fold: roomLightFold(controls.fold()), ribbon: controls.ribbonLift() }, { left: controls.pinchPoint('left'), right: controls.pinchPoint('right') });
+    // The printed end line gives way to the end card. Hidden after the runtime's frame, which would show it again.
+    stage.endPage.root.visible = false;
     devRoomTick();
     shadowPlay.frame({
       renderer: world.renderer,
@@ -1249,7 +1291,8 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       }
     }
     // The tab is there while the Storyteller's book is open and playing; a pause lets the microphone go.
-    const canTalk = story !== null && runtime.started && !held() && controls.amount > 0.98;
+    // Without the microphone the story plays by hand: no tab that can't hear you.
+    const canTalk = story !== null && !story.ended && micAllowed && runtime.started && !held() && controls.amount > 0.98;
     if (story) talk.frame({ left: controls.fingertip('left'), right: controls.fingertip('right') });
     if (canTalk !== earsOn) {
       earsOn = canTalk;
@@ -1365,7 +1408,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
         sound.roomTone(true);
       } else if (!runtime.started) {
         runtime.start();
-        if (story) story.open();
+        if (story) openStory();
         else {
           startEpisode();
           writeProgress(localStorage, { seriesId: series, chapter: chapterN, state: 'started' });
@@ -1546,7 +1589,8 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, world
         }
         const p = primaryLabel(readLibrary(localStorage));
         // This page prepared another chapter than the library's next (a review link's ?chapter=n): the button says which.
-        if (p.target.kind === 'chapter' && p.target.n !== thisChapter) return { ...preparedChoice(thisChapter, saved !== null, entryProblem), restartLabel: null, mode: 'chapter' };
+        // Read now, not at load: leaving mid-chapter in this page load has saved a place since.
+        if (p.target.kind === 'chapter' && p.target.n !== thisChapter) return { ...preparedChoice(thisChapter, hasSavedPlace(localStorage, Date.now(), { seriesId: series, episodeId: show.assets.spine.id }), entryProblem), restartLabel: null, mode: 'chapter' };
         const resume = p.target.kind === 'chapter' && p.target.from === 'resume';
         return { label: p.label, detail: entryProblem ? `${entryProblem} ${p.detail}` : p.detail, restartLabel: p.secondary, resume, mode: 'chapter' };
       };
@@ -1577,7 +1621,8 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, world
           enter(false, 'story');
           return;
         }
-        void askForMicrophone(navigator.mediaDevices?.getUserMedia?.bind(navigator.mediaDevices)).then((answer) => {
+        // Through the Storyteller's provider, so the door hears the answer: refused, it offers the story by hand.
+        void askMicrophone().then((answer) => {
           micState = answer === 'granted' ? 'granted' : 'denied';
           if (answer === 'granted') {
             // Straight in. If the browser wants a fresh tap for VR, the door is ready for it.

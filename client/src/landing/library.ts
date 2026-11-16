@@ -1,4 +1,5 @@
 import { libraryState, type EnterTarget, type LibraryState } from '../show/progress.ts';
+import { readCheckpoint } from '../show/checkpoint.ts';
 
 export type { EnterTarget, LibraryState };
 
@@ -36,4 +37,9 @@ export function shelfTarget(c: LibraryState['chapters'][number]): { label: strin
 export function preparedChoice(prepared: number, hasSavedPlace: boolean, problem: string | null): { label: string; detail: string; resume: boolean } {
   const base = hasSavedPlace ? `You stopped partway through chapter ${prepared}.` : 'About six minutes. You only need your hands.';
   return { label: `${hasSavedPlace ? 'Continue' : 'Open'} chapter ${prepared}`, detail: problem ? `${problem} ${base}` : base, resume: hasSavedPlace };
+}
+
+/** Whether this chapter has a saved place right now (read fresh: leaving mid-chapter saves one). */
+export function hasSavedPlace(store: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>, nowMs: number, chapter: { seriesId: string; episodeId: string }): boolean {
+  return readCheckpoint(store, nowMs, chapter) !== null;
 }

@@ -7,6 +7,7 @@ import { bearer, deviceAuthorization, emailOTP, oneTimeToken } from 'better-auth
 import type { Hono } from 'hono';
 import { mountBookRoutes, openBookStore, type BookStore } from './book.ts';
 import { codeSender, type SendCode } from './email.ts';
+import { createWelcomer, resendWelcome, type SendWelcome, type Welcomer } from './welcome.ts';
 
 /** The one client allowed to ask for a device code: the headset's page. */
 export const DEVICE_CLIENT_ID = 'tabletop-headset';
@@ -20,6 +21,8 @@ export interface AuthSettings {
   clientOrigins: string[];
   google: { clientId: string; clientSecret: string } | null;
   sendCode: SendCode;
+  /** The welcome email's sender, or null when email is off (no RESEND_API_KEY). */
+  sendWelcome?: SendWelcome | null;
 }
 
 /** Reads the environment. Production needs a secret and its own URL; dev makes up what it can. */
@@ -36,16 +39,19 @@ export function readAuthSettings(
   if (!env.RESEND_API_KEY) log(dev ? 'auth: no RESEND_API_KEY, so email codes are printed here' : 'auth: no RESEND_API_KEY, so email sign-in is off');
   const sendCode = codeSender({
     resendKey: env.RESEND_API_KEY,
-    from: env.RESEND_FROM ?? 'Tabletop Theater <onboarding@resend.dev>',
+    from: env.RESEND_FROM ?? 'Foldtales <onboarding@resend.dev>',
     dev,
     log,
   });
-  return { secret, baseURL: baseURL.replace(/\/+$/, ''), clientOrigins, google, sendCode };
+  const sendWelcome = env.RESEND_API_KEY
+    ? resendWelcome({ resendKey: env.RESEND_API_KEY, from: env.RESEND_FROM ?? 'Foldtales <onboarding@resend.dev>', replyTo: env.WELCOME_REPLY_TO })
+    : null;
+  return { secret, baseURL: baseURL.replace(/\/+$/, ''), clientOrigins, google, sendCode, sendWelcome };
 }
 
-function createAuth(db: DatabaseSync, settings: AuthSettings, books: BookStore) {
+function createAuth(db: DatabaseSync, settings: AuthSettings, books: BookStore, forget: (userId: string) => void, welcomer: Welcomer) {
   return betterAuth({
-    appName: 'Tabletop Theater',
+    appName: 'Foldtales',
     secret: settings.secret,
     baseURL: settings.baseURL,
     basePath: AUTH_BASE_PATH,
@@ -58,12 +64,17 @@ function createAuth(db: DatabaseSync, settings: AuthSettings, books: BookStore) 
         // Better Auth removes the user, sessions and accounts; the book, links and codes are ours.
         afterDelete: async (user) => {
           books.forget(user.id);
+          welcomer.forget(user.id);
+          forget(user.id);
           db.prepare('DELETE FROM deviceCode WHERE userId = ?').run(user.id);
         },
       },
     },
     socialProviders: settings.google ? { google: { ...settings.google, prompt: 'select_account' } } : {},
     advanced: { ipAddress: { ipAddressHeaders: ['x-real-ip', 'x-forwarded-for'] } },
+    // Every sign-in (Google, the email code, the phone's approval) makes a session: the welcome is
+    // sent once per account from here, after the account exists, never on sign-in's own path.
+    databaseHooks: { session: { create: { after: async (session) => welcomer.afterSignIn(session.userId) } } },
     plugins: [
       deviceAuthorization({
         expiresIn: '10m',
@@ -89,6 +100,8 @@ export type Auth = ReturnType<typeof createAuth>;
 
 export interface Accounts {
   auth: Auth;
+  /** The welcome email's sender (for tests: `settled()`). */
+  welcomer: Welcomer;
   /** The user a session token belongs to, or null. The guard's only way to decide someone is signed in. */
   sessionUser(token: string): Promise<string | null>;
   /** Better Auth and the Google trip, under `/v1/auth/*`. Before the contract check. */
@@ -98,9 +111,11 @@ export interface Accounts {
 }
 
 /** Better Auth on the store's own connection, with its tables migrated before the server listens. */
-export async function openAccounts(db: DatabaseSync, settings: AuthSettings, now: () => Date = () => new Date()): Promise<Accounts> {
+/** `forget` removes what other stores keep for a deleted reader (the Storyteller's stories). */
+export async function openAccounts(db: DatabaseSync, settings: AuthSettings, now: () => Date = () => new Date(), forget: (userId: string) => void = () => {}): Promise<Accounts> {
   const books = openBookStore(db);
-  const auth = createAuth(db, settings, books);
+  const welcomer = createWelcomer(db, settings.sendWelcome ?? null, (m) => console.log(m), now);
+  const auth = createAuth(db, settings, books, forget, welcomer);
   const { runMigrations } = await getMigrations(auth.options);
   await runMigrations();
 
@@ -134,6 +149,7 @@ export async function openAccounts(db: DatabaseSync, settings: AuthSettings, now
 
   return {
     auth,
+    welcomer,
     sessionUser,
 
     mountAuth(app) {
