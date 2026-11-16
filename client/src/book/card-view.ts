@@ -58,24 +58,34 @@ export interface CardReport {
   distanceM: number;
 }
 
-/** A 3×3 sliced quad: the paper's deckled border keeps its size at any card size. */
-function slicedPaper(w: number, h: number, borderM: number, uBorder: number, vBorder: number): BufferGeometry {
+/**
+ * The card's paper, in nine quads with their own UVs (paper-tag.png). That art has a painted shadow strip
+ * along its bottom (rows 165 to 199 of 200), so nothing samples below the paper: the top deckled edge is
+ * mirrored for the bottom edge, and the middle is plain paper.
+ */
+const PAPER_V = { edge: 1, inner: 0.86, middleLow: 0.3 };
+function slicedPaper(w: number, h: number, borderM: number, uBorder: number): BufferGeometry {
   const xs = [-w / 2, -w / 2 + borderM, w / 2 - borderM, w / 2];
   const ys = [0, borderM, h - borderM, h];
   const us = [0, uBorder, 1 - uBorder, 1];
-  const vs = [0, vBorder, 1 - vBorder, 1];
+  // Each row of quads: [v at its bottom, v at its top].
+  const rows: Array<[number, number]> = [
+    [PAPER_V.edge, PAPER_V.inner],
+    [PAPER_V.middleLow, PAPER_V.inner],
+    [PAPER_V.inner, PAPER_V.edge],
+  ];
   const pos: number[] = [];
   const uv: number[] = [];
-  for (let j = 0; j < 4; j++)
-    for (let i = 0; i < 4; i++) {
-      pos.push(xs[i]!, ys[j]!, 0);
-      uv.push(us[i]!, vs[j]!);
-    }
   const index: number[] = [];
   for (let j = 0; j < 3; j++)
     for (let i = 0; i < 3; i++) {
-      const a = j * 4 + i;
-      index.push(a, a + 1, a + 5, a, a + 5, a + 4);
+      const base = pos.length / 3;
+      const [v0, v1] = rows[j]!;
+      for (const [xi, yi, vv] of [[i, j, v0], [i + 1, j, v0], [i + 1, j + 1, v1], [i, j + 1, v1]] as const) {
+        pos.push(xs[xi]!, ys[yi]!, 0);
+        uv.push(us[xi]!, vv);
+      }
+      index.push(base, base + 1, base + 2, base, base + 2, base + 3);
     }
   const g = new BufferGeometry();
   g.setAttribute('position', new Float32BufferAttribute(pos, 3));
@@ -211,7 +221,7 @@ export function createCardView(deps: CardViewDeps) {
     clear();
     const group = new Group();
     group.renderOrder = ORDER;
-    const paper = new Mesh(slicedPaper(g.widthM, g.heightM, Math.min(0.02, g.heightM / 6), 24 / 720, 24 / 200), paperMaterial);
+    const paper = new Mesh(slicedPaper(g.widthM, g.heightM, Math.min(0.02, g.heightM / 6), 24 / 720), paperMaterial);
     paper.renderOrder = ORDER;
     group.add(paper);
     for (const m of made) {
