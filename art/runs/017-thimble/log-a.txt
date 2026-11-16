@@ -1,0 +1,6 @@
+Run 017-thimble: Can the run 003 recipe make Thimble, a speaking field mouse, who stands beside Pip as the same book's character at about 7 cm tall?
+spent so far 0 of the run's 20; lane B 0 of 150
+done thimble-master: 103s, 5 credits (balance fell 5)
+done thimble-parts-sheet: 94s, 5 credits (balance fell 5)
+done thimble-heads-sheet: 162s, 5 credits (balance fell 47: someone else is spending too)
+finished: run 15 of 20, lane 15 of 150; shared balance fell 57

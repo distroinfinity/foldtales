@@ -1,0 +1,7 @@
+Run 018-the-landing: Can runs 004, 007 and 011's set recipe paint the landing (stone steps down into the sea between dark rocks, at the foot of the lighthouse) so it registers with the shore's own sky and headland?
+spent so far 0 of the run's 41; lane B 15 of 150
+done landing-key: 109s, 5 credits (balance fell 5)
+done ground: 138s, 9 credits (balance fell 9)
+done layer-3-far-rocks: 138s, 9 credits (balance fell 9)
+done layer-4-near-steps: 145s, 9 credits (balance fell 9)
+finished: run 32 of 41, lane 47 of 150; shared balance fell 32

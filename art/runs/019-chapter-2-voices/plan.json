@@ -1,0 +1,677 @@
+{
+  "id": "019-chapter-2-voices",
+  "question": "Voices and the few new sounds for chapter 2, in the run 005 voices, with Thimble's voice chosen from run 005's small bright voices.",
+  "why": "Chapter 2 (docs/plans/2026-11-15-finish-chapters.md). Every line is voiced, as chapter 1's are; unvoiced lines break immersion (ticket 3, session 1).",
+  "sameAcrossJobs": "Runway text to speech with run 005's presets and settings (narrator Wanda, Pip Mabel, Wick Arjun), 1 credit a line of 200 characters or fewer. Thimble: one of the presets run 005 auditioned for Moth (Xylar, Ella, Pip), chosen by ear from the existing clips for free; if none fits, three one-line auditions (3 credits). Sound effects at 1 credit a second through eleven_text_to_sound_v2. Finished with run 010's finish.mjs into art/sound/ch2/.",
+  "decideBy": [
+    "Each clip decodes; tools/chapter-timings.ts re-times every path from the rendered lines and finds them inside 5 to 7 minutes, first turn by about 1:45.",
+    "The owner judges by ear on the Quest's speakers."
+  ],
+  "learnEvenIfRejected": "Whether a fourth voice from the same chain sits with the other three.",
+  "reusableOutput": "Chapter 2's lines and Thimble's voice (art/cast/thimble/voice.json) for chapter 3 and the AI Storyteller.",
+  "estimateCredits": 83,
+  "estimateNote": "79 new lines from the deduplicated ledger (narrator 17, Pip 42, Wick 10, Thimble 10; 4 more reuse chapter 1's), 4 credits of sound, 3 held for Thimble's audition. voiceJobs are written by build_plan.mjs from the final client/public/show/episode-2.json, as run 012's, once the lines freeze; lines already in the manifest are skipped.",
+  "trimOrder": "If the cap would be passed: drop the rope branch at the landing (2 lines), then the four chapter 1 carry lines (4), then the bridges (3).",
+  "capNote": "Lane B's 150 across runs 017-019. art/tools/generate.mjs checks each job's list price against this cap and the lane's 150 before spending, from the runs' own ledgers.",
+  "capCredits": 89,
+  "soundJobs": [
+    {
+      "id": "small-splash",
+      "durationS": 2,
+      "loop": false,
+      "use": "Thimble lands on the step, and the tide's heave",
+      "promptText": "A tiny soft splash of sea water on stone, close and gentle, like a small animal hopping out of shallow water. No music."
+    },
+    {
+      "id": "nib-scratch",
+      "durationS": 2,
+      "loop": false,
+      "use": "Pip writes in the keeper's log",
+      "promptText": "A dip pen nib scratching a few short words on thick paper, close, quiet and careful. No music."
+    }
+  ],
+  "voiceJobs": [
+    {
+      "id": "narrator-the-next-night-the-lamp-burned-bright-an",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "The next night, the lamp burned bright, and a new keeper stood on the gallery. A very small one, in a very big coat.",
+      "lineId": "line_11oryx4oqtz",
+      "beat": "opening"
+    },
+    {
+      "id": "pip-you-came-back-wick-look-they-came-back",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "You came back! Wick, look, they came back!",
+      "lineId": "line_1ogeesy2b0w",
+      "beat": "opening"
+    },
+    {
+      "id": "wick-hmph-so-they-did-evening-whoever-you-are",
+      "role": "wick",
+      "presetId": "Arjun",
+      "promptText": "Hmph. So they did. Evening, whoever you are.",
+      "lineId": "line_158gfo3uua0",
+      "beat": "opening"
+    },
+    {
+      "id": "pip-i-still-dream-about-flying-over-the-gap",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "I still dream about flying over the gap on that kite.",
+      "lineId": "line_mnvdkyo0sk",
+      "beat": "carry-kite"
+    },
+    {
+      "id": "pip-moth-s-still-ever-so-proud-of-carrying-t",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Moth's still ever so proud of carrying that thread across.",
+      "lineId": "line_fz3jk8x3yo",
+      "beat": "carry-thread"
+    },
+    {
+      "id": "pip-i-keep-thinking-about-that-ladder-right",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "I keep thinking about that ladder. Right across the gap!",
+      "lineId": "line_14bfzerlvqa",
+      "beat": "carry-ladder"
+    },
+    {
+      "id": "pip-wick-says-next-time-i-cross-a-gap-i-m-to",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Wick says next time I cross a gap, I'm to bring my own rope.",
+      "lineId": "line_2cng6to91iu",
+      "beat": "carry-rope"
+    },
+    {
+      "id": "wick-go-on-then-carefully-mind",
+      "role": "wick",
+      "presetId": "Arjun",
+      "promptText": "Go on, then. Carefully, mind.",
+      "lineId": "line_1f1yd0agfh6",
+      "beat": "trim"
+    },
+    {
+      "id": "narrator-that-night-the-sea-came-in-further-than",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "That night, the sea came in further than it ever had. Up the shore, up the rocks, and right across the Reader's floor.",
+      "lineId": "line_180sbvg370t",
+      "beat": "sea-in"
+    },
+    {
+      "id": "pip-the-sea-s-come-right-in-and-look-somethi",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "The sea's come right in! And look, something's washed up by your feet!",
+      "lineId": "line_19gf4lwhz7v",
+      "beat": "sea-in"
+    },
+    {
+      "id": "pip-can-you-pass-it-up-to-us",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Can you pass it up to us?",
+      "lineId": "line_rcdm2p0dgf",
+      "beat": "bottle-ask"
+    },
+    {
+      "id": "pip-a-bottle-with-a-letter-in-it-thank-you",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "A bottle, with a letter in it! Thank you!",
+      "lineId": "line_k5pqu3xrtg",
+      "beat": "letter"
+    },
+    {
+      "id": "pip-oh-thank-you-but-it-s-the-bottle-we-need",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Oh, thank you! But it's the bottle we need. The one that washed up!",
+      "lineId": "line_22k062j3c55",
+      "beat": "letter-puzzled"
+    },
+    {
+      "id": "narrator-but-the-tide-as-tides-do-brought-the-bot",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "But the tide, as tides do, brought the bottle the rest of the way by itself.",
+      "lineId": "line_1gi0b7yhi5p",
+      "beat": "letter-tide"
+    },
+    {
+      "id": "pip-a-bottle-and-there-s-a-letter-in-it",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "A bottle! And there's a letter in it!",
+      "lineId": "line_1y3jyp3ucq4",
+      "beat": "letter-tide"
+    },
+    {
+      "id": "pip-wick-it-s-a-letter-read-it-read-it",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Wick, it's a letter! Read it, read it!",
+      "lineId": "line_kpqy1jcgd1",
+      "beat": "letter-read"
+    },
+    {
+      "id": "wick-hmm-the-light-s-poor-up-here-tonight-you",
+      "role": "wick",
+      "presetId": "Arjun",
+      "promptText": "Hmm. The light's poor up here tonight. You read it, lad.",
+      "lineId": "line_1he3m5k22bw",
+      "beat": "letter-read"
+    },
+    {
+      "id": "pip-to-whoever-keeps-the-light-i-m-lost-on-t",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "'To whoever keeps the light: I'm lost on the water. I can see your light, but the rocks keep turning me back. Please keep shining. Thimble.'",
+      "lineId": "line_svmxhj3udd",
+      "beat": "letter-read"
+    },
+    {
+      "id": "wick-the-light-brings-her-as-far-as-the-rocks",
+      "role": "wick",
+      "presetId": "Arjun",
+      "promptText": "The light brings her as far as the rocks. Past them, someone has to call her in.",
+      "lineId": "line_1hk08l3419j",
+      "beat": "who-goes"
+    },
+    {
+      "id": "wick-i-d-go-but-i-couldn-t-see-a-paper-boat-i",
+      "role": "wick",
+      "presetId": "Arjun",
+      "promptText": "I'd go. But I couldn't see a paper boat if it sailed up my nose.",
+      "lineId": "line_6hrecn93ut",
+      "beat": "who-goes"
+    },
+    {
+      "id": "wick-somebody-s-got-to-be-my-eyes-lad",
+      "role": "wick",
+      "presetId": "Arjun",
+      "promptText": "Somebody's got to be my eyes, lad.",
+      "lineId": "line_14btigzpw15",
+      "beat": "who-goes"
+    },
+    {
+      "id": "pip-down-to-the-water-in-the-dark",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Down to the water? In the dark?",
+      "lineId": "line_29506tav1s0",
+      "beat": "who-goes"
+    },
+    {
+      "id": "pip-not-on-my-own-though-you-ll-come-won-t-y",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Not on my own, though. You'll come, won't you?",
+      "lineId": "line_xur1es1z3i",
+      "beat": "who-goes"
+    },
+    {
+      "id": "narrator-so-down-went-the-little-fox-a-hundred-an",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "So down went the little fox, a hundred and twelve steps, to the very edge of the sea.",
+      "lineId": "line_2gdmj357192",
+      "beat": "who-goes"
+    },
+    {
+      "id": "narrator-at-the-water-s-edge-the-dark-was-very-bi",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "At the water's edge, the dark was very big, and the sea was very loud.",
+      "lineId": "line_1x7akompabi",
+      "beat": "the-water"
+    },
+    {
+      "id": "pip-there-a-little-paper-boat-going-round-an",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "There! A little paper boat, going round and round...",
+      "lineId": "line_1b1yaiog72w",
+      "beat": "the-water"
+    },
+    {
+      "id": "pip-thimble-over-here-thimble",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Thimble! Over here! Thimble!",
+      "lineId": "line_o86x2jai2n",
+      "beat": "the-water"
+    },
+    {
+      "id": "narrator-but-the-sea-was-loud-and-the-lantern-was",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "But the sea was loud, and the lantern was low, and the little boat went round again.",
+      "lineId": "line_utq2kdfkln",
+      "beat": "the-water"
+    },
+    {
+      "id": "pip-she-can-t-see-me-my-light-s-too-low-down",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "She can't see me. My light's too low down here.",
+      "lineId": "line_2dl6c9cg38k",
+      "beat": "the-water"
+    },
+    {
+      "id": "pip-is-there-anything-that-could-get-my-ligh",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Is there anything that could get my light up high, where the whole sea can see it?",
+      "lineId": "line_19texc3fw3s",
+      "beat": "light-ask"
+    },
+    {
+      "id": "pip-a-kite-up-you-go-little-light",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "A kite! Up you go, little light!",
+      "lineId": "line_98qtg31si5",
+      "beat": "high-kite"
+    },
+    {
+      "id": "pip-up-up-up-higher-than-the-rocks",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Up, up, up! Higher than the rocks!",
+      "lineId": "line_z4ob5pkdvi",
+      "beat": "high-kite"
+    },
+    {
+      "id": "pip-a-ladder-i-ll-stand-it-on-the-rocks-and",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "A ladder! I'll stand it on the rocks, and hang my light at the top.",
+      "lineId": "line_qo9i0bss21",
+      "beat": "high-ladder"
+    },
+    {
+      "id": "pip-there-like-a-little-lighthouse",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "There. Like a little lighthouse!",
+      "lineId": "line_apm9tsae5y",
+      "beat": "high-ladder"
+    },
+    {
+      "id": "pip-oh-that-s-lovely-but-it-won-t-get-my-lig",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Oh, that's lovely. But it won't get my light up high.",
+      "lineId": "line_1o7vgxhnm39",
+      "beat": "high-puzzled"
+    },
+    {
+      "id": "pip-something-that-flies-maybe-or-something",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Something that flies, maybe? Or something to climb?",
+      "lineId": "line_1s35hlf2giv",
+      "beat": "high-puzzled"
+    },
+    {
+      "id": "narrator-now-if-there-s-one-thing-a-moth-knows-it",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "Now, if there's one thing a moth knows, it's how to get close to a light.",
+      "lineId": "line_1vpzt60aop1",
+      "beat": "high-moth"
+    },
+    {
+      "id": "pip-moth-where-are-you-taking-my-oh",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Moth! Where are you taking my... oh!",
+      "lineId": "line_1b52cjhkhhc",
+      "beat": "high-moth"
+    },
+    {
+      "id": "pip-oh-moth-you-clever-clever-moth",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Oh, Moth. You clever, clever moth.",
+      "lineId": "line_p603w0qn1x",
+      "beat": "high-moth"
+    },
+    {
+      "id": "narrator-far-out-on-the-water-the-little-boat-sto",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "Far out on the water, the little boat stopped going round. And turned. And came, slowly, toward the light.",
+      "lineId": "line_5mt2v40g1u",
+      "beat": "she-sees"
+    },
+    {
+      "id": "pip-it-s-very-dark-down-here-without-my-ligh",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "It's very dark down here without my light. But she can see it. That's what matters.",
+      "lineId": "line_1muvnymtxh7",
+      "beat": "she-sees"
+    },
+    {
+      "id": "pip-i-m-still-a-little-bit-scared-is-that-al",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "I'm still a little bit scared. Is that all right?",
+      "lineId": "line_22tx95qkl7f",
+      "beat": "she-sees"
+    },
+    {
+      "id": "narrator-it-was-being-a-little-bit-scared-is-most",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "It was. Being a little bit scared is mostly what brave is made of.",
+      "lineId": "line_soglplxwjb",
+      "beat": "she-sees"
+    },
+    {
+      "id": "pip-come-on-moth-she-ll-come-in-at-the-landi",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Come on, Moth. She'll come in at the landing.",
+      "lineId": "line_15jcs1ctrgk",
+      "beat": "she-sees"
+    },
+    {
+      "id": "narrator-the-little-boat-came-in-out-of-the-dark",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "The little boat came in out of the dark, right up to the rocks. And there it stuck.",
+      "lineId": "line_1fzq9jhxtsc",
+      "beat": "the-rocks"
+    },
+    {
+      "id": "thimble-ahoy-ahoy-the-light",
+      "role": "thimble",
+      "presetId": "Pip",
+      "promptText": "Ahoy! Ahoy, the light!",
+      "lineId": "line_me98w6rcmt",
+      "beat": "the-rocks"
+    },
+    {
+      "id": "pip-thimble-are-you-thimble",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Thimble? Are you Thimble?",
+      "lineId": "line_230bm7ur6ib",
+      "beat": "the-rocks"
+    },
+    {
+      "id": "thimble-thimble-from-the-sewing-basket-but-my-bo",
+      "role": "thimble",
+      "presetId": "Pip",
+      "promptText": "Thimble, from the sewing basket! But my boat's gone soft. Paper boats aren't made for the whole sea.",
+      "lineId": "line_1x10hpm40zl",
+      "beat": "the-rocks"
+    },
+    {
+      "id": "pip-she-s-stuck-on-the-rocks-have-you-got-an",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "She's stuck on the rocks! Have you got anything that could bring her in?",
+      "lineId": "line_1exujfa4djb",
+      "beat": "rescue-ask"
+    },
+    {
+      "id": "thimble-that-thread-that-s-my-grandmother-s-thre",
+      "role": "thimble",
+      "presetId": "Pip",
+      "promptText": "That thread! That's my grandmother's thread, from the basket!",
+      "lineId": "line_j31ulagem7",
+      "beat": "in-by-thread"
+    },
+    {
+      "id": "pip-moth-take-the-end-out-to-her-hold-on-tig",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Moth, take the end out to her! Hold on tight, Thimble!",
+      "lineId": "line_c4bh612nzp",
+      "beat": "in-by-thread"
+    },
+    {
+      "id": "pip-hold-still-thimble-and-catch",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Hold still, Thimble. And catch!",
+      "lineId": "line_1jrzei26aeb",
+      "beat": "in-by-rope"
+    },
+    {
+      "id": "thimble-steady-as-she-goes-steady-as-she-goes",
+      "role": "thimble",
+      "presetId": "Pip",
+      "promptText": "Steady as she goes! Steady as she goes!",
+      "lineId": "line_1x6ydij91yj",
+      "beat": "in-by-rope"
+    },
+    {
+      "id": "pip-a-ladder-across-to-the-rock-like-a-bridg",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "A ladder! Across to the rock, like a bridge!",
+      "lineId": "line_9zojnek8xw",
+      "beat": "in-by-ladder"
+    },
+    {
+      "id": "thimble-mind-the-gaps-between-the-rungs-mind-the",
+      "role": "thimble",
+      "presetId": "Pip",
+      "promptText": "Mind the gaps between the rungs. Mind the gaps...",
+      "lineId": "line_10zf91qc53z",
+      "beat": "in-by-ladder"
+    },
+    {
+      "id": "pip-grab-the-tail-thimble-the-wind-ll-do-the",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Grab the tail, Thimble! The wind'll do the rest!",
+      "lineId": "line_2a2ywx5i3us",
+      "beat": "in-by-kite"
+    },
+    {
+      "id": "thimble-i-m-flying-a-sailor-flying",
+      "role": "thimble",
+      "presetId": "Pip",
+      "promptText": "I'm flying! A sailor, flying!",
+      "lineId": "line_bav0ppwt2d",
+      "beat": "in-by-kite"
+    },
+    {
+      "id": "pip-that-won-t-reach-her-i-don-t-think",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "That won't reach her, I don't think.",
+      "lineId": "line_1twgsn3z6yr",
+      "beat": "rocks-puzzled"
+    },
+    {
+      "id": "pip-something-long-maybe-something-she-can-h",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Something long, maybe? Something she can hold on to?",
+      "lineId": "line_1tmbayl0t5t",
+      "beat": "rocks-puzzled"
+    },
+    {
+      "id": "narrator-and-then-the-sea-which-had-been-so-cross",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "And then the sea, which had been so cross all night, gave one last great heave...",
+      "lineId": "line_239q7jtrpi",
+      "beat": "rocks-tide"
+    },
+    {
+      "id": "narrator-and-set-the-little-mouse-down-on-the-ste",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "...and set the little mouse down on the steps, as gently as anything.",
+      "lineId": "line_2bp55511ccv",
+      "beat": "rocks-tide"
+    },
+    {
+      "id": "thimble-land-real-dry-stay-where-it-is-land",
+      "role": "thimble",
+      "presetId": "Pip",
+      "promptText": "Land! Real, dry, stay-where-it-is land!",
+      "lineId": "line_bnv9lczbjy",
+      "beat": "ashore"
+    },
+    {
+      "id": "thimble-brr-i-m-wet-right-through-to-my-whiskers",
+      "role": "thimble",
+      "presetId": "Pip",
+      "promptText": "Brr. I'm wet right through to my whiskers.",
+      "lineId": "line_jg9ftxv4es",
+      "beat": "ashore"
+    },
+    {
+      "id": "pip-here-get-in-my-coat-it-s-far-too-big-for",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Here, get in my coat. It's far too big for me anyway.",
+      "lineId": "line_yaf97wydn",
+      "beat": "ashore"
+    },
+    {
+      "id": "wick-pip-i-could-hear-you-all-the-way-from-th",
+      "role": "wick",
+      "presetId": "Arjun",
+      "promptText": "Pip? I could hear you all the way from the top.",
+      "lineId": "line_g7fkgvnk66",
+      "beat": "ashore"
+    },
+    {
+      "id": "pip-wick-she-s-here-the-light-brought-her-ho",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Wick! She's here! The light brought her home!",
+      "lineId": "line_293doq28swk",
+      "beat": "ashore"
+    },
+    {
+      "id": "wick-hmph-a-mouse-in-a-paper-boat-across-the",
+      "role": "wick",
+      "presetId": "Arjun",
+      "promptText": "Hmph. A mouse in a paper boat. Across the whole sea.",
+      "lineId": "line_vjs8qknq4m",
+      "beat": "ashore"
+    },
+    {
+      "id": "wick-welcome-home-little-one-every-lost-thing",
+      "role": "wick",
+      "presetId": "Arjun",
+      "promptText": "Welcome home, little one. Every lost thing that comes home goes in the log.",
+      "lineId": "line_19fxupod3ft",
+      "beat": "ashore"
+    },
+    {
+      "id": "wick-you-write-her-in-lad-you-were-my-eyes-to",
+      "role": "wick",
+      "presetId": "Arjun",
+      "promptText": "You write her in, lad. You were my eyes tonight.",
+      "lineId": "line_2cavixykdr4",
+      "beat": "ashore"
+    },
+    {
+      "id": "pip-me-in-the-keeper-s-log",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "Me? In the keeper's log?",
+      "lineId": "line_1yistlyto2c",
+      "beat": "ashore"
+    },
+    {
+      "id": "pip-thimble-from-the-sewing-basket-came-home",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "'Thimble, from the sewing basket. Came home by the light.'",
+      "lineId": "line_uwigoblyfe",
+      "beat": "ashore"
+    },
+    {
+      "id": "narrator-and-the-sea-its-work-done-slipped-quietl",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "And the sea, its work done, slipped quietly back out past the edge of the table.",
+      "lineId": "line_26r3kimclt3",
+      "beat": "homecoming"
+    },
+    {
+      "id": "thimble-is-that-the-reader-the-one-who-reaches-d",
+      "role": "thimble",
+      "presetId": "Pip",
+      "promptText": "Is that the Reader? The one who reaches down from the sky?",
+      "lineId": "line_1rciv2oqsur",
+      "beat": "homecoming"
+    },
+    {
+      "id": "pip-that-s-them-they-came-all-the-way-down-w",
+      "role": "pip",
+      "presetId": "Mabel",
+      "promptText": "That's them. They came all the way down with me.",
+      "lineId": "line_jsdvds885l",
+      "beat": "homecoming"
+    },
+    {
+      "id": "thimble-much-obliged-reader-truly",
+      "role": "thimble",
+      "presetId": "Pip",
+      "promptText": "Much obliged, Reader. Truly.",
+      "lineId": "line_1w1ptjhathm",
+      "beat": "homecoming"
+    },
+    {
+      "id": "narrator-but-the-nights-were-growing-longer-and-t",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "But the nights were growing longer, and the old keeper's eyes were growing dimmer. And the longest night of all was on its way.",
+      "lineId": "line_1x1e8qj15aa",
+      "beat": "chapter-end"
+    },
+    {
+      "id": "narrator-out-on-the-dark-water-a-paper-boat-bobbe",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "Out on the dark water, a paper boat bobbed, and waited, and hoped.",
+      "lineId": "line_1hh26z9g4hp",
+      "beat": "bridge-boat"
+    },
+    {
+      "id": "narrator-the-sea-breathed-in-and-the-sea-breathed",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "The sea breathed in, and the sea breathed out.",
+      "lineId": "line_n2pjdb3wr",
+      "beat": "bridge-breath"
+    },
+    {
+      "id": "narrator-up-at-the-top-of-the-lighthouse-the-grea",
+      "role": "narrator",
+      "presetId": "Wanda",
+      "promptText": "Up at the top of the lighthouse, the great lamp went round, and round.",
+      "lineId": "line_ds50gw2m1d",
+      "beat": "bridge-round"
+    }
+  ],
+  "lane": {
+    "id": "B",
+    "capCredits": 150,
+    "runs": [
+      "017-thimble",
+      "018-the-landing",
+      "019-chapter-2-voices"
+    ]
+  },
+  "thimblePreset": "Pip"
+}
