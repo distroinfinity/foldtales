@@ -10,9 +10,11 @@ import { openAccounts, readAuthSettings } from './auth/index.ts';
 import Anthropic from '@anthropic-ai/sdk';
 import { createPlanBeat } from './director/beat.ts';
 import { createClaude } from './director/claude.ts';
-import { createModerator } from './storyteller/moderate.ts';
+import { createLineCheck, createModerator, createPictureCheck } from './storyteller/moderate.ts';
 import { createPainter } from './storyteller/paint.ts';
-import { storyTurn } from './storyteller/turn.ts';
+import { claudeSpend, spendingVoices, storytellerHandlers } from './storyteller/routes.ts';
+import { openStories, readStoryLimits } from './storyteller/stories.ts';
+import { createTranscriber, readListenPrompt } from './storyteller/listen.ts';
 import { createVoices, readLiveVoices } from './storyteller/voices.ts';
 import { guard, readCaps } from './guard.ts';
 import { realRoutes } from './real-routes.ts';
@@ -39,37 +41,69 @@ const ports = dev ? readPorts() : null;
 // The IWSDK dev server serves https (WebXR needs it), and the plain Vite one http.
 const devOrigins = ports ? ['https', 'http'].flatMap((scheme) => [`${scheme}://127.0.0.1:${ports.CLIENT_PORT}`, `${scheme}://localhost:${ports.CLIENT_PORT}`]) : [];
 const origins = clientOrigins(process.env.TT_CLIENT_HOST, devOrigins);
+
+// The Storyteller's kill switch: off refuses every AI route, for guests and readers alike. Rollback
+// is the Storyteller off, never sign-in off. Read on each call, so a restart isn't needed to read it.
+const storytellerOn = () => process.env.TT_STORYTELLER !== 'off';
+// Live painting stays off until it's switched on, and never runs without the picture check.
+const paintingOn = () => process.env.TT_PAINTING === 'on';
+const limits = readStoryLimits(process.env);
+const stories = openStories(store.db, limits, now, () => !storytellerOn());
+
 const accounts = await openAccounts(
   store.db,
   readAuthSettings(process.env, { dev, backendPort: ports?.BACKEND_PORT ?? null, clientOrigins: origins, log: console.log }),
   now,
+  (userId) => stories.forget(userId),
 );
-// The director is real once a key is set (backend only, never the client); without one it stays the mock.
+// The AI is real once a key is set (backend only, never the client); without one it stays the mock.
 const key = process.env.ANTHROPIC_API_KEY;
-const claude = key ? createClaude(key) : null;
-const voices = createVoices(process.env.ELEVENLABS_API_KEY, readLiveVoices(join(process.cwd(), '..', 'art', 'voice', 'live.json')));
+const claude = key ? createClaude(key, console.error, claudeSpend(stories)) : null;
+// Voices (OpenAI) and listening (Groq's Whisper): the only two speech providers, each behind its own module.
+const liveVoices = createVoices(process.env.OPENAI_API_KEY, readLiveVoices(join(process.cwd(), '..', 'art', 'voice', 'live.json')));
+const groqKey = process.env.GROQ_API_KEY ?? process.env.GROQ_KEY;
+const transcriber = createTranscriber(groqKey, { prompt: readListenPrompt(join(process.cwd(), '..', 'art', 'voice', 'listen.json')) });
+const voices = spendingVoices(liveVoices, stories);
 const anthropic = key ? new Anthropic({ apiKey: key, maxRetries: 0 }) : null;
 const moderate = claude ? createModerator(claude) : undefined;
-// Live painting: run 013's recipe, capped in credits for this process (owner: 100–150 in all).
+const checkLine = claude ? createLineCheck(claude) : async () => false;
+// Live painting: run 013's recipe, its credits from the story store's lifetime pool.
 const painter = createPainter({
   runwayKey: process.env.RUNWAYML_API_SECRET,
   claude,
   styleRefPath: join(process.cwd(), '..', 'art', 'runs', '013-live-props', 'style-ref.png'),
-  creditCap: Number(process.env.PAINT_CREDIT_CAP ?? 100),
+  stories,
+  checkPicture: claude ? createPictureCheck(claude) : async () => false,
+  checkLine,
+  enabled: paintingOn,
   log: (m) => console.log(m),
 });
 const director =
   claude && anthropic && profile === 'normal'
     ? {
         planBeat: createPlanBeat(claude),
-        storyTurn: (request: Parameters<typeof storyTurn>[0]) =>
-          storyTurn(request, { anthropic, voices, moderate, log: (m) => console.log(m), paint: (storyId, description, objectId) => painter.start({ storyId, objectId, description, image: null }, objectId) }),
-        paintProp: async (request: Parameters<typeof painter.start>[0]) => ({ jobId: painter.start(request) }),
-        paintResult: async ({ jobId }: { jobId: string }) => painter.result(jobId),
-        soundEffect: async ({ description, seconds }: { description: string; seconds: number }) => (await voices.sound(description, seconds)) ?? { url: null, durationMs: seconds * 1000 },
+        ...storytellerHandlers({
+          stories,
+          anthropic,
+          voices,
+          painter,
+          ...(moderate ? { moderate } : {}),
+          checkLine,
+          transcriber,
+          storyVoices: (storyId) => spendingVoices(liveVoices, stories, storyId),
+          aiOn: storytellerOn,
+          paintsLeft: (story) => (paintingOn() && process.env.RUNWAYML_API_SECRET ? Math.max(0, limits.paintsPerStory - story.paints) : 0),
+          log: (m) => console.log(m),
+        }),
       }
     : {};
-console.log(claude ? 'director and storyteller: claude' : 'director and storyteller: mock', process.env.ELEVENLABS_API_KEY ? '; voices: elevenlabs' : '; voices: captions only');
+console.log(
+  claude ? 'director and storyteller: claude' : 'director and storyteller: mock',
+  process.env.OPENAI_API_KEY ? '; voices: openai' : '; voices: captions only',
+  groqKey ? '; listening: groq' : '; listening: off (by hand)',
+  storytellerOn() ? '; storyteller on' : '; storyteller OFF',
+  paintingOn() ? '; painting on' : '; painting off',
+);
 
 const app = createApp(
   { ...createMockBackend(MOCK_PROFILES[profile as keyof typeof MOCK_PROFILES]), ...director, ...realRoutes(store, secret, now) },
@@ -77,7 +111,7 @@ const app = createApp(
   {
     beforeContract: browserAccess(process.env.TT_CLIENT_HOST, devOrigins),
     auth: (app) => accounts.mountAuth(app),
-    afterContract: [guard(store, { secret, caps: readCaps(process.env), now, sessionUser: accounts.sessionUser, requireSignIn: process.env.TT_ACCOUNTS === 'on' })],
+    afterContract: [guard(store, { secret, caps: readCaps(process.env), now, sessionUser: accounts.sessionUser, storytellerOn })],
     routes: (app) => accounts.mountRoutes(app),
     extend: adminTelemetry(store, process.env.TT_ADMIN_TOKEN),
   },

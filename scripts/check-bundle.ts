@@ -8,7 +8,19 @@ import { parseEnvValues, scanDir, type Needle } from './scan-secrets.ts';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const client = join(root, 'client');
-const CANARIES = ['ANTHROPIC_API_KEY', 'VITE_ANTHROPIC_API_KEY', 'RUNWAYML_API_SECRET', 'TT_SECRET_CANARY'];
+const CANARIES = [
+  'ANTHROPIC_API_KEY',
+  'VITE_ANTHROPIC_API_KEY',
+  'RUNWAYML_API_SECRET',
+  'ELEVENLABS_API_KEY',
+  'BETTER_AUTH_SECRET',
+  'TT_TOKEN_SECRET',
+  'TT_ADMIN_TOKEN',
+  'GOOGLE_CLIENT_SECRET',
+  'FACEBOOK_CLIENT_SECRET',
+  'RESEND_API_KEY',
+  'TT_SECRET_CANARY',
+];
 
 const needles: Needle[] = CANARIES.map((name) => ({ name, value: `canary-${randomBytes(16).toString('hex')}` }));
 for (const { name, value } of needles) process.env[name] = value;
@@ -38,7 +50,8 @@ try {
     build: { outDir, emptyOutDir: true },
     ...(process.argv.includes('--weaken-prefix') ? { envPrefix: ['TT_PUBLIC_', 'VITE_'] } : {}),
   });
-  hits = scanDir(outDir, [...needles, ...parseEnvValues(join(root, '.env.local'))], [
+  // The shared file and this workspace's own: every real secret value, reported by name only.
+  hits = scanDir(outDir, [...needles, ...parseEnvValues(join(root, '.env.local')), ...parseEnvValues(join(root, '.env.workspace'))], [
     { name: 'Anthropic key shape', re: /sk-ant-[\w-]{20,}/ },
     { name: 'Runway key shape', re: /key_[0-9a-f]{32,}/ },
   ]);

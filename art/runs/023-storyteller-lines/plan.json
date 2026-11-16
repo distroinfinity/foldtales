@@ -1,0 +1,112 @@
+{
+  "id": "023-storyteller-lines",
+  "question": "Can the AI Storyteller's failure, limit and redirect moments play in the cast's live voices with no network, so a failure is a performance and never silence?",
+  "why": "Lane D, finish sprint (docs/plans/2026-11-15-finish-ai-storyteller.md, stages 1 and 2): every failure gets an in-story outcome, and the app owns the ending even when the AI or the voices are down. These lines are played from the headset, so they can't be voiced live.",
+  "sameAcrossJobs": "OpenAI text to speech directly (gpt-4o-mini-tts, not Runway, not ElevenLabs: owner, Nov 16), with art/voice/live.json's voice and instructions per speaker, so they match the live lines exactly. mp3, levelled like run 010 into art/sound/storyteller/.",
+  "provider": "openai",
+  "decideBy": [
+    "Each clip decodes, is levelled, and is under 6 s.",
+    "The owner hears them on the Quest's speakers in headset session B, beside live lines from the same voices (approved first, in the Nov 16 session)."
+  ],
+  "learnEvenIfRejected": "Whether gpt-4o-mini-tts holds a character's voice the same across a prepared line and a live one, given the same voice and instructions.",
+  "reusableOutput": "art/sound/storyteller/: the Storyteller's recorded lines, played by id from client/src/storyteller/ for each failure outcome.",
+  "estimateCredits": 0,
+  "estimateCharacters": 712,
+  "estimateNote": "712 characters with OpenAI's gpt-4o-mini-tts: about 60 s of audio, roughly $0.02 at OpenAI's published prices ($0.60 per 1M text tokens, $12 per 1M audio tokens). No Runway credits: lane D's 40-credit budget is untouched.",
+  "capCharacters": 2000,
+  "capNote": "Covers a second take of every line.",
+  "status": "approved (sprint master, Nov 16: 13 lines, cap 2,000 characters); provider changed to OpenAI by the owner the same day; to record after the owner approves the four live voices",
+  "lineJobs": [
+    {
+      "id": "welcome-fallback",
+      "speaker": "pip",
+      "text": "Oh! It's you. Tell us what tonight's story is about, or hand us something from the drawer.",
+      "use": "The welcome, when the first turn is slow or fails",
+      "chars": 90
+    },
+    {
+      "id": "finder-picks",
+      "speaker": "moth",
+      "text": "This one's been rattling all night!",
+      "use": "Moth picks a lost thing from the drawer when the AI can't",
+      "chars": 35
+    },
+    {
+      "id": "slow",
+      "speaker": "narrator",
+      "text": "The lamp flickers… now, where were we?",
+      "use": "Claude slow (20 s) or failed; the stream broke",
+      "chars": 38
+    },
+    {
+      "id": "offline",
+      "speaker": "narrator",
+      "text": "The lamp has gone quiet. The story will wait right here.",
+      "use": "The connection is lost",
+      "chars": 56
+    },
+    {
+      "id": "online",
+      "speaker": "narrator",
+      "text": "Ah, there's the light again.",
+      "use": "The connection is back",
+      "chars": 28
+    },
+    {
+      "id": "redirect-a",
+      "speaker": "narrator",
+      "text": "And just then, the page turned all by itself, to somewhere cozier.",
+      "use": "Moderation redirect, with a real page turn",
+      "chars": 66
+    },
+    {
+      "id": "redirect-b",
+      "speaker": "narrator",
+      "text": "A gentle wind turned the page, and the story found a kinder path.",
+      "use": "The second redirect, so it never repeats twice running",
+      "chars": 65
+    },
+    {
+      "id": "finder-empty",
+      "speaker": "moth",
+      "text": "Couldn't find it anywhere! Maybe it's still lost.",
+      "use": "A painting failed, or failed the look check",
+      "chars": 49
+    },
+    {
+      "id": "finder-tired",
+      "speaker": "moth",
+      "text": "My wings are tired, but your satchel's full of treasures.",
+      "use": "The painting limit is reached",
+      "chars": 57
+    },
+    {
+      "id": "resting",
+      "speaker": "narrator",
+      "text": "That's all the story the lamp has oil for tonight.",
+      "use": "A cap is reached mid-story, before the ending",
+      "chars": 50
+    },
+    {
+      "id": "close-fallback",
+      "speaker": "narrator",
+      "text": "And so the story was gathered up, and tucked into the book for another night.",
+      "use": "The ending's own turn failed",
+      "chars": 77
+    },
+    {
+      "id": "close-time",
+      "speaker": "narrator",
+      "text": "The lamp burns low, and tonight's story comes to rest.",
+      "use": "The hard stop at 11:00, before the fallback close",
+      "chars": 54
+    },
+    {
+      "id": "ears-down",
+      "speaker": "pip",
+      "text": "I couldn't hear you just then. Show me instead?",
+      "use": "Speech to text failed",
+      "chars": 47
+    }
+  ]
+}

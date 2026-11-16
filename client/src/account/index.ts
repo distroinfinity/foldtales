@@ -6,9 +6,11 @@ import {
   SESSION_HEADER,
   accountRoutes,
   type BookPut,
-  type ResumePoint,
 } from '@tabletop/contracts';
 import { SESSION_KEY, createBackendAccess, withDeadline, type BackendAccess } from '../backend.ts';
+import { ACCOUNTS_ON } from '../landing/flags.ts';
+import { forgetLocalChapters, readLocalChapters, writeLocalChapters } from '../show/progress.ts';
+import { forgetReaderPending } from '../storyteller/pending.ts';
 import { mergeBooks, sameBook, type LocalBook } from './merge.ts';
 
 export { mergeBooks, type LocalBook } from './merge.ts';
@@ -25,7 +27,6 @@ const CHECKPOINT_KEY = 'tt.checkpoint';
 const GENERATION_KEY = 'tt.generation';
 /** Must match the backend's `DEVICE_CLIENT_ID`. */
 const DEVICE_CLIENT_ID = 'tabletop-headset';
-const CHECKPOINT_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
 const EPOCH = new Date(0).toISOString();
 
 export interface AccountUser {
@@ -107,10 +108,52 @@ function storeSession(token: string, user: AccountUser | null): void {
   bumpGeneration();
 }
 
-/** Leaves this headset a fresh guest: no session, no progress, no saved place. The caller reloads the page. */
+/**
+ * Keys a reader leaves behind, by prefix: chapter progress and saved places (lane B keeps one per
+ * chapter under these, `tt.progress…` and `tt.checkpoint…`), and the Storyteller's cached shelf.
+ */
+export const READER_KEY_PREFIXES = [PROGRESS_KEY, 'tt.chapters', CHECKPOINT_KEY, 'tt.storyteller.'] as const;
+
+/** Every stored key that starts with one of the reader's prefixes. Empty if storage can't be read. */
+function readerKeys(): string[] {
+  try {
+    const local = globalThis.localStorage;
+    if (!local) return [];
+    const keys: string[] = [];
+    for (let i = 0; i < local.length; i++) {
+      const key = local.key(i);
+      if (key && READER_KEY_PREFIXES.some((prefix) => key.startsWith(prefix))) keys.push(key);
+    }
+    return keys;
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Leaves this headset a fresh guest: no session, no chapters' progress (`tt.progress`,
+ * `tt.chapters`), no saved place (every `tt.checkpoint…`), no shelf. The caller reloads the page.
+ */
 function clearReader(): void {
-  for (const key of [SESSION_KEY, USER_KEY, LAPSED_KEY, PROGRESS_KEY, CHECKPOINT_KEY]) storage.removeItem(key);
+  for (const key of [SESSION_KEY, USER_KEY, LAPSED_KEY, PROGRESS_KEY, CHECKPOINT_KEY, ...readerKeys()]) storage.removeItem(key);
+  try {
+    // Lane B's own list of what chapters keep, whatever their keys become.
+    if (globalThis.localStorage) forgetLocalChapters(globalThis.localStorage);
+  } catch {
+    // Storage gone: nothing left to clear.
+  }
   bumpGeneration();
+}
+
+/**
+ * A reader leaves this headset (sign-out, deletion): the generation changes first, so a write
+ * still in flight notices and drops itself, then their private pages waiting for the server are
+ * deleted, and that deletion is awaited. The shared keepsakes stay (owner's policy).
+ */
+async function leaveReader(): Promise<void> {
+  const readerId = userFrom(readJson(USER_KEY))?.id ?? null;
+  clearReader();
+  if (readerId) await forgetReaderPending(readerId);
 }
 
 /** True when this headset was signed in and the server no longer knows the session: "Sign in again to keep your book in sync". */
@@ -158,6 +201,15 @@ const errorCode = (answer: Answer): string => {
 let access: BackendAccess | null = null;
 const deviceAccess = (): BackendAccess =>
   (access ??= createBackendAccess({ baseUrl: BASE, fetch: send, storage, now: () => Date.now() }));
+
+/** The backend for app routes, with the device token and, when signed in, the session beside it (the Storyteller's provider). */
+export const readerBackend = (): BackendAccess => deviceAccess();
+
+/** Who this browser last knew was signed in, without asking the server. Null for a guest. */
+export function cachedReader(): AccountUser | null {
+  if (!sessionToken()) return null;
+  return userFrom(readJson(USER_KEY));
+}
 
 /** An app route under `/v1/me/*`: the contract header, the device token as always, and the session beside it. */
 async function meRequest(path: string, method: string, body?: unknown): Promise<Answer | null> {
@@ -222,8 +274,15 @@ const showCode = (code: string): string => (code.length === 8 ? `${code.slice(0,
 /** What someone typed, as the server stores it: capitals and digits only. */
 const typedCode = (code: string): string => code.toUpperCase().replace(/[^A-Z0-9]/g, '');
 
+/** The code the bookplate shows, finished on the phone. */
+export interface DeviceCode {
+  userCode: string;
+  verificationUrl: string;
+  expiresAt: string;
+}
+
 /** A new code for the bookplate. Null when the backend can't be reached. Replaces any code before it. */
-export async function startDeviceSignIn(): Promise<{ userCode: string; verificationUrl: string; expiresAt: string } | null> {
+export async function startDeviceSignIn(): Promise<DeviceCode | null> {
   try {
     const answer = await request(`${AUTH}/device/code`, { method: 'POST', body: { client_id: DEVICE_CLIENT_ID } });
     const body = record(answer?.json);
@@ -297,6 +356,47 @@ export function pollDeviceSignIn(onUpdate: (status: DeviceSignInStatus) => void)
     stopped = true;
     clearTimeout(timer);
   };
+}
+
+// ---- the agreed names (docs/plans/2026-11-16-finish-api-shapes.md §2) --------------------
+
+/** The bookplate's phone code. */
+export const startPhoneSignIn = (): Promise<DeviceCode | null> => startDeviceSignIn();
+
+/** Waits for the phone; one of approved, denied or expired ends it. Returns a cancel. */
+export const watchPhoneSignIn = (cb: (s: DeviceSignInStatus) => void): (() => void) => pollDeviceSignIn(cb);
+
+/**
+ * Where "Continue with Google" navigates. Google is the only provider in v1 (Facebook is v2: owner,
+ * Nov 16). Null when sign-in is off in this build.
+ */
+export function providerSignInUrl(provider: 'google', returnTo: string): string | null {
+  if (!ACCOUNTS_ON) return null;
+  return provider === 'google' ? googleStartUrl(returnTo) : null;
+}
+
+/**
+ * Finishes a provider's return on `/auth/return/`: trades the one-time code in the address for the
+ * session, removes it from the address, records this headset and merges its book. No reload of
+ * its own: the page decides where to go (and keeps `tt.enter`).
+ */
+export async function finishSignIn(): Promise<'ok' | 'failed'> {
+  const params = new URLSearchParams(globalThis.location?.search ?? '');
+  const ott = params.get('ott');
+  try {
+    globalThis.history?.replaceState(null, '', globalThis.location?.pathname ?? '/');
+  } catch {
+    // The address keeps the code until the reload; it's single-use and short-lived either way.
+  }
+  if (!ott || params.get('error')) return 'failed';
+  if (!(await finishGoogleReturn(ott))) return 'failed';
+  const back = params.get('return') ?? '';
+  // The phone's page approves the headset itself; a headset records itself and merges its book.
+  if (!back.includes('/link/')) {
+    await linkThisDevice();
+    writeLocalBook(await syncBook(readLocalBook()), 'flagship-1');
+  }
+  return 'ok';
 }
 
 // ---- Google, by top-level navigation on the API's own address -----------------
@@ -417,24 +517,19 @@ export async function linkThisDevice(label?: string): Promise<boolean> {
  * This headset's book, from the progress and the saved place the show keeps. A chapter number
  * below the one in progress is finished; the saved place counts while it's fresh and not at an end.
  */
-export function readLocalBook(): LocalBook {
+/** The book's series, as the manifest names it. */
+const SERIES_ID = 'flagship-1';
+
+/**
+ * This headset's book as the account syncs it, through lane B's adapter: each chapter's own state
+ * (nothing inferred, so a direct start of chapter 3 never claims 1 and 2 as finished) and the
+ * latest fresh saved place.
+ */
+export function readLocalBook(seriesId: string = SERIES_ID): LocalBook {
   try {
-    const progress = record(readJson(PROGRESS_KEY));
-    const chapter = typeof progress?.chapter === 'number' && Number.isInteger(progress.chapter) && progress.chapter > 0 ? progress.chapter : null;
-    const state = progress?.state === 'started' || progress?.state === 'finished' ? progress.state : null;
-    const updatedAt = typeof progress?.updatedAt === 'string' ? progress.updatedAt : EPOCH;
-    const chapters: LocalBook['chapters'] = {};
-    if (chapter && state) {
-      for (let n = 1; n < chapter && n < 1000; n++) chapters[String(n)] = 'finished';
-      chapters[String(chapter)] = state;
-    }
-    const checkpoint = record(readJson(CHECKPOINT_KEY));
-    const savedAt = typeof checkpoint?.savedAt === 'string' ? checkpoint.savedAt : null;
-    const fresh = savedAt !== null && Date.now() - Date.parse(savedAt) <= CHECKPOINT_MAX_AGE_MS;
-    const episode = typeof checkpoint?.episodeId === 'string' ? Number(/^chapter-(\d+)$/.exec(checkpoint.episodeId)?.[1]) : NaN;
-    const at = Number.isInteger(episode) && episode > 0 ? episode : state === 'started' ? chapter : null;
-    const resume: ResumePoint | null = fresh && checkpoint?.ended !== true && at ? { chapter: at, savedAt: savedAt! } : null;
-    return { chapters, resume, updatedAt };
+    const store = globalThis.localStorage;
+    if (!store) return { chapters: {}, resume: null, updatedAt: EPOCH };
+    return readLocalChapters(store, seriesId);
   } catch {
     return { chapters: {}, resume: null, updatedAt: EPOCH };
   }
@@ -444,23 +539,14 @@ export function readLocalBook(): LocalBook {
  * Writes a merged book back as the progress the landing reads, when it says more than this
  * headset knew. The saved place itself stays on the headset that made it.
  */
-export function writeLocalBook(book: LocalBook, seriesId: string): void {
+/**
+ * Writes the merged book back through lane B's adapter, which takes the whole merged book: each
+ * chapter only moves forward, so a completion on another headset reaches this one's library.
+ */
+export function writeLocalBook(book: LocalBook, seriesId: string = SERIES_ID): void {
   try {
-    if (sameBook(mergeBooks(readLocalBook(), book), readLocalBook())) return;
-    const numbers = Object.keys(book.chapters).map(Number).filter((n) => Number.isInteger(n) && n > 0);
-    const furthest = (state: 'started' | 'finished'): number => Math.max(0, ...numbers.filter((n) => book.chapters[String(n)] === state));
-    const finished = furthest('finished');
-    const started = furthest('started');
-    const progress =
-      book.resume !== null
-        ? { chapter: book.resume.chapter, state: 'started' as const }
-        : started > finished
-          ? { chapter: started, state: 'started' as const }
-          : finished > 0
-            ? { chapter: finished, state: 'finished' as const }
-            : null;
-    if (!progress) return;
-    storage.setItem(PROGRESS_KEY, JSON.stringify({ v: 1, seriesId, ...progress, updatedAt: new Date().toISOString() }));
+    const store = globalThis.localStorage;
+    if (store) writeLocalChapters(store, seriesId, book);
   } catch {
     // The landing keeps what it had.
   }
@@ -536,7 +622,7 @@ export async function signOut({ force = false }: { force?: boolean } = {}): Prom
   } catch {
     if (!force) return 'offline';
   }
-  clearReader();
+  await leaveReader();
   return 'ok';
 }
 
@@ -551,7 +637,7 @@ export async function deleteAccount(): Promise<'ok' | 'needs-fresh-sign-in' | 'f
     const answer = await request(`${AUTH}/delete-user`, { method: 'POST', body: {}, headers: bearer(token) });
     if (!answer) return 'failed';
     if (answer.status === 200) {
-      clearReader();
+      await leaveReader();
       return 'ok';
     }
     if (answer.status === 401 || errorCode(answer) === 'SESSION_EXPIRED') return 'needs-fresh-sign-in';

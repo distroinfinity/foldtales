@@ -15,7 +15,22 @@
   ],
   "storyteller": {
     "title": "Or make up a new story, out loud.",
-    "line": "With the AI Storyteller, you talk to Pip, Wick and Moth, hand them anything, and the story is made up as you go. Every voice is live.",
+    "line": "Tell Pip, Wick and Moth what tonight's story is about, or hand them something lost. They make it up with you in their own voices, on your table and around your room, and it ends on a page you keep.",
+    "under": "About 10 minutes · your voice or your hands · needs sign-in and the internet",
+    "voicesNote": "The cast’s voices in the AI Storyteller are made by AI, not people.",
+    "door": {
+      "signed-out": {"button": "Sign in to start", "line": "The AI Storyteller needs an account, so your stories are kept. The chapters need none."},
+      "auth-loading": {"button": "Checking your sign-in…"},
+      "auth-failed": {"button": "Try again", "line": "Couldn’t check your sign-in just now."},
+      "session-expired": {"button": "Sign in again", "line": "Your sign-in ran out. Sign in again to talk with them."},
+      "mic-not-asked": {"button": "Let them hear you", "line": "Your voice goes to a speech service to be understood, and isn’t kept. The cast’s voices are made by AI, not people.", "quiet": "or play by hand"},
+      "mic-refused": {"button": "Start a new story", "line": "The microphone is off, so tonight you’ll play by hand. To talk with them, allow it for this site in Quest Browser’s settings.", "quiet": "Try the microphone again"},
+      "unavailable": {"line": "The AI Storyteller can’t open just now. The chapters are open any time."},
+      "limit-reached": {"line": "Tonight’s stories are told. Back tomorrow evening; your stories stay here to read."},
+      "ready": {"button": "Start a new story", "line": "The cast’s voices are made by AI, not people.", "quiet": "Your stories"}
+    },
+    "yourStories": "Your stories",
+    "endCard": { "heading": "The end of tonight's story", "again": "Tell another", "againTomorrow": "Back tomorrow evening", "chapters": "Read the chapters" },
     "cast": [
       { "file": "wick.webp", "alt": "Wick the badger, holding his logbook", "className": "absolute bottom-[10%] left-[33%] h-[50%] brightness-[.78]" },
       { "file": "pip-talk.webp", "alt": "Pip the fox, talking, with his lantern", "className": "absolute bottom-[8%] left-[47%] h-[56%]", "lantern": true }
@@ -29,6 +44,6 @@
   },
   "about": {
     "book": "Tales from the Table’s Edge is set in the Lost and Found, where everything lost in a house drifts home to a lighthouse at the edge of the table. Pip is a young fox, afraid of the dark, who quietly wants to be the next keeper. Wick is the grumpy old keeper, secretly losing his sight. Moth flies at anything bright, and brings odd finds.",
-    "storyteller": "Talk to Pip, Wick and Moth, hand them anything, and the AI makes up the story as you go, voiced live. It needs an account and the internet."
+    "storyteller": "Tell Pip, Wick and Moth what tonight's story is about, or hand them something lost, and they make it up with you, out loud. They answer in their own voices, paint the things you ask for, and bring the weather, the stars or the sea into your room. Each story ends on a page in your book, and they remember it next time. Their voices are AI-generated, not people. It needs an account and the internet."
   }
 }

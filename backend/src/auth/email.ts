@@ -22,8 +22,8 @@ export function codeSender({ resendKey, from, dev, log }: EmailConfig): SendCode
       body: JSON.stringify({
         from,
         to: [email],
-        subject: `${code} is your Tabletop Theater code`,
-        text: `Your code to sign in to Tabletop Theater is ${code}.\n\nIt lasts 10 minutes. If you didn't ask for it, you can ignore this email.`,
+        subject: `${code} is your Foldtales code`,
+        text: `Your code to sign in to Foldtales is ${code}.\n\nIt lasts 10 minutes. If you didn't ask for it, you can ignore this email.`,
       }),
       signal: AbortSignal.timeout(10_000),
     });
