@@ -1,6 +1,6 @@
 {
   "role": "thimble",
-  "presetId": "Ella",
+  "presetId": "Pip",
   "model": "eleven_v4",
   "settings": {
     "stability": 0.4,
@@ -43,5 +43,5 @@
     "art/runs/005-voice-audition/pip-a-relief.mp3",
     "art/runs/005-voice-audition/pip-a-wish.mp3"
   ],
-  "note": "Ella, one of run 005's three small bright voices (auditioned for Moth as moth-b). Provisional: chosen by ear in lane B's emulator pass before run 019 voices her lines; Pip's settings and chain."
+  "note": "Runway preset \"Pip\" (no relation to our fox), run 005's moth-c, chosen from run 005's measurements: a steady pitch of 319-330 Hz median across three lines, about 100 Hz above our Pip's voice (Mabel, 207-246 Hz), clearly voiced (3.2-4.2 s per clip), brightness 3.5-4.2 kHz. Ella (moth-b) wandered from 220 to 375 Hz and was airy (4.5-5 kHz); Xylar (moth-a) whispered one of three lines. Settings and chain as Pip's."
 }
