@@ -15,7 +15,7 @@ import { buildDim } from './light/dim.ts';
 import { loadStageAssets, uploadAll } from './paint/assets.ts';
 import { makeSoftPieces } from './paint/soft.ts';
 import { CHECKPOINT_VERSION, clearCheckpoint, readCheckpoint, writeCheckpoint, type Checkpoint } from './show/checkpoint.ts';
-import { CHAPTERS, landingChoice, libraryState, readProgress, STORYTELLER_AVAILABLE, writeProgress, type EnterTarget } from './show/progress.ts';
+import { landingChoice, libraryState, readProgress, STORYTELLER_AVAILABLE, writeProgress, type EnterTarget } from './show/progress.ts';
 import { RIBBON_X_SHARE } from './book/book-view.ts';
 import { createObjectHands } from './objects/hands.ts';
 import type { RuntimeSnapshot } from './show/runtime.ts';
@@ -51,7 +51,7 @@ import { cardFor, cardShowing, choose, ended, holdsStory, initialMenu, restarted
 import { chapterEnding } from './book/end-sheet.ts';
 import { cancelEntry, chooseEntry, consumeEntry, pendingEntry, prepareEntry, type Entry } from './landing/entry.ts';
 import { primaryLabel, readLibrary } from './landing/library.ts';
-import { recordFinished, storytellerSnapshot, whereIn, type StoryEnding } from './stage/seams.ts';
+import { loadChapter, recordFinished, storytellerSnapshot, type ChapterData, type StoryEnding } from './stage/seams.ts';
 import type { ExtraTarget as CardExtra } from './stage/controls.ts';
 import { createLiveScheduler } from './storyteller/live.ts';
 import { createStorySession, type StorySession } from './storyteller/session.ts';
@@ -133,21 +133,20 @@ async function fetchManifest(): Promise<ShowManifest> {
 }
 
 /** Stage one of preloading: fetch, decode and upload everything before the button is offered. */
-async function prepare(world: World) {
+async function prepare(world: World, chapter: ChapterData) {
   const manifest = await fetchManifest();
   const [assets] = await Promise.all([
     // Review builds can ask for `?art=png`, and the coverage material needs straight-alpha PNG.
     loadStageAssets(manifest, './art', world.renderer, {
       allowKtx2: reviewQuery('art') !== 'png' && reviewQuery('material') !== 'coverage',
       onProgress: (done, total) => setLandingState({ kind: 'loading', share: done / total }),
+      // The chapter this page load plays (lane B's loadChapter).
+      spine: chapter.episode,
     }),
     preloadFonts(),
   ]);
   // What this chapter records when it ends, beside its episode data.
-  const canonData = await fetch(`./${manifest.episode.replace(/\.json$/, '.canon.json')}`)
-    .then((r) => (r.ok ? r.json() : null))
-    .then((raw) => (raw ? ChapterCanon.parse(raw) : null))
-    .catch(() => null);
+  const canonData = chapter.canon;
   const storyConfig = await fetch('./show/storyteller.json')
     .then((r) => (r.ok ? (r.json() as Promise<{ firstSet: string; entrances: Record<string, Record<string, string>> }>) : null))
     .catch(() => null);
@@ -238,6 +237,13 @@ async function prepare(world: World) {
     views: { stageRoot: stage.root, book: stage.book, puppets: stage.puppets, actors: stage.actors, heads: stage.heads, dim, leaves: stage.leaves, caption: stage.caption, endPage: stage.endPage, sound, objects: stage.objects, drawer: stage.drawer, satchel: stage.satchel, spark: stage.spark, spans: stage.spans, room: roomMap },
     clock,
   });
+  // What the chapter before kept comes with you: in the satchel from the first page (lane B's carry).
+  for (const carried of chapter.satchel) {
+    const def = carried.def;
+    const art = def.art.kind === 'asset' ? assets.textures.get(def.art.path) : undefined;
+    if (!art || stage.objects.get(def.id)) continue;
+    stage.objects.add(def, art, { kind: 'satchel' });
+  }
   const initialObjects = stage.objects.snapshot();
   const wash = buildWash();
   stage.root.add(wash.root);
@@ -339,7 +345,7 @@ async function prepare(world: World) {
   const director = createDirector({
     spine: assets.spine,
     library: libraryOf(manifest, assets.objects),
-    onStage: manifest.onStage.map((o) => o.cast),
+    onStage: chapter.onStage.map((o) => o.cast),
     durationOf: runtime.durationOf,
     objects: showObjects,
     canon: () => [],
@@ -428,11 +434,11 @@ async function prepare(world: World) {
     if (!devRoomState.scheduled || clock.ms < devRoomState.lastMs - 1000) scheduleDevRoom(clock.ms);
     devRoomState.lastMs = clock.ms;
   };
-  return { manifest, assets, stage, dim, sound, clock, runtime, roomMap, shadowPlay, fireflies, windowView, weather, roomDepth, nightSky, snow, sea, gulls, devRoomTick, wash, ember, log, pause, controls, soft, review, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, away, canonData, defs, directorOn, storyConfig, moreTargets, menuHooks };
+  return { manifest, assets, stage, dim, sound, clock, runtime, roomMap, shadowPlay, fireflies, windowView, weather, roomDepth, nightSky, snow, sea, gulls, devRoomTick, wash, ember, log, pause, controls, soft, review, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, away, canonData, defs, directorOn, storyConfig, moreTargets, menuHooks, chapter };
 }
 
 function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom: Checkpoint | null, target: EnterTarget | null = null): void {
-  const { manifest, assets, stage, sound, clock, runtime, roomMap, shadowPlay, fireflies, windowView, weather, roomDepth, nightSky, snow, sea, gulls, devRoomTick, wash, ember, log, pause, controls, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, away, canonData, defs, storyConfig, moreTargets, menuHooks } = show;
+  const { manifest, assets, stage, sound, clock, runtime, roomMap, shadowPlay, fireflies, windowView, weather, roomDepth, nightSky, snow, sea, gulls, devRoomTick, wash, ember, log, pause, controls, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, away, canonData, defs, storyConfig, moreTargets, menuHooks, chapter } = show;
   // The AI Storyteller, when that's the door the reader chose on the landing page.
   const storyMode = target?.kind === 'storyteller' && storyConfig !== null;
   let story: StorySession | null = null;
@@ -442,7 +448,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
   /** Put away or left XR in the Storyteller: the next time the book opens, it's a new story. */
   let storyNeedsFresh = false;
   const library = libraryOf(manifest, assets.objects);
-  const onStage = manifest.onStage.map((o) => o.cast);
+  const onStage = chapter.onStage.map((o) => o.cast);
   /** Begins an evening: a fresh live stage and a fresh session, the book opening on the first set. */
   const startStorySession = () => {
     const cfg = storyConfig!;
@@ -494,7 +500,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       cast: () => {
         const ms = clock.ms;
         const present = presentCast(live, onStage, ms);
-        const marks = new Map<string, string | null>(live.scene() === 0 ? manifest.onStage.map((o) => [o.cast, o.mark] as const) : []);
+        const marks = new Map<string, string | null>(live.scene() === 0 ? chapter.onStage.map((o) => [o.cast, o.mark] as const) : []);
         const since = live.sceneStartMs();
         for (const item of live.timeline()) {
           if (item.startMs < since || item.startMs > ms) continue;
@@ -764,14 +770,14 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
   let menu: MenuState = initialMenu();
   let ending: MenuContext['ending'] = null;
   let shownGeneration = -1;
-  const chapterN = 1;
+  const chapterN = chapter.n;
   const menuContext = (): MenuContext => {
     const library = libraryState(localStorage, Date.now(), series);
     const storyTitle = life(story)?.title?.() ?? null;
     return {
       mode: storyMode ? 'storyteller' : 'chapter',
-      heading: storyMode ? { over: null, title: storyTitle ?? 'The AI Storyteller' } : { over: `Chapter ${chapterN}`, title: canonData?.title ?? library.chapters.find((c) => c.n === chapterN)?.title ?? '' },
-      where: storyMode || !runtime.started ? null : whereIn(assets.spine, runtime.scheduler.current().beatId),
+      heading: storyMode ? { over: null, title: storyTitle ?? 'The AI Storyteller' } : { over: `Chapter ${chapterN}`, title: chapter.title },
+      where: storyMode || !runtime.started ? null : chapter.where(runtime.scheduler.current().beatId),
       current: storyMode ? null : chapterN,
       chapters: library.chapters,
       stories: storytellerSnapshot().finished,
@@ -834,7 +840,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       case 'put-away':
         return putAway(null);
       case 'next-chapter':
-        return putAway({ kind: 'chapter', n: chapterN + 1, from: 'start' });
+        return putAway({ kind: 'chapter', n: chapter.next ?? chapterN + 1, from: 'start' });
       case 'open':
         return putAway(effect.target.kind === 'storyteller' ? { kind: 'storyteller' } : effect.target);
       case 'toggle-sound':
@@ -1138,7 +1144,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
         setMenu(restarted(menu));
         controls.lowerRibbon();
         clearCheckpoint(localStorage);
-        writeProgress(localStorage, { seriesId: series, chapter: 1, state: 'started' });
+        writeProgress(localStorage, { seriesId: series, chapter: chapterN, state: 'started' });
         log.append('beat.started', { beatId: assets.spine.scenes[0]!.entry, fallback: null });
         controls.reopen();
         wasEnded = false;
@@ -1291,9 +1297,9 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
           return log.append(type, data);
         };
         recordChapterEnd(append, canonData, played, kept, defs, sets.map((id) => `sets/${id}/ground.png`));
-        ending = chapterEnding(chapterN, page, defs, CHAPTERS.some((c) => c.n === chapterN + 1) ? { n: chapterN + 1 } : null);
+        ending = chapterEnding(chapterN, page, defs, chapter.next ? { n: chapter.next } : null);
       } else ending = chapterEnding(chapterN, null, defs, null);
-      writeProgress(localStorage, { seriesId: series, chapter: 1, state: 'finished' });
+      writeProgress(localStorage, { seriesId: series, chapter: chapterN, state: 'finished' });
       checkpoint();
       setMenu(ended(menu));
     }
@@ -1354,7 +1360,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
         if (story) story.open();
         else {
           startEpisode();
-          writeProgress(localStorage, { seriesId: series, chapter: 1, state: 'started' });
+          writeProgress(localStorage, { seriesId: series, chapter: chapterN, state: 'started' });
         }
       }
     }
@@ -1422,11 +1428,31 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, world
   setLandingState({ kind: 'loading', share: 0 });
   // Review checks that need the opening from the top skip any checkpoint.
   const fresh = reviewQuery('inject') !== null || reviewQuery('review') !== null || reviewQuery('cue') !== null;
-  prepare(world)
+  /**
+   * Which chapter this page load prepares, before anything loads: review builds' `?chapter=n`, then a
+   * chapter chosen inside the book or on the shelf (the entry target), then where the library says you are.
+   */
+  const askedChapter = (): number => {
+    const review = Number(reviewQuery('chapter'));
+    if (Number.isInteger(review) && review > 0) return review;
+    const waiting = pendingEntry();
+    if (waiting?.target.kind === 'chapter') return waiting.target.n;
+    return readLibrary(localStorage).next.n;
+  };
+  let chapterProblem: string | null = null;
+  const asked = askedChapter();
+  loadChapter(asked)
+    .catch((cause: unknown) => {
+      // That chapter couldn't be prepared: chapter 1 instead, and the page says so in one line.
+      reportError('chapter', cause);
+      if (asked !== 1) chapterProblem = `Chapter ${asked} couldn't open.`;
+      return loadChapter(1);
+    })
+    .then((chapter) => prepare(world, chapter))
     .then((show) => {
       const series = show.manifest.libraryVersion;
-      /** This build holds chapter 1 only (lane B's loadChapter brings the rest). */
-      const thisChapter = 1;
+      /** The chapter this page load prepared (lane B's loadChapter). */
+      const thisChapter = show.chapter.n;
       const saved = fresh ? null : readCheckpoint(localStorage, Date.now(), { seriesId: series, episodeId: show.assets.spine.id });
       const choice = landingChoice(readProgress(localStorage, series), saved !== null);
       // Two ways in, side by side: the book's chapters, and the AI Storyteller. One page load runs one of them;
@@ -1488,7 +1514,7 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, world
        * (the microphone, for the Storyteller) is met. This build holds chapter 1 only.
        */
       let entry: Entry | null = pendingEntry();
-      let entryProblem: string | null = null;
+      let entryProblem: string | null = chapterProblem;
       if (entry?.target.kind === 'chapter' && entry.target.n !== thisChapter) {
         entryProblem = `Chapter ${entry.target.n} couldn't open.`;
         cancelEntry();
@@ -1503,6 +1529,8 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, world
           return { label: `${resume ? 'Continue' : 'Open'} chapter ${entry.target.n}`, detail: 'About six minutes. You only need your hands.', restartLabel: null, resume, mode: 'chapter' };
         }
         const p = primaryLabel(readLibrary(localStorage));
+        // This page prepared another chapter than the library's next (a review link's ?chapter=n): the button says which.
+        if (p.target.kind === 'chapter' && p.target.n !== thisChapter) return { label: `Open chapter ${thisChapter}`, detail: 'About six minutes. You only need your hands.', restartLabel: null, resume: false, mode: 'chapter' };
         const resume = p.target.kind === 'chapter' && p.target.from === 'resume';
         return { label: p.label, detail: entryProblem ? `${entryProblem} ${p.detail}` : p.detail, restartLabel: p.secondary, resume, mode: 'chapter' };
       };

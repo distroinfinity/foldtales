@@ -209,6 +209,12 @@ export function Storyteller(props: DoorProps) {
       <div className="mt-8 flex justify-center px-5">
         <Door {...props} />
       </div>
+      {/* Things are painted for you live, by Runway: said once, quietly, like a caption. */}
+      <p className="m-0 mt-6 text-center text-[14px] text-page/55">
+        <a className="text-page/55 no-underline hover:text-page/80 hover:underline" href="https://runwayml.com" target="_blank" rel="noopener">
+          Powered by Runway
+        </a>
+      </p>
     </section>
   );
 }
