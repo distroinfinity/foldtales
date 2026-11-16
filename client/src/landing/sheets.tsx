@@ -3,7 +3,7 @@
  * book's contents. Built on <dialog>, so focus, Escape and the backdrop come from the browser.
  */
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { deleteMyBook, finishSignIn, googleSignInUrl, signOutHere, startPhoneSignIn, watchPhoneSignIn, type DeviceCode } from './account-ui.ts';
+import { availableSignIn, deleteMyBook, finishSignIn, googleSignIn, signOutHere, startPhoneSignIn, watchPhoneSignIn, type DeviceCode } from './account-ui.ts';
 import { pageLink } from './actions.tsx';
 import { BOOK_TITLE, type LibraryState } from './library.ts';
 import { readCollection, type Collection } from './collection.ts';
@@ -95,18 +95,35 @@ function PhoneCode({ onCancel }: { onCancel: () => void }) {
   );
 }
 
-export function Bookplate({ open, onClose, signedIn }: { open: boolean; onClose: () => void; signedIn: string | null }) {
+/**
+ * The bookplate: sign in (Google or a phone code), or, signed in, sign out and delete. `notice` is what
+ * a sign-in that came back without a session says (cancelled on Google's page, or a failure), shown
+ * above the choices until the plate is closed.
+ */
+export function Bookplate({ open, onClose, signedIn, notice = null }: { open: boolean; onClose: () => void; signedIn: string | null; notice?: string | null }) {
   const [mode, setMode] = useState<'choose' | 'phone' | 'confirm-delete'>('choose');
   const [problem, setProblem] = useState<string | null>(null);
   const [offline, setOffline] = useState(false);
-  const google = googleSignInUrl(pageLink());
+  const [shown, setShown] = useState<string | null>(notice);
+  // Google needs its client set up on the backend; until the backend says it isn't, the button is offered.
+  const [googleOff, setGoogleOff] = useState(false);
   useEffect(() => {
     if (!open) {
       setMode('choose');
       setProblem(null);
       setOffline(false);
+      setShown(null);
+      return;
     }
+    let live = true;
+    void availableSignIn().then((methods) => {
+      if (live) setGoogleOff(methods?.google === false);
+    });
+    return () => {
+      live = false;
+    };
   }, [open]);
+  useEffect(() => setShown(notice), [notice]);
   const leave = async (force: boolean) => {
     const result = await signOutHere(force);
     if (result === 'offline') setOffline(true);
@@ -171,11 +188,28 @@ export function Bookplate({ open, onClose, signedIn }: { open: boolean; onClose:
           <>
             <p className="display m-0 text-[30px] leading-tight text-navy">Put your name in the book</p>
             <p className="m-0 mx-auto mt-3 max-w-[34ch] text-[17px] leading-relaxed text-ink/75">Keep your place on any headset, and open the AI Storyteller.</p>
+            {shown && (
+              <p className="m-0 mx-auto mt-4 max-w-[36ch] text-[16px] text-rust" role="alert">
+                {shown}
+              </p>
+            )}
             <div className="mx-auto mt-6 flex max-w-[340px] flex-col gap-3">
-              <a href={google ?? undefined} className={`${plateButton} border-ink/20 bg-white text-ink no-underline hover:bg-[#fffaf0]`}>
-                {GOOGLE_ICON}
-                Continue with Google
-              </a>
+              {googleOff ? (
+                <>
+                  <button type="button" disabled aria-describedby="google-off" className={`${plateButton} disabled:cursor-not-allowed border-ink/15 bg-white/60 text-ink/45`}>
+                    {GOOGLE_ICON}
+                    Continue with Google
+                  </button>
+                  <p id="google-off" className="m-0 -mt-1 text-[15px] text-ink/70">
+                    Google sign-in isn’t switched on here yet. Use your phone instead.
+                  </p>
+                </>
+              ) : (
+                <button type="button" onClick={() => googleSignIn(pageLink())} className={`${plateButton} border-ink/20 bg-white text-ink no-underline hover:bg-[#fffaf0]`}>
+                  {GOOGLE_ICON}
+                  Continue with Google
+                </button>
+              )}
               <button type="button" className={`${plateButton} border-navy/25 bg-navy text-page hover:bg-[#283657]`} onClick={() => setMode('phone')}>
                 Use your phone
               </button>

@@ -8,7 +8,6 @@ import {
   type BookPut,
 } from '@tabletop/contracts';
 import { SESSION_KEY, createBackendAccess, withDeadline, type BackendAccess } from '../backend.ts';
-import { ACCOUNTS_ON } from '../landing/flags.ts';
 import { forgetLocalChapters, readLocalChapters, writeLocalChapters } from '../show/progress.ts';
 import { forgetReaderPending } from '../storyteller/pending.ts';
 import { mergeBooks, sameBook, type LocalBook } from './merge.ts';
@@ -367,15 +366,6 @@ export const startPhoneSignIn = (): Promise<DeviceCode | null> => startDeviceSig
 export const watchPhoneSignIn = (cb: (s: DeviceSignInStatus) => void): (() => void) => pollDeviceSignIn(cb);
 
 /**
- * Where "Continue with Google" navigates. Google is the only provider in v1 (Facebook is v2: owner,
- * Nov 16). Null when sign-in is off in this build.
- */
-export function providerSignInUrl(provider: 'google', returnTo: string): string | null {
-  if (!ACCOUNTS_ON) return null;
-  return provider === 'google' ? googleStartUrl(returnTo) : null;
-}
-
-/**
  * Finishes a provider's return on `/auth/return/`: trades the one-time code in the address for the
  * session, removes it from the address, records this headset and merges its book. No reload of
  * its own: the page decides where to go (and keeps `tt.enter`).
@@ -399,23 +389,79 @@ export async function finishSignIn(): Promise<'ok' | 'failed'> {
   return 'ok';
 }
 
+// ---- Which ways in are switched on -----------------------------------------------------------
+
+export interface SignInMethods {
+  google: boolean;
+  email: boolean;
+}
+
+let methods: Promise<SignInMethods | null> | null = null;
+
+/**
+ * Which ways in the backend has switched on (Google needs its client set up; email codes need Resend),
+ * so a page offers only those. Null when it couldn't say (offline); that answer isn't kept.
+ */
+export function signInMethods(): Promise<SignInMethods | null> {
+  methods ??= request(`${AUTH}/methods`).then((answer) => {
+    const body = record(answer?.json);
+    if (answer?.status === 200 && typeof body?.google === 'boolean' && typeof body.email === 'boolean') return { google: body.google, email: body.email };
+    methods = null;
+    return null;
+  });
+  return methods;
+}
+
 // ---- Google, by top-level navigation on the API's own address -----------------
 
-/** Where "Continue with Google" navigates. Google ends on `/auth/return/?ott=…&return=<returnTo>` (or `&error=google`). */
-export function googleStartUrl(returnTo: string): string {
+/**
+ * This tab's Google trip: a random nonce kept in session storage (this tab only), whose SHA-256 goes
+ * to `/google/start`. The return's one-time code is redeemed only with the nonce itself, so a return
+ * this tab didn't start never signs it in (Codex review of #52, P1).
+ */
+const GOOGLE_NONCE = 'tt.google-nonce';
+
+const base64url = (bytes: Uint8Array): string => btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+
+async function sha256(text: string): Promise<string> {
+  return base64url(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text))));
+}
+
+/** Where "Continue with Google" goes, for a nonce's hash. Google ends on `/auth/return/?ott=…&return=<returnTo>` (or `&error=…`). */
+export function googleStartUrl(returnTo: string, nonceHash: string): string {
   let target = returnTo;
   try {
     target = new URL(returnTo, globalThis.location?.href).href;
   } catch {
     // Already absolute, or no location to resolve against.
   }
-  return `${AUTH}/google/start?return=${encodeURIComponent(target)}`;
+  return `${AUTH}/google/start?return=${encodeURIComponent(target)}&nonce=${encodeURIComponent(nonceHash)}`;
 }
 
-/** Trades the one-time code from Google's return for the session. True when signed in. */
-export async function finishGoogleReturn(ott: string): Promise<boolean> {
+/** "Continue with Google": a fresh nonce for this tab, then off to Google by top-level navigation. */
+export async function startGoogleSignIn(returnTo: string, go: (url: string) => void = (url) => globalThis.location.assign(url)): Promise<void> {
+  const nonce = base64url(crypto.getRandomValues(new Uint8Array(32)));
   try {
-    const answer = await request(`${AUTH}/one-time-token/verify`, { method: 'POST', body: { token: ott } });
+    globalThis.sessionStorage.setItem(GOOGLE_NONCE, nonce);
+  } catch {
+    // Without session storage the return can't be redeemed; Google's page still opens, and the return page says it failed.
+  }
+  go(googleStartUrl(returnTo, await sha256(nonce)));
+}
+
+/** Trades the one-time code from Google's return for the session, with this tab's nonce. True when signed in. */
+export async function finishGoogleReturn(ott: string): Promise<boolean> {
+  let nonce: string | null = null;
+  try {
+    nonce = globalThis.sessionStorage.getItem(GOOGLE_NONCE);
+    globalThis.sessionStorage.removeItem(GOOGLE_NONCE);
+  } catch {
+    nonce = null;
+  }
+  // A return this tab never started: nothing to redeem it with, and nothing is asked.
+  if (!nonce) return false;
+  try {
+    const answer = await request(`${AUTH}/google/finish`, { method: 'POST', body: { ott, nonce } });
     if (!answer || answer.status !== 200) return false;
     const body = record(answer.json);
     const session = record(body?.session);

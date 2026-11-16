@@ -174,11 +174,16 @@ export function openStories(db: DatabaseSync, limits: StoryLimits, now: () => Da
     CREATE TABLE IF NOT EXISTS speech_tokens (user_id TEXT NOT NULL, day TEXT NOT NULL, count INTEGER NOT NULL, PRIMARY KEY (user_id, day));
     CREATE TABLE IF NOT EXISTS credit_pool (pool TEXT PRIMARY KEY, reserved INTEGER NOT NULL);
     CREATE TABLE IF NOT EXISTS spend (day TEXT NOT NULL, kind TEXT NOT NULL, reserved INTEGER NOT NULL, PRIMARY KEY (day, kind));
+    -- Everyone's stories a day, with no reader in it: kept when an account is deleted, so deleting
+    -- one never frees room under the 150 (Codex review of #52, P2). Seeded once from the rows kept.
+    CREATE TABLE IF NOT EXISTS stories_day (day TEXT PRIMARY KEY, count INTEGER NOT NULL);
+    INSERT OR IGNORE INTO stories_day (day, count) SELECT day, COUNT(*) FROM stories GROUP BY day;
   `);
 
   const q = {
     countReader: db.prepare('SELECT COUNT(*) AS n FROM stories WHERE user_id = ? AND day = ?'),
-    countDay: db.prepare('SELECT COUNT(*) AS n FROM stories WHERE day = ?'),
+    countDay: db.prepare('SELECT count AS n FROM stories_day WHERE day = ?'),
+    dayAdd: db.prepare('INSERT INTO stories_day (day, count) VALUES (?, 1) ON CONFLICT (day) DO UPDATE SET count = count + 1'),
     byRequest: db.prepare('SELECT id FROM stories WHERE user_id = ? AND request_id = ?'),
     insert: db.prepare("INSERT INTO stories (id, user_id, request_id, day, status, started_at, updated_at) VALUES (?, ?, ?, ?, 'active', ?, ?)"),
     get: db.prepare('SELECT id, user_id, status, turns, paints, title, plan, started_at FROM stories WHERE id = ? AND user_id = ?'),
@@ -290,7 +295,9 @@ export function openStories(db: DatabaseSync, limits: StoryLimits, now: () => Da
           if (before.status === 'resting') throw new BackendError('upstream_failed', STORYTELLER_RESTING, false);
           if (before.status === 'used-today') throw new BackendError('quota_exceeded', STORIES_TODAY_USED);
           storyId = `st-${randomUUID()}`;
+          // The story and everyone's count for the day, in the same savepoint: a retried start finds the story above and counts nothing.
           q.insert.run(storyId, userId, requestId, dayOf(at), at.toISOString(), at.toISOString());
+          q.dayAdd.run(dayOf(at));
         }
         const row = owned(userId, storyId);
         return {

@@ -1,6 +1,6 @@
 import { motion, useReducedMotion } from 'motion/react';
 import { useEffect, useState, useSyncExternalStore, type ReactNode } from 'react';
-import { currentReader, pullBook, pushBook } from './account-ui.ts';
+import { currentReader, pullBook, pushBook, signInFor, takeSignInReturn } from './account-ui.ts';
 import { OpenTheBook, PaintedRoomLink, SendToQuest } from './actions.tsx';
 import type { Device } from './device.ts';
 import { landingSnapshot, openingTap, subscribeLanding } from './landing.ts';
@@ -40,8 +40,27 @@ export function App({ device }: { device: Device }) {
   const state = useSyncExternalStore(subscribeLanding, landingSnapshot);
   const library = useLibrary();
   const [reader, setReader] = useState<string | null>(null);
-  const [sheet, setSheet] = useState<'plate' | 'chapters' | null>(null);
+  // A sign-in round trip that just ended: a failure reopens the plate with what happened, in front of the door that started it.
+  const [signInReturn] = useState(() => (ACCOUNTS_ON ? takeSignInReturn() : null));
+  const [sheet, setSheet] = useState<'plate' | 'chapters' | null>(signInReturn?.problem ? 'plate' : null);
   const [artReady, setArtReady] = useState(false);
+  // Scrolled, the header gets a backdrop of its own: the hero's title and the story never show through it.
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const update = () => setScrolled(window.scrollY > 8);
+    update();
+    window.addEventListener('scroll', update, { passive: true });
+    return () => window.removeEventListener('scroll', update);
+  }, []);
+  /** The bookplate, opened for a sign-in from the Storyteller's door (comes back to it) or from anywhere else. */
+  const openPlate = (forStoryteller = false) => {
+    signInFor(forStoryteller ? 'storyteller' : null);
+    setSheet('plate');
+  };
+  // Back from a sign-in: the page is where the reader started it again (the door in the hero, or the one further down).
+  useEffect(() => {
+    if (artReady && signInReturn && signInReturn.y > 0) window.scrollTo({ top: signInReturn.y, behavior: 'instant' });
+  }, [artReady, signInReturn]);
   // Back from the book, signed in: save where you got to, so another headset knows.
   const [wasInside, setWasInside] = useState(false);
   useEffect(() => {
@@ -77,13 +96,13 @@ export function App({ device }: { device: Device }) {
     return { label: t.label, run: () => openingTap(() => open(n, t.from)) };
   };
   const action = (compact: boolean) =>
-    device === 'headset' ? <OpenTheBook state={state} library={library} signedIn={reader} onSignIn={() => setSheet('plate')} compact={compact} /> : <SendToQuest compact={compact} />;
+    device === 'headset' ? <OpenTheBook state={state} library={library} signedIn={reader} onSignIn={() => openPlate()} compact={compact} /> : <SendToQuest compact={compact} />;
 
   const doorProps = {
     device,
     library,
     signedIn: reader,
-    onSignIn: () => setSheet('plate'),
+    onSignIn: () => openPlate(true),
     enterStoryteller: state.kind === 'ready' && state.storyteller ? () => openingTap(state.storyteller!.run) : null,
     playByHand: state.kind === 'ready' && state.storyteller?.byHand ? () => openingTap(state.storyteller!.byHand!) : null,
     openBook: state.kind === 'ready' ? () => openingTap(state.open) : null,
@@ -97,12 +116,18 @@ export function App({ device }: { device: Device }) {
 
   return (
     <>
-      <header className="pointer-events-none fixed inset-x-0 top-0 z-20 flex items-center justify-between bg-gradient-to-b from-room via-room/70 to-transparent px-5 pb-7 pt-4 md:px-10">
+      <header
+        className={`pointer-events-none fixed inset-x-0 top-0 z-20 flex items-center justify-between px-5 pt-4 transition-[background-color,padding] duration-300 md:px-10 ${
+          scrolled ? 'bg-room/95 pb-4 backdrop-blur-md' : 'bg-gradient-to-b from-room via-room/70 to-transparent pb-7'
+        }`}
+      >
+        {/* Below the bar, a short fade into the page, so its edge is soft rather than a line. */}
+        <div aria-hidden className={`pointer-events-none absolute inset-x-0 top-full h-10 bg-gradient-to-b from-room/95 via-room/75 to-transparent transition-opacity duration-300 ${scrolled ? 'opacity-100' : 'opacity-0'}`} />
         <a href="./" className="display pointer-events-auto text-[22px] font-medium tracking-[0.005em] text-page no-underline">
           Foldtales
         </a>
         {ACCOUNTS_ON && device === 'headset' && (
-          <button type="button" className="pointer-events-auto min-h-12 cursor-pointer rounded-full border border-page/15 bg-room/50 px-5 text-[15px] text-page/85 backdrop-blur-md hover:border-page/35" onClick={() => setSheet('plate')}>
+          <button type="button" className="pointer-events-auto min-h-12 cursor-pointer rounded-full border border-page/15 bg-room/50 px-5 text-[15px] text-page/85 backdrop-blur-md hover:border-page/35" onClick={() => openPlate()}>
             {reader ? `${reader}’s book` : 'Sign in'}
           </button>
         )}
@@ -149,7 +174,7 @@ export function App({ device }: { device: Device }) {
         </nav>
       </footer>
 
-      {ACCOUNTS_ON && <Bookplate open={sheet === 'plate'} onClose={() => setSheet(null)} signedIn={reader} />}
+      {ACCOUNTS_ON && <Bookplate open={sheet === 'plate'} onClose={() => setSheet(null)} signedIn={reader} notice={signInReturn?.problem ?? null} />}
       <BookSheet open={sheet === 'chapters'} onClose={() => setSheet(null)} library={library} actionFor={shelfAction} stories={storyteller.finished} />
     </>
   );

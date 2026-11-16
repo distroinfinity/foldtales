@@ -63,6 +63,8 @@ export interface BookControls {
   ray(side: HandSide): { origin: Vector3; direction: Vector3 } | null;
   /** True on a device with real gaze (VR Glasses): there a look and a pinch choose. */
   readonly gazing: boolean;
+  /** The gaze ray this frame, on a device with real gaze; else null. */
+  gazeRay(): { origin: Vector3; direction: Vector3 } | null;
   /** How open your hands have it, 0 to 1. */
   readonly amount: number;
   frame(frame: XRFrame, deltaMs: number, enabled: boolean, head: Vector3): void;
@@ -362,6 +364,7 @@ export function createBookControls({ world, stageRoot, book, sound, pause, glow,
     get gazing() {
       return gaze.valid;
     },
+    gazeRay: () => (gaze.valid ? { origin: gaze.origin.clone(), direction: gaze.direction.clone() } : null),
     ribbonLift: () => ribbonLift,
     pinchPoint: (side) => pinch[side],
     fingertip: (side) => tips[side],
