@@ -38,7 +38,7 @@
         },
         "ignored": {
           "beat": "letter-tide",
-          "afterSeconds": 16
+          "afterSeconds": 22
         }
       },
       "entry": "opening",
@@ -283,7 +283,7 @@
               "text": "Can you pass it up to us?",
               "mood": "tense",
               "opensDrawer": false,
-              "waitSeconds": 16
+              "waitSeconds": 22
             }
           ],
           "next": null,

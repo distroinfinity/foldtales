@@ -193,6 +193,9 @@ export interface RuntimeDeps {
   clock: ShowClock;
 }
 
+/** How long a washed-up bottle waits at your feet before it floats up within reach. */
+export const BOTTLE_UP_MS = 12_000;
+
 export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods, views, clock }: RuntimeDeps): ShowRuntime {
   /** The spine showing: the authored chapter, or a live one whose spreads are added as the story visits them. */
   let spine = authoredSpine;
@@ -733,6 +736,11 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
         }
       }
       const room = roomAt([...timeline, ...extraRoom], ms);
+      // Seated, the floor is out of reach: a washed-up thing still lying at your feet floats up onto the
+      // table beside the book (as looking at it and pinching would bring it), so anyone can pass it up.
+      if (started && room.bottle && room.bottle.sinceMs > BOTTLE_UP_MS && views.objects.get(room.bottle.what)?.home.kind === 'room') {
+        views.objects.send(room.bottle.what, { kind: 'table', at: [0.26, 0, 0.1] }, nowMs, 1400, 0.25 * (views.stageRoot.scale.x || 1));
+      }
 
       // The book: opening, the page turn, and your hands on it.
       const openCue = cueOf(state, 'unfold');

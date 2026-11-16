@@ -54,7 +54,7 @@ def ch2():
             E('pip', 'look', 'reader', w=True),
             S('pip', "The sea's come right in! And look, something's washed up by your feet!", 'wonder', 'reader', w=True),
         ], 'SIGNATURE arrives: the sea across your floor (built). The bottle washes up at your feet.'),
-        beat(s1, 'bottle-ask', 18, None, [ASK('pip', 'the-letter', 'Can you pass it up to us?', wait=16)]),
+        beat(s1, 'bottle-ask', 18, None, [ASK('pip', 'the-letter', 'Can you pass it up to us?', wait=22)]),
         beat(s1, 'letter', 6, 'letter-read', take() + [
             S('pip', 'A bottle, with a letter in it! Thank you!', 'wonder', 'reader'),
             E('pip', 'examine', 'object:$offered', w=True),
@@ -240,7 +240,7 @@ def ch2():
              objects=[dict(id='bottle', defId='bottle', origin='set')],
              problem=dict(id='the-letter', summary="A bottle with a letter has washed up at the Reader's feet",
                           rules=[dict(id='pass-it-up', anyTags=['message'], beat='letter', outcome='solved')],
-                          fallback=dict(beat='letter-puzzled'), ignored=dict(beat='letter-tide', afterSeconds=16)),
+                          fallback=dict(beat='letter-puzzled'), ignored=dict(beat='letter-tide', afterSeconds=22)),
              entry='opening', beats=b1),
         dict(id=s2, setId='shore-path', summary="Pip's light is too low for Thimble to see from the sea",
              objects=[dict(id='kite', defId='kite', origin='set'), dict(id='spool', defId='spool', origin='set'),

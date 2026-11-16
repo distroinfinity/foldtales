@@ -197,3 +197,21 @@ Written under `art/runs/` with their estimates and caps, per `art/README.md`. **
 4. Account sync reads `tt.progress` and `tt.checkpoint`; E2 keeps both as "the furthest chapter" and "the latest place", so lane D's code needn't change. A guest reset should also clear the per-chapter keys (`tt.chapters`, `tt.checkpoint.<episode>`): a one-line change in `client/src/account/index.ts`, through you.
 5. Chapter 1's title on the page: "The lamp goes out" (`CHAPTERS`) or "The night the light went out" (the episode).
 6. Confirm that lane B takes the unclaimed files these tasks touch (listed under "The engine for several chapters").
+
+## Progress: the emulator pass, round 1 (Nov 16, IWSDK emulator, emulated Quest 3, hands only)
+
+Run on `finish-chapter-2` after #35 (lane A's host reads `?chapter=n`). Screenshots in `docs/plans/finish-chapters/emu/`.
+
+**Seen working**
+- The page, then "Open the book" into chapter 2: the book lands on the living room's coffee table, the lamp spread opens with the beam, Pip, Wick and Moth placed (`03-opening.png`).
+- **The signature:** the sea washes in across the floor round the reader at about 0:30 and the bottle washes up at their feet (`09-ch2-sea-live.png`); the paper boat circles on its 1.55 m ring (`10-ch2-paper-boat.png`); chapter 1's `?room=sea` too (`08-ch1-room-sea-live.png`). (An earlier "no sea" was my screenshots: taken after chapter 1's review sea had faded, or looking ahead past the ring.)
+- **Carry, live:** with chapter 1 finished on the silent path in this browser, chapter 2 played `carry-rope` after its opening.
+- **Zero input, end to end:** the bottle comes up on the tide, Moth carries the light, the tide sets Thimble down, Wick comes, the log, the sea goes out, the end page prints "The end of chapter 2" with three reader-facing lines (`14-chapter-end.png`); no stall; ended about 6:25. Two runs, one resumed from a saved place mid-chapter.
+- The landing spread with its caption and the drawer open (`05-landing.png`); spread 1's letter (`11-letter-read.png`).
+- Console: no errors from the chapter. The only error is `/api/v1/device` (500): the account backend isn't running in a client-only dev session.
+
+**Found and fixed**
+1. **Seated, the bottle at your feet is out of reach** (the emulated seated hand was 1.21 m from it; the most a hand reaches is 0.66 m). *Fixed:* a washed-up bottle still at your feet after 12 s floats up onto the table beside the book (`BOTTLE_UP_MS` in `show/runtime.ts`, the same move as looking at it and pinching), and the bottle's ask waits 22 s instead of 16. Checked in the emulator: the bottle sat on the table at `[0.18, 1.2, -0.48]`, within reach, until the ask ran out.
+2. **`boat-home` had no book to sail to:** the host didn't pass the book's position to the sea (amendment 2). *Fixed:* one line in `index.ts`, as for the night sky.
+
+**Not established in the emulator:** a gift by the emulated hand. Three tries (the kite on spread 2, the kite on spread 3, the floated bottle on spread 1) moved or reached the thing, but none registered as a hand-over, so each ask ran to its ignored path. The run-sequence reported no warnings on the last; lane A records the same limit (the in-book hand checks are hand-distance code the emulator doesn't drive reliably). Gifts are covered by `tests/handover.test.ts` and by chapter 1's headset sessions; the owner's headset pass checks them by feel.
