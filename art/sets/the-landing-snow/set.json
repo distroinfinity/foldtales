@@ -1,0 +1,286 @@
+{
+  "id": "the-landing-snow",
+  "name": "The landing, in the snow",
+  "description": "Stone steps go down into the sea at the foot of the lighthouse, with a flat rock out on the water.",
+  "note": "Run 020: the-landing under snow, made free from its own paint (make_snow.py). Every piece keeps its alpha, so marks, hinges and anchors are the base set's. Unchanged pieces point back at the base set.",
+  "reference": "Open book 0.42 x 0.315 m. Each layer image spans the full 0.42 m width at pxPerM, and splits at splitColumnPx: the left half stands on the cover's inside, the right half on the page block.",
+  "pxPerM": 6476.2,
+  "ground": {
+    "file": "ground.png",
+    "sizeM": [
+      0.42,
+      0.315
+    ],
+    "faces": "left half on the cover's inside, right half on the page block",
+    "captionBandM": 0.045
+  },
+  "layers": [
+    {
+      "id": "layer-1-sky",
+      "file": "../shore-path/layer-1-sky-night.png",
+      "sizePx": [
+        2720,
+        1153
+      ],
+      "sizeM": [
+        0.42,
+        0.178
+      ],
+      "hinge": [
+        [
+          -0.21,
+          0.0,
+          -0.1375
+        ],
+        [
+          0.21,
+          0.0,
+          -0.1375
+        ]
+      ],
+      "splitColumnPx": 1360,
+      "standingDeg": 0,
+      "flatDeg": 90
+    },
+    {
+      "id": "layer-2-headland",
+      "file": "../shore-path/layer-2-headland.png",
+      "sizePx": [
+        2720,
+        1280
+      ],
+      "sizeM": [
+        0.42,
+        0.1976
+      ],
+      "hinge": [
+        [
+          -0.21,
+          0.0,
+          -0.0925
+        ],
+        [
+          0.21,
+          0.0,
+          -0.0925
+        ]
+      ],
+      "splitColumnPx": 1360,
+      "standingDeg": 0,
+      "flatDeg": 90
+    },
+    {
+      "id": "layer-3-far-rocks",
+      "file": "layer-3-far-rocks.png",
+      "sizePx": [
+        2720,
+        504
+      ],
+      "sizeM": [
+        0.42,
+        0.0778
+      ],
+      "hinge": [
+        [
+          -0.21,
+          0.0,
+          -0.0575
+        ],
+        [
+          0.21,
+          0.0,
+          -0.0575
+        ]
+      ],
+      "splitColumnPx": 1360,
+      "standingDeg": 0,
+      "flatDeg": 90
+    },
+    {
+      "id": "layer-4-near-steps",
+      "file": "layer-4-near-steps.png",
+      "sizePx": [
+        2720,
+        537
+      ],
+      "sizeM": [
+        0.42,
+        0.0829
+      ],
+      "hinge": [
+        [
+          -0.21,
+          0.0,
+          0.0425
+        ],
+        [
+          0.21,
+          0.0,
+          0.0425
+        ]
+      ],
+      "splitColumnPx": 1360,
+      "standingDeg": 0,
+      "flatDeg": 90
+    }
+  ],
+  "angles": "Degrees about the hinge line from upright. 0 stands, 90 lies flat with the top toward the reader and the painting face down.",
+  "stack": {
+    "topToBottom": [
+      "layer-1-sky",
+      "layer-2-headland",
+      "layer-3-far-rocks",
+      "pip",
+      "layer-4-near-steps"
+    ],
+    "riseOrder": "top to bottom",
+    "closeOrder": "bottom to top, then the cover",
+    "flatOffsetM": 0.001,
+    "backColor": "#F6EFE2"
+  },
+  "gapM": {
+    "note": "The water between the bottom step and the rock, measured on the printed ground at the crossing depth.",
+    "left": -0.051,
+    "right": 0.06,
+    "atZ": -0.0175,
+    "ladderSpanM": 0.1483
+  },
+  "anchors": {
+    "lighthouseLamp": {
+      "layer": "layer-2-headland",
+      "px": [
+        630,
+        148
+      ],
+      "position": [
+        -0.1127,
+        0.1748,
+        -0.0925
+      ]
+    }
+  },
+  "marks": [
+    {
+      "id": "near-edge",
+      "label": "the rock out on the water",
+      "position": [
+        0.085,
+        0,
+        -0.0175
+      ]
+    },
+    {
+      "id": "far-side",
+      "label": "the bottom step",
+      "position": [
+        -0.072,
+        0,
+        -0.0175
+      ]
+    },
+    {
+      "id": "pip-step",
+      "label": "on the steps above the water",
+      "position": [
+        -0.115,
+        0,
+        -0.0175
+      ]
+    },
+    {
+      "id": "pip-side",
+      "label": "tucked at Pip's side",
+      "position": [
+        -0.092,
+        0,
+        -0.006
+      ]
+    },
+    {
+      "id": "landing-in",
+      "label": "where the steps come down",
+      "position": [
+        -0.17,
+        0,
+        -0.03
+      ]
+    },
+    {
+      "id": "wick-steps",
+      "label": "coming down the steps",
+      "position": [
+        -0.15,
+        0,
+        -0.04
+      ]
+    },
+    {
+      "id": "moth-landing",
+      "label": "in the air over the water",
+      "position": [
+        -0.04,
+        0.12,
+        -0.03
+      ]
+    },
+    {
+      "id": "light-high",
+      "label": "up high over the steps",
+      "position": [
+        -0.1,
+        0.11,
+        -0.03
+      ]
+    }
+  ],
+  "pip": {
+    "heightM": 0.17,
+    "fold": "a card like the layers, hinge at his feet, standing 0 and flat 90",
+    "rigPxPerM": 5323.5,
+    "leftExtentM": 0.0447
+  },
+  "effects": {
+    "lamp-lit": {
+      "file": "../../fx/lamp-lit.png",
+      "layer": "layer-2-headland",
+      "px": [
+        540,
+        70
+      ],
+      "sizeM": [
+        0.0317,
+        0.0224
+      ],
+      "starts": "swapped over the headland at px when the lamp is relit. Same outline, so nothing moves"
+    },
+    "rope-span": {
+      "file": "../../fx/rope-span.png",
+      "lengthM": 0.13,
+      "thicknessM": 0.0056,
+      "starts": "stretched across the gap from rim to rim, at Pip's depth"
+    },
+    "thread-span": {
+      "file": "../../fx/thread-span.png",
+      "lengthM": 0.13,
+      "thicknessM": 0.0026,
+      "starts": "stretched across the gap from rim to rim, at Pip's depth"
+    }
+  },
+  "moods": {
+    "dusk": [
+      0.86,
+      0.9,
+      1.0
+    ],
+    "night": [
+      0.45,
+      0.55,
+      0.7
+    ],
+    "gold": [
+      1.0,
+      0.88,
+      0.66
+    ]
+  }
+}

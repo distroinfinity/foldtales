@@ -1,0 +1,54 @@
+{
+  "episodeId": "chapter-3",
+  "slots": [
+    {
+      "after": "opening",
+      "otherwise": "thimble-snow",
+      "pick": [
+        {
+          "when": {
+            "fact": "landing",
+            "is": "thread"
+          },
+          "beat": "carry-thread"
+        },
+        {
+          "when": {
+            "fact": "landing",
+            "is": "rope"
+          },
+          "beat": "carry-rope"
+        },
+        {
+          "when": {
+            "fact": "landing",
+            "is": "ladder"
+          },
+          "beat": "carry-ladder"
+        }
+      ]
+    },
+    {
+      "after": "lost",
+      "otherwise": "beacon-moth",
+      "pick": [
+        {
+          "when": {
+            "fact": "light-high",
+            "is": "kite",
+            "has": "kite"
+          },
+          "beat": "beacon-kite"
+        },
+        {
+          "when": {
+            "fact": "light-high",
+            "is": "ladder",
+            "has": "ladder"
+          },
+          "beat": "beacon-ladder"
+        }
+      ]
+    }
+  ]
+}
