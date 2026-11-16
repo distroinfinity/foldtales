@@ -1,6 +1,6 @@
 import type { Device } from '../landing/device.ts';
 import { landingSnapshot, subscribeLanding } from '../landing/landing.ts';
-import { CACHE_PREFIX, COMPLETE } from './worker.ts';
+import { CACHE_PREFIX, COMPLETE, RELOAD_PARAM, STALE_MESSAGE } from './worker.ts';
 
 /** The live site. Other origins (local builds, review links over USB) never get a worker unless asked. */
 const LIVE_HOSTS = ['www.foldtales.xyz', 'foldtales.xyz'];
@@ -12,18 +12,62 @@ export function wantsOffline(options: { mode: string; off: boolean; device: Devi
   return LIVE_HOSTS.includes(options.hostname) || new URLSearchParams(options.search).get('offline') === 'on';
 }
 
+/** Reloads now if the reader is on the page, or as soon as they come back to it from the book. */
+function reloadWhenOnThePage(): void {
+  const onThePage = () => !['inside', 'opening'].includes(landingSnapshot().kind);
+  if (onThePage()) {
+    location.reload();
+    return;
+  }
+  const stop = subscribeLanding(() => {
+    if (!onThePage()) return;
+    stop();
+    location.reload();
+  });
+}
+
+/**
+ * The kill switch's page side: every registration and every Foldtales cache removed, awaited,
+ * then one reload if an old worker still controls this page, so nothing it cached is used again.
+ */
+export async function removeOffline(): Promise<void> {
+  const controlled = !!navigator.serviceWorker.controller;
+  await Promise.all((await navigator.serviceWorker.getRegistrations()).map((r) => r.unregister().catch(() => false)));
+  if (typeof caches !== 'undefined') for (const name of await caches.keys()) if (name.startsWith(CACHE_PREFIX)) await caches.delete(name);
+  if (!controlled) return;
+  let reloaded = false;
+  try {
+    reloaded = sessionStorage.getItem('foldtales-offline-removed') === '1';
+    sessionStorage.setItem('foldtales-offline-removed', '1');
+  } catch {
+    // No session storage: reload anyway; the worker is gone, so the next load is uncontrolled.
+  }
+  if (!reloaded) reloadWhenOnThePage();
+}
+
 /**
  * Registers the offline cache on a headset once the book is ready, so its download never
  * competes with the cold start. A phone or desktop never gets it: they never load the book.
- * With `TT_PUBLIC_SW=off` it removes any worker an earlier build installed.
+ * With `TT_PUBLIC_SW=off` it removes any worker an earlier build installed (`removeOffline`).
  */
 export function registerOffline(device: Device): void {
   if (!('serviceWorker' in navigator)) return;
   const off = import.meta.env.TT_PUBLIC_SW === 'off';
   if (off) {
-    void navigator.serviceWorker.getRegistrations().then((all) => all.forEach((r) => void r.unregister()));
+    void removeOffline().catch(() => undefined);
     return;
   }
+  // A load the worker sent back to the network (its build had gone): tidy the address.
+  const params = new URLSearchParams(location.search);
+  if (params.has(RELOAD_PARAM)) {
+    params.delete(RELOAD_PARAM);
+    const query = params.toString();
+    history.replaceState(history.state, '', `${location.pathname}${query ? `?${query}` : ''}${location.hash}`);
+  }
+  // The worker found its build gone from the server: it has unregistered, so a reload loads the current one whole.
+  navigator.serviceWorker.addEventListener('message', (event: MessageEvent) => {
+    if ((event.data as { type?: string } | null)?.type === STALE_MESSAGE) reloadWhenOnThePage();
+  });
   if (!wantsOffline({ mode: import.meta.env.MODE, off, device, hostname: location.hostname, search: location.search })) return;
   const register = () => void navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(() => undefined);
   const ready = () => ['ready', 'inside', 'refused'].includes(landingSnapshot().kind);

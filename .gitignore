@@ -8,5 +8,8 @@ node_modules/
 *.tsbuildinfo
 coverage/
 .data/
-.art-cache/
+# The compressed art cache: only its content-addressed blobs are committed (lane E, Nov 16).
+client/.art-cache/*
+!client/.art-cache/blobs/
+client/.art-cache/blobs/*.tmp
 dist-review/
