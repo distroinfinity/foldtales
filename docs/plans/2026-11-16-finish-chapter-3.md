@@ -339,6 +339,25 @@ If the hunt fails, `episode` becomes `show/episode-3.page-hunt.json` (its canon 
 
 **Not testable here:** the headset taken off (the emulator has no proximity sensor); frame rate (the desktop emulator's isn't the Quest's).
 
+### The final pass (Nov 16, from 15:50 IST): clean
+
+**Build:** `finish-chapter-3` itself, on `main` with lane B's #35 (library, carry, per-chapter sets, the two lamp marks moved), lane A's #39 (end line, resume) and lane E's #33 (committed art cache); chapter 3 listed in the manifest's chapters and `CHAPTERS` (the sprint master's ruling). No local merges, no stand-ins. Screenshots: `.c3-shots/final/`.
+
+| Pass | Result |
+|---|---|
+| **From the page, as a reader** | "Your book" lists "3 · The longest night · Start"; Start, then the page's "Open chapter 3", into the book |
+| **A first-time reader with hands** | Sock (`frost-wipe` 0:50), the logbook from the room's couch (`log-found` 2:18), the ladder (`wick-ladder` 3:22): three gifts in a row. End page 5:07; the end card's three lines and "Kept: odd sock, little wooden ladder"; the printed end line no longer says "chapter one" |
+| **Zero input, uninterrupted, normal speed** | Every silent branch in order, the end page at 6:01. Snow round the room by 0:10 (`final/zero-snow-room.png`), the stars and moon on the ceiling (`final/zero-ceiling.png`), and an honest end card: "The lighthouse beam found Wick's logbook for you. / You saw Pip throw Wick a line across the gap. / You saw Wick hand Pip the lamp…" |
+| **What carries from chapter 2** | `carry-thread` and `beacon-kite` chosen; Thimble's thread line; the kite from the satchel carries the light |
+| **Leaving and coming back** | Out of XR at the beacon: the show holds its clock (341.9 s for 38 s on the page); the page offers "Continue chapter 3" / "Start chapter 3 again"; Continue resumes with the same carry choice |
+| **The lamp, with lane B's moved marks** | Wick out of sight once he's gone down the stair; Moth above the lamp, clear of the frosted glass |
+| **Console** | Nothing from chapter 3 (the sign-in poll's 500s with no backend here; the gaze notices of the Quest 3 profile; framework warnings) |
+| **`pnpm check`** | 80 files, 1142 tests, bundle clean |
+
+Earlier rounds covered, unchanged since: a wrong gift (Pip throws Wick's own rope), the ribbon's pause and resume, a reload, the glasses' view. **Left for the owner's headset:** the feel and look on the Quest (the snowy pages against the look bar), the voices by ear (Thimble's especially; 9 retake credits left), frame rate per spread, the headset taken off mid-chapter, and the hunt walked for real.
+
+**Spend:** run 020 0 of 45 (no repaint asked for), run 021 81 of 90, run 022 not run (no cue-named sounds in the engine; chapter 3 plays on existing foley). Lane C: 81 of 150.
+
 ## Appendix: the line ledger
 
 From `docs/plans/finish-chapters/episode-3.draft.json` and its bridges, by contract line id (`lineIdOf`), against `client/public/show/manifest.json` and `episode-2.draft.json`. Re-run when the lines freeze; run 021's jobs are written from the frozen file, not from this list.
