@@ -18,7 +18,8 @@
     "sound/m2",
     "sets/the-lamp",
     "room-fx",
-    "sound/room"
+    "sound/room",
+    "sets/the-landing"
   ],
   "book": "book/book.json",
   "room": "room/room.json",
@@ -338,6 +339,18 @@
       "summary": "a character tucks what it holds into its coat",
       "nominalMs": 400,
       "kind": "pocket"
+    },
+    {
+      "id": "light-up",
+      "summary": "a keeper's light goes up high: on a kite, atop a standing ladder, or with Moth",
+      "nominalMs": 4000,
+      "kind": "light-up"
+    },
+    {
+      "id": "light-down",
+      "summary": "the light comes back down to its keeper, and what held it is set down",
+      "nominalMs": 2000,
+      "kind": "light-down"
     }
   ],
   "narrator": {
@@ -1068,6 +1081,24 @@
             0.07,
             0.03
           ]
+        },
+        {
+          "id": "water-edge",
+          "label": "the water's edge",
+          "position": [
+            0.0,
+            0,
+            -0.045
+          ]
+        },
+        {
+          "id": "light-high",
+          "label": "up high over the water",
+          "position": [
+            0.0,
+            0.11,
+            -0.05
+          ]
         }
       ]
     },
@@ -1174,6 +1205,86 @@
             -0.035,
             0.205,
             -0.075
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the-landing",
+      "name": "The landing",
+      "description": "Stone steps go down into the sea at the foot of the lighthouse, with a flat rock out on the water.",
+      "file": "sets/the-landing/set.json",
+      "marks": [
+        {
+          "id": "near-edge",
+          "label": "the rock out on the water",
+          "position": [
+            0.085,
+            0,
+            -0.0175
+          ]
+        },
+        {
+          "id": "far-side",
+          "label": "the bottom step",
+          "position": [
+            -0.072,
+            0,
+            -0.0175
+          ]
+        },
+        {
+          "id": "pip-step",
+          "label": "on the steps above the water",
+          "position": [
+            -0.115,
+            0,
+            -0.0175
+          ]
+        },
+        {
+          "id": "pip-side",
+          "label": "tucked at Pip's side",
+          "position": [
+            -0.092,
+            0,
+            -0.006
+          ]
+        },
+        {
+          "id": "landing-in",
+          "label": "where the steps come down",
+          "position": [
+            -0.17,
+            0,
+            -0.03
+          ]
+        },
+        {
+          "id": "wick-steps",
+          "label": "coming down the steps",
+          "position": [
+            -0.15,
+            0,
+            -0.04
+          ]
+        },
+        {
+          "id": "moth-landing",
+          "label": "in the air over the water",
+          "position": [
+            -0.04,
+            0.12,
+            -0.03
+          ]
+        },
+        {
+          "id": "light-high",
+          "label": "up high over the steps",
+          "position": [
+            -0.1,
+            0.11,
+            -0.03
           ]
         }
       ]
