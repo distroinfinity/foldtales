@@ -102,6 +102,8 @@ export function restingHome(world: Vector3, deps: Pick<HandsDeps, 'book' | 'draw
 
 export function createObjectHands(deps: HandsDeps) {
   const held: Record<HandSide, string | null> = { left: null, right: null };
+  /** Where each held thing was before you picked it up, so a card opening mid-hold can put it back. */
+  const from: Record<HandSide, Home | null> = { left: null, right: null };
   const lastPoint: Record<HandSide, Vector3 | null> = { left: null, right: null };
   let bookOpen = true;
   let nowMs = 0;
@@ -176,6 +178,7 @@ export function createObjectHands(deps: HandsDeps) {
           proxy: { id: `object:${t.id}`, position: { x: t.centre.x, y: t.centre.y, z: t.centre.z }, radiusM: Math.max(TARGET_M, t.radius), reachUpM: REACH_UP_M },
           onGrab: (hand, point) => {
             held[hand] = t.id;
+            from[hand] = deps.objects.get(t.id)?.home ?? null;
             const st = deps.objects.get(t.id);
             if (st) st.touched = true;
             lastPoint[hand] = point.clone();
@@ -311,6 +314,31 @@ export function createObjectHands(deps: HandsDeps) {
       const from = deps.objects.worldOf(best.id, new Vector3());
       deps.objects.send(best.id, { kind: 'table', at: [0.26, 0, 0.1] }, nowMs, 1400, 0.25 * (deps.stageRoot.scale.x || 1));
       deps.sound.play('whoosh', from);
+    },
+    /**
+     * A card opened (or the book is being put away): everything in hand goes back where it came from,
+     * with no gift and no keeping; a carried character hops back down; a page held mid-turn falls back.
+     */
+    cancelAll(): void {
+      for (const side of ['left', 'right'] as const) {
+        const id = held[side];
+        held[side] = null;
+        if (id) {
+          const home = from[side] ?? restingHome(deps.objects.worldOf(id, new Vector3()), deps, bookOpen, id);
+          deps.objects.send(id, home, nowMs, 300, 0.02);
+          deps.sound.play('settle', deps.objects.worldOf(id, new Vector3()));
+        }
+        from[side] = null;
+      }
+      if (chosen) {
+        if (chosenFrom) deps.objects.send(chosen, chosenFrom, nowMs, 300, 0.02);
+        chosen = null;
+        chosenFrom = null;
+      }
+      deps.runtime.setHolding(false);
+      deps.runtime.notice(null, null);
+      deps.runtime.dropCast();
+      deps.runtime.releasePage(true);
     },
     /** For the drawer: put anything you hold back down before it closes. */
     holding: (): string[] => [held.left, held.right].filter((x): x is string => x !== null),

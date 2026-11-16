@@ -21,3 +21,9 @@ export function primaryLabel(library: LibraryState): { label: string; detail: st
   if (chapter.state === 'finished') return { label: `Read chapter ${chapter.n} again`, detail: 'More chapters on the way.', secondary: null, target: { kind: 'chapter', n: chapter.n, from: 'start' } };
   return { label: 'Open the book', detail: `Chapter ${chapter.n} takes about six minutes. You only need your hands.`, secondary: null, target: { kind: 'chapter', n: chapter.n, from: 'start' } };
 }
+
+/** What a chapter on the shelf does: Continue where it was left, Read again once finished, else Start. */
+export function shelfTarget(c: LibraryState['chapters'][number]): { label: string; from: 'resume' | 'start' } {
+  if (c.state === 'started' && c.canResume) return { label: 'Continue', from: 'resume' };
+  return { label: c.state === 'finished' ? 'Read again' : 'Start', from: 'start' };
+}

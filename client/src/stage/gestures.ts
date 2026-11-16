@@ -73,6 +73,11 @@ export function createGestures() {
 
   return {
     held: (side: HandSide): string | null => holding[side],
+    /** Lets go of everything with no events. A pinch still closed stays spent: it can't take anything until it opens. */
+    drop(): void {
+      holding.left = null;
+      holding.right = null;
+    },
     step(hands: Record<HandSide, HandFrame | null>, proxies: Proxy[]): GestureEvent[] {
       const events: GestureEvent[] = [];
       for (const side of ['left', 'right'] as const) {
