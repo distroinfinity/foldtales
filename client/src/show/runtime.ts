@@ -16,7 +16,7 @@ import { combineUnfold } from '../stage/book-control.ts';
 import { castAt, type CastPlace } from './cast-state.ts';
 import type { ShowClock } from './clock.ts';
 import { beamAt, gustAt, lightOutAt, unfoldAt, type Unfold } from './cues.ts';
-import { HUNT_FADE_MS, HUNT_RETURN_MS, HUNT_REVEAL_MS, huntAt } from '../room-fx/hunt.ts';
+import { HUNT_FADE_MS, HUNT_RETURN_MS, HUNT_REVEAL_MS, huntAt, huntPlace } from '../room-fx/hunt.ts';
 import type { RoomMap } from '../room-fx/room-map.ts';
 import { roomAt, type RoomNow } from '../room-fx/state.ts';
 import type { LeavesView } from './leaves.ts';
@@ -410,12 +410,13 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
         }
       }
     } else if (a.do === 'room' && a.effect === 'hunt') {
-      // The lost thing slips off to a place in your room, unseen until the beam finds it.
+      // The lost thing slips off to a place in your room, unseen until the beam finds it: in front of
+      // you, toward the book, never behind you or on the seat you're in (huntPlace).
       const id = objectOf(a.what);
-      const place = views.room?.resolve(a.at, 'rest') ?? null;
-      if (id && place && views.objects.get(id)) {
+      const spot = views.room ? huntPlace(views.room, a.at, lastHead, views.book.root.getWorldPosition(new Vector3())) : null;
+      if (id && spot && views.objects.get(id)) {
         views.objects.setVisible(id, false);
-        views.objects.send(id, { kind: 'room', place: place.id, offset: [0, 0] }, nowMs, 0);
+        views.objects.send(id, { kind: 'room', place: spot.place.id, offset: spot.offset }, nowMs, 0);
       }
     }
   }
@@ -1081,7 +1082,7 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
       const huntFound = hidden?.home.kind === 'room' ? null : huntFoundAt !== null ? nowMs - huntFoundAt : null;
       if (hunt && hidden && views.room && (hidden.home.kind === 'room' || (huntFound !== null && huntFound < HUNT_FADE_MS))) {
         const place = hidden.home.kind === 'room' ? views.room.byId(hidden.home.place) : null;
-        if (place) huntTarget.copy(place.centre);
+        if (place && hidden.home.kind === 'room') huntTarget.set(place.centre.x + hidden.home.offset[0], place.centre.y, place.centre.z + hidden.home.offset[1]);
         const look = huntAt(hunt.sinceMs, Math.atan2(huntTarget.x - lampAt.x, huntTarget.z - lampAt.z), huntFound);
         if (hidden.home.kind === 'room') {
           views.objects.setVisible(hunt.what, look.revealed);

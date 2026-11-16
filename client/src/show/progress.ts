@@ -218,6 +218,7 @@ export function landingChoice(progress: Progress | null, canResume: boolean): { 
 export const CHAPTERS: ReadonlyArray<{ n: number; title: string; episodeId: string }> = [
   { n: 1, title: 'The night the light went out', episodeId: 'chapter-1' },
   { n: 2, title: 'The night the sea came in', episodeId: 'chapter-2' },
+  { n: 3, title: 'The longest night', episodeId: 'chapter-3' },
 ];
 
 /** Whether the AI Storyteller is built and switched on in this build. Sign-in is checked by the landing page. */

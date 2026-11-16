@@ -1,0 +1,13 @@
+round sound: balance 109705, committed 72, cap 90
+round sound ended: committed 72 of cap 90
+round voice: balance 109705, committed 72, cap 90
+done thimble-i-ve-never-seen-snow-from-dry-land-befor: 3.5s, 1 credits
+done thimble-i-ve-wound-grandmother-s-thread-back-on: 7.2s, 1 credits
+done thimble-the-last-time-i-was-this-cold-somebody-t: 11s, 1 credits
+done thimble-the-last-time-i-was-this-cold-i-crossed: 7s, 1 credits
+done thimble-and-wick-will-need-it-to-find-his-way-ba: 4.7s, 1 credits
+done thimble-a-bit-of-elbow-grease-and-there: 6.8s, 1 credits
+done thimble-go-and-find-him-pip-i-ll-keep-the-light: 7.1s, 1 credits
+done thimble-then-i-ll-be-the-keeper-for-a-bit-i-know: 7.1s, 1 credits
+done thimble-welcome-home-keepers-i-kept-her-shining: 6.2s, 1 credits
+round voice ended: committed 81 of cap 90
