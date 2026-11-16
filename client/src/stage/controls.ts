@@ -7,6 +7,7 @@ import type { SoundEngine } from '../sound/engine.ts';
 import { controlFold, dragCover } from './book-control.ts';
 import { closestOn, createGestures, type GestureEvent, type HandFrame, type HandSide, type Proxy } from './gestures.ts';
 import { RESIZE_NOTCH, resizeScale } from './resize.ts';
+import { createSelectGate, dispatchUntilChanged, type Slot } from './select-gate.ts';
 
 /** How fast the book finishes closing or opening after you let go: a full swing in 0.7 s. */
 const SWING_PER_MS = 1 / 700;
@@ -41,7 +42,7 @@ export interface BookControls {
   close(): void;
   /** Lays the ribbon back down and lets the show go, as when a chapter starts again. */
   lowerRibbon(): void;
-  /** Lifts or lowers the ribbon as if your hand had pinched it: the wrist tag's "Pause" and "Carry on". */
+  /** Lifts or lowers the ribbon as if your hand had pinched it: the menu holding the story while a card stands. */
   setRibbon(on: boolean): void;
   /** Whether the ribbon is holding the story. */
   readonly ribbonUp: boolean;
@@ -54,6 +55,8 @@ export interface BookControls {
   holding(side: HandSide): string | null;
   /** Each tracked hand's index fingertip, in world space: for buttons pressed with a finger. */
   fingertip(side: HandSide): Vector3 | null;
+  /** A card opened: every hold ends with no gift, drop or turn, and a pinch still closed can't take anything new. */
+  cancelAll(): void;
 }
 
 export interface ControlsDeps {
@@ -73,6 +76,20 @@ export interface ControlsDeps {
   onGazeSelect?: (origin: Vector3, direction: Vector3) => void;
   /** Quest 3, with no eye tracking: a pinch that took nothing, with where your head points. Only things out in the room answer it. */
   onHeadSelect?: (origin: Vector3, direction: Vector3) => void;
+  /** The ribbon was pinched: the menu decides what that means. Without it, the ribbon only pauses. */
+  onRibbon?: () => void;
+  /** While a card stands, only the cover and the ribbon answer: the book can't be moved or stretched. */
+  limited?: () => boolean;
+  /**
+   * Looking and pinching at the card: what the ray is on when the pinch starts (with the menu's generation),
+   * and committing it once, on that pinch's release.
+   */
+  cardGaze?: {
+    pick(origin: Vector3, direction: Vector3): { id: string; generation: number } | null;
+    commit(choice: { id: string; generation: number }): void;
+    /** The menu's generation now, so a pinch started on an older card chooses nothing. */
+    generation(): number;
+  };
 }
 
 function readHand(frame: XRFrame, source: XRInputSource, space: XRReferenceSpace): HandFrame | null {
@@ -89,13 +106,17 @@ function readHand(frame: XRFrame, source: XRInputSource, space: XRReferenceSpace
 }
 
 /** The book is the only UI: shut the cover to pause, open it to resume, pinch the ribbon, slide it by the spine. */
-export function createBookControls({ world, stageRoot, book, sound, pause, glow, cards, onMoved, onResized, extras, onGazeSelect, onHeadSelect }: ControlsDeps): BookControls {
+export function createBookControls({ world, stageRoot, book, sound, pause, glow, cards, onMoved, onResized, extras, onGazeSelect, onHeadSelect, onRibbon, limited, cardGaze }: ControlsDeps): BookControls {
   /** The gaze ray, if this device has one (VR Glasses, or the glasses emulator). */
   const gaze = { origin: new Vector3(), direction: new Vector3(), valid: false };
   let listening: XRSession | null = null;
   let extraTargets: ExtraTarget[] = [];
   let enabledNow = false;
   const grabbedThisPinch: Record<HandSide, boolean> = { left: false, right: false };
+  /** What a look-and-pinch may choose, decided once per pinch (select-gate.ts). */
+  const gate = createSelectGate();
+  /** Bumped by cancelAll: a frame's remaining gesture events are dropped once it changes. */
+  let interaction = 0;
   const pinch: Record<HandSide, Vector3 | null> = { left: null, right: null };
   const tips: Record<HandSide, Vector3 | null> = { left: null, right: null };
   const gestures = createGestures();
@@ -144,7 +165,7 @@ export function createBookControls({ world, stageRoot, book, sound, pause, glow,
       { id: 'fore', position: at(book.root, W, half, 0), radiusM: radius, reachUpM: REACH_UP_M, segment: { a: at(book.root, W, half, -D / 2 + edgeInset), b: at(book.root, W, half, D / 2 - edgeInset) } },
       { id: 'spine', position: at(book.root, 0, half * 0.6, D / 2 + 0.01), radiusM: radius, reachUpM: REACH_UP_M },
       { id: 'ribbon', position: at(book.root, W * RIBBON_X_SHARE, half + 0.003, D / 2 - 0.012), radiusM: radius, reachUpM: REACH_UP_M },
-    ];
+    ].filter((p) => !limited?.() || p.id === 'cover' || p.id === 'ribbon');
   }
 
   function setAmount(next: number): void {
@@ -240,9 +261,12 @@ export function createBookControls({ world, stageRoot, book, sound, pause, glow,
           sound.play('settle', stageRoot.position, undefined, 'ui');
           onMoved();
         } else if (event.id === 'ribbon') {
-          ribbon = !ribbon;
-          pause.set('ribbon', ribbon);
           sound.play('felt', stageRoot.position, undefined, 'ui');
+          if (onRibbon) onRibbon();
+          else {
+            ribbon = !ribbon;
+            pause.set('ribbon', ribbon);
+          }
         }
         break;
       case 'cancel':
@@ -292,6 +316,18 @@ export function createBookControls({ world, stageRoot, book, sound, pause, glow,
     get ribbonUp() {
       return ribbon;
     },
+    cancelAll() {
+      interaction++;
+      gestures.drop();
+      heldExtra.left = null;
+      heldExtra.right = null;
+      extraTargets = [];
+      gate.cancelAll();
+      if (coverGrab || target === null) target = stable;
+      coverGrab = null;
+      spineOffset = null;
+      resize = null;
+    },
     get amount() {
       return amount;
     },
@@ -317,23 +353,42 @@ export function createBookControls({ world, stageRoot, book, sound, pause, glow,
         gaze.direction.set(0, 0, -1).applyQuaternion(new Quaternion(q.x, q.y, q.z, q.w));
         gaze.valid = true;
       }
-      if (listening !== frame.session && (onGazeSelect || onHeadSelect)) {
+      if (listening !== frame.session && (onGazeSelect || onHeadSelect || cardGaze)) {
         listening = frame.session;
-        // The pinch arrives on the gaze source, or (in the glasses emulator) on the pinching hand. A hand's
-        // pinch counts only if it didn't take hold of something within reach, so a near grab never also fires at what you look at.
+        const slot = (source: XRInputSource): Slot => (source.handedness === 'left' || source.handedness === 'right' ? source.handedness : 'gaze');
+        /**
+         * The card answers a look-and-pinch only where there's real gaze (VR Glasses). On a Quest 3 the head's
+         * direction would make a pinch in the air choose whatever line you happen to face, so there the hands choose.
+         */
         frame.session.addEventListener('selectstart', (event) => {
           const side = event.inputSource.handedness;
           if (side === 'left' || side === 'right') grabbedThisPinch[side] = false;
+          // The card's choice is fixed when the pinch starts; looking away before letting go doesn't change it.
+          gate.start(slot(event.inputSource), enabledNow && cardGaze && gaze.valid ? cardGaze.pick(gaze.origin.clone(), gaze.direction.clone()) : null);
         });
+        frame.session.addEventListener('selectend', (event) => {
+          const s = slot(event.inputSource);
+          // After the select (if there was one) has been handled.
+          queueMicrotask(() => gate.end(s));
+        });
+        frame.session.addEventListener('inputsourceschange', () => gate.reset());
         frame.session.addEventListener('select', (event) => {
-          if (!enabledNow) return;
           const side = event.inputSource.handedness;
           const fromHand = side === 'left' || side === 'right';
+          const decision = gate.select(slot(event.inputSource), {
+            cardShowing: limited?.() ?? false,
+            generation: cardGaze?.generation() ?? 0,
+            // A hand that took hold of something within reach chose that, not what it looked at.
+            grabbedNear: fromHand && grabbedThisPinch[side],
+          });
+          if (decision.kind === 'ribbon') return onRibbon?.();
+          if (decision.kind === 'card') return cardGaze?.commit(decision.choice);
+          if (decision.kind !== 'story' || !enabledNow) return;
           if (!gaze.valid) {
-            if (fromHand && !grabbedThisPinch[side] && onHeadSelect) onHeadSelect(world.camera.getWorldPosition(new Vector3()), world.camera.getWorldDirection(new Vector3()));
+            if (fromHand && onHeadSelect) onHeadSelect(world.camera.getWorldPosition(new Vector3()), world.camera.getWorldDirection(new Vector3()));
             return;
           }
-          if (onGazeSelect && (event.inputSource.targetRayMode === 'gaze' || (fromHand && !grabbedThisPinch[side]))) onGazeSelect(gaze.origin.clone(), gaze.direction.clone());
+          if (onGazeSelect && (event.inputSource.targetRayMode === 'gaze' || fromHand)) onGazeSelect(gaze.origin.clone(), gaze.direction.clone());
         });
       }
       const hands: Record<HandSide, HandFrame | null> = { left: null, right: null };
@@ -362,9 +417,10 @@ export function createBookControls({ world, stageRoot, book, sound, pause, glow,
       const replaced = new Set(extraTargets.flatMap((t) => (t.replaces ? [t.replaces] : [])));
       const targets = [...proxies().filter((p) => !replaced.has(p.id)), ...extraTargets.map((t) => t.proxy)];
       const events = gestures.step(hands, targets);
-      for (const event of events) {
+      // A card opening (cancelAll) mid-batch drops the rest: the other hand's queued drag can't re-take what was let go.
+      dispatchUntilChanged(events, () => interaction, (event) => {
         if (event.kind === 'near') {
-          if (extraTargets.find((t) => t.proxy.id === event.id)?.halo === false) continue;
+          if (extraTargets.find((t) => t.proxy.id === event.id)?.halo === false) return;
           const halo = halos[event.hand === 'left' ? 0 : 1]!;
           const hand = hands[event.hand]!;
           const p = closestOn(targets.find((t) => t.id === event.id)!, hand.pinchPoint);
@@ -372,7 +428,7 @@ export function createBookControls({ world, stageRoot, book, sound, pause, glow,
           halo.visible = true;
         }
         handle(event, head);
-      }
+      });
       if (resize) {
         const gap = pinchGap();
         if (gap !== null) {

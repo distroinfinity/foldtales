@@ -1,14 +1,14 @@
 /**
  * The second way in: the AI Storyteller. The night shore, full width, with the cast; their lines appear
- * underneath like a film's subtitles, a story being made up as you watch. Then the door, which says
- * exactly what's missing (an account, the microphone) before it lets you in.
+ * underneath like a film's subtitles, a story being made up as you watch. Then the door: one state from
+ * lane D's provider (sign-in, the microphone, the connection, tonight's limit), each with its one step.
  */
 import { motion, useInView, useReducedMotion, useScroll, useTransform } from 'motion/react';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useSyncExternalStore, type ReactNode } from 'react';
 import type { Device } from './device.ts';
 import type { LibraryState } from './library.ts';
-import { askForMicrophone } from './microphone.ts';
-import { ACCOUNTS_ON, STORYTELLER_ON } from './flags.ts';
+import { STORYTELLER_ON } from './flags.ts';
+import { askMicrophone, refreshStoryteller, storytellerSnapshot, subscribeStoryteller, type DoorState } from '../stage/seams.ts';
 import content from './page-content.json';
 import { art } from './preload.ts';
 import { TextAnimate } from './ui/text-animate.tsx';
@@ -67,49 +67,144 @@ type DoorProps = {
   library: LibraryState;
   signedIn: string | null;
   onSignIn: () => void;
+  /** Into the Storyteller, asking for the microphone first if it hasn't been allowed. */
   enterStoryteller: (() => void) | null;
+  /** Into the Storyteller without the microphone: the story is played by hand. */
+  playByHand: (() => void) | null;
+  /** The chapters, offered beside a door that can't open. */
+  openBook: (() => void) | null;
+  /** Your stories, in Your book. */
+  onStories: () => void;
   /** "Back to the AI Storyteller" when you've just been in it. */
   storytellerLabel?: string | null;
 };
 
-const doorButton = 'inline-flex min-h-14 cursor-pointer items-center justify-center rounded-[12px] border border-sage/60 bg-sage/20 px-8 text-[18px] font-medium text-page transition-colors hover:bg-sage/30';
+type DoorWords = { button?: string; line?: string; quiet?: string };
+/** The door's words per state. Lane D's, from page-content.json's `storyteller.door`, over these defaults. */
+const DEFAULT_WORDS: Record<DoorState['kind'], DoorWords> = {
+  'signed-out': { button: 'Sign in to start', line: 'It needs an account and the internet. The chapters need neither.' },
+  'auth-loading': { button: 'Checking your sign-in…' },
+  'auth-failed': { button: 'Try again', line: 'Couldn’t check your sign-in just now.' },
+  'session-expired': { button: 'Sign in again', line: 'Your sign-in has ended.' },
+  'mic-not-asked': { button: 'Let them hear you', line: 'You talk to the characters out loud. Your voice goes to a speech service to be understood, and isn’t kept.', quiet: 'or play by hand' },
+  'mic-refused': { button: 'Start a new story', line: 'They can’t hear you, so you’ll play by hand. To talk, allow the microphone in the browser’s site settings.', quiet: 'Try the microphone again' },
+  unavailable: { line: 'The AI Storyteller needs the internet. The chapters don’t.' },
+  'limit-reached': { line: 'The AI Storyteller is resting for tonight. The chapters are here any time.' },
+  ready: { button: 'Start a new story', quiet: 'Your stories' },
+};
+/** Lane D's words in page-content.json: `button`, `note`, `secondary`, keyed by state (offline and service apart). */
+type LaneDWords = { button?: string; note?: string | null; secondary?: string };
+const doorKey = (door: DoorState): string => (door.kind === 'unavailable' ? `unavailable-${door.why}` : door.kind);
+const wordsFor = (door: DoorState): DoorWords => {
+  const theirs = (STORY as { door?: Record<string, LaneDWords | undefined> }).door?.[doorKey(door)];
+  const until = door.kind === 'limit-reached' ? door.until : null;
+  const fill = (text: string | null | undefined) => (text ? text.replace('{time}', until ?? 'tomorrow evening') : undefined);
+  const mine = DEFAULT_WORDS[door.kind];
+  return {
+    button: theirs?.button ?? mine.button,
+    line: theirs && 'note' in theirs ? (fill(theirs.note) ?? undefined) : mine.line,
+    quiet: theirs?.secondary ?? mine.quiet,
+  };
+};
+/** Required with OpenAI's voices: said plainly that the cast's voices are made by AI (lane D's words). */
+const VOICES_NOTE = (STORY as { voicesNote?: string }).voicesNote ?? 'The cast’s voices in the AI Storyteller are made by AI, not people.';
 
-function Door({ device, library, signedIn, onSignIn, enterStoryteller, storytellerLabel }: DoorProps) {
-  const [mic, setMic] = useState<'unknown' | 'granted' | 'denied'>('unknown');
+const doorButton = 'inline-flex min-h-14 cursor-pointer items-center justify-center rounded-[12px] border border-sage/60 bg-sage/20 px-8 text-[18px] font-medium text-page transition-colors hover:bg-sage/30 disabled:cursor-default disabled:opacity-50 disabled:hover:bg-sage/20';
+const quietLink = 'cursor-pointer border-0 bg-transparent p-2 font-[inherit] text-[16px] text-page/75 underline decoration-page/30 underline-offset-4 hover:text-page';
+
+function Door({ device, signedIn, onSignIn, enterStoryteller, playByHand, openBook, onStories, storytellerLabel }: DoorProps) {
+  const snap = useSyncExternalStore(subscribeStoryteller, storytellerSnapshot);
+  // The door follows sign-in, the microphone and the connection as they change, without a reload.
+  useEffect(() => {
+    void refreshStoryteller();
+    const again = () => void refreshStoryteller();
+    addEventListener('online', again);
+    addEventListener('offline', again);
+    addEventListener('focus', again);
+    return () => {
+      removeEventListener('online', again);
+      removeEventListener('offline', again);
+      removeEventListener('focus', again);
+    };
+  }, [signedIn]);
   // Elsewhere, the page's own "Send to your Quest" sits just below; one is enough.
   if (device !== 'headset') return null;
   if (!STORYTELLER_ON) return <p className="m-0 max-w-[40ch] text-[16px] leading-relaxed text-page/70">The AI Storyteller opens here soon. The chapters are ready now.</p>;
-  if (ACCOUNTS_ON && !signedIn)
-    return (
-      <div className="flex flex-col items-center gap-3">
-        <button type="button" className={doorButton} onClick={onSignIn}>
-          Sign in to start
-        </button>
-        <p className="m-0 text-[15px] text-page/55">It needs an account and the internet. The chapters need neither.</p>
-      </div>
-    );
-  // Built and switched on in this build when ticket 3's side supplies the launcher (PR review 2).
-  if (!(library.storyteller.available || enterStoryteller) || !enterStoryteller)
-    return <p className="m-0 max-w-[40ch] text-[16px] text-page/65">{signedIn ? `You’re signed in as ${signedIn}. ` : ''}The AI Storyteller is on its way to this book, and it will open from here.</p>;
-  // Never open it without the microphone: it's a conversation (owner, in the headset, Nov 14).
-  if (mic !== 'granted')
-    return (
-      <div className="flex flex-col items-center gap-3">
-        <button type="button" className={doorButton} onClick={async () => setMic(await askForMicrophone(navigator.mediaDevices?.getUserMedia?.bind(navigator.mediaDevices)))}>
-          Let them hear you
-        </button>
-        <p className="m-0 max-w-[46ch] text-[15px] leading-relaxed text-page/55">
-          {mic === 'denied'
-            ? 'The AI Storyteller needs your voice. Allow the microphone in the browser’s site settings, then try again.'
-            : 'You talk to the characters out loud. Your voice goes to a speech service to be understood, and isn’t kept.'}
-        </p>
-      </div>
-    );
-  return (
-    <button type="button" className={doorButton} onClick={enterStoryteller}>
-      {storytellerLabel?.startsWith('Back') ? storytellerLabel : 'Start the AI Storyteller'}
+  const door = snap.door;
+  const w = wordsFor(door);
+  const line = w.line && <p className="m-0 max-w-[46ch] text-[15px] leading-relaxed text-page/60">{w.line}</p>;
+  const chaptersBeside = openBook && (
+    <button type="button" className={quietLink} onClick={openBook}>
+      Open the book
     </button>
   );
+  const box = (main: ReactNode, below: ReactNode = null) => (
+    <div className="flex flex-col items-center gap-3" data-door={door.kind}>
+      {main}
+      {below}
+      {line}
+    </div>
+  );
+  switch (door.kind) {
+    case 'signed-out':
+    case 'session-expired':
+      return box(
+        <button type="button" className={doorButton} onClick={onSignIn}>
+          {w.button}
+        </button>,
+      );
+    case 'auth-loading':
+      return box(
+        <button type="button" className={doorButton} disabled>
+          {w.button}
+        </button>,
+      );
+    case 'auth-failed':
+      return box(
+        <button type="button" className={doorButton} onClick={() => void refreshStoryteller()}>
+          {w.button}
+        </button>,
+      );
+    case 'mic-not-asked':
+      return box(
+        <button type="button" className={doorButton} disabled={!enterStoryteller} onClick={() => enterStoryteller?.()}>
+          {w.button}
+        </button>,
+        playByHand && (
+          <button type="button" className={quietLink} onClick={playByHand}>
+            {w.quiet}
+          </button>
+        ),
+      );
+    case 'mic-refused':
+      return box(
+        <button type="button" className={doorButton} disabled={!playByHand} onClick={() => playByHand?.()}>
+          {w.button}
+        </button>,
+        <button type="button" className={quietLink} onClick={() => void askMicrophone()}>
+          {w.quiet}
+        </button>,
+      );
+    case 'unavailable':
+    case 'limit-reached':
+      return box(
+        <button type="button" className={doorButton} disabled>
+          {w.button ?? (door.kind === 'unavailable' ? (door.why === 'offline' ? 'No internet connection' : 'Not available just now') : 'Resting for tonight')}
+        </button>,
+        chaptersBeside,
+      );
+    case 'ready':
+      return box(
+        <button type="button" className={doorButton} disabled={!enterStoryteller} onClick={() => enterStoryteller?.()}>
+          {storytellerLabel?.startsWith('Back') ? storytellerLabel : w.button}
+        </button>,
+        snap.finished.length > 0 && (
+          <button type="button" className={quietLink} onClick={onStories}>
+            {w.quiet}
+          </button>
+        ),
+      );
+  }
 }
 
 export function Storyteller(props: DoorProps) {
@@ -129,6 +224,13 @@ export function Storyteller(props: DoorProps) {
       <div className="mt-8 flex justify-center px-5">
         <Door {...props} />
       </div>
+      {/* Things are painted for you live, by Runway: said once, quietly, like a caption. */}
+      <p className="m-0 mx-auto mt-6 max-w-[46ch] px-5 text-center text-[14px] leading-relaxed text-page/55">
+        {VOICES_NOTE}{' '}
+        <a className="whitespace-nowrap text-page/55 no-underline hover:text-page/80 hover:underline" href="https://runwayml.com" target="_blank" rel="noopener">
+          Powered by Runway
+        </a>
+      </p>
     </section>
   );
 }

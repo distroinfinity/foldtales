@@ -51,3 +51,7 @@
 8. **The owner tests in the headset once per lane, after green,** for feel, look and sound, not to find bugs, and signs off. The sprint master merges.
 
 Never ship test visuals, never put keys in the client, and never import from `spikes/`.
+
+## Checks without GitHub Actions (Nov 16)
+
+GitHub Actions is removed: the account's Actions budget ran out, every run failed before starting, and Railway skipped backend deploys while it waited for that check. **The gate is local:** each lane runs `pnpm check` before pushing, and the sprint master runs typecheck, the full tests and the bundle check on every PR, merged with current main, before merging. Railway and Cloudflare Pages deploy main directly. To revisit after the sprint: whether to restore CI (with a budget) and Railway's "wait for CI".
