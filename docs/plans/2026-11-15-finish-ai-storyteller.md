@@ -864,6 +864,46 @@ Run in the IWSDK emulator (Quest 3 profile, hands only) on this workspace's dev 
 
 The screenshots are in the session scratchpad's `emu/` folder: `/private/tmp/claude-501/-Users-manu--superset-worktrees-tabletop-theater-finish-ai-storyteller/18aa207a-25cb-4520-992b-31acb6af3ac6/scratchpad/emu/`.
 
+**On lane A's host (after #26 and #34), Nov 17.** The screenshots are in `client/artifacts/emu/`, kept out of git by `.git/info/exclude`. The scratchpad was wiped by an overnight restart, so earlier screenshots are gone.
+
+**The door** (Mac page, headset mode):
+- **Signed out:** "Sign in to start" (`10`).
+- **Sign-in cancelled:** the phone code, then Cancel, brings back the bookplate's choices, and the door stays signed out.
+- **Phone code:** approved by script as the phone; the headset came back signed in.
+- **Mic not asked:** "Let them hear you", with "or play by hand" and the AI-voice disclosure (`11`).
+- **Mic refused:** "Start a new story" by hand, with "Try the microphone again" (`19`).
+- **Found and fixed:**
+  - the host asked for the microphone around the provider, so a refusal never reached the door;
+  - the door read `button`, `line` and `quiet`, but my copy used other keys;
+  - a dismissed prompt read as "prompt" again.
+
+**A story played by hand, with no input, mock backend:**
+- The drawer came out at the welcome with the ladder, the odd sock and the key.
+- It ended by itself at 600 s after 28 turns, on lane A's end card (`12`).
+- The page was saved under the backend's story id and acknowledged.
+- "Your book" lists it under "Your stories" (`14`).
+- **Found and fixed:**
+  - #26's "End the story here" saved under a made-up id, so every saved page would have been lost;
+  - the drawer never opened for the Storyteller;
+  - a reader without the microphone was told to allow it, and still saw a talk tab that couldn't hear them.
+
+**A spoken story, real Claude and Groq, painting on:**
+- The right hand held the tab while the stand-in microphone said a recorded sentence. Groq heard 2.76 s in 408 ms.
+- The premise named the story "The Teapot That Lost Its Whistle" and saved its plan. First voiced line 4.5–5.2 s after letting go (captions only, since OpenAI's key isn't in yet).
+- The AI asked for a painting itself. "Dented Copper Teapot" passed the name, description and picture checks and arrived on the page in 28.5 s, for 2 credits. In the next story it was in the satchel.
+- **Fixed:** "Powered by Runway" now stays in view with the listening hint while a painting is on the page.
+- Per-story spend: 8,356 Claude tokens and 1,113 voice characters in two turns, plus 10 s heard.
+
+**Failures and leaving:**
+- **The service down mid-story** (backend stopped for 70 s): each failed turn said one recorded line, with nothing repeated. The story recovered when the backend came back.
+- **A reload mid-story** comes back to the page cleanly.
+- **Earlier on the mock** (Nov 16): the AI-failing path ends by itself, and the repeated-filler bug is fixed.
+
+**Not run here:**
+- Pause by ribbon, cover and headset-off: lane A's controls, proven in their pass. The session's suspend and resume are unit-tested.
+- The VR Glasses view of the talk tab: it's one of the host's hand targets, so gaze and pinch reach it as they reach the ribbon.
+- OpenAI's voices: the key isn't in yet.
+
 **Still to run after lane A's #26 is in and this branch is rebased:**
 - the new door's states;
 - a spoken story, with the stand-in microphone saying a recorded sentence, through Groq;
