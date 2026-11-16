@@ -50,14 +50,12 @@ const ui = () => import('../client/src/landing/account-ui.ts');
 const entry = () => import('../client/src/landing/entry.ts');
 
 describe('from the door and back', () => {
-  test('signed in from the Storyteller’s door: the Storyteller is the destination, and the page comes back to the door', async () => {
+  test('signed in from the Storyteller’s door: the page comes back to that door, and nothing is chosen for the reader', async () => {
     const { signInFor, signedIn, takeSignInReturn } = await ui();
     signInFor('storyteller', 1840);
     signedIn();
-    const waiting = (await entry()).pendingEntry();
-    expect(waiting?.target).toEqual({ kind: 'storyteller' });
-    // "Back to chapter 1" stays on offer, as for a choice made inside the book.
-    expect(waiting?.back).toEqual({ kind: 'chapter', n: 1, from: 'start' });
+    // The door is on the page it comes back to; the chapters' card still speaks for the chapters.
+    expect((await entry()).pendingEntry()).toBeNull();
     expect(takeSignInReturn()).toEqual({ for: 'storyteller', y: 1840, problem: null });
     // Once.
     expect(takeSignInReturn()).toBeNull();
@@ -87,6 +85,8 @@ describe('from the door and back', () => {
     expect(signInProblemText('google-off')).toMatch(/isn’t available/);
     expect(signInProblemText('something-else')).toBe(signInProblemText('google'));
     expect(signInProblemText(null)).toBeNull();
+    // On the phone's page, the other way in is an email code, not the phone.
+    expect(signInProblemText('google-cancelled', 'phone')).toMatch(/get a code by email/);
   });
 
   test('a started sign-in is forgotten after half an hour', async () => {

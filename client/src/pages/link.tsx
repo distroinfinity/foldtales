@@ -35,7 +35,7 @@ function Link() {
     // Back from Google, with the headset's code still in the address.
     const back = params.get('step');
     if ((back !== 'approve' && back !== 'sign-in') || !code) return;
-    const said = signInProblemText(params.get('problem'));
+    const said = signInProblemText(params.get('problem'), 'phone');
     history.replaceState(null, '', `${location.pathname}?user_code=${encodeURIComponent(code)}`);
     void (async () => {
       const session = back === 'approve' ? await getSession() : null;
