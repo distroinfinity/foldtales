@@ -5,7 +5,7 @@ import { keepId, keptAfter, memoryOf, recordChapterEnd, type ChapterCanon } from
 import { loadChapter } from '../client/src/show/chapters.ts';
 import { CHECKPOINT_VERSION, checkpointKey, clearCheckpoint, readCheckpoint, writeCheckpoint, type Checkpoint } from '../client/src/show/checkpoint.ts';
 import { createShowLog, memoryLogStore } from '../client/src/show/log.ts';
-import { forgetLocalChapters, libraryState, readChapterStates, readLocalChapters, readProgress, subscribeLibrary, writeLocalChapters, writeProgress } from '../client/src/show/progress.ts';
+import { CHAPTERS, forgetLocalChapters, libraryState, readChapterStates, readLocalChapters, readProgress, subscribeLibrary, writeLocalChapters, writeProgress } from '../client/src/show/progress.ts';
 
 /** Serves client/public as the page would. */
 const fromPublic = async (url: string) => {
@@ -46,10 +46,13 @@ const place = (episodeId: string, scene: number, over: Partial<Checkpoint> = {})
   ...over,
 });
 
+/** The chapter listed after chapter 1 in this build, if any (lane C's chapter 3 now; chapter 2 once lane B lists it). */
+const AFTER_1 = CHAPTERS.find((c) => c.n > 1)?.n ?? null;
+
 describe('loadChapter', () => {
   test("chapter 1 is today's chapter, with its canon, no satchel and where each spread is", async () => {
     const ch = await loadChapter(1, { fetchJson: fromPublic, log: memoryLogStore() });
-    expect(ch).toMatchObject({ n: 1, episodeId: 'chapter-1', title: 'The night the light went out', next: null, satchel: [] });
+    expect(ch).toMatchObject({ n: 1, episodeId: 'chapter-1', title: 'The night the light went out', next: AFTER_1, satchel: [] });
     expect(ch.episode.scenes.map((s) => s.id)).toEqual(['the-lamp', 'the-shore', 'the-gap']);
     expect(ch.canon?.episodeId).toBe('chapter-1');
     expect(ch.where('opening')).toBe('Stopped at the top of the lighthouse.');
@@ -152,7 +155,9 @@ describe('progress per chapter', () => {
     expect(libraryState(s, now, SERIES).chapters[0]).toEqual({ n: 1, title: 'The night the light went out', state: 'started', canResume: true, where: 'Stopped on the shore.' });
     writeProgress(s, { seriesId: SERIES, chapter: 1, state: 'finished' });
     writeCheckpoint(s, place('chapter-1', 2));
-    expect(libraryState(s, now, SERIES)).toMatchObject({ chapters: [{ state: 'finished', canResume: true, where: 'Stopped at the gap.' }], next: { n: 1, resume: true } });
+    expect(libraryState(s, now, SERIES).chapters[0]).toMatchObject({ state: 'finished', canResume: true, where: 'Stopped at the gap.' });
+    // Read again with a place saved: the library resumes it, unless a later chapter is still unread.
+    expect(libraryState(s, now, SERIES).next).toMatchObject(AFTER_1 === null ? { n: 1, resume: true } : { n: AFTER_1, resume: false });
     writeCheckpoint(s, place('chapter-1', 2, { ended: true }));
     expect(libraryState(s, now, SERIES).chapters[0]).toEqual({ n: 1, title: 'The night the light went out', state: 'finished', canResume: false });
   });
