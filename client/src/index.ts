@@ -353,7 +353,7 @@ async function prepare(world: World, chapter: ChapterData) {
   const directorOn = reviewQuery('director') === 'on';
   const director = createDirector({
     spine: assets.spine,
-    library: libraryOf(manifest, assets.objects),
+    library: libraryOf(manifest, assets.objects, assets.sets.map((s) => s.id)),
     onStage: chapter.onStage.map((o) => o.cast),
     durationOf: runtime.durationOf,
     objects: showObjects,
@@ -456,7 +456,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
   const life = (s: StorySession | null): (StorySession & Lifecycle) | null => s as (StorySession & Lifecycle) | null;
   /** Put away or left XR in the Storyteller: the next time the book opens, it's a new story. */
   let storyNeedsFresh = false;
-  const library = libraryOf(manifest, assets.objects);
+  const library = libraryOf(manifest, assets.objects, assets.sets.map((s) => s.id));
   const onStage = chapter.onStage.map((o) => o.cast);
   /** Begins an evening: a fresh live stage and a fresh session, the book opening on the first set. */
   const startStorySession = () => {
@@ -1494,7 +1494,14 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, world
   const asked = askedChapter();
   const sceneBefore = new Set(world.scene.children);
   /** Loads and prepares a chapter: its data, its art (decoded and uploaded) and its stage. */
-  const attempt = (n: number) => loadChapter(n).then((chapter) => prepare(world, chapter));
+  /** Whether this page load resumes chapter n or starts it (lane B's carry choice is reused only on a resume). */
+  const intentFor = (n: number): 'start' | 'resume' => {
+    const waiting = pendingEntry();
+    if (waiting?.target.kind === 'chapter' && waiting.target.n === n) return waiting.target.from;
+    const next = readLibrary(localStorage).next;
+    return next.n === n && next.resume ? 'resume' : 'start';
+  };
+  const attempt = (n: number) => loadChapter(n, { from: intentFor(n) }).then((chapter) => prepare(world, chapter));
   // That chapter couldn't be prepared: whatever it put in the scene goes, chapter 1 is tried once, and the page says so.
   prepareWithFallback(
     asked,

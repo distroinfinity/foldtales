@@ -75,12 +75,27 @@ describe('what carries: a chapter plays the path its earlier chapters chose', ()
     const store = storage();
     await loadChapter(2, { fetchJson: build(), log: await finished(['wick-rope'], []), store, now });
     writeCheckpoint(store, { v: CHECKPOINT_VERSION, savedAt: new Date(now).toISOString(), seriesId: SERIES, episodeId: 'chapter-2', showMs: 30_000, scale: 1, confirmed: true, runtime: {}, ended: false });
-    const resumed = await loadChapter(2, { fetchJson: build(), log: await finished(['cross-kite'], ['kite']), store, now });
+    const resumed = await loadChapter(2, { fetchJson: build(), log: await finished(['cross-kite'], ['kite']), store, now, from: 'resume' });
     expect(nextOf(resumed.episode, 'opening')).toBe('lantern-back');
     // Started again (no place to resume), it chooses afresh.
     store.removeItem('tt.checkpoint.chapter-2');
     store.removeItem('tt.checkpoint');
-    const fresh = await loadChapter(2, { fetchJson: build(), log: await finished(['cross-kite'], ['kite']), store, now });
+    const fresh = await loadChapter(2, { fetchJson: build(), log: await finished(['cross-kite'], ['kite']), store, now, from: 'resume' });
     expect(nextOf(fresh.episode, 'opening')).toBe('wick-gone');
   });
+});
+
+test("starting a chapter afresh follows the latest replay of the one before, even with an old place still saved", async () => {
+  // Chapter 1 finished with the kite, chapter 2 started and left; chapter 1 replayed with the rope;
+  // chapter 2 started from the beginning (the host clears the old place only after preparing).
+  const store = storage();
+  const kite = await finished(['cross-kite'], ['kite']);
+  await loadChapter(2, { fetchJson: build(), log: kite, store, now, from: 'start' });
+  writeCheckpoint(store, { v: CHECKPOINT_VERSION, savedAt: new Date(now).toISOString(), seriesId: SERIES, episodeId: 'chapter-2', showMs: 30_000, scale: 1, confirmed: true, runtime: {}, ended: false });
+  const replayed = await finished(['wick-rope'], []);
+  const again = await loadChapter(2, { fetchJson: build(), log: replayed, store, now, from: 'start' });
+  expect(nextOf(again.episode, 'opening')).toBe('lantern-back');
+  // A resume after that fresh start keeps the new choice (the old place goes once the host has prepared).
+  const resumed = await loadChapter(2, { fetchJson: build(), log: replayed, store, now, from: 'resume' });
+  expect(nextOf(resumed.episode, 'opening')).toBe('lantern-back');
 });

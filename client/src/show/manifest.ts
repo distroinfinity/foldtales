@@ -61,7 +61,15 @@ export const CueKind = z.enum([
 ]);
 export type CueKind = z.infer<typeof CueKind>;
 
-export const SetEntry = z.strictObject({ id: Id, name: z.string().min(1), description: z.string().min(1), file: z.string().min(1), marks: z.array(Mark).min(1) });
+export const SetEntry = z.strictObject({
+  id: Id,
+  name: z.string().min(1),
+  description: z.string().min(1),
+  file: z.string().min(1),
+  marks: z.array(Mark).min(1),
+  /** Loaded only for a chapter whose spreads use it (chapter 3's snowy sets), never offered to the Storyteller otherwise. Client-only. */
+  chapterOnly: z.boolean().optional(),
+});
 export type SetEntry = z.infer<typeof SetEntry>;
 
 export const ShowManifest = z.strictObject({
@@ -118,12 +126,13 @@ export const ShowManifest = z.strictObject({
 export type ShowManifest = z.infer<typeof ShowManifest>;
 
 /** The library the director and the beat checks see. Nothing outside it can be named. */
-export function libraryOf(manifest: ShowManifest, objects: ObjectDef[]): StageLibrary {
+/** `loadedSets`: only these sets are offered (the ones this page load built); every set if absent. */
+export function libraryOf(manifest: ShowManifest, objects: ObjectDef[], loadedSets?: readonly string[]): StageLibrary {
   return {
     version: manifest.libraryVersion,
     cast: manifest.cast.map((entry) => entry.member),
     objects,
-    sets: manifest.sets.map(({ id, name, description, marks }) => ({ id, name, description, marks })),
+    sets: manifest.sets.filter((s) => !loadedSets || loadedSets.includes(s.id)).map(({ id, name, description, marks }) => ({ id, name, description, marks })),
     cues: manifest.cues.map(({ id, summary, nominalMs }) => ({ id, summary, nominalMs })),
     tags: TAG_VOCABULARY,
   };
