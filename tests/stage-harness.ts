@@ -114,6 +114,7 @@ export function stage(chapter: Spine = spine) {
   } as unknown as SoundEngine;
   const captions: Array<string | null> = [];
   const clock = createShowClock();
+  const dim = buildDim();
   let ended = false;
   const runtime = createShowRuntime({
     manifest,
@@ -126,7 +127,7 @@ export function stage(chapter: Spine = spine) {
       puppets,
       actors,
       heads,
-      dim: buildDim(),
+      dim,
       leaves: buildLeaves([ref('fx/leaf-1.png'), ref('fx/leaf-2.png')]),
       caption: { mesh: new Object3D() as never, baseSizeM: 0.012, setSize: () => undefined, show: (line) => captions.push(line) },
       endPage: { show: (on) => void (ended = on), readAgain: new Object3D() },
@@ -150,7 +151,7 @@ export function stage(chapter: Spine = spine) {
     root.updateMatrixWorld(true);
     return runtime.frame(ms, wall, head, { fold: controlFold(open, view.cards.length), ribbon: 0 }, handPoints);
   };
-  return { root, view, puppets, actors, objects, drawer, satchel, runtime, clock, played, spoken, captions, frame, handPoints, initialObjects, ended: () => ended };
+  return { root, view, dim, puppets, actors, objects, drawer, satchel, runtime, clock, played, spoken, captions, frame, handPoints, initialObjects, ended: () => ended };
 }
 
 export type Harness = ReturnType<typeof stage>;
