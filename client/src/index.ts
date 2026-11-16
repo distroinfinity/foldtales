@@ -10,7 +10,6 @@ import { createBackendAccess, withDeadline } from './backend.ts';
 import { OVER_STACK } from './book/book-view.ts';
 import { preloadFonts } from './book/text.ts';
 import { setLandingState, type LandingState } from './landing/landing.ts';
-import { askForMicrophone } from './landing/microphone.ts';
 import { buildDim } from './light/dim.ts';
 import { loadStageAssets, uploadAll } from './paint/assets.ts';
 import { makeSoftPieces } from './paint/soft.ts';
@@ -51,7 +50,7 @@ import { cardFor, cardShowing, choose, ended, holdsStory, initialMenu, restarted
 import { chapterEnding } from './book/end-sheet.ts';
 import { cancelEntry, chooseEntry, consumeEntry, pendingEntry, prepareEntry, type Entry } from './landing/entry.ts';
 import { primaryLabel, readLibrary } from './landing/library.ts';
-import { recordFinished, storytellerSnapshot, whereIn, type StoryEnding } from './stage/seams.ts';
+import { askMicrophone, recordFinished, storytellerSnapshot, whereIn, type StoryEnding } from './stage/seams.ts';
 import type { ExtraTarget as CardExtra } from './stage/controls.ts';
 import { createLiveScheduler } from './storyteller/live.ts';
 import { createStorySession, type StorySession } from './storyteller/session.ts';
@@ -150,7 +149,7 @@ async function prepare(world: World) {
     .then((raw) => (raw ? ChapterCanon.parse(raw) : null))
     .catch(() => null);
   const storyConfig = await fetch('./show/storyteller.json')
-    .then((r) => (r.ok ? (r.json() as Promise<{ firstSet: string; entrances: Record<string, Record<string, string>>; welcomeDrawer?: string[]; recorded?: RecordedLines }>) : null))
+    .then((r) => (r.ok ? (r.json() as Promise<{ firstSet: string; entrances: Record<string, Record<string, string>>; recorded?: RecordedLines }>) : null))
     .catch(() => null);
   const soft = makeSoftPieces();
   // Review builds only: `?review=cast` stands the whole cast on the open book, cycling every acting.
@@ -531,7 +530,10 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
         if (state === 'performing') storyHint.blocked = null;
         if (state === 'listening' && storyHint.blocked) storyHint.base = storyHint.blocked;
         else if (state === 'listening') {
-          storyHint.base = micAllowed ? `Your turn: hold the button to talk to ${name === "They" ? "them" : name}.` : "They can't hear you yet: allow the microphone on the page outside the book.";
+          // A story plays by hand too, so without the microphone the turn is a gift, or simply watching.
+          const turn = micAllowed ? `Your turn: hold the button to talk to ${name === "They" ? "them" : name}, or hand them something.` : 'Your turn: hand them something, or just watch.';
+          // While something painted is on the page, its painter is named with it (Runway's terms).
+          storyHint.base = paintedTonight.length ? `${turn} Paintings: Powered by Runway.` : turn;
         } else storyHint.base = state === 'thinking' ? (storyHint.heard ? `You: ${storyHint.heard}` : '…') : null;
         if (state !== 'thinking') storyHint.heard = null;
         runtime.setHint(storyHint.base);
@@ -583,6 +585,14 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
     }
     // It never came in time: whoever fetched it comes back empty-handed.
     if (story === session && gen === host.generation) session?.paintMissed();
+  }
+  /**
+   * The story opens with the drawer out: the Lost and Found's things are a hands-only way in, since
+   * handing one over at the welcome is tonight's premise (lane D's plan, stage 1).
+   */
+  function openStory(): void {
+    story?.open();
+    if (runtime.drawerAmount < 0.5) runtime.toggleDrawer();
   }
   /** A new evening: a fresh session, and what you kept from earlier evenings back in your satchel. */
   function beginStory(): void {
@@ -959,7 +969,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       const top = menu.stack[menu.stack.length - 1];
       const ribbonAt = stage.book.root.localToWorld(new Vector3(assets.book.closedSizeM[0] * RIBBON_X_SHARE, stage.book.pageY + 0.01, assets.book.closedSizeM[1] / 2 - 0.012));
       const r3 = (v: Vector3) => [v.x, v.y, v.z].map((n) => +n.toFixed(3));
-      const info = JSON.stringify({ objects: Object.fromEntries(hands.targets().filter((t) => t.proxy.id.startsWith("object:")).slice(0, 6).map((t) => [t.proxy.id.slice(7), { at: [t.proxy.position.x, t.proxy.position.y, t.proxy.position.z].map((n) => +n.toFixed(3)), home: stage.objects.get(t.proxy.id.slice(7))?.home.kind }])), mode: storyMode ? "story" : "chapter", story: story !== null, talk: earsOn, root: menu.root, top: top?.kind ?? null, gen: menu.generation, ready: card.ready, card: card.debug, hint: hint.ready ? Math.round(1000 * (hint.measure(head, stage.book.root.getWorldPosition(new Vector3()))?.minTextDeg ?? 0)) / 1000 : hint.shown, shown: card.shown, spec: card.spec?.title ?? null, open: +controls.amount.toFixed(2), shownGen: shownGeneration, clockMs: Math.round(clock.ms), paused: clock.paused, ribbon: r3(ribbonAt), pinchL: controls.pinchPoint("left") && r3(controls.pinchPoint("left")!), pinchR: controls.pinchPoint("right") && r3(controls.pinchPoint("right")!), targets: Object.fromEntries(card.targets().map((t) => [t.id, r3(t.position)])) });
+      const info = JSON.stringify({ objects: Object.fromEntries(hands.targets().filter((t) => t.proxy.id.startsWith("object:")).slice(0, 6).map((t) => [t.proxy.id.slice(7), { at: [t.proxy.position.x, t.proxy.position.y, t.proxy.position.z].map((n) => +n.toFixed(3)), home: stage.objects.get(t.proxy.id.slice(7))?.home.kind }])), mode: storyMode ? "story" : "chapter", story: story !== null, talk: earsOn, root: menu.root, top: top?.kind ?? null, gen: menu.generation, ready: card.ready, card: card.debug, hint: hint.ready ? Math.round(1000 * (hint.measure(head, stage.book.root.getWorldPosition(new Vector3()))?.minTextDeg ?? 0)) / 1000 : hint.shown, shown: card.shown, spec: card.spec?.title ?? null, open: +controls.amount.toFixed(2), shownGen: shownGeneration, clockMs: Math.round(clock.ms), paused: clock.paused, ribbon: r3(ribbonAt), pinchL: controls.pinchPoint("left") && r3(controls.pinchPoint("left")!), pinchR: controls.pinchPoint("right") && r3(controls.pinchPoint("right")!), targets: Object.fromEntries(card.targets().map((t) => [t.id, r3(t.position)])), talkAt: talk.targets()[0] ? [talk.targets()[0]!.proxy.position.x, talk.targets()[0]!.proxy.position.y, talk.targets()[0]!.proxy.position.z].map((n) => +n.toFixed(3)) : null });
       if (document.documentElement.dataset.menu !== info) document.documentElement.dataset.menu = info;
     }
     if (host.waiting.length && !clock.paused && !cardShowing(menu)) for (const resolve of host.waiting.splice(0)) resolve();
@@ -1161,7 +1171,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
         setMenu(restarted(menu));
         controls.lowerRibbon();
         controls.reopen();
-        story!.open();
+        openStory();
       } else {
         readAgain.requested = false;
         runtime.reset(initialObjects);
@@ -1382,7 +1392,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
         sound.roomTone(true);
       } else if (!runtime.started) {
         runtime.start();
-        if (story) story.open();
+        if (story) openStory();
         else {
           startEpisode();
           writeProgress(localStorage, { seriesId: series, chapter: 1, state: 'started' });
@@ -1564,7 +1574,8 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, world
           enter(false, 'story');
           return;
         }
-        void askForMicrophone(navigator.mediaDevices?.getUserMedia?.bind(navigator.mediaDevices)).then((answer) => {
+        // Through the Storyteller's provider, so the door hears the answer: refused, it offers the story by hand.
+        void askMicrophone().then((answer) => {
           micState = answer === 'granted' ? 'granted' : 'denied';
           if (answer === 'granted') {
             // Straight in. If the browser wants a fresh tap for VR, the door is ready for it.

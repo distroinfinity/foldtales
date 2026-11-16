@@ -1,6 +1,5 @@
 {
   "firstSet": "the-lamp",
-  "welcomeDrawer": ["odd-sock", "brass-key", "paper-boat"],
   "recorded": {
     "welcome-fallback": {"speaker": "pip", "text": "Oh! It's you. Tell us what tonight's story is about, or hand us something from the drawer."},
     "finder-picks": {"speaker": "moth", "text": "This one's been rattling all night!"},

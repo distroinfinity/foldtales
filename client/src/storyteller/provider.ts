@@ -306,13 +306,14 @@ const localStore: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'> = {
 };
 
 async function micPermission(): Promise<Mic> {
+  const remembered = localStore.getItem(MIC_KEY);
   try {
     const status = await navigator.permissions?.query({ name: 'microphone' as PermissionName });
-    if (status) return status.state;
+    // A prompt dismissed (not blocked) still reads 'prompt': the reader's own no on this headset stands.
+    if (status) return status.state === 'prompt' && remembered === 'denied' ? 'denied' : status.state;
   } catch {
     // Not every browser answers for the microphone.
   }
-  const remembered = localStore.getItem(MIC_KEY);
   return remembered === 'granted' || remembered === 'denied' ? remembered : 'prompt';
 }
 
