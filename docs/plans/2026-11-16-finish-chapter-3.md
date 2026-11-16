@@ -358,6 +358,27 @@ Earlier rounds covered, unchanged since: a wrong gift (Pip throws Wick's own rop
 
 **Spend:** run 020 0 of 45 (no repaint asked for), run 021 81 of 90, run 022 not run (no cue-named sounds in the engine; chapter 3 plays on existing foley). Lane C: 81 of 150.
 
+### On main, after chapter 2 (Nov 17, from 01:00 IST): clean
+
+The branch is main 79ae980 (chapter 2 #49, touch controls #50) plus chapter 3, with PR #45's two review fixes:
+Moth flies to Pip and carries the light up, then home (`963ce33`, `tests/chapter-3-stage.test.ts`), and the room
+hunt hides the logbook only ahead of the reader (`8a87af0`, `tests/hunt-place.test.ts`). `pnpm check`: 86 files,
+1,185 tests, bundle clean. Chapter 1's beam (`book-view.ts`) and the book controls are main's, unchanged.
+
+- **From the page:** Your book lists three chapters; Start on "The longest night", then "Open chapter 3" (both
+  buttons on the page now say so).
+- **A first-time reader with hands:** sock at the frost ask (frost-wipe 0:57); the logbook fetched from the couch,
+  which the forward-only rule keeps when it is in front (log-found 2:21); the ladder at the gap (wick-ladder 3:25);
+  end card at 5:10 show time, three lines and "Kept: odd sock, little wooden ladder".
+- **Touch controls:** the pause card (Carry on, Start again, Contents, Put the book away) came up mid-chapter and a
+  fingertip press on Carry on folded it away; the show clock held while it stood. The ghost hand loops by the ribbon.
+- **The beacon:** Moth holds the lantern up beside Pip, and the raised light casts the beam (lane B's light-up beam).
+- **The hunt, three placements:** the couch in front kept; the couch behind the reader passed over for the floor 0.9 m
+  ahead; with the book set down in front of a moved reader, a table 1.34 m ahead. The beam's stop on the floor
+  spot is left to the headset (the emulator CLI is too slow to catch the reveal).
+- **For the owner (lane A2's controls, not changed here):** once, the emulated hand drawn straight back low over the
+  book's near edge after handing over the ladder touched the ribbon and opened the pause card.
+
 ## Appendix: the line ledger
 
 From `docs/plans/finish-chapters/episode-3.draft.json` and its bridges, by contract line id (`lineIdOf`), against `client/public/show/manifest.json` and `episode-2.draft.json`. Re-run when the lines freeze; run 021's jobs are written from the frozen file, not from this list.
