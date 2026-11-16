@@ -17,7 +17,7 @@ On Nov 18, before submitting, delete each marked line whose work didn't merge, a
 | Division | New Experience (first commit Oct 30, 2026; the window opened Sep 24) |
 | Link | https://www.foldtales.xyz |
 | Video | The YouTube link (public), under 3:00 |
-| Target launch date | **The owner decides.** Suggested: "Spring 2027, on the Meta Horizon Store and Meta VR Glasses" |
+| Target launch date | Spring 2027, on the Meta Horizon Store and Meta VR Glasses (owner, Nov 16) |
 
 ### Tagline (under 140 characters)
 
@@ -36,9 +36,9 @@ A painted pop-up storybook opens on your real table. Reach in, hand the characte
 
 **The AI Storyteller.** **[if merged]** Beside the written chapters, the same cast improvises a new story with you. Say what tonight's story is about, or just hand them something; they answer in their own voices, can paint what you ask for, and can bring weather into your room. The app always owns the ending, and the story finishes cleanly if the AI is slow or unavailable.
 
-**How we built it.** Foldtales is built for the web with Meta's Immersive Web SDK and Three.js, so it opens from a link with nothing to install. Every character is a cut-out puppet, painted in watercolour and pencil, rigged in layers and animated at twelve poses a second like stop-motion. The art was painted with AI from our own designs and references, then cut out, finished and rigged by hand; chapter voices were recorded with ElevenLabs. Chapter 1 runs at 85–90 fps on Quest 3, and the site caches itself for instant return visits.
+**How we built it.** Foldtales is built for the web with Meta's Immersive Web SDK and Three.js, so it opens from a link with nothing to install. Every character is a cut-out puppet, painted in watercolour and pencil, rigged in layers and animated at twelve poses a second like stop-motion. The art was painted with AI from our own designs and references, then cut out, finished and rigged by hand; chapter voices were recorded with ElevenLabs, and a quiet CC0 piano bed plays under the story. Chapter 1 runs at 85–90 fps on Quest 3, and the site caches itself for instant return visits.
 
-**What's next.** More chapters of the book, room effects that remember your room, and Story Circle: friends around one table, or remote, each bringing their own satchel of keepsakes into a shared story.
+**What's next.** We plan to launch in spring 2027, on the Meta Horizon Store and on Meta VR Glasses. Before then: more chapters of the book, room effects that remember your room, and Story Circle, with friends around one table or remote, each bringing their own satchel of keepsakes into a shared story.
 <!-- /description -->
 
 ### How hands are used

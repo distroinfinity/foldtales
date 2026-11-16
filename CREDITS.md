@@ -7,6 +7,7 @@ Foldtales, made for the Meta VR Start Developer Competition, 2026. Re-check each
 - **Painted art** (cast, sets, book, objects, the reading room): generated with Seedream through Runway from our own designs and references, then cut out, finished and rigged by us. Every run's plan, prompts and results are in `art/runs/`. Runway's terms say outputs are owned by the user; re-check before release.
 - **Chapter voices:** ElevenLabs presets (eleven_v4) through Runway, recorded before release. Run 005 chose the cast, and runs 010 and 012 made chapter 1's lines.
 - **Sound effects:** made through Runway (runs 009, 010 and 016).
+- **Music:** one quiet bed under the show, "Piano Ambience chord progression 82bpm" by CVLTIV8R ([Freesound #810857](https://freesound.org/people/CVLTIV8R/sounds/810857/)), CC0 1.0. It's levelled and looped by us (`art/sound/music/finish.sh`). Source, licence evidence and the YouTube Content ID check: `art/sound/music/LICENCE.md`. No ElevenLabs music (owner, Nov 16; run 027 cancelled).
 - **The AI Storyteller, live:** stories by Anthropic's Claude; voices by OpenAI (`gpt-4o-mini-tts`), disclosed to readers as AI-generated, as OpenAI's terms require; speech in by Groq (Whisper); live pictures by Runway (`seedream5_flash`), credited "Powered by Runway" where they appear. Each service's terms, and what they ask of us, are in `docs/legal-copy.md`.
 
 ## Terms we rely on (read Nov 16, 2026)

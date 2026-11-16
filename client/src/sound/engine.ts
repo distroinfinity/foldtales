@@ -74,6 +74,15 @@ export interface SoundEngine {
 /** A bus master's level when not muted. */
 const MASTER_GAIN = 0.9;
 
+/**
+ * The music bed (lane E): one quiet CC0 loop under the show (see CREDITS.md). Served from the site's
+ * root, so it needs no art folder. The file is levelled to about -24 LUFS; at this gain it sits about
+ * 18 dB under the voices, and it dips a further 9 dB while anyone speaks. A missing file means no music.
+ */
+export const MUSIC_URL = 'sound/music/bed.mp3';
+export const MUSIC_GAIN = 0.18;
+export const MUSIC_DUCK = 0.35;
+
 /** Moves a master to silence (or back) from wherever it is now, over about a fifth of a second. */
 export function rampMaster(gain: Pick<AudioParam, 'value' | 'cancelScheduledValues' | 'setValueAtTime' | 'setTargetAtTime'>, muted: boolean, now: number): void {
   gain.cancelScheduledValues(now);
@@ -101,6 +110,8 @@ export function createSoundEngine(sources?: SoundSources): SoundEngine {
   let buses: Record<SoundBus, Bus> | null = null;
   let showRunning: ReturnType<typeof createSuspender> | null = null;
   let tone: GainNode | null = null;
+  /** The bed: its level (for the duck), its decoded loop, and whether the show wants it playing. */
+  const music: { gain: GainNode | null; buffer: AudioBuffer | null; wanted: boolean } = { gain: null, buffer: null, wanted: false };
   let humming: { gain: GainNode; clip: boolean } | null = null;
   const ambiences = new Map<string, GainNode>();
   let voiceIn: AudioNode | null = null;
@@ -310,13 +321,33 @@ export function createSoundEngine(sources?: SoundSources): SoundEngine {
     source.start();
   }
 
-  /** Room tone dips under a line, then comes back. */
+  /** Room tone and the music bed dip under a line, then come back. */
   function duck(bus: Bus, seconds: number): void {
-    if (!tone) return;
     const t = bus.ctx.currentTime;
-    tone.gain.cancelScheduledValues(t);
-    tone.gain.setTargetAtTime(0.5, t, 0.08);
-    tone.gain.setTargetAtTime(1, t + seconds, 0.4);
+    if (tone) {
+      tone.gain.cancelScheduledValues(t);
+      tone.gain.setTargetAtTime(0.5, t, 0.08);
+      tone.gain.setTargetAtTime(1, t + seconds, 0.4);
+    }
+    if (music.gain) {
+      music.gain.gain.cancelScheduledValues(t);
+      music.gain.gain.setTargetAtTime(MUSIC_GAIN * MUSIC_DUCK, t, 0.15);
+      music.gain.gain.setTargetAtTime(MUSIC_GAIN, t + seconds, 0.8);
+    }
+  }
+
+  /** Starts the bed once it's both wanted and decoded, on the show bus: it pauses with the book and mutes with the rest. */
+  function startMusic(): void {
+    const b = buses;
+    if (!b || music.gain || !music.wanted || !music.buffer) return;
+    const bus = b.show;
+    music.gain = new GainNode(bus.ctx, { gain: 0 });
+    music.gain.connect(bus.master);
+    const source = new AudioBufferSourceNode(bus.ctx, { buffer: music.buffer, loop: true });
+    source.connect(music.gain);
+    source.start();
+    // Fades in over a few seconds, under the book's opening.
+    music.gain.gain.setTargetAtTime(MUSIC_GAIN, bus.ctx.currentTime, 1.5);
   }
 
   const live = new Set<string>();
@@ -353,9 +384,21 @@ export function createSoundEngine(sources?: SoundSources): SoundEngine {
       const files = new Set<string>();
       for (const sound of Object.values(sources.sounds)) for (const file of sound.files) files.add(file);
       for (const line of Object.values(sources.voiceLines)) if (line.url) files.add(line.url);
+      // The bed: the site's own file, next to the page. Fetched beside the clips; its absence is silence.
+      const bed = (async () => {
+        try {
+          const response = await fetch(new URL(MUSIC_URL, document.baseURI).href);
+          if (!response.ok) return;
+          music.buffer = await b.ui.ctx.decodeAudioData(await response.arrayBuffer());
+          startMusic();
+        } catch {
+          // No music: the show plays with room tone and foley, as it always has.
+        }
+      })();
       // An AudioBuffer isn't tied to the context that decoded it, so both buses share these.
-      await Promise.all(
-        [...files].map(async (file) => {
+      await Promise.all([
+        bed,
+        ...[...files].map(async (file) => {
           try {
             const response = await fetch(`${sources.artBase}/${file}`);
             if (!response.ok) return;
@@ -364,7 +407,7 @@ export function createSoundEngine(sources?: SoundSources): SoundEngine {
             // This clip falls back to its synthesized stand-in.
           }
         }),
-      );
+      ]);
     },
     unlock() {
       const b = ensure();
@@ -482,6 +525,10 @@ export function createSoundEngine(sources?: SoundSources): SoundEngine {
         }
       }
       tone.gain.setTargetAtTime(on ? 1 : 0, bus.ctx.currentTime, 0.8);
+      // The bed comes and goes with the room tone: on when the show starts.
+      music.wanted = on;
+      if (music.gain) music.gain.gain.setTargetAtTime(on ? MUSIC_GAIN : 0, bus.ctx.currentTime, on ? 1.5 : 0.8);
+      else if (on) startMusic();
     },
     ambience(name, level) {
       const b = ensure();

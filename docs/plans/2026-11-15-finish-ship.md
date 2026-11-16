@@ -156,6 +156,25 @@ This lane makes what the other lanes build submittable and production-ready. It 
   `reviewQuery` returns null outside review builds, so production never sees any of it.
 - **The client's side, on `finish-ship` once #32 merges:** `client/src/telemetry.ts` counts frames over 16.7 ms and the slowest frame per window. `scripts/telemetry-report.ts` then reads per test case, drops each session's first window (the transition into the fixture), and checks the observed `room_fx` against the case.
 
+### Task 6, the music bed: a CC0 track (owner, Nov 16)
+
+- **The owner's decisions:** no ElevenLabs, so run 027 is cancelled (nothing was sent or spent); a free, clearly licensed track; evidence in `CREDITS.md` and the notices; a private YouTube Content ID test before the video. Launch date: "Spring 2027, on the Meta Horizon Store and Meta VR Glasses", now in the form copy.
+- **The track:** "Piano Ambience chord progression 82bpm" by CVLTIV8R, Freesound #810857, **CC0**. One soft, slow piano with reverb, made by the author in FL Studio, tagged loopable.
+- **Passed over:**
+  - a lo-fi beat loop (drums);
+  - two pieces whose level swings too far for a bed;
+  - a minor-key piece written for a book trailer (more Content ID risk);
+  - a track whose description reads like an AI prompt (unclear provenance).
+- **Evidence:** `art/sound/music/LICENCE.md`, with the page, the licence, the date and the source file's SHA-256. Also `CREDITS.md`, and an entry in `notices.txt`.
+- **Finishing:** `art/sound/music/finish.sh` levels it to −24.6 LUFS with its swings narrowed (loudness range 9.7 → 7.2 LU), and crossfades the end into the start so it loops. Output: `client/public/sound/music/bed.mp3`, 96 s, 1.5 MB, held by the offline cache.
+- **In the engine** (`client/src/sound/engine.ts`, no other lane's file):
+  - it starts with the room tone, fading in under the book's opening;
+  - it sits on the show bus, so it pauses with the book and mutes with `setMuted`;
+  - it plays at about −15 dB, roughly 18 dB under the voices, and dips a further 9 dB under every line;
+  - a missing file means no music.
+- **Checked in the emulator:** the engine fetched and decoded the bed once, with no errors, and the console was clean once the book opened (apart from the backend-down device call). Its sound is for the owner's ear in the headset.
+- **Still to do:** the private YouTube Content ID test with the finished bed, before filming. If a claim can't be cleared, delete `bed.mp3`, and the book plays without music.
+
 ### Tasks 6 and 8: the music plan, the form copy and the shot list (Nov 16, afternoon)
 
 - **The music bed:** `art/runs/027-music-bed/plan.json`, **waiting for the sprint master's approval.**

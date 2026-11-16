@@ -35,5 +35,7 @@
   ],
   "estimate": "3 jobs × 90 s = 4.5 minutes of music. About 4,000 ElevenLabs credits from the plan's monthly allowance (third-party guides put music at about 900 credits a minute), or about $0.68–$1.35 at the per-minute API rates they quote ($0.15–$0.30; the official rate page couldn't be read). No Runway credits.",
   "cap": "6 minutes of music in all (one redo of one candidate), then stop.",
-  "approval": "Waiting for the sprint master's approval before any request is sent."
+  "approval": "Not approved: cancelled.",
+  "status": "cancelled",
+  "cancelled": "Cancelled by the owner on Nov 16 before any request was sent: no ElevenLabs. The bed is a free CC0 track instead (art/sound/music/LICENCE.md). Nothing was generated or spent."
 }

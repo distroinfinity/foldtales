@@ -69,6 +69,7 @@ export default defineConfig(({ command, mode }) => ({
         },
         { name: 'Magic UI (Blur Fade, Text Animate, Shimmer Button, Particles), adapted in the page', version: '', license: 'MIT', files: [licence('magic-ui-LICENSE.txt')] },
         { name: 'Tailwind CSS (the page\'s generated styles)', version: packageVersion('tailwindcss'), license: 'MIT', files: [fileURLToPath(new URL('./node_modules/tailwindcss/LICENSE', import.meta.url))] },
+        { name: 'Music: "Piano Ambience chord progression 82bpm" by CVLTIV8R (Freesound #810857)', version: '', license: 'CC0-1.0', files: [fileURLToPath(new URL('../art/sound/music/LICENCE.md', import.meta.url))] },
       ],
       fallbacks: { 'yoga-layout': [licence('yoga-layout-LICENSE.txt')] },
     }),
