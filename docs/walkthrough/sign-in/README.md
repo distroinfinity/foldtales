@@ -44,6 +44,8 @@ Two browser panes played the two devices:
 | 18 | Phone: Google cancelled | Back at the sign-in step with the code kept, saying what happened, and offering the email code. |
 | 19 | Phone: back from Google without a session | It no longer drops silently to the code step: the sign-in step, saying so. |
 | 20 | Phone: a real email code sent | Through Resend, to `delivered@resend.dev`. |
+| 21 | Header, scrolled, 1440 wide | Once the page scrolls, the header has its own backdrop: the hero's title passes under it, not through it. |
+| 22 | Header, scrolled, 390 wide | The same at phone width. |
 
 ## What changed (lane A's five gaps)
 
@@ -52,6 +54,18 @@ Two browser panes played the two devices:
 3. **Google is offered only when it's switched on.** The backend says which methods are on (`GET /v1/auth/methods`). With Google off, the bookplate disables its button and gives the reason (02), and the phone's page offers only the email code (05).
 4. **`/link/` after a Google failure** shows the sign-in step with the headset's code kept and the reason (18, 19). It checks that code is still waiting first, and says so if it expired meanwhile.
 5. **This walkthrough** is the proof.
+
+## After Codex's review of #52
+
+- **Google sign-in is bound to the tab that started it.**
+  - **The start:** the tab keeps a random nonce and sends only its hash to `/google/start`. The backend records the trip, and the trip's id rides inside Google's own state.
+  - **The return:** `/google/done` completes only that trip, once, within ten minutes, and only with the session cookie Google's callback set after the trip began. A bearer token or an older session gets nothing.
+  - **The exchange:** the one-time code is redeemed once, through `/google/finish`, with the nonce itself. Better Auth's own verify route is closed.
+  - **What that stops:** a return link someone else made, or a code minted for another account, never signs a tab in, links its headset or uploads its book.
+- **The 150 stories a day for everyone** is a count by day with no reader in it. It goes up with each reservation and is kept when an account is deleted.
+- **Hold to talk is touch to press** (`stage/talk-press.ts`, on the shared `press.ts` arming).
+  - **Touch:** the finger comes in from the front and pushes the paper down. A pinching hand never presses, and there's no grab target. Lifting the finger lets go.
+  - **Far away:** a look (VR Glasses) or a pointing hand, with a pinch, holds it while the pinch lasts. A hand already at the tab doesn't count.
 
 ## Not shown
 
