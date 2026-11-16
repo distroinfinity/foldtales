@@ -169,7 +169,7 @@ export function forgetLocalChapters(store: Pick<Storage, 'removeItem' | 'key' | 
   const keys: string[] = [];
   for (let i = 0; i < store.length; i++) {
     const key = store.key(i);
-    if (key && (key === KEY || key === CHAPTERS_KEY || key.startsWith('tt.checkpoint'))) keys.push(key);
+    if (key && (key === KEY || key === CHAPTERS_KEY || key.startsWith('tt.checkpoint') || key.startsWith('tt.carry.'))) keys.push(key);
   }
   for (const key of keys) store.removeItem(key);
   notifyLibrary();

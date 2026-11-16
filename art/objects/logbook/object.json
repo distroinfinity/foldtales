@@ -1,0 +1,22 @@
+{
+  "id": "logbook",
+  "name": "the keeper's logbook",
+  "description": "Wick's battered keeper's logbook, forty years of lost things coming home written inside.",
+  "tags": [
+    "pages",
+    "message",
+    "heavy"
+  ],
+  "art": {
+    "kind": "asset",
+    "path": "objects/logbook/logbook.png"
+  },
+  "size": {
+    "heightM": 0.045
+  },
+  "pivot": [
+    50,
+    50
+  ],
+  "provenance": "library"
+}
