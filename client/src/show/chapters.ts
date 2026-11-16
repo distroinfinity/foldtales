@@ -56,6 +56,8 @@ export interface ChapterDeps {
   /** Where this browser keeps places and the carry choice a chapter started with. localStorage by default. */
   store?: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
   now?: number;
+  /** Whether this page load resumes the chapter or starts it; a saved carry choice is reused only on a resume. */
+  from?: 'start' | 'resume';
 }
 
 /** Prepares chapter n for this page load. Rejects if it can't (no such chapter, or its data won't load). */
@@ -85,7 +87,7 @@ export async function loadChapter(n: number, deps: ChapterDeps = {}): Promise<Ch
     .catch(() => null);
   if (carryFile) {
     const store = deps.store ?? (typeof localStorage === 'undefined' ? null : localStorage);
-    const resuming = store ? readCheckpoint(store, deps.now ?? Date.now(), { seriesId: manifest.libraryVersion, episodeId: episode.id }) !== null : false;
+    const resuming = deps.from === 'resume' && store ? readCheckpoint(store, deps.now ?? Date.now(), { seriesId: manifest.libraryVersion, episodeId: episode.id }) !== null : false;
     const kept = store && resuming ? readCarryChoice(store, episode.id) : null;
     const choice = kept ?? chooseCarries(carryFile, episode, before.facts, new Set(satchel.map((o) => o.id)));
     if (store && !kept) writeCarryChoice(store, episode.id, choice);

@@ -1424,9 +1424,9 @@
           "id": "moth-lamp",
           "label": "by the great lamp",
           "position": [
-            -0.06,
-            0.1,
-            -0.07
+            -0.093,
+            0.175,
+            -0.085
           ]
         },
         {
@@ -1442,9 +1442,9 @@
           "id": "stair",
           "label": "the top of the stair, behind the lamp room",
           "position": [
-            -0.15,
+            -0.093,
             0,
-            -0.1
+            -0.125
           ]
         }
       ]
@@ -1852,9 +1852,9 @@
           "id": "moth-lamp",
           "label": "by the great lamp",
           "position": [
-            -0.06,
-            0.1,
-            -0.07
+            -0.093,
+            0.175,
+            -0.085
           ]
         },
         {
@@ -1870,9 +1870,9 @@
           "id": "stair",
           "label": "the top of the stair, behind the lamp room",
           "position": [
-            -0.15,
+            -0.093,
             0,
-            -0.1
+            -0.125
           ]
         }
       ]

@@ -74,10 +74,9 @@ export async function loadStageAssets(
   /** `spine` is the chapter this page load plays (`loadChapter(n).episode`); chapter 1's from the manifest if absent. */
   options: { allowKtx2: boolean; onProgress?: (done: number, total: number) => void; spine?: Spine },
 ): Promise<StageAssets> {
-  // A chapter loads only the sets its own spreads use (chapter 3's snowy sets stay out of chapter 1).
-  // Without a chosen spine, every set, as before.
-  const used = options.spine ? new Set(options.spine.scenes.map((scene) => scene.setId)) : null;
-  const setEntries = used ? manifest.sets.filter((set) => used.has(set.id)) : manifest.sets;
+  // Every set the Storyteller may stage loads; a chapter-only set (chapter 3's snow) only for the
+  // chapter whose spreads use it.
+  const setEntries = setsToLoad(manifest, options.spine ?? null);
   const [bookRaw, drawerRaw, satchelRaw, spineRaw, setRaws, objectRaws, rigRaws] = await Promise.all([
     json(`${artBase}/${manifest.book}`),
     json(`${artBase}/${manifest.drawer}`),
@@ -179,4 +178,10 @@ export async function loadStageAssets(
 /** Uploads every texture now, so the first frame that shows one doesn't stall to decode it. */
 export function uploadAll(renderer: WebGLRenderer, textures: Iterable<Texture>): void {
   for (const texture of new Set(textures)) renderer.initTexture(texture);
+}
+
+/** The sets a page load builds: every one the Storyteller may stage, and a chapter-only set (chapter 3's snow) only for the chapter whose spreads use it. */
+export function setsToLoad(manifest: Pick<ShowManifest, 'sets'>, spine: Spine | null): ShowManifest['sets'] {
+  const used = new Set(spine?.scenes.map((scene) => scene.setId) ?? []);
+  return manifest.sets.filter((set) => !set.chapterOnly || used.has(set.id));
 }
