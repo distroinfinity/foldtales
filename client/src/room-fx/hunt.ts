@@ -4,6 +4,9 @@
  * thing appears in it. Pure, so a resume lands in the same moment.
  */
 
+import { Vector3 } from '@iwsdk/core';
+import { distanceToOutline, insideOutline, type Place, type RoomMap } from './room-map.ts';
+
 const clamp01 = (v: number): number => Math.max(0, Math.min(1, v));
 const easeOut = (v: number): number => 1 - (1 - v) ** 3;
 
@@ -42,4 +45,49 @@ export function huntAt(ms: number, target: number, foundMs: number | null): Hunt
     spot: clamp01((ms - HUNT_REVEAL_MS) / SPOT_MS) * fade,
     revealed: ms >= HUNT_REVEAL_MS,
   };
+}
+
+/**
+ * Where the hunt hides the lost thing (PR #45 review): somewhere you'd look, in front of you toward
+ * the book where Pip points, never behind you, on the book's own table, or on the seat or bed you're
+ * on. The story's `room:` place (the couch) or the next kind down, if one qualifies; else the floor
+ * ahead of you and to your right, where room-map's stand-in floor goes.
+ */
+/** At least this far ahead of you, toward the book, and no more than this far off that line. */
+const AHEAD_MIN_M = 0.3;
+const AHEAD_MAX_COS = Math.cos((70 * Math.PI) / 180);
+/** A top this close to where you are (or under you) is the one you're sitting on or standing at. */
+const OCCUPIED_M = 0.35;
+const FALLBACK_AHEAD_M = 0.9;
+const FALLBACK_SIDE_M = 0.7;
+
+/** Flat, from you toward the book (straight ahead, −Z, when the two are on top of each other). */
+function towardBook(head: Vector3, book: Vector3): Vector3 {
+  const toward = new Vector3(book.x - head.x, 0, book.z - head.z);
+  if (toward.lengthSq() < 1e-4) toward.set(0, 0, -1);
+  return toward.normalize();
+}
+
+/** Whether a resting place is a fair hiding place: ahead of you, free, not the book's table. */
+export function huntSpotOk(p: Place, head: Vector3, book: Vector3): boolean {
+  if (!p.horizontal || p.label === 'floor' || p.label === 'ceiling') return false;
+  const outlined = p.outline.length >= 3;
+  if (outlined && insideOutline(book.x, book.z, p.outline)) return false;
+  const near = outlined ? distanceToOutline(head.x, head.z, p.outline) : Math.hypot(p.centre.x - head.x, p.centre.z - head.z);
+  if (near < OCCUPIED_M) return false;
+  const toward = towardBook(head, book);
+  const dx = p.centre.x - head.x;
+  const dz = p.centre.z - head.z;
+  const along = dx * toward.x + dz * toward.z;
+  return along >= AHEAD_MIN_M && along >= AHEAD_MAX_COS * Math.hypot(dx, dz);
+}
+
+export function huntPlace(room: Pick<RoomMap, 'resolve' | 'below' | 'floorY'>, ref: string | null, head: Vector3, book: Vector3): { place: Place; offset: [number, number] } | null {
+  const ok = (p: Place) => huntSpotOk(p, head, book);
+  const place = room.resolve(ref, 'rest', undefined, ok);
+  if (place && ok(place)) return { place, offset: [0, 0] };
+  const toward = towardBook(head, book);
+  const spot = new Vector3(head.x, room.floorY() + 0.02, head.z).addScaledVector(toward, FALLBACK_AHEAD_M).addScaledVector(new Vector3(-toward.z, 0, toward.x), FALLBACK_SIDE_M);
+  const floor = room.below(spot);
+  return floor ? { place: floor, offset: [spot.x - floor.centre.x, spot.z - floor.centre.z] } : null;
 }

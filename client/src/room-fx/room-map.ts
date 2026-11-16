@@ -114,8 +114,11 @@ export interface RoomMap {
   reset(): void;
   /** Every place found, real ones only. */
   places(): Place[];
-  /** A place by `room:` reference (`room:couch` is the best couch or the next best place; `room:couch-2` that one), or null for the app's choice. Always answers once a frame has been read. */
-  resolve(ref: string | null, uses?: 'rest' | 'face', near?: Vector3): Place | null;
+  /**
+   * A place by `room:` reference (`room:couch` is the best couch or the next best place; `room:couch-2` that one), or null for the app's choice. Always answers once a frame has been read.
+   * `accept`, when given, skips places it turns down while choosing the best of a kind (a named place and the stand-ins are as before).
+   */
+  resolve(ref: string | null, uses?: 'rest' | 'face', near?: Vector3, accept?: (p: Place) => boolean): Place | null;
   /** The surface under a point in the room: the top it's over, else the floor. */
   below(world: Vector3): Place | null;
   /** A place by its id, as a saved object home names it, falling back as `resolve` does. */
@@ -243,12 +246,13 @@ export function createRoomMap(): RoomMap {
   };
 
   /** The best of a kind: the nearest, for things in the room you might walk to or look at. */
-  const best = (label: RoomLabel, near: Vector3, uses: 'rest' | 'face'): Place | null => {
+  const best = (label: RoomLabel, near: Vector3, uses: 'rest' | 'face', accept?: (p: Place) => boolean): Place | null => {
     let pick: Place | null = null;
     let pickD = Infinity;
     for (const p of found) {
       if (p.label !== label) continue;
       if (uses === 'rest' && (!p.horizontal || underBook(p))) continue;
+      if (accept && !accept(p)) continue;
       const d = p.centre.distanceTo(near);
       if (d < pickD) {
         pick = p;
@@ -275,7 +279,7 @@ export function createRoomMap(): RoomMap {
       headKnown = false;
     },
     places: () => found,
-    resolve(ref, uses = 'rest', near) {
+    resolve(ref, uses = 'rest', near, accept) {
       const from = near ?? head;
       const name = ref?.startsWith('room:') ? ref.slice(5) : null;
       if (name && /-[0-9]+$/.test(name)) {
@@ -295,8 +299,8 @@ export function createRoomMap(): RoomMap {
       // Things come to rest on the asked-for kind, or the next one down the list.
       const order: RoomLabel[] = label && !(RESTING as readonly RoomLabel[]).includes(label) ? [label, ...RESTING] : label ? (RESTING as readonly RoomLabel[]).slice((RESTING as readonly RoomLabel[]).indexOf(label)) : [...RESTING];
       for (const l of order) {
-        if (l === 'floor') return best('floor', from, 'rest') ?? standIn('floor');
-        const p = best(l, from, 'rest');
+        if (l === 'floor') return best('floor', from, 'rest', accept) ?? standIn('floor');
+        const p = best(l, from, 'rest', accept);
         if (p) return p;
       }
       return standIn('floor');
