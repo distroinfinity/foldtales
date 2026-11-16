@@ -1,5 +1,5 @@
 import { describe, expect, test, vi } from 'vitest';
-import { BackendError, createHttpBackend, type BackendApi, type TelemetryBatch } from '../contracts/src/index.ts';
+import { BackendError, createHttpBackend, type BackendApi, TelemetryBatch } from '../contracts/src/index.ts';
 import { createMockBackend, fixtureLibrary, fixtureSpine } from '../contracts/src/mocks/index.ts';
 import { createApp } from '../backend/src/app.ts';
 import { guard, readCaps } from '../backend/src/guard.ts';
@@ -64,7 +64,19 @@ describe('telemetry', () => {
     await telemetry.flush();
     const events = batches[0]!.events;
     expect(events.find((e) => e.kind === 'hitch')).toMatchObject({ ms: 120 });
-    expect(events.find((e) => e.kind === 'frame_summary')).toMatchObject({ medianFps: 100, lowFps: 50, drawCalls: 7, triangles: 40 });
+    expect(events.find((e) => e.kind === 'frame_summary')).toMatchObject({ medianFps: 100, lowFps: 50, drawCalls: 7, triangles: 40, slowFrames: 10, worstFrameMs: 20 });
+  });
+
+  test('a single dropped frame shows in slowFrames and worstFrameMs, even when the 1% low hides it (Codex, stage 1 point 4)', async () => {
+    const batches: TelemetryBatch[] = [];
+    const telemetry = createTelemetry(async (b) => void batches.push(b), clock, ids);
+    for (let i = 0; i < 500; i++) telemetry.frame(10, { calls: 7, triangles: 40 });
+    telemetry.frame(50, { calls: 7, triangles: 40 });
+    for (let i = 0; i < 500; i++) telemetry.frame(10, { calls: 7, triangles: 40 });
+    await telemetry.flush();
+    const summary = batches[0]!.events.find((e) => e.kind === 'frame_summary');
+    expect(summary).toMatchObject({ medianFps: 100, lowFps: 100, slowFrames: 1, worstFrameMs: 50 });
+    expect(TelemetryBatch.safeParse(batches[0]).success).toBe(true);
   });
 
   test('a hitch names the moment it happened in, so a stall can be traced to what appeared', async () => {
