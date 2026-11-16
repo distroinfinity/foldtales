@@ -8,7 +8,7 @@ const field = (name: string): string => {
   if (!match) throw new Error(`docs/submission.md has no ${name} field`);
   return match[1]!.trim();
 };
-const words = (text: string): number => text.replace(/\*\*\[if merged\]\*\*/g, '').replace(/\*\*/g, '').split(/\s+/).filter(Boolean).length;
+const words = (text: string): number => text.replace(/\*\*\[if [^\]]+\]\*\*/g, '').replace(/\*\*/g, '').split(/\s+/).filter(Boolean).length;
 
 describe('the submission form copy', () => {
   test('the tagline is under 140 characters, on one line', () => {
@@ -17,12 +17,12 @@ describe('the submission form copy', () => {
     expect(tagline).not.toContain('\n');
   });
 
-  test('the description is about 500 words, whatever merges', () => {
+  test('the description is about 500 words, whatever is marked', () => {
     const description = field('description');
     expect(words(description)).toBeGreaterThanOrEqual(400);
     expect(words(description)).toBeLessThanOrEqual(600);
-    // With every [if merged] sentence removed, it still says enough.
-    expect(words(description.replace(/\*\*\[if merged\]\*\*[^\n]*/g, ''))).toBeGreaterThanOrEqual(300);
+    // With every marked sentence removed, it still says enough.
+    expect(words(description.replace(/\*\*\[if [^\]]+\]\*\*[^.]*\./g, ''))).toBeGreaterThanOrEqual(300);
   });
 
   test('every other field the form asks for is written', () => {
