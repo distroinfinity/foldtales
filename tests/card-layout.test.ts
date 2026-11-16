@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { TARGET_M, TEXT_DEG, arrangeCard, cardWidthFor, emFor, paginate } from '../client/src/book/card-layout.ts';
+import { BUTTON_GAP_M, BUTTON_MIN_H, TARGET_M, TEXT_DEG, arrangeCard, cardWidthFor, emFor, paginate } from '../client/src/book/card-layout.ts';
 
 const deg = (m: number, d: number) => (Math.atan(m / d) * 180) / Math.PI;
 
@@ -9,7 +9,7 @@ describe('the pop-up card layout', () => {
     expect(TEXT_DEG).toBeGreaterThan(1);
   });
 
-  it('keeps every pair of choices a hand target apart, at the nearest and furthest distances', () => {
+  it('keeps every button at least 22 mm and 12 mm of card from its neighbours, at the nearest and furthest distances', () => {
     for (const d of [0.45, 0.9]) {
       const em = emFor(d);
       const g = arrangeCard({ title: em * 1.3, choices: [em, em * 2.3, em, em] }, em);
@@ -18,10 +18,14 @@ describe('the pop-up card layout', () => {
         for (let j = i + 1; j < g.cells.length; j++) {
           const a = g.cells[i]!;
           const b = g.cells[j]!;
-          expect(Math.hypot(a.x - b.x, a.y - b.y)).toBeGreaterThanOrEqual(TARGET_M - 1e-9);
+          // The gap between their edges, along whichever axis separates them.
+          const gapX = Math.abs(a.x - b.x) - (a.w + b.w) / 2;
+          const gapY = Math.abs(a.y - b.y) - (a.h + b.h) / 2;
+          expect(Math.max(gapX, gapY)).toBeGreaterThanOrEqual(BUTTON_GAP_M - 1e-9);
         }
       for (const c of g.cells) {
-        expect(c.h).toBeGreaterThanOrEqual(TARGET_M);
+        expect(c.h).toBeGreaterThanOrEqual(BUTTON_MIN_H);
+        expect(c.h).toBeGreaterThanOrEqual(0.022);
         expect(c.w).toBeGreaterThanOrEqual(TARGET_M);
         expect(Math.abs(c.x) + c.w / 2).toBeLessThanOrEqual(g.widthM / 2 + 1e-9);
         expect(c.y - c.h / 2).toBeGreaterThan(0);

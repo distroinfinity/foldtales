@@ -68,7 +68,7 @@ Color is never the only signal. Story Circle players are told apart by their sat
 
 ## The book is the only UI
 
-No floating panels, no chat, no settings window. The book's menu is a **paper card that pops up from the open spread** (finish sprint, Nov 16): standing, turned to face you, in the book's own paper and ink, with a gold rule under each choice. It's part of the book, as a pop-up is. Its type is sized from your eyes' distance, at least 1° tall, and each choice is at least the 64 mm hand target. The set stays where it is underneath, held. At most four choices to a card; a longer list pages with More and Back.
+No floating panels, no chat, no settings window. The book's menu is a **paper card that rises behind the book** (owner's headset feedback, Nov 16; `docs/plans/2026-11-16-hands-and-controls.md`). It never covers the stage: when the story pauses, the pop-up stage folds down flat first, then the card rises on its own, a clean-cut board (no deckle edge) in the book's paper and ink. It stands at touch distance, about 45 cm from your eyes, level and turned to face you, with its bottom edge just above the book's far edge as you see it, so it reads as standing behind the book. On carrying on, the card folds away and the pages stand back up. Each choice is a **paper button you press with a fingertip**: 7 mm of travel, a gold edge when your finger is near, a warm tint and a soft paper tap when it lands. Buttons are at least 64 mm wide and 40 mm tall with 12 mm of card between them. Its type is sized from your eyes' distance, at least 1° tall. At most four choices to a card; a longer list pages with More and Back.
 
 **The 2D page** (owner, Nov 14) is the cover of the same book, at night. It follows these rules too, and the plan is `docs/plans/2026-11-14-product-front-door.md`.
 
@@ -91,7 +91,7 @@ The foot holds Chapters, "No table? Read in the painted room", About and Privacy
 | Control | Does |
 |---|---|
 | **Shutting the book** | Pauses, and opening it resumes. No card |
-| **Ribbon** | **The one control** (sprint master, Nov 16; it replaces the sage tab and the wrist tag). Pinch it and the pause card pops up: Carry on, Start again (in the Storyteller, End the story here), Contents, Put the book away. Pinch it again to carry on. At an ending, it opens the contents |
+| **Ribbon** | **The one control** (sprint master, Nov 16; it replaces the sage tab and the wrist tag). Touch its tail on the page (or tug it) and the stage folds flat and the pause card rises: Carry on, Start again (in the Storyteller, End the story here), Contents, Put the book away. Touch it again to carry on. At an ending, it opens the contents. Until it's first used, a ghost hand shows the touch, with no words |
 | **The contents** | Chapters (each one's state, and Continue, Start or Read again), the AI Storyteller (Start a new story, Your stories), Settings (sound, the room's light), and how many things are in your satchel |
 | **Top tab, gold** | Opens your satchel: its latch, not a menu |
 | **End card** | A chapter's: "The end of chapter 1", what lasts, what you kept, then Continue to chapter 2 (or Read again) and Put the book away. A story's: its title, two or three lines, what was painted, Tell another, Your stories |
@@ -111,15 +111,16 @@ Hands have no haptics, so [every state must be shown and heard](https://develope
 | State | Visual | Sound |
 |---|---|---|
 | Near | Soft gold edge | None |
-| Touch or pinch | Piece dips slightly | Soft card tap |
+| Touch a button, or pinch a thing | Button sinks with the finger (7 mm); a thing dips slightly | Soft card tap |
 | Holding | Lifts, shadow widens | Quiet rustle |
 | Near a character | Character looks at it and reaches | Small interested sound |
 | Handed over | Character takes it and turns it over | Pleased or puzzled sound |
 | Release elsewhere | Small settle | Card on table |
 | Can't do that | Small shake, returns home | Soft felt thud |
 
-- **Nothing fires from gaze or hover alone.** Selection always takes a pinch.
-- **Targets:** at least 64 mm for hand interaction, and objects snap to a close hand, since objects at book scale are small.
+- **Two verbs, never mixed** (owner, Nov 16): **touch to press** the book's controls (the ribbon, every menu button, Hold to talk) with an index fingertip, and **pinch to hold** story things (to pick them up and hand them over). A pinch never presses a button within reach.
+- **Nothing fires from gaze or hover alone.** On VR Glasses a look and a pinch press a button; on a Quest, pointing a hand at a button and pinching is the far fallback.
+- **Targets:** buttons at least 64 × 40 mm with 12 mm between them (Meta: 22 mm and 12 mm); things to hold at least 64 mm, and objects snap to a close hand, since objects at book scale are small.
 - **Hands stay below the heart,** and everything is within reach seated.
 - **Everything undoes** with a simple motion, and grabs release easily.
 

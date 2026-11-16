@@ -1,15 +1,20 @@
 /**
- * The pop-up card's layout, as pure numbers. The card stands on the open spread and faces the reader,
- * so its type is sized from the distance to the reader's eyes: at least 1° tall (we aim a little over),
- * whatever the book's size. Choices sit two to a row, each cell at least the hand's 64 mm target across
- * and tall, so neighbours can always be pinched apart. Every length here is in metres, in the card's own
- * frame: the origin at the middle of its bottom edge, x to the right, y up.
+ * The menu card's layout, as pure numbers. The card stands at touch distance and faces the reader, so
+ * its type is sized from the distance to the reader's eyes: at least 1° tall (we aim a little over).
+ * Choices are paper buttons you press with a fingertip, two to a row: each at least 40 mm tall and as wide
+ * as a 64 mm hand target, with 12 mm of card between neighbours (Meta's touch rules are 22 mm and 12 mm).
+ * Every length here is in metres, in the card's own frame: the origin at the middle of its bottom edge,
+ * x to the right, y up.
  */
 
 /** Type is set this many degrees tall at its real distance: 1° is the rule, with a margin. */
 export const TEXT_DEG = 1.2;
-/** The hand target's diameter (design-language.md: at least 64 mm). */
+/** A button's width at least (design-language.md's 64 mm hand target). */
 export const TARGET_M = 0.064;
+/** A button's height at least: comfortably over Meta's 22 mm touch target. */
+export const BUTTON_MIN_H = 0.04;
+/** Plain card between two buttons (Meta: at least 12 mm). */
+export const BUTTON_GAP_M = 0.012;
 /** At most this many choices on one card; a longer list pages with More and Back. */
 export const MAX_CHOICES = 4;
 /** A choice's label is wrapped to this width, in ems. */
@@ -62,12 +67,12 @@ export function columnFor(em: number): number {
 
 /** The card's width for a given em, before anything is measured (so text can be wrapped to it first). */
 export function cardWidthFor(em: number): number {
-  return 2 * columnFor(em) + 2 * MARGIN_EM * em;
+  return 2 * columnFor(em) + BUTTON_GAP_M + 2 * MARGIN_EM * em;
 }
 
 /**
  * Places the measured blocks top to bottom: the small line over the title, the title, the lines,
- * the note, then the choices in rows of two. An odd last choice sits alone in the middle of its row.
+ * the note, then the choices in rows of two, 12 mm apart. An odd last choice sits alone in the middle of its row.
  */
 export function arrangeCard(m: CardMeasure, em: number, width?: number): CardGeometry {
   if (m.choices.length > MAX_CHOICES) throw new Error(`a card holds at most ${MAX_CHOICES} choices`);
@@ -92,8 +97,9 @@ export function arrangeCard(m: CardMeasure, em: number, width?: number): CardGeo
   const rows: Array<{ y: number; h: number; n: number }> = [];
   for (let i = 0; i < m.choices.length; i += 2) {
     const pair = m.choices.slice(i, i + 2);
-    const h = Math.max(TARGET_M, Math.max(...pair) + 2 * CELL_PAD_EM * em);
-    if (!rows.length && !first) y += GAP_EM * em;
+    const h = Math.max(BUTTON_MIN_H, Math.max(...pair) + 2 * CELL_PAD_EM * em);
+    if (!rows.length && !first) y += 1.2 * GAP_EM * em;
+    else if (rows.length) y += BUTTON_GAP_M;
     rows.push({ y, h, n: pair.length });
     y += h;
     first = false;
@@ -103,7 +109,8 @@ export function arrangeCard(m: CardMeasure, em: number, width?: number): CardGeo
   const cells: Cell[] = [];
   for (const row of rows) {
     const cy = heightM - (row.y + row.h / 2);
-    if (row.n === 2) cells.push({ x: -columnM / 2, y: cy, w: columnM, h: row.h }, { x: columnM / 2, y: cy, w: columnM, h: row.h });
+    const dx = (columnM + BUTTON_GAP_M) / 2;
+    if (row.n === 2) cells.push({ x: -dx, y: cy, w: columnM, h: row.h }, { x: dx, y: cy, w: columnM, h: row.h });
     else cells.push({ x: 0, y: cy, w: columnM, h: row.h });
   }
   // Flip the tops into the card's frame: y up from the bottom edge.
