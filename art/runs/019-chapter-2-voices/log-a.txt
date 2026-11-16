@@ -1,0 +1,94 @@
+round sound: balance 109660, committed 0, cap 89
+done small-splash: 3.7s, 2 credits
+done nib-scratch: 3.9s, 2 credits
+round sound ended: committed 4 of cap 89
+round voice: balance 109656, committed 4, cap 89
+done narrator-the-next-night-the-lamp-burned-bright-an: 6.6s, 1 credits
+done pip-you-came-back-wick-look-they-came-back: 6.6s, 1 credits
+done wick-hmph-so-they-did-evening-whoever-you-are: 11.9s, 1 credits
+done pip-i-still-dream-about-flying-over-the-gap: 6.1s, 1 credits
+done pip-moth-s-still-ever-so-proud-of-carrying-t: 6s, 1 credits
+done pip-i-keep-thinking-about-that-ladder-right: 6.6s, 1 credits
+done pip-wick-says-next-time-i-cross-a-gap-i-m-to: 7.2s, 1 credits
+done wick-go-on-then-carefully-mind: 6.1s, 1 credits
+done narrator-that-night-the-sea-came-in-further-than: 8.9s, 1 credits
+done pip-the-sea-s-come-right-in-and-look-somethi: 5.8s, 1 credits
+done pip-can-you-pass-it-up-to-us: 3.9s, 1 credits
+done pip-a-bottle-with-a-letter-in-it-thank-you: 5.7s, 1 credits
+done pip-oh-thank-you-but-it-s-the-bottle-we-need: 6s, 1 credits
+done narrator-but-the-tide-as-tides-do-brought-the-bot: 6.2s, 1 credits
+done pip-a-bottle-and-there-s-a-letter-in-it: 3.8s, 1 credits
+done pip-wick-it-s-a-letter-read-it-read-it: 5.8s, 1 credits
+done wick-hmm-the-light-s-poor-up-here-tonight-you: 6.8s, 1 credits
+done pip-to-whoever-keeps-the-light-i-m-lost-on-t: 6.9s, 1 credits
+done wick-the-light-brings-her-as-far-as-the-rocks: 6.3s, 1 credits
+done wick-i-d-go-but-i-couldn-t-see-a-paper-boat-i: 6.1s, 1 credits
+done wick-somebody-s-got-to-be-my-eyes-lad: 6.3s, 1 credits
+done pip-down-to-the-water-in-the-dark: 6.5s, 1 credits
+done pip-not-on-my-own-though-you-ll-come-won-t-y: 5.7s, 1 credits
+done narrator-so-down-went-the-little-fox-a-hundred-an: 8.5s, 1 credits
+done narrator-at-the-water-s-edge-the-dark-was-very-bi: 6.3s, 1 credits
+done pip-there-a-little-paper-boat-going-round-an: 6.5s, 1 credits
+done pip-thimble-over-here-thimble: 6.5s, 1 credits
+done narrator-but-the-sea-was-loud-and-the-lantern-was: 6.2s, 1 credits
+done pip-she-can-t-see-me-my-light-s-too-low-down: 4.3s, 1 credits
+done pip-is-there-anything-that-could-get-my-ligh: 9.7s, 1 credits
+done pip-a-kite-up-you-go-little-light: 6.1s, 1 credits
+done pip-up-up-up-higher-than-the-rocks: 6.6s, 1 credits
+done pip-a-ladder-i-ll-stand-it-on-the-rocks-and: 6.5s, 1 credits
+done pip-there-like-a-little-lighthouse: 6.6s, 1 credits
+done pip-oh-that-s-lovely-but-it-won-t-get-my-lig: 6.5s, 1 credits
+done pip-something-that-flies-maybe-or-something: 6.1s, 1 credits
+done narrator-now-if-there-s-one-thing-a-moth-knows-it: 6.4s, 1 credits
+done pip-moth-where-are-you-taking-my-oh: 7s, 1 credits
+done pip-oh-moth-you-clever-clever-moth: 6.1s, 1 credits
+done narrator-far-out-on-the-water-the-little-boat-sto: 6.5s, 1 credits
+done pip-it-s-very-dark-down-here-without-my-ligh: 8.9s, 1 credits
+done pip-i-m-still-a-little-bit-scared-is-that-al: 6.6s, 1 credits
+done narrator-it-was-being-a-little-bit-scared-is-most: 6.1s, 1 credits
+done pip-come-on-moth-she-ll-come-in-at-the-landi: 6.3s, 1 credits
+done narrator-the-little-boat-came-in-out-of-the-dark: 6.8s, 1 credits
+done thimble-ahoy-ahoy-the-light: 6.7s, 1 credits
+done pip-thimble-are-you-thimble: 5.7s, 1 credits
+done thimble-thimble-from-the-sewing-basket-but-my-bo: 6.7s, 1 credits
+done pip-she-s-stuck-on-the-rocks-have-you-got-an: 6.3s, 1 credits
+done thimble-that-thread-that-s-my-grandmother-s-thre: 6.6s, 1 credits
+done pip-moth-take-the-end-out-to-her-hold-on-tig: 6.7s, 1 credits
+done pip-hold-still-thimble-and-catch: 6.7s, 1 credits
+done thimble-steady-as-she-goes-steady-as-she-goes: 6.6s, 1 credits
+done pip-a-ladder-across-to-the-rock-like-a-bridg: 6.4s, 1 credits
+done thimble-mind-the-gaps-between-the-rungs-mind-the: 6.2s, 1 credits
+done pip-grab-the-tail-thimble-the-wind-ll-do-the: 12.2s, 1 credits
+done thimble-i-m-flying-a-sailor-flying: 4.4s, 1 credits
+done pip-that-won-t-reach-her-i-don-t-think: 6.8s, 1 credits
+done pip-something-long-maybe-something-she-can-h: 6.3s, 1 credits
+done narrator-and-then-the-sea-which-had-been-so-cross: 6.2s, 1 credits
+done narrator-and-set-the-little-mouse-down-on-the-ste: 7.2s, 1 credits
+done thimble-land-real-dry-stay-where-it-is-land: 4.4s, 1 credits
+done thimble-brr-i-m-wet-right-through-to-my-whiskers: 4.6s, 1 credits
+done pip-here-get-in-my-coat-it-s-far-too-big-for: 6.9s, 1 credits
+done wick-pip-i-could-hear-you-all-the-way-from-th: 4.6s, 1 credits
+done pip-wick-she-s-here-the-light-brought-her-ho: 5.8s, 1 credits
+done wick-hmph-a-mouse-in-a-paper-boat-across-the: 6.7s, 1 credits
+done wick-welcome-home-little-one-every-lost-thing: 9.1s, 1 credits
+done wick-you-write-her-in-lad-you-were-my-eyes-to: 6.2s, 1 credits
+done pip-me-in-the-keeper-s-log: 6.6s, 1 credits
+done pip-thimble-from-the-sewing-basket-came-home: 6.4s, 1 credits
+done narrator-and-the-sea-its-work-done-slipped-quietl: 6.6s, 1 credits
+done thimble-is-that-the-reader-the-one-who-reaches-d: 6.3s, 1 credits
+done pip-that-s-them-they-came-all-the-way-down-w: 4.1s, 1 credits
+done thimble-much-obliged-reader-truly: 6.2s, 1 credits
+done narrator-but-the-nights-were-growing-longer-and-t: 7.3s, 1 credits
+done narrator-out-on-the-dark-water-a-paper-boat-bobbe: 6.4s, 1 credits
+done narrator-the-sea-breathed-in-and-the-sea-breathed: 8.7s, 1 credits
+done narrator-up-at-the-top-of-the-lighthouse-the-grea: 5.7s, 1 credits
+round voice ended: committed 83 of cap 89
+exit=0
+round sound: balance 109487, committed 83, cap 89
+skip small-splash, already generated
+skip nib-scratch, already generated
+round sound ended: committed 83 of cap 89
+round voice: balance 109487, committed 83, cap 89
+done narrator-the-next-night-up-at-the-very-top-of-the: 9s, 1 credits
+done pip-look-how-far-down-the-sea-is-wick: 6.3s, 1 credits
+round voice ended: committed 85 of cap 89

@@ -1266,7 +1266,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
     }
     roomDepth.frame(roomNow.weather.on || roomNow.weather.sinceMs < 6000 || roomNow.sea.on || roomNow.sea.sinceMs < 5000, roomMap);
     gulls?.frame({ state: roomNow.gulls, nowMs, room: roomMap, head, book: stage.root.visible ? stage.root.getWorldPosition(bookAt) : null, bookOpen: controls.amount > 0.98, onCall: (at) => sound.play('gull', at) });
-    sea?.frame({ now: roomNow, nowMs, head, floorY: roomMap.floorY(), bookOpen: controls.amount > 0.98 });
+    sea?.frame({ now: roomNow, nowMs, head, floorY: roomMap.floorY(), bookOpen: controls.amount > 0.98, book: stage.root.visible ? stage.root.getWorldPosition(bookAt) : null });
     snow?.frame({ weather: roomNow.weather, nowMs, head, room: roomMap, bookOpen: controls.amount > 0.98 });
     nightSky?.frame({ now: roomNow, nowMs, room: roomMap, head, book: stage.root.visible ? stage.root.getWorldPosition(bookAt) : null, bookOpen: controls.amount > 0.98 });
     windowView?.frame({ state: roomNow.window, nowMs, room: roomMap, bookOpen: controls.amount > 0.98, head, forward, book: stage.root.visible ? stage.root.getWorldPosition(bookAt) : null });

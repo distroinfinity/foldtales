@@ -1,0 +1,5 @@
+[
+  { "id": "spool", "name": "spool of thread", "description": "A wooden spool wound thick with sage-green thread, a loose end curling free.", "tags": ["rope", "ties", "rolls", "lightweight", "thread"], "art": { "kind": "asset", "path": "objects/spool/spool.png" }, "size": { "heightM": 0.07 }, "pivot": [49.7, 49.7], "provenance": "library" },
+  { "id": "thimble-boat", "name": "Thimble's paper boat", "description": "A small boat folded from cream writing paper, gone soft and saggy from the whole sea.", "tags": ["floats", "lightweight", "fragile"], "art": { "kind": "asset", "path": "objects/paper-boat/paper-boat.png" }, "size": { "heightM": 0.055 }, "pivot": [50.0, 50.0], "provenance": "library" },
+  { "id": "logbook", "name": "the keeper's logbook", "description": "Wick's battered keeper's logbook, bound in blue cloth, forty years of lost things coming home written inside.", "tags": ["pages", "message", "heavy"], "art": { "kind": "asset", "path": "cast/wick/parts/logbook.png" }, "size": { "heightM": 0.05 }, "pivot": [50.0, 50.0], "provenance": "library" }
+]

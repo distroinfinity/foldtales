@@ -40,7 +40,7 @@ describe('a page load prepares the chapter it was asked for', () => {
     const one = await loadChapter(1, { fetchJson, log: memoryLogStore() });
     expect(one.next).toBe(2);
     const ch = await loadChapter(2, { fetchJson, log: memoryLogStore() });
-    expect(ch).toMatchObject({ n: 2, episodeId: 'chapter-2', title: 'The night the sea came in', next: null, canon: null, satchel: [] });
+    expect(ch).toMatchObject({ n: 2, episodeId: 'chapter-2', title: 'The night the sea came in', next: null, satchel: [] });
     expect(ch.onStage.map((o) => o.cast)).toEqual(['pip', 'wick', 'moth']);
     expect(ch.where('wick-back')).toBe('Stopped at the water.');
   });

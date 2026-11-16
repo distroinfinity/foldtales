@@ -20,7 +20,8 @@
     "room-fx",
     "sound/room",
     "sets/the-landing",
-    "cast/thimble"
+    "cast/thimble",
+    "sound/ch2"
   ],
   "book": "book/book.json",
   "room": "room/room.json",
@@ -676,6 +677,16 @@
       "files": [
         "sound/room/shooting-star.mp3"
       ]
+    },
+    "splash": {
+      "files": [
+        "sound/ch2/small-splash.mp3"
+      ]
+    },
+    "nib": {
+      "files": [
+        "sound/ch2/nib-scratch.mp3"
+      ]
     }
   },
   "voiceLines": {
@@ -1038,6 +1049,326 @@
     "line_hxj90k4k4k": {
       "url": "sound/m2/pip-that-s-all-right-i-ve-still-got-my-light.mp3",
       "durationMs": 2400
+    },
+    "line_1ogeesy2b0w": {
+      "url": "sound/ch2/pip-you-came-back-wick-look-they-came-back.mp3",
+      "durationMs": 3760
+    },
+    "line_158gfo3uua0": {
+      "url": "sound/ch2/wick-hmph-so-they-did-evening-whoever-you-are.mp3",
+      "durationMs": 4240
+    },
+    "line_mnvdkyo0sk": {
+      "url": "sound/ch2/pip-i-still-dream-about-flying-over-the-gap.mp3",
+      "durationMs": 3680
+    },
+    "line_fz3jk8x3yo": {
+      "url": "sound/ch2/pip-moth-s-still-ever-so-proud-of-carrying-t.mp3",
+      "durationMs": 4000
+    },
+    "line_14bfzerlvqa": {
+      "url": "sound/ch2/pip-i-keep-thinking-about-that-ladder-right.mp3",
+      "durationMs": 4000
+    },
+    "line_2cng6to91iu": {
+      "url": "sound/ch2/pip-wick-says-next-time-i-cross-a-gap-i-m-to.mp3",
+      "durationMs": 4080
+    },
+    "line_1f1yd0agfh6": {
+      "url": "sound/ch2/wick-go-on-then-carefully-mind.mp3",
+      "durationMs": 2880
+    },
+    "line_180sbvg370t": {
+      "url": "sound/ch2/narrator-that-night-the-sea-came-in-further-than.mp3",
+      "durationMs": 7600
+    },
+    "line_19gf4lwhz7v": {
+      "url": "sound/ch2/pip-the-sea-s-come-right-in-and-look-somethi.mp3",
+      "durationMs": 4800
+    },
+    "line_rcdm2p0dgf": {
+      "url": "sound/ch2/pip-can-you-pass-it-up-to-us.mp3",
+      "durationMs": 1520
+    },
+    "line_k5pqu3xrtg": {
+      "url": "sound/ch2/pip-a-bottle-with-a-letter-in-it-thank-you.mp3",
+      "durationMs": 3600
+    },
+    "line_22k062j3c55": {
+      "url": "sound/ch2/pip-oh-thank-you-but-it-s-the-bottle-we-need.mp3",
+      "durationMs": 5040
+    },
+    "line_1gi0b7yhi5p": {
+      "url": "sound/ch2/narrator-but-the-tide-as-tides-do-brought-the-bot.mp3",
+      "durationMs": 5120
+    },
+    "line_1y3jyp3ucq4": {
+      "url": "sound/ch2/pip-a-bottle-and-there-s-a-letter-in-it.mp3",
+      "durationMs": 2720
+    },
+    "line_kpqy1jcgd1": {
+      "url": "sound/ch2/pip-wick-it-s-a-letter-read-it-read-it.mp3",
+      "durationMs": 2880
+    },
+    "line_1he3m5k22bw": {
+      "url": "sound/ch2/wick-hmm-the-light-s-poor-up-here-tonight-you.mp3",
+      "durationMs": 4400
+    },
+    "line_svmxhj3udd": {
+      "url": "sound/ch2/pip-to-whoever-keeps-the-light-i-m-lost-on-t.mp3",
+      "durationMs": 10080
+    },
+    "line_1hk08l3419j": {
+      "url": "sound/ch2/wick-the-light-brings-her-as-far-as-the-rocks.mp3",
+      "durationMs": 5840
+    },
+    "line_6hrecn93ut": {
+      "url": "sound/ch2/wick-i-d-go-but-i-couldn-t-see-a-paper-boat-i.mp3",
+      "durationMs": 4720
+    },
+    "line_14btigzpw15": {
+      "url": "sound/ch2/wick-somebody-s-got-to-be-my-eyes-lad.mp3",
+      "durationMs": 2640
+    },
+    "line_29506tav1s0": {
+      "url": "sound/ch2/pip-down-to-the-water-in-the-dark.mp3",
+      "durationMs": 2720
+    },
+    "line_xur1es1z3i": {
+      "url": "sound/ch2/pip-not-on-my-own-though-you-ll-come-won-t-y.mp3",
+      "durationMs": 3120
+    },
+    "line_2gdmj357192": {
+      "url": "sound/ch2/narrator-so-down-went-the-little-fox-a-hundred-an.mp3",
+      "durationMs": 5680
+    },
+    "line_1x7akompabi": {
+      "url": "sound/ch2/narrator-at-the-water-s-edge-the-dark-was-very-bi.mp3",
+      "durationMs": 5440
+    },
+    "line_1b1yaiog72w": {
+      "url": "sound/ch2/pip-there-a-little-paper-boat-going-round-an.mp3",
+      "durationMs": 4080
+    },
+    "line_o86x2jai2n": {
+      "url": "sound/ch2/pip-thimble-over-here-thimble.mp3",
+      "durationMs": 2880
+    },
+    "line_utq2kdfkln": {
+      "url": "sound/ch2/narrator-but-the-sea-was-loud-and-the-lantern-was.mp3",
+      "durationMs": 5520
+    },
+    "line_2dl6c9cg38k": {
+      "url": "sound/ch2/pip-she-can-t-see-me-my-light-s-too-low-down.mp3",
+      "durationMs": 3120
+    },
+    "line_19texc3fw3s": {
+      "url": "sound/ch2/pip-is-there-anything-that-could-get-my-ligh.mp3",
+      "durationMs": 5040
+    },
+    "line_98qtg31si5": {
+      "url": "sound/ch2/pip-a-kite-up-you-go-little-light.mp3",
+      "durationMs": 2800
+    },
+    "line_z4ob5pkdvi": {
+      "url": "sound/ch2/pip-up-up-up-higher-than-the-rocks.mp3",
+      "durationMs": 2880
+    },
+    "line_qo9i0bss21": {
+      "url": "sound/ch2/pip-a-ladder-i-ll-stand-it-on-the-rocks-and.mp3",
+      "durationMs": 4080
+    },
+    "line_apm9tsae5y": {
+      "url": "sound/ch2/pip-there-like-a-little-lighthouse.mp3",
+      "durationMs": 2240
+    },
+    "line_1o7vgxhnm39": {
+      "url": "sound/ch2/pip-oh-that-s-lovely-but-it-won-t-get-my-lig.mp3",
+      "durationMs": 4000
+    },
+    "line_1s35hlf2giv": {
+      "url": "sound/ch2/pip-something-that-flies-maybe-or-something.mp3",
+      "durationMs": 3920
+    },
+    "line_1vpzt60aop1": {
+      "url": "sound/ch2/narrator-now-if-there-s-one-thing-a-moth-knows-it.mp3",
+      "durationMs": 4480
+    },
+    "line_1b52cjhkhhc": {
+      "url": "sound/ch2/pip-moth-where-are-you-taking-my-oh.mp3",
+      "durationMs": 3200
+    },
+    "line_p603w0qn1x": {
+      "url": "sound/ch2/pip-oh-moth-you-clever-clever-moth.mp3",
+      "durationMs": 4080
+    },
+    "line_5mt2v40g1u": {
+      "url": "sound/ch2/narrator-far-out-on-the-water-the-little-boat-sto.mp3",
+      "durationMs": 7920
+    },
+    "line_1muvnymtxh7": {
+      "url": "sound/ch2/pip-it-s-very-dark-down-here-without-my-ligh.mp3",
+      "durationMs": 5600
+    },
+    "line_22tx95qkl7f": {
+      "url": "sound/ch2/pip-i-m-still-a-little-bit-scared-is-that-al.mp3",
+      "durationMs": 3520
+    },
+    "line_soglplxwjb": {
+      "url": "sound/ch2/narrator-it-was-being-a-little-bit-scared-is-most.mp3",
+      "durationMs": 4880
+    },
+    "line_15jcs1ctrgk": {
+      "url": "sound/ch2/pip-come-on-moth-she-ll-come-in-at-the-landi.mp3",
+      "durationMs": 2880
+    },
+    "line_1fzq9jhxtsc": {
+      "url": "sound/ch2/narrator-the-little-boat-came-in-out-of-the-dark.mp3",
+      "durationMs": 5360
+    },
+    "line_me98w6rcmt": {
+      "url": "sound/ch2/thimble-ahoy-ahoy-the-light.mp3",
+      "durationMs": 2720
+    },
+    "line_230bm7ur6ib": {
+      "url": "sound/ch2/pip-thimble-are-you-thimble.mp3",
+      "durationMs": 2160
+    },
+    "line_1x10hpm40zl": {
+      "url": "sound/ch2/thimble-thimble-from-the-sewing-basket-but-my-bo.mp3",
+      "durationMs": 7600
+    },
+    "line_1exujfa4djb": {
+      "url": "sound/ch2/pip-she-s-stuck-on-the-rocks-have-you-got-an.mp3",
+      "durationMs": 3760
+    },
+    "line_j31ulagem7": {
+      "url": "sound/ch2/thimble-that-thread-that-s-my-grandmother-s-thre.mp3",
+      "durationMs": 4400
+    },
+    "line_c4bh612nzp": {
+      "url": "sound/ch2/pip-moth-take-the-end-out-to-her-hold-on-tig.mp3",
+      "durationMs": 3680
+    },
+    "line_1jrzei26aeb": {
+      "url": "sound/ch2/pip-hold-still-thimble-and-catch.mp3",
+      "durationMs": 3040
+    },
+    "line_1x6ydij91yj": {
+      "url": "sound/ch2/thimble-steady-as-she-goes-steady-as-she-goes.mp3",
+      "durationMs": 3600
+    },
+    "line_9zojnek8xw": {
+      "url": "sound/ch2/pip-a-ladder-across-to-the-rock-like-a-bridg.mp3",
+      "durationMs": 3440
+    },
+    "line_10zf91qc53z": {
+      "url": "sound/ch2/thimble-mind-the-gaps-between-the-rungs-mind-the.mp3",
+      "durationMs": 3760
+    },
+    "line_2a2ywx5i3us": {
+      "url": "sound/ch2/pip-grab-the-tail-thimble-the-wind-ll-do-the.mp3",
+      "durationMs": 3280
+    },
+    "line_bav0ppwt2d": {
+      "url": "sound/ch2/thimble-i-m-flying-a-sailor-flying.mp3",
+      "durationMs": 3680
+    },
+    "line_1twgsn3z6yr": {
+      "url": "sound/ch2/pip-that-won-t-reach-her-i-don-t-think.mp3",
+      "durationMs": 2480
+    },
+    "line_1tmbayl0t5t": {
+      "url": "sound/ch2/pip-something-long-maybe-something-she-can-h.mp3",
+      "durationMs": 3760
+    },
+    "line_239q7jtrpi": {
+      "url": "sound/ch2/narrator-and-then-the-sea-which-had-been-so-cross.mp3",
+      "durationMs": 5920
+    },
+    "line_2bp55511ccv": {
+      "url": "sound/ch2/narrator-and-set-the-little-mouse-down-on-the-ste.mp3",
+      "durationMs": 4160
+    },
+    "line_bnv9lczbjy": {
+      "url": "sound/ch2/thimble-land-real-dry-stay-where-it-is-land.mp3",
+      "durationMs": 4320
+    },
+    "line_jg9ftxv4es": {
+      "url": "sound/ch2/thimble-brr-i-m-wet-right-through-to-my-whiskers.mp3",
+      "durationMs": 3920
+    },
+    "line_yaf97wydn": {
+      "url": "sound/ch2/pip-here-get-in-my-coat-it-s-far-too-big-for.mp3",
+      "durationMs": 3840
+    },
+    "line_g7fkgvnk66": {
+      "url": "sound/ch2/wick-pip-i-could-hear-you-all-the-way-from-th.mp3",
+      "durationMs": 3360
+    },
+    "line_293doq28swk": {
+      "url": "sound/ch2/pip-wick-she-s-here-the-light-brought-her-ho.mp3",
+      "durationMs": 3520
+    },
+    "line_vjs8qknq4m": {
+      "url": "sound/ch2/wick-hmph-a-mouse-in-a-paper-boat-across-the.mp3",
+      "durationMs": 4880
+    },
+    "line_19fxupod3ft": {
+      "url": "sound/ch2/wick-welcome-home-little-one-every-lost-thing.mp3",
+      "durationMs": 5600
+    },
+    "line_2cavixykdr4": {
+      "url": "sound/ch2/wick-you-write-her-in-lad-you-were-my-eyes-to.mp3",
+      "durationMs": 3680
+    },
+    "line_1yistlyto2c": {
+      "url": "sound/ch2/pip-me-in-the-keeper-s-log.mp3",
+      "durationMs": 2000
+    },
+    "line_uwigoblyfe": {
+      "url": "sound/ch2/pip-thimble-from-the-sewing-basket-came-home.mp3",
+      "durationMs": 4080
+    },
+    "line_26r3kimclt3": {
+      "url": "sound/ch2/narrator-and-the-sea-its-work-done-slipped-quietl.mp3",
+      "durationMs": 5440
+    },
+    "line_1rciv2oqsur": {
+      "url": "sound/ch2/thimble-is-that-the-reader-the-one-who-reaches-d.mp3",
+      "durationMs": 4000
+    },
+    "line_jsdvds885l": {
+      "url": "sound/ch2/pip-that-s-them-they-came-all-the-way-down-w.mp3",
+      "durationMs": 3120
+    },
+    "line_1w1ptjhathm": {
+      "url": "sound/ch2/thimble-much-obliged-reader-truly.mp3",
+      "durationMs": 2640
+    },
+    "line_1x1e8qj15aa": {
+      "url": "sound/ch2/narrator-but-the-nights-were-growing-longer-and-t.mp3",
+      "durationMs": 7920
+    },
+    "line_1hh26z9g4hp": {
+      "url": "sound/ch2/narrator-out-on-the-dark-water-a-paper-boat-bobbe.mp3",
+      "durationMs": 5120
+    },
+    "line_n2pjdb3wr": {
+      "url": "sound/ch2/narrator-the-sea-breathed-in-and-the-sea-breathed.mp3",
+      "durationMs": 3760
+    },
+    "line_ds50gw2m1d": {
+      "url": "sound/ch2/narrator-up-at-the-top-of-the-lighthouse-the-grea.mp3",
+      "durationMs": 4560
+    },
+    "line_wkny4tml6k": {
+      "url": "sound/ch2/narrator-the-next-night-up-at-the-very-top-of-the.mp3",
+      "durationMs": 10960
+    },
+    "line_1l0ov374izo": {
+      "url": "sound/ch2/pip-look-how-far-down-the-sea-is-wick.mp3",
+      "durationMs": 2480
     }
   },
   "sets": [
@@ -1248,7 +1579,7 @@
           "id": "water-edge",
           "label": "the water's edge",
           "position": [
-            0.0,
+            0,
             0,
             -0.045
           ]
@@ -1257,9 +1588,18 @@
           "id": "light-high",
           "label": "up high over the water",
           "position": [
-            0.0,
+            0,
             0.11,
             -0.05
+          ]
+        },
+        {
+          "id": "moth-high",
+          "label": "above the light, holding it up",
+          "position": [
+            0.004,
+            0.148,
+            -0.054
           ]
         }
       ]
@@ -1527,6 +1867,29 @@
         "Stopped at the top of the lighthouse.",
         "Stopped on the shore.",
         "Stopped at the gap."
+      ]
+    },
+    {
+      "n": 2,
+      "episode": "show/episode-2.json",
+      "onStage": [
+        {
+          "cast": "pip",
+          "mark": "pip"
+        },
+        {
+          "cast": "wick",
+          "mark": "wick"
+        },
+        {
+          "cast": "moth",
+          "mark": "moth-lamp"
+        }
+      ],
+      "where": [
+        "Stopped at the top of the lighthouse.",
+        "Stopped at the water's edge.",
+        "Stopped at the landing."
       ]
     }
   ]
