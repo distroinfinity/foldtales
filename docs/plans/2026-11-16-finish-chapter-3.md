@@ -319,6 +319,26 @@ If the hunt fails, `episode` becomes `show/episode-3.page-hunt.json` (its canon 
 
 **Not covered yet in round 1:** pausing mid-moment from the ribbon or the cover, and the headset taken off; the glasses view for the drawer and the logbook; fps from the headset (the desktop emulator's frame rate isn't the Quest's). Round 2, on lane B's real marks, does these and repeats the full pass.
 
+### The emulator pass, round 2 (Nov 16, from 13:40 IST)
+
+**Build:** local scratch merge, never pushed: `finish-chapter-3` + lane A's `finish-overhaul-ch3-fixes` (#39) + lane B's `finish-chapters-library` at `cd698f4` (**lane B's real marks, `wick-*` cues, Wick's linked logbook part, page lines on canon facts**), plus locally chapter 3 in the manifest's `chapters` list and its `CHAPTERS` row (both lane B's to land; below). No stand-in marks this time. Screenshots: `.c3-shots/r2/`.
+
+| Check | Result |
+|---|---|
+| A first-time reader with hands, the whole chapter | Sock (`frost-wipe`), the logbook fetched from the room's couch (`log-found`), the ladder (`wick-ladder`): three gifts in a row land. The end card |
+| **Wick's logbook (lane B's linked part)** | Fixed: at the gap Wick's paws are empty while the logbook is in Pip's coat; he holds it only once Pip hands it over (`r2/wick-ask.png`, `r2/across.png`) |
+| **The end card (page lines, this branch)** | "You found Wick's logbook out in your room. / You gave Pip the ladder that got Wick across the gap. / You saw Wick hand Pip the lamp, and Pip's star come out on your ceiling." Kept: odd sock, little wooden ladder (`r2/end-card.png`). `tests/chapter-3.test.ts` checks three lines on every path, the keeper's always there |
+| **Leaving mid-chapter, same page load (lane A's fix)** | Fixed: the page offers "Continue chapter 3" and re-entering resumes with the same history |
+| **The ribbon, mid-moment** | Pinching the ribbon during the frost ask pauses the show (clock held for 12 s) and opens the card: "The longest night", "Stopped at the lamp, in the snow.", Start again, Contents, Put the book away. Pinching it again resumes; the ask's wait carries on, then Thimble polishes the glass (`r2/ribbon-pause.png`) |
+| **The glasses' view** (74° × 68°, from the seat, looking at the book) | Every target on the book within reach of the view: the drawer's things 3–13° off centre, Pip 4°, the ribbon 13°, the satchel 21°. The hunt's logbook on the couch is 48° to the side, outside it, as on any headset: the beam sweeps out from the book to it and the narrator sends you into the room; missed, it comes home at 28 s. Gaze-and-pinch itself is the product's (lane E) |
+
+**Still in the way of green:**
+
+1. **Lane B, two marks on the lamp.** With `stair` at [-0.15, 0, -0.1], Wick still stands in view at the lamp's left edge after he has "gone down the stair" (`r2/frost-ask.png`); with `moth-lamp` at [-0.06, 0.1, -0.07], Moth sits in front of the lamp, over the frosted glass the reader is asked to wipe, and over Wick's face at `errand` (`r2/errand.png`). Round 1's positions read right: `stair` [-0.093, 0, -0.125] (wholly behind the lamp room), `moth-lamp` [-0.093, 0.175, -0.085] (above the lamp). Thimble at [0.11, 0, -0.01] shows, crowded by Pip's lantern; [0.02, 0, 0.0] reads better.
+2. **Chapter 3's place in the chapter list.** Listing chapter 3 in the manifest's `chapters` needs its `CHAPTERS` row in `show/progress.ts` (lane B's new test requires the two to match), and changes chapter 1's `next` from null to 3 until chapter 2 is listed, which lane B's `tests/chapters.test.ts` asserts. All three are lane B's files: lane B lists chapter 3 with chapter 2, or lane C makes the three small edits with the sprint master's say-so.
+
+**Not testable here:** the headset taken off (the emulator has no proximity sensor); frame rate (the desktop emulator's isn't the Quest's).
+
 ## Appendix: the line ledger
 
 From `docs/plans/finish-chapters/episode-3.draft.json` and its bridges, by contract line id (`lineIdOf`), against `client/public/show/manifest.json` and `episode-2.draft.json`. Re-run when the lines freeze; run 021's jobs are written from the frozen file, not from this list.
