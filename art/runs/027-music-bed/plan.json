@@ -1,0 +1,41 @@
+{
+  "id": "027-music-bed",
+  "question": "Can one quiet, loopable bed of felt piano and soft strings sit under the chapters and the AI Storyteller, ducked under every voice, and make the book feel warmer without crowding the radio-play voices?",
+  "why": "Lane E (docs/plans/2026-11-15-finish-ship.md, task 6). docs/design-language.md asks for 'a small acoustic ensemble (felt piano, plucked strings, soft clarinet) … and it ducks for speech'. The product has no music today; the contracts' `music` stage action is ignored. The owner decides by ear; 'silence counts as polish too', so a shrug means no bed in v1.",
+  "source": "ElevenLabs Music (POST https://api.elevenlabs.io/v1/music) on the project's own ElevenLabs key, Creator plan (active; 16,379 of 131,000 monthly credits used on Nov 16). Runway's API has no music model (checked Nov 16: docs.dev.runwayml.com lists speech, sound effects and seed_audio only), so this run spends no Runway credits.",
+  "rights": [
+    "Eleven Music model-specific terms (last updated 09 Oct 2026), Exhibit A: Creator plan, 'All online and offline commercial use permitted, except film, TV, radio, and Studio Games'. No attribution required on paid plans. Music streaming distribution permitted from Creator up.",
+    "§4.8(j): a Studio Game is an interactive experience 'commercialized by sale, advertising, or any other form of monetization, but does not include an Indie Game'. Foldtales is free with no ads or sales, so it is not one; it would also qualify as an Indie Game (§4.8(c): under $500,000 revenue, entity under $1,000,000).",
+    "Kept as evidence with the results: the terms' URL and date, the plan tier from /v1/user/subscription, and each job's request and response ids.",
+    "Content ID: before the video is filmed, the owner uploads a private YouTube test with the chosen bed (sprint master's ruling). Any claim that can't be cleared drops the bed."
+  ],
+  "sameAcrossJobs": "Instrumental only, no vocals, no percussion. About 64 bpm, one key (D major), soft dynamics throughout, no build-up or ending, so it loops: the last bar leads back to the first. 90 seconds. Levelled by a finish step to sit about 18 dB under the narrator, then ducked a further 10 dB while anyone speaks.",
+  "decideBy": [
+    "Each candidate loops with no audible seam (checked on the Mac by ear and by the level jump at the seam).",
+    "The owner hears the two best on the Quest's speakers under chapter 1's opening (the narrator, Pip, the lamp's beam): does it make the book warmer, and does every word stay clear? A shrug means no music in v1."
+  ],
+  "learnEvenIfRejected": "Whether a generated bed can sit under radio-play voices at all, which decides whether later chapters get music or stay with room tone and foley.",
+  "reusableOutput": "art/sound/music/bed.mp3 (the chosen loop), played by the sound engine on the show bus: it pauses with the book and mutes with setMuted.",
+  "musicJobs": [
+    {
+      "id": "bed-felt-piano-pizzicato",
+      "durationS": 90,
+      "prompt": "A quiet bedtime lullaby for a painted storybook: solo felt piano playing a slow, simple, warm melody in D major at 64 bpm, with gentle pizzicato strings answering softly underneath. Intimate, close, soft dynamics, like a lamp-lit room at night. No drums, no vocals, no swells or build-up, no ending; it should loop seamlessly."
+    },
+    {
+      "id": "bed-felt-piano-clarinet",
+      "durationS": 90,
+      "prompt": "A quiet bedtime piece for a painted storybook: felt piano chords in D major at 64 bpm with a soft, breathy clarinet carrying a slow, tender melody, very sparse. Warm, close and calm, like a story read by lamplight. No drums, no vocals, no build-up, no ending; it should loop seamlessly."
+    },
+    {
+      "id": "bed-strings-celesta",
+      "durationS": 90,
+      "prompt": "A gentle, sparse nighttime underscore for a storybook: a small string quartet holding soft sustained chords in D major at 64 bpm, with a felt piano and a faint celesta adding a few quiet notes, like stars coming out. Calm, warm, very soft. No drums, no vocals, no build-up, no ending; it should loop seamlessly."
+    }
+  ],
+  "estimate": "3 jobs × 90 s = 4.5 minutes of music. About 4,000 ElevenLabs credits from the plan's monthly allowance (third-party guides put music at about 900 credits a minute), or about $0.68–$1.35 at the per-minute API rates they quote ($0.15–$0.30; the official rate page couldn't be read). No Runway credits.",
+  "cap": "6 minutes of music in all (one redo of one candidate), then stop.",
+  "approval": "Not approved: cancelled.",
+  "status": "cancelled",
+  "cancelled": "Cancelled by the owner on Nov 16 before any request was sent: no ElevenLabs. The bed is a free CC0 track instead (art/sound/music/LICENCE.md). Nothing was generated or spent."
+}

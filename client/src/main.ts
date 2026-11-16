@@ -6,6 +6,7 @@ import { clearIfReaderChanged } from './landing/account-ui.ts';
 import { detectDevice } from './landing/device.ts';
 import { setLandingState } from './landing/landing.ts';
 import { mountPage } from './landing/mount.tsx';
+import { registerOffline } from './offline/cache.ts';
 
 // Before anything reads the saved place: finish a sign-out or delete from the last page.
 clearIfReaderChanged();
@@ -16,4 +17,6 @@ if (device === 'headset') {
     console.error('book', cause);
     setLandingState({ kind: 'failed' });
   });
+  // The offline cache, once the book is ready (lane E).
+  registerOffline(device);
 }

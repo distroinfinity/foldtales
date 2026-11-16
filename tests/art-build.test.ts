@@ -59,3 +59,94 @@ describe('baking the alpha', () => {
     expect(padded.rgba[3]).toBe(0);
   });
 });
+
+describe('the compressed art cache', async () => {
+  const { mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync, existsSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+  const sharp = (await import('sharp')).default;
+  const { buildArtCache, blobPath, cacheKey, CACHE_SETTINGS, planArtCache } = await import('../tools/art-build.ts');
+
+  const png = (rgb: [number, number, number], alpha = false) =>
+    sharp({ create: { width: 24, height: 20, channels: alpha ? 4 : 3, background: alpha ? { r: rgb[0], g: rgb[1], b: rgb[2], alpha: 0.5 } : { r: rgb[0], g: rgb[1], b: rgb[2] } } }).png().toBuffer();
+  const root = mkdtempSync(join(tmpdir(), 'tt-art-'));
+  const art = join(root, 'art');
+  const put = async (path: string, rgb: [number, number, number], alpha = false) => {
+    mkdirSync(join(art, path, '..'), { recursive: true });
+    writeFileSync(join(art, path), await png(rgb, alpha));
+  };
+  await put('sets/a/ground.png', [200, 10, 10]);
+  await put('cast/pip/body.png', [10, 200, 10], true);
+  await put('cast/pip/head.png', [10, 10, 200], true);
+  const folders = ['sets/a', 'cast/pip'];
+  const served = (cache: string, rel: string) => readFileSync(join(cache, rel));
+
+  test('a change, then a revert, serves each version its own bytes', async () => {
+    const cache = join(root, 'c1');
+    await buildArtCache({ artRoot: art, folders, cacheDir: cache, threads: 2 });
+    const first = served(cache, 'ktx2/sets/a/ground.ktx2');
+    await put('sets/a/ground.png', [10, 200, 200]);
+    await buildArtCache({ artRoot: art, folders, cacheDir: cache, threads: 2 });
+    const changed = served(cache, 'ktx2/sets/a/ground.ktx2');
+    expect(changed.equals(first)).toBe(false);
+    await put('sets/a/ground.png', [200, 10, 10]);
+    await buildArtCache({ artRoot: art, folders, cacheDir: cache, threads: 2 });
+    expect(served(cache, 'ktx2/sets/a/ground.ktx2').equals(first)).toBe(true);
+  }, 120_000);
+
+  test('a missing blob is encoded again; unused blobs stay unless pruning is asked for', async () => {
+    const cache = join(root, 'c2');
+    const index = await buildArtCache({ artRoot: art, folders, cacheDir: cache, threads: 2 });
+    expect(Object.keys(index.atlases)).toEqual(['cast/pip']);
+    const blobs = readdirSync(join(cache, 'blobs'));
+    expect(blobs).toHaveLength(2);
+    rmSync(join(cache, 'blobs', blobs[0]!));
+    writeFileSync(join(cache, 'blobs', 'other-lane.ktx2'), 'theirs');
+    expect((await planArtCache({ artRoot: art, folders, cacheDir: cache })).missing).toHaveLength(1);
+    await buildArtCache({ artRoot: art, folders, cacheDir: cache, threads: 2 });
+    expect(readdirSync(join(cache, 'blobs')).sort()).toEqual([...blobs, 'other-lane.ktx2'].sort());
+    expect((await planArtCache({ artRoot: art, folders, cacheDir: cache })).missing).toHaveLength(0);
+    await buildArtCache({ artRoot: art, folders, cacheDir: cache, threads: 2, prune: true });
+    expect(readdirSync(join(cache, 'blobs')).sort()).toEqual([...blobs].sort());
+  }, 120_000);
+
+  test('the key covers the settings and every source of an atlas', () => {
+    const a = { name: 'body.png', bytes: new Uint8Array([1, 2, 3]) };
+    const b = { name: 'head.png', bytes: new Uint8Array([4]) };
+    expect(cacheKey('atlas', [a, b])).not.toBe(cacheKey('atlas', [a, { ...b, bytes: new Uint8Array([5]) }]));
+    expect(cacheKey('atlas', [a, b])).not.toBe(cacheKey('file', [a, b]));
+    expect(JSON.stringify(CACHE_SETTINGS)).toContain('"encoder"');
+    expect(JSON.stringify(CACHE_SETTINGS)).toContain('"uastcLDRQualityLevel":2');
+  });
+
+  test('an edit while the build runs never puts new pixels under the old key (Codex PR #33, point 3)', async () => {
+    const cache = join(root, 'c-snapshot');
+    await put('sets/a/ground.png', [200, 10, 10]);
+    await put('cast/pip/body.png', [10, 200, 10], true);
+    const plan = await planArtCache({ artRoot: art, folders, cacheDir: cache });
+    expect(plan.missing).toHaveLength(2);
+    // The sources change on disk after their keys were made, before their pixels are read.
+    await put('sets/a/ground.png', [10, 10, 200]);
+    await put('cast/pip/body.png', [200, 200, 10], true);
+    const [ground, atlas] = [plan.missing.find((j) => !j.label.startsWith('atlas'))!, plan.missing.find((j) => j.label.startsWith('atlas'))!];
+    const g = await ground.pixels();
+    expect([g.rgba[0], g.rgba[1], g.rgba[2]]).toEqual([200, 10, 10]);
+    const a = await atlas.pixels();
+    const body = plan.index.atlases['cast/pip']!.rects['body.png']!;
+    const at = ((body.y + 1) * a.width + body.x + 1) * 4;
+    // Premultiplied by alpha 0.5: the original green body, not the edit's yellow.
+    expect(a.rgba[at]! < 20 && a.rgba[at + 1]! > 80).toBe(true);
+    await put('sets/a/ground.png', [200, 10, 10]);
+    await put('cast/pip/body.png', [10, 200, 10], true);
+  }, 120_000);
+
+  test('threads give the same bytes as one thread', async () => {
+    const one = join(root, 'one');
+    const many = join(root, 'many');
+    await buildArtCache({ artRoot: art, folders, cacheDir: one, threads: 1 });
+    await buildArtCache({ artRoot: art, folders, cacheDir: many, threads: 3 });
+    for (const rel of ['ktx2/sets/a/ground.ktx2', 'ktx2/cast/pip.ktx2']) expect(served(many, rel).equals(served(one, rel))).toBe(true);
+    expect(existsSync(blobPath(many, 'nope'))).toBe(false);
+    rmSync(root, { recursive: true, force: true });
+  }, 120_000);
+});

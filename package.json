@@ -11,7 +11,8 @@
     "test": "vitest run",
     "typecheck": "pnpm -r typecheck && tsc -p .",
     "check:bundle": "node scripts/check-bundle.ts",
-    "check": "pnpm typecheck && pnpm test && pnpm check:bundle"
+    "check": "pnpm typecheck && pnpm test && pnpm check:bundle",
+    "art:cache": "node tools/art-cache.ts"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
