@@ -1,13 +1,11 @@
 # Submission: the Devpost form and the video
 
-Lane E, Nov 16; updated Nov 17 for main at 79ae980. Every claim here is about something built and live on www.foldtales.xyz:
-- chapters 1 and 2 (#35, #49);
+Lane E, Nov 16; updated Nov 17 for main at 1dd1d66. Every claim here is about something built and live on www.foldtales.xyz:
+- all three chapters (#35, #49, #45);
 - the touch-to-press book controls, with the menu card rising behind the flattened stage and a ghost hand teaching the ribbon (#50);
 - the AI Storyteller (#30), whose lines stand as long as it is live on the deployed site on Nov 18.
 
-Lines marked **[if merged]** describe chapter 3 (lane C), still being built on Nov 17.
-
-On Nov 18, before submitting, delete each marked line whose work didn't merge, and drop the marks. `tests/submission.test.ts` checks the tagline's length and the description's word count.
+Lines marked **[if the hunt passes]** describe chapter 3's room hunt. They stand only if it works in the owner's real room (`docs/headset-session.md`, step 17); otherwise the page version plays, and the marked lines are cut. On Nov 18, before submitting, settle the marked lines and drop the marks. `tests/submission.test.ts` checks the tagline's length and the description's word count.
 
 **Deadline:** Wednesday, Nov 18, 2026, 12:00 PM PT (Thursday, Nov 19, 1:30 AM IST). Submit by **20:00 IST on Nov 18**, from a draft started on Nov 17.
 
@@ -33,9 +31,9 @@ A painted pop-up storybook opens on your real table. Reach in, hand the characte
 <!-- description -->
 **Inspiration.** Evenings are when people reach for stories: a show, an audiobook, a cozy game. On a screen you only watch. We wanted the story to happen on your own table, at a scale you can lean over and reach into, the way a pop-up book feels when you're small. Foldtales is a painted storybook for winding down: no score, no losing, about six minutes a chapter, and only your hands.
 
-**What it is.** Open the link in Quest Browser and tap Open the book. The book finds your real table and unfolds, the room dims like house lights going down, and the pages stand up as paper sets. In *Tales from the Table's Edge*, Pip, a young fox in a keeper's coat far too big for him, loses the lighthouse's light. You hand his lantern back, turn the pages by hand, and pick something from the book's drawer to get him across a gap. The story waits for you, but never needs you: it plays to its end with no input at all. When the lamp is relit, its beam sweeps across your real walls. In chapter 2 the tide comes in across your floor, a bottle washes up at your feet with a letter from Thimble, a field mouse lost at sea, and the light brings her paper boat home across your room.
+**What it is.** Open the link in Quest Browser and tap Open the book. The book finds your real table and unfolds, the room dims like house lights going down, and the pages stand up as paper sets. In *Tales from the Table's Edge*, Pip, a young fox in a keeper's coat far too big for him, loses the lighthouse's light. You hand his lantern back, turn the pages by hand, and pick something from the book's drawer to get him across a gap. The story waits for you, but never needs you: it plays to its end with no input at all. When the lamp is relit, its beam sweeps across your real walls. In chapter 2 the tide comes in across your floor with a letter from Thimble, a field mouse lost at sea. In chapter 3, on the longest night, snow comes to the table's edge and old Wick is lost in it.
 
-**Your room is part of the story.** Mixed reality isn't a backdrop here. The book settles on whatever table your Quest has found, sized to it and within reach, and the lighthouse's beam lights up your real room. In chapter 2 the sea washes across your floor with a paper boat sailing on it. With the AI Storyteller the story reaches further into the room around you: rain and snow falling around you, stars and the moon on your ceiling, shadow play on your wall, fireflies that follow your hand, and your real window becoming the story's window. **[if merged]** Chapter 3 puts the stars on your ceiling, with Pip's own star among them.
+**Your room is part of the story.** Mixed reality isn't a backdrop here. The book settles on whatever table your Quest has found, sized to it and within reach, and the lighthouse's beam lights up your real room. In chapter 2 the sea washes across your floor and a paper boat sails home on it. In chapter 3 snow falls around you, and the stars come out on your ceiling, Pip's own among them. **[if the hunt passes]** The beam hunts your room for Wick's lost logbook, and you get up and fetch it. With the AI Storyteller the cast can also bring rain, shadow play on your wall, fireflies that follow your hand, and your real window becoming the story's window.
 
 **The AI Storyteller.** Beside the written chapters, the same cast improvises a new story with you. Say what tonight's story is about, or just hand them something; they answer in their own voices, can paint what you ask for, and can bring weather into your room. The app always owns the ending, and the story finishes cleanly if the AI is slow or unavailable.
 
@@ -59,7 +57,7 @@ The whole book, its caption band and its controls fit inside the glasses' 74° �
 ### Testing instructions
 
 <!-- testing -->
-On a Meta Quest 3 or 3S, open https://www.foldtales.xyz in Quest Browser and tap Open the book. Allow the browser to use the room when asked. Sit at a table if you can (Space Setup helps the book find it); without one, choose "No table? Read in the painted room". Use your hands only. Each chapter takes about six minutes; chapter 2 follows from chapter 1's end card, or from Your book on the page. To pause or leave, touch the ribbon's tail at the book's near edge with a fingertip. The AI Storyteller needs sign-in (a code finished on your phone, or Google) and the microphone.
+On a Meta Quest 3 or 3S, open https://www.foldtales.xyz in Quest Browser and tap Open the book. Allow the browser to use the room when asked. Sit at a table if you can (Space Setup helps the book find it); without one, choose "No table? Read in the painted room". Use your hands only. Each of the three chapters takes about six minutes; each follows from the end card before it, or from Your book on the page. **[if the hunt passes]** Chapter 3 asks you to get up once, to fetch what the beam finds in your room; leave it, and it comes back by itself. To pause or leave, touch the ribbon's tail at the book's near edge with a fingertip. The AI Storyteller needs sign-in (a code finished on your phone, or Google) and the microphone.
 <!-- /testing -->
 
 ## The video's shot list (under 3:00, real Quest footage)
@@ -73,7 +71,7 @@ On a Meta Quest 3 or 3S, open https://www.foldtales.xyz in Quest Browser and tap
 
 **Before filming (Nov 17):** a 30 s test recording with sound. Meta button → camera → Record video. Pull it over USB, and check that both the app's layer and the voices are in it (they weren't in two earlier tests).
 
-**Where:** a tidy table, evening light, plain walls, one real window in view, nothing branded. Seated, hands only. Use the live link, except shots 1 and 6: their review links (`?jump=`, `?room=`) exist only in a review build over USB. That's still real Quest footage, and the same build as the live site.
+**Where:** a tidy table, evening light, plain walls, one real window in view, nothing branded. Seated, hands only (standing only to fetch the logbook in the hunt). Use the live link, except shot 1 and shot 6's rain: their review links (`?jump=`, `?room=`) exist only in a review build over USB. That's still real Quest footage, and the same build as the live site.
 
 | # | Time | Shot | Recorded from | Look and listen for |
 |---|---|---|---|---|
@@ -82,7 +80,7 @@ On a Meta Quest 3 or 3S, open https://www.foldtales.xyz in Quest Browser and tap
 | 3 | 0:30–0:50 | Hand the lantern back to Pip: pinch, bring it to him, let go; his relief | Chapter 1 | A clean single grab; Pip's hop |
 | 4 | 0:50–1:05 | Turn the page by hand to the shore; lean to show the layers' parallax | Chapter 1 | The leaf following the pinch |
 | 5 | 1:05–1:25 | Pull the drawer, pick the kite, hand it over at the gap; Pip crosses on it | Chapter 1, the gap | What you gave decides the crossing |
-| 6 | 1:25–1:50 | **Your room joins in:** the sea on the floor with the paper boat, then rain all round, snow settling on the real table, stars on the ceiling | The sea from chapter 2 on the live link; the rest from review links, one effect each (`?room=`) | Two or three seconds each, framed wide |
+| 6 | 1:25–1:50 | **Your room joins in:** the sea on the floor with the paper boat, snow settling on the real table, the beam finding Wick's logbook on your floor, stars on the ceiling | Chapters 2 and 3 on the live link (the hunt only if it passed step 17); rain, if there's room, from a review link (`?room=rain`) | Two or three seconds each, framed wide |
 | 7 | 1:50–2:25 | The AI Storyteller: ask for tonight's story, hand over the paper boat, and they answer in voice; a painting arrives | The Storyteller, signed in | One continuous exchange, not cut mid-line |
 | 8 | 2:25–2:40 | Touch the ribbon: the stage folds flat, the menu card rises behind it; press Put the book away | Any chapter | One fingertip touch, one card; the stage never covered |
 | 9 | 2:40–2:55 | The end page and "More chapters on the way" on the page; title card: Foldtales, www.foldtales.xyz | Chapter 1's end and the page | Hold for the URL |
