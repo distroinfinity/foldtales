@@ -5,17 +5,18 @@ import { dirname, join } from 'node:path';
 import { afterAll, describe, expect, test } from 'vitest';
 import { isOffline, precacheFor, workerSource } from '../client/vite/offline-plugin.ts';
 import { wantsOffline } from '../client/src/offline/cache.ts';
-import { activate, cacheName, CACHE_PREFIX, install, respond, route, sha256Hex, type Precache, type WorkerEnv } from '../client/src/offline/worker.ts';
+import { activate, CACHE_PREFIX, COMPLETE, install, RELOAD_PARAM, respond, route, sha256Hex, versionPrefix, type Precache, type WorkerEnv } from '../client/src/offline/worker.ts';
 
 const SCOPE = 'https://www.foldtales.xyz/';
 const sha = (text: string) => createHash('sha256').update(text).digest('hex');
 
 /** A deployed site: path to its current bytes. Swapping a value is a new deploy. */
 type Site = Map<string, string>;
+type Store = Map<string, Map<string, { body: string; type: string | null }>>;
 
 /** CacheStorage, in memory. Entries hold bytes, so every match is a fresh Response. */
 function fakeCaches() {
-  const store = new Map<string, Map<string, { body: string; type: string | null }>>();
+  const store: Store = new Map();
   const caches = {
     async open(name: string) {
       if (!store.has(name)) store.set(name, new Map());
@@ -40,12 +41,14 @@ function fakeCaches() {
   return { caches: caches as unknown as CacheStorage, store };
 }
 
+let ids = 0;
 function env(site: Site, caches: CacheStorage, fail?: (path: string) => boolean): WorkerEnv & { fetched: string[] } {
   const fetched: string[] = [];
   return {
     caches,
     scope: SCOPE,
     digest: sha256Hex,
+    newId: () => `i${++ids}`,
     fetched,
     async fetch(input) {
       const url = new URL(typeof input === 'string' ? input : input instanceof URL ? input.href : input.url);
@@ -63,12 +66,23 @@ function build(site: Site): Precache {
   return { version: sha(JSON.stringify(files)).slice(0, 16), files };
 }
 
-const request = (path: string, mode: RequestMode = 'cors') => ({ method: 'GET', url: new URL(path, SCOPE).href, mode });
+/** This version's caches, by name. */
+const ours = (store: Store, precache: Precache) => [...store.keys()].filter((name) => name.startsWith(versionPrefix(precache)));
+const theCache = (store: Store, precache: Precache) => {
+  const names = ours(store, precache);
+  expect(names).toHaveLength(1);
+  return store.get(names[0]!)!;
+};
 
-async function served(e: WorkerEnv, precache: Precache, path: string, mode: RequestMode = 'cors'): Promise<string | null> {
+const request = (path: string, mode: RequestMode = 'cors') => ({ method: 'GET', url: new URL(path, SCOPE).href, mode });
+const noStale = async () => {
+  throw new Error('went stale');
+};
+
+async function served(e: WorkerEnv, precache: Precache, path: string, mode: RequestMode = 'cors', stale = noStale): Promise<string | null> {
   const key = route(precache, SCOPE, request(path, mode));
   if (!key) return null;
-  return (await respond(e, precache, key, new Request(new URL(path, SCOPE)))).text();
+  return (await respond(e, precache, key, request(path, mode), stale)).text();
 }
 
 const siteA = (): Site =>
@@ -81,13 +95,13 @@ const siteA = (): Site =>
   ]);
 
 describe('install', () => {
-  test('caches every file of its build, checked, and marks the cache complete', async () => {
+  test('caches every file of its build in a cache of its own, checked, and marks it complete', async () => {
     const site = siteA();
     const { caches, store } = fakeCaches();
     const precache = build(site);
     await install(env(site, caches), precache);
-    const cache = store.get(cacheName(precache))!;
-    expect(cache.size).toBe(site.size + 1);
+    expect(theCache(store, precache).size).toBe(site.size + 1);
+    expect(theCache(store, precache).has(new URL(COMPLETE, SCOPE).href)).toBe(true);
     expect(await served(env(site, caches), precache, 'art/sets/the-lamp/set.json')).toBe('{"set":"A"}');
   });
 
@@ -97,7 +111,7 @@ describe('install', () => {
     site.set('art/sets/the-lamp/set.json', '{"set":"B"}');
     const { caches, store } = fakeCaches();
     await expect(install(env(site, caches), precache)).rejects.toThrow("isn't this build's");
-    expect(store.has(cacheName(precache))).toBe(false);
+    expect(ours(store, precache)).toEqual([]);
   });
 
   test('a stale "not modified" answer is fetched again in full, and then passes', async () => {
@@ -115,17 +129,17 @@ describe('install', () => {
     };
     await install(e, precache);
     expect(modes).toEqual(['no-cache', 'reload']);
-    expect(store.get(cacheName(precache))!.size).toBe(site.size + 1);
+    expect(theCache(store, precache).size).toBe(site.size + 1);
   });
 
   test('an interrupted install leaves no cache, and a retry starts clean', async () => {
     const site = siteA();
     const precache = build(site);
     const { caches, store } = fakeCaches();
-    await expect(install(env(site, caches, (path) => path.endsWith('.ktx2')), precache)).rejects.toThrow('network down');
-    expect(store.has(cacheName(precache))).toBe(false);
+    await expect(install(env(site, caches, (path) => path.endsWith('.ktx2')), precache)).rejects.toThrow("couldn't be fetched");
+    expect(ours(store, precache)).toEqual([]);
     await install(env(site, caches), precache);
-    expect(store.get(cacheName(precache))!.size).toBe(site.size + 1);
+    expect(theCache(store, precache).size).toBe(site.size + 1);
   });
 
   test('a missing file fails the install', async () => {
@@ -133,7 +147,30 @@ describe('install', () => {
     const precache = build(site);
     site.delete('assets/main-aaaa.js');
     const { caches } = fakeCaches();
-    await expect(install(env(site, caches), precache)).rejects.toThrow('answered 404');
+    await expect(install(env(site, caches), precache)).rejects.toThrow("isn't this build's");
+  });
+});
+
+describe('a rollback (Codex PR #33, point 1)', () => {
+  test("reinstalling A while A is live reuses A's cache, deletes nothing and fetches nothing", async () => {
+    const site = siteA();
+    const { caches, store } = fakeCaches();
+    const a = build(site);
+    await install(env(site, caches), a);
+    const live = ours(store, a);
+    // B installs and waits; then the server rolls back to A, and every download would now fail.
+    site.set('index.html', '<html>B</html>');
+    const b = build(site);
+    await install(env(site, caches), b);
+    site.set('index.html', '<html>A</html>');
+    const e = env(site, caches, () => true);
+    await install(e, a);
+    expect(e.fetched).toEqual([]);
+    expect(ours(store, a)).toEqual(live);
+    expect(await served(env(site, caches), a, '', 'navigate')).toBe('<html>A</html>');
+    // A activates again: B's cache goes, A's stays.
+    await activate(env(site, caches), a);
+    expect([...store.keys()]).toEqual(live);
   });
 });
 
@@ -159,10 +196,11 @@ describe('an open tab on build A, while B deploys', () => {
     site.set('art/sets/the-lamp/set.json', '{"set":"B"}');
     const b = build(site);
     await install(env(site, caches), b);
-    expect(store.has(cacheName(a)) && store.has(cacheName(b))).toBe(true);
+    expect(ours(store, a)).toHaveLength(1);
+    expect(ours(store, b)).toHaveLength(1);
     // The browser activates B only once no tab uses A (no skipWaiting, no claim).
     await activate(env(site, caches), b);
-    expect([...store.keys()]).toEqual([cacheName(b)]);
+    expect([...store.keys()]).toEqual(ours(store, b));
     expect(await served(env(site, caches), b, 'art/sets/the-lamp/set.json')).toBe('{"set":"B"}');
   });
 
@@ -175,7 +213,7 @@ describe('an open tab on build A, while B deploys', () => {
     const b = build(site);
     site.set('index.html', '<html>C, mid-install</html>');
     await expect(install(env(site, caches), b)).rejects.toThrow();
-    expect([...store.keys()]).toEqual([cacheName(a)]);
+    expect([...store.keys()]).toEqual(ours(store, a));
     expect(await served(env(site, caches), a, '', 'navigate')).toBe('<html>A</html>');
   });
 
@@ -186,7 +224,60 @@ describe('an open tab on build A, while B deploys', () => {
     const a = build(site);
     await install(env(site, caches), a);
     await activate(env(site, caches), a);
-    expect([...store.keys()].sort()).toEqual([cacheName(a), 'someone-else'].sort());
+    expect([...store.keys()].sort()).toEqual([...ours(store, a), 'someone-else'].sort());
+  });
+});
+
+describe('a file lost from the cache (Codex PR #33, point 2)', () => {
+  const lose = (store: Store, precache: Precache, path: string) => theCache(store, precache).delete(new URL(path, SCOPE).href);
+
+  test('with A still live: fetched, checked, served, and put back', async () => {
+    const site = siteA();
+    const { caches, store } = fakeCaches();
+    const a = build(site);
+    await install(env(site, caches), a);
+    lose(store, a, 'art/sets/the-lamp/set.json');
+    expect(await served(env(site, caches), a, 'art/sets/the-lamp/set.json')).toBe('{"set":"A"}');
+    expect(theCache(store, a).has(new URL('art/sets/the-lamp/set.json', SCOPE).href)).toBe(true);
+  });
+
+  test("with B live: B's bytes are never served; the worker goes stale once", async () => {
+    const site = siteA();
+    const { caches, store } = fakeCaches();
+    const a = build(site);
+    await install(env(site, caches), a);
+    lose(store, a, 'art/sets/the-lamp/set.json');
+    lose(store, a, 'index.html');
+    site.set('art/sets/the-lamp/set.json', '{"set":"B"}');
+    site.set('index.html', '<html>B</html>');
+    let stale = 0;
+    const onStale = async () => void stale++;
+    const e = env(site, caches);
+    const file = await respond(e, a, `${SCOPE}art/sets/the-lamp/set.json`, request('art/sets/the-lamp/set.json'), onStale);
+    expect(file.type).toBe('error');
+    const page = await respond(e, a, `${SCOPE}index.html`, request('?page=landing', 'navigate'), onStale);
+    expect(page.status).toBe(302);
+    expect(new URL(page.headers.get('location')!).searchParams.get(RELOAD_PARAM)).toBe('1');
+    expect(new URL(page.headers.get('location')!).searchParams.get('page')).toBe('landing');
+    expect(stale).toBe(2);
+    // What A still holds stays A.
+    expect(await served(e, a, 'assets/main-aaaa.js')).toBe('main A');
+  });
+
+  test('offline: that one request fails, and the worker and its cache stay', async () => {
+    const site = siteA();
+    const { caches, store } = fakeCaches();
+    const a = build(site);
+    await install(env(site, caches), a);
+    lose(store, a, 'art/sets/the-lamp/set.json');
+    const response = await respond(env(site, caches, () => true), a, `${SCOPE}art/sets/the-lamp/set.json`, request('art/sets/the-lamp/set.json'), noStale);
+    expect(response.type).toBe('error');
+    expect(ours(store, a)).toHaveLength(1);
+    expect(await served(env(site, caches, () => true), a, '', 'navigate')).toBe('<html>A</html>');
+  });
+
+  test('a page sent back to the network once is left to it', () => {
+    expect(route(build(siteA()), SCOPE, request(`/?page=landing&${RELOAD_PARAM}=1`, 'navigate'))).toBeNull();
   });
 });
 
@@ -214,14 +305,14 @@ describe('route', () => {
 });
 
 describe('respond', () => {
-  test('a listed file goes to the network, unstored, until the cache is complete', async () => {
+  test('with no complete cache, everything goes to the network, unstored', async () => {
     const site = siteA();
     const { caches, store } = fakeCaches();
     const a = build(site);
     const e = env(site, caches);
     expect(await served(e, a, 'assets/main-aaaa.js')).toBe('main A');
     expect(e.fetched).toEqual(['assets/main-aaaa.js']);
-    expect(store.get(cacheName(a))?.size ?? 0).toBe(0);
+    expect(ours(store, a)).toEqual([]);
   });
 
   test('the kill switch deletes every cache of ours', async () => {
