@@ -51,6 +51,7 @@ import { chapterEnding } from './book/end-sheet.ts';
 import { cancelEntry, chooseEntry, consumeEntry, needsReload, pendingEntry, prepareEntry, type Entry } from './landing/entry.ts';
 import { hasSavedPlace, preparedChoice, primaryLabel, readLibrary } from './landing/library.ts';
 import { carryIntoSatchel } from './stage/carry.ts';
+import { perfCase } from './review/perf-cases.ts';
 import { chapterManifest, prepareWithFallback } from './stage/chapter-load.ts';
 import { askMicrophone, loadChapter, recordFinished, storytellerSnapshot, type ChapterData, type StoryEnding } from './stage/seams.ts';
 import type { ExtraTarget as CardExtra } from './stage/controls.ts';
@@ -121,7 +122,9 @@ function reportTelemetry(world: World): void {
     guard('telemetry', (frame: XRFrame, delta: number) => {
       if (frame.session !== session) {
         session = frame.session;
-        telemetry.record({ kind: 'session', xrMode: session.environmentBlendMode === 'opaque' ? 'vr' : 'ar', device: navigator.userAgent.slice(0, 120), passthrough: session.environmentBlendMode === 'alpha-blend' });
+        // Review builds' `?perf=<id>` tags the session with its frame-rate fixture (lane E).
+        const testCase = perfCase(reviewQuery('perf'))?.id;
+        telemetry.record({ kind: 'session', xrMode: session.environmentBlendMode === 'opaque' ? 'vr' : 'ar', device: navigator.userAgent.slice(0, 120), passthrough: session.environmentBlendMode === 'alpha-blend', ...(testCase ? { testCase } : {}) });
       }
       telemetry.frame(delta * 1000, world.renderer.info.render, momentForTelemetry);
     }),
@@ -384,8 +387,18 @@ async function prepare(world: World, chapter: ChapterData) {
   // in one sitting. `hunt` hides the kite on your couch; `window-wall` opens the window on a wall. Scheduled again after "Start from the beginning".
   const devRoom = (reviewQuery('room') ?? '').split(',').filter(Boolean);
   const devRoomState = { scheduled: false, lastMs: 0 };
+  // Review builds only: `?perf=<id>`, one of lane E's frame-rate fixtures (review/perf-cases.ts): it starts at its beat and holds its effects on.
+  const perf = perfCase(reviewQuery('perf'));
   const scheduleDevRoom = (fromMs: number): void => {
     runtime.clearReviewRoom();
+    for (const h of perf?.hold ?? []) {
+      if (h.effect === 'bottle') {
+        const def = defs.get('bottle');
+        const art = def?.art.kind === 'asset' ? assets.textures.get(def.art.path) : undefined;
+        if (def && art && !stage.objects.get('bottle')) stage.objects.add(def, art, { kind: 'away' });
+      }
+      runtime.addRoom({ do: 'room', withPrev: false, effect: h.effect, what: h.what ?? null, at: h.at ?? null }, Math.max(11_500, fromMs + 6_000));
+    }
     // Each in turn, quickly (owner: don't make me wait): snow about 12 s, the rest about 16 s, a short gap between.
     const slots = devRoom.map((effect) => (effect === 'snow' ? 14_000 : effect === 'sea' ? 26_000 : 20_000));
     devRoom.forEach((effect, i) => {
@@ -439,7 +452,7 @@ async function prepare(world: World, chapter: ChapterData) {
   };
   /** Each frame: schedule once the show starts, and again whenever its clock goes back to the start. */
   const devRoomTick = (): void => {
-    if (!devRoom.length || !runtime.started) return;
+    if ((!devRoom.length && !perf) || !runtime.started) return;
     if (!devRoomState.scheduled || clock.ms < devRoomState.lastMs - 1000) scheduleDevRoom(clock.ms);
     devRoomState.lastMs = clock.ms;
   };
@@ -1033,7 +1046,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
     sizing.userScale = resumeFrom.scale;
   }
   // Review builds only: `?jump=<beat>` plays the episode silently up to that beat, nobody helping, and starts there.
-  const jump = reviewQuery('jump');
+  const jump = reviewQuery('jump') ?? perfCase(reviewQuery('perf'))?.jump ?? null;
   if (jump && !resumeFrom) {
     const s = runtime.scheduler;
     let t = 0;
