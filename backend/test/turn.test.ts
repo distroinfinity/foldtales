@@ -201,3 +201,22 @@ describe('a turn id runs once, through the handlers', () => {
     });
   });
 });
+
+describe('boat-home, only while the sea is in (lane B, contracts v8)', () => {
+  const stage = (on: string[]) => ({ setId: 'glade', cast: [{ id: 'bramble', mark: 'stump', holding: null }], objects: [], light: 'dusk' as const, lampLit: false, roomFx: { on: on as never[], available: ['sea', 'boat', 'boat-home'] as never[] } });
+  const rooms = (events: TurnEvent[]) => events.flatMap((e) => (e.kind === 'beat' ? e.ready.beat.actions.flatMap((a) => (a.do === 'room' ? [a.effect] : [])) : []));
+  const said = (events: TurnEvent[]) => spoken(events);
+
+  test('without the sea it is refused, and the line about it goes too', async () => {
+    const { anthropic } = fakeAnthropic('ROOM boat-home\nSAY bramble warm | Here it comes, home to the book!\nSAY bramble warm | Look at that.\nLISTEN bramble\n');
+    const events = await all(storyTurn(request({ kind: 'quiet', seconds: 20 }, { stage: stage([]) }), deps(anthropic)));
+    expect(rooms(events)).toEqual([]);
+    expect(said(events)).toEqual(['Look at that.']);
+  });
+
+  test('with the sea in, it sails home', async () => {
+    const { anthropic } = fakeAnthropic('ROOM boat-home\nSAY bramble warm | Here it comes, home to the book!\nLISTEN bramble\n');
+    const events = await all(storyTurn(request({ kind: 'quiet', seconds: 20 }, { stage: stage(['sea']) }), deps(anthropic)));
+    expect(rooms(events)).toEqual(['boat-home']);
+  });
+});

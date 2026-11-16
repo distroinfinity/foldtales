@@ -85,6 +85,7 @@ const ROOM_NEEDS: Partial<Record<RoomEffect, RoomEffect>> = {
   'tide-in': 'sea',
   'tide-out': 'sea',
   boat: 'sea',
+  'boat-home': 'sea',
 };
 /** What a room effect turns on or off, for later steps in the same turn. */
 function roomAfter(on: Set<string>, effect: RoomEffect): void {
