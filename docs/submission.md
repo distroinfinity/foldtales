@@ -64,11 +64,11 @@ On a Meta Quest 3 or 3S, open https://www.foldtales.xyz in Quest Browser and tap
 - Nobody but the team in frame.
 - No brands, logos or screens showing other content in the room.
 - Not the satchel keepsake named after a real person.
-- Any music must have cleared its private YouTube test (run 027).
+- The music bed must have cleared its private YouTube Content ID test first (`art/sound/music/LICENCE.md`). If it hasn't, film with the bed removed.
 
 **Before filming (Nov 17):** a 30 s test recording with sound. Meta button → camera → Record video. Pull it over USB, and check that both the app's layer and the voices are in it (they weren't in two earlier tests).
 
-**Where:** a tidy table, evening light, plain walls, one real window in view, nothing branded. The live link, seated, hands only.
+**Where:** a tidy table, evening light, plain walls, one real window in view, nothing branded. Seated, hands only. Use the live link, except shots 1 and 6: their review links (`?jump=`, `?room=`) exist only in a review build over USB. That's still real Quest footage, and the same build as the live site.
 
 | # | Time | Shot | Recorded from | Look and listen for |
 |---|---|---|---|---|
