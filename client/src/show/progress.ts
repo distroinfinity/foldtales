@@ -215,7 +215,10 @@ export function landingChoice(progress: Progress | null, canResume: boolean): { 
  * title is its episode's own (`title` in `episode-N.json`), as the cards and the end page print it;
  * `tests/chapter-seam.test.ts` keeps the two the same.
  */
-export const CHAPTERS: ReadonlyArray<{ n: number; title: string; episodeId: string }> = [{ n: 1, title: 'The night the light went out', episodeId: 'chapter-1' }];
+export const CHAPTERS: ReadonlyArray<{ n: number; title: string; episodeId: string }> = [
+  { n: 1, title: 'The night the light went out', episodeId: 'chapter-1' },
+  { n: 2, title: 'The night the sea came in', episodeId: 'chapter-2' },
+];
 
 /** Whether the AI Storyteller is built and switched on in this build. Sign-in is checked by the landing page. */
 export const STORYTELLER_AVAILABLE = true;

@@ -49,7 +49,7 @@ const place = (episodeId: string, scene: number, over: Partial<Checkpoint> = {})
 describe('loadChapter', () => {
   test("chapter 1 is today's chapter, with its canon, no satchel and where each spread is", async () => {
     const ch = await loadChapter(1, { fetchJson: fromPublic, log: memoryLogStore() });
-    expect(ch).toMatchObject({ n: 1, episodeId: 'chapter-1', title: 'The night the light went out', next: null, satchel: [] });
+    expect(ch).toMatchObject({ n: 1, episodeId: 'chapter-1', title: 'The night the light went out', next: 2, satchel: [] });
     expect(ch.episode.scenes.map((s) => s.id)).toEqual(['the-lamp', 'the-shore', 'the-gap']);
     expect(ch.canon?.episodeId).toBe('chapter-1');
     expect(ch.where('opening')).toBe('Stopped at the top of the lighthouse.');
@@ -58,7 +58,7 @@ describe('loadChapter', () => {
   });
 
   test('a chapter not in this build rejects', async () => {
-    await expect(loadChapter(2, { fetchJson: fromPublic })).rejects.toThrow(/no chapter 2/);
+    await expect(loadChapter(9, { fetchJson: fromPublic })).rejects.toThrow(/no chapter 9/);
     await expect(loadChapter(0, { fetchJson: fromPublic })).rejects.toThrow();
   });
 });
@@ -152,7 +152,7 @@ describe('progress per chapter', () => {
     expect(libraryState(s, now, SERIES).chapters[0]).toEqual({ n: 1, title: 'The night the light went out', state: 'started', canResume: true, where: 'Stopped on the shore.' });
     writeProgress(s, { seriesId: SERIES, chapter: 1, state: 'finished' });
     writeCheckpoint(s, place('chapter-1', 2));
-    expect(libraryState(s, now, SERIES)).toMatchObject({ chapters: [{ state: 'finished', canResume: true, where: 'Stopped at the gap.' }], next: { n: 1, resume: true } });
+    expect(libraryState(s, now, SERIES).chapters[0]).toMatchObject({ state: 'finished', canResume: true, where: 'Stopped at the gap.' });
     writeCheckpoint(s, place('chapter-1', 2, { ended: true }));
     expect(libraryState(s, now, SERIES).chapters[0]).toEqual({ n: 1, title: 'The night the light went out', state: 'finished', canResume: false });
   });

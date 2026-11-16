@@ -1,0 +1,180 @@
+{
+  "episodeId": "chapter-2",
+  "title": "The night the sea came in",
+  "facts": [
+    {
+      "key": "letter",
+      "value": "reader",
+      "beats": [
+        "letter"
+      ],
+      "text": "The Reader passed Thimble's letter up from the sea.",
+      "page": "You passed Thimble's letter up from your own floor."
+    },
+    {
+      "key": "letter",
+      "value": "tide",
+      "beats": [
+        "letter-tide"
+      ],
+      "text": "The tide brought Thimble's letter up to the lighthouse.",
+      "page": "The tide brought Thimble's letter up to the lighthouse."
+    },
+    {
+      "key": "light-high",
+      "value": "kite",
+      "beats": [
+        "high-kite"
+      ],
+      "text": "Pip's light went up on a kite, high over the shore, and Pip stood in the dark.",
+      "page": "You gave Pip a kite, and his light went up high."
+    },
+    {
+      "key": "light-high",
+      "value": "ladder",
+      "beats": [
+        "high-ladder"
+      ],
+      "text": "Pip hung his light at the top of a ladder on the rocks, and stood in the dark.",
+      "page": "You gave Pip a ladder, and his light went up high."
+    },
+    {
+      "key": "light-high",
+      "value": "moth",
+      "beats": [
+        "high-moth"
+      ],
+      "text": "Moth carried Pip's light up high, and Pip stood in the dark.",
+      "page": "Moth carried Pip's light up high, and Pip stood in the dark."
+    },
+    {
+      "key": "landing",
+      "value": "thread",
+      "beats": [
+        "in-by-thread"
+      ],
+      "text": "Thimble was pulled in off the rocks on her grandmother's thread.",
+      "page": "Thimble came in off the rocks on her grandmother's thread."
+    },
+    {
+      "key": "landing",
+      "value": "rope",
+      "beats": [
+        "in-by-rope"
+      ],
+      "text": "Pip threw Thimble a line and hauled her in off the rocks.",
+      "page": "Thimble came in off the rocks on the line you gave."
+    },
+    {
+      "key": "landing",
+      "value": "ladder",
+      "beats": [
+        "in-by-ladder"
+      ],
+      "text": "Thimble crossed from the rocks on a ladder laid like a bridge.",
+      "page": "Thimble crossed from the rocks on the ladder you gave."
+    },
+    {
+      "key": "landing",
+      "value": "kite",
+      "beats": [
+        "in-by-kite"
+      ],
+      "text": "Thimble flew in off the rocks on a kite tail.",
+      "page": "Thimble flew in off the rocks on the kite you gave."
+    },
+    {
+      "key": "landing",
+      "value": "tide",
+      "beats": [
+        "rocks-tide"
+      ],
+      "text": "The sea itself set Thimble down on the landing steps.",
+      "page": "The sea set Thimble down on the landing steps."
+    },
+    {
+      "key": "thimble",
+      "value": "home",
+      "beats": [
+        "ashore"
+      ],
+      "text": "Thimble came home to the Lost and Found by the light."
+    },
+    {
+      "key": "log",
+      "value": "pip",
+      "beats": [
+        "ashore"
+      ],
+      "text": "Pip wrote in the keeper's log for the first time."
+    }
+  ],
+  "history": {
+    "bottle": [
+      {
+        "beats": [
+          "letter"
+        ],
+        "text": "You passed it up from your own floor, with Thimble's letter inside, the night the sea came in."
+      },
+      {
+        "text": "Washed up with Thimble's letter inside, the night the sea came in."
+      }
+    ],
+    "spool": [
+      {
+        "beats": [
+          "in-by-thread"
+        ],
+        "text": "Thimble's grandmother's thread. It pulled her in off the rocks."
+      },
+      {
+        "text": "Thimble's grandmother's thread, from the sewing basket."
+      }
+    ],
+    "kite": [
+      {
+        "beats": [
+          "high-kite"
+        ],
+        "text": "Held Pip's light high over the shore, the night the sea came in."
+      },
+      {
+        "beats": [
+          "in-by-kite"
+        ],
+        "text": "Flew Thimble in off the rocks, the night the sea came in."
+      },
+      {
+        "text": "Kept from the night the sea came in."
+      }
+    ],
+    "ladder": [
+      {
+        "beats": [
+          "high-ladder"
+        ],
+        "text": "Stood on the rocks with Pip's light at the top, the night the sea came in."
+      },
+      {
+        "beats": [
+          "in-by-ladder"
+        ],
+        "text": "A bridge from the rocks to the landing, the night the sea came in."
+      },
+      {
+        "text": "Kept from the night the sea came in."
+      }
+    ],
+    "thimble-boat": [
+      {
+        "text": "Thimble's paper boat, gone soft from the whole sea."
+      }
+    ],
+    "default": [
+      {
+        "text": "Kept from the night the sea came in."
+      }
+    ]
+  }
+}
