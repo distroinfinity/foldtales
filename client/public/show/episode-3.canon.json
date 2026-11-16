@@ -24,7 +24,8 @@
       "beats": [
         "log-found"
       ],
-      "text": "The Reader found Wick's logbook out in the room."
+      "text": "The Reader found Wick's logbook out in the room.",
+      "page": "You found Wick's logbook out in your room."
     },
     {
       "key": "logbook",
@@ -32,7 +33,8 @@
       "beats": [
         "log-return"
       ],
-      "text": "The beam found Wick's logbook and brought it home."
+      "text": "The beam found Wick's logbook and brought it home.",
+      "page": "The lighthouse beam found Wick's logbook for you."
     },
     {
       "key": "wick-across",
@@ -41,7 +43,8 @@
         "wick-rope",
         "wick-rope-self"
       ],
-      "text": "Pip threw a line across the gap to Wick."
+      "text": "Pip threw a line across the gap to Wick.",
+      "page": "You saw Pip throw Wick a line across the gap."
     },
     {
       "key": "wick-across",
@@ -49,7 +52,8 @@
       "beats": [
         "wick-ladder"
       ],
-      "text": "Wick crossed the gap on a ladder, one rung at a time."
+      "text": "Wick crossed the gap on a ladder, one rung at a time.",
+      "page": "You gave Pip the ladder that got Wick across the gap."
     },
     {
       "key": "wick-across",
@@ -57,7 +61,8 @@
       "beats": [
         "wick-kite"
       ],
-      "text": "Wick flew over the gap on a kite, at his age."
+      "text": "Wick flew over the gap on a kite, at his age.",
+      "page": "You gave Pip the kite that flew Wick over the gap."
     },
     {
       "key": "keeper",
@@ -65,7 +70,8 @@
       "beats": [
         "across"
       ],
-      "text": "Wick handed Pip the lamp and the log, and Pip got a star of his own."
+      "text": "Wick handed Pip the lamp and the log, and Pip got a star of his own.",
+      "page": "You saw Wick hand Pip the lamp, and Pip's star come out on your ceiling."
     }
   ],
   "history": {

@@ -194,7 +194,26 @@ for (const version of VERSIONS) {
       for (const [def, entries] of Object.entries(canon.history)) for (const e of entries) for (const b of e.beats ?? []) expect(beats.has(b), `${def}: ${b}`).toBe(true);
     });
 
-    test('no line is over 200 characters (1 credit a line)', () => {
+    test("the end card: on every path three lines, said to the reader, the keeper's always among them", () => {
+    type Fact = { key: string; value: string; beats: string[]; page?: string };
+    for (const f of canon.facts as Fact[]) if (f.page) expect(f.page.length, f.page).toBeLessThanOrEqual(120);
+    for (const p of all) {
+      const played = new Set(p);
+      const seen = new Set<string>();
+      const lines: string[] = [];
+      // As the recorded page composes it: canon order, one fact per key, only facts with a page line, at most three.
+      for (const f of canon.facts as Fact[]) {
+        if (seen.has(f.key) || !f.beats.some((b) => played.has(b))) continue;
+        seen.add(f.key);
+        if (f.page && lines.length < 3) lines.push(f.page);
+      }
+      expect(lines, p.join(' → ')).toHaveLength(3);
+      expect(lines.at(-1), p.join(' → ')).toMatch(/Pip's star/);
+      for (const l of lines) expect(l, l).toMatch(/\b[Yy]ou\b/);
+    }
+  });
+
+  test('no line is over 200 characters (1 credit a line)', () => {
       for (const b of [...beats.values(), ...spine.bridges]) for (const l of linesOf(b)) expect(l.text.length, l.text).toBeLessThanOrEqual(200);
     });
 
