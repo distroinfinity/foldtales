@@ -9,6 +9,8 @@ const HITCH_MS = 100;
 /** Longer than this, the frame loop was paused (headset off, page hidden), not slow. */
 const PAUSE_MS = 5_000;
 const MAX_FRAMES = 2048;
+/** A frame longer than this is under 60 fps: the competition's floor. */
+export const SLOW_FRAME_MS = 1000 / 60;
 
 export interface Telemetry {
   record(event: Unstamped): void;
@@ -28,6 +30,9 @@ export function createTelemetry(
   const frames = new Float32Array(MAX_FRAMES);
   let frameCount = 0;
   let windowMs = 0;
+  // Counted over every frame in the window, not just the first MAX_FRAMES kept for percentiles.
+  let slowFrames = 0;
+  let worstMs = 0;
   let sending = false;
 
   function record(event: Unstamped): void {
@@ -45,9 +50,14 @@ export function createTelemetry(
       lowFps: Math.round(1000 / at(0.99)),
       drawCalls: render.calls,
       triangles: render.triangles,
+      // lowFps is the 1% low; these catch a single dropped frame it can hide.
+      slowFrames,
+      worstFrameMs: Math.round(worstMs * 10) / 10,
     });
     frameCount = 0;
     windowMs = 0;
+    slowFrames = 0;
+    worstMs = 0;
   }
 
   return {
@@ -56,6 +66,8 @@ export function createTelemetry(
       if (deltaMs <= 0 || deltaMs > PAUSE_MS) return;
       if (deltaMs > HITCH_MS) record({ kind: 'hitch', ms: deltaMs, phase });
       if (frameCount < MAX_FRAMES) frames[frameCount++] = deltaMs;
+      if (deltaMs > SLOW_FRAME_MS) slowFrames++;
+      if (deltaMs > worstMs) worstMs = deltaMs;
       windowMs += deltaMs;
       if (windowMs >= WINDOW_MS) summarise(render);
     },

@@ -28,6 +28,7 @@ Foldtales, made for the Meta VR Start Developer Competition, 2026. Re-check each
 | Package | Licence |
 |---|---|
 | Immersive Web SDK (`@iwsdk/*`), Three.js | MIT |
+| IWER hand pose "point" (joint positions copied into `client/src/stage/ghost-hand.ts` for the ribbon lesson), Meta Platforms | MIT |
 | troika-three-text | MIT |
 | Basis Universal transcoder (shipped in `basis/`) | Apache-2.0 |
 | `@elevenlabs/client`, LiveKit client (while bundled) | MIT, Apache-2.0 |

@@ -11,6 +11,7 @@ import { BookSheet, Bookplate, type ShelfAction } from './sheets.tsx';
 import { shelfTarget } from './library.ts';
 import { storytellerSnapshot, subscribeStoryteller } from '../stage/seams.ts';
 import { Story } from './story.tsx';
+import { Hero, HowItWorks, RENDERS } from './hero.tsx';
 import { Storyteller } from './storyteller.tsx';
 
 export const TAGLINE = 'A living storybook on your table. Reach in and help the characters through each chapter, or make up a new story with the AI Storyteller.';
@@ -56,7 +57,7 @@ export function App({ device }: { device: Device }) {
       if (r) void pullBook();
     });
     // The hero waits only for its own pictures; the story's are fetched straight after, long before the scroll needs them.
-    void preloadArt(HERO_ART, 3500).then(() => {
+    void preloadArt([RENDERS.hero, ...HERO_ART], 3500).then(() => {
       setArtReady(true);
       void preloadArt(WEB_ART.slice(HERO_ART.length), 15000);
     });
@@ -78,18 +79,20 @@ export function App({ device }: { device: Device }) {
   const action = (compact: boolean) =>
     device === 'headset' ? <OpenTheBook state={state} library={library} signedIn={reader} onSignIn={() => setSheet('plate')} compact={compact} /> : <SendToQuest compact={compact} />;
 
-  const hero = (
-    <>
-      <Reveal ready={artReady} delay={0.5}>
-        <h1 className="display m-0 text-[clamp(44px,6.2vw,96px)] font-semibold italic leading-[0.95] text-page">{BOOK_TITLE}</h1>
-      </Reveal>
-      <Reveal ready={artReady} delay={0.75}>
-        <p className="m-0 mx-auto mt-4 max-w-[44ch] text-[clamp(17px,1.5vw,20px)] leading-relaxed text-page/80">{TAGLINE}</p>
-      </Reveal>
-      <Reveal ready={artReady} delay={1} className="mt-7">
-        {device === 'headset' ? action(false) : <SendToQuest compact />}
-      </Reveal>
-    </>
+  const doorProps = {
+    device,
+    library,
+    signedIn: reader,
+    onSignIn: () => setSheet('plate'),
+    enterStoryteller: state.kind === 'ready' && state.storyteller ? () => openingTap(state.storyteller!.run) : null,
+    playByHand: state.kind === 'ready' && state.storyteller?.byHand ? () => openingTap(state.storyteller!.byHand!) : null,
+    openBook: state.kind === 'ready' ? () => openingTap(state.open) : null,
+    onStories: () => setSheet('chapters'),
+    storytellerLabel: state.kind === 'ready' ? (state.storyteller?.label ?? null) : null,
+  };
+  // The scroll below now opens with one line: the hero above already says what the book is.
+  const storyIntro = (
+    <h2 className="display m-0 text-[clamp(34px,4.4vw,64px)] leading-[1.02] text-page">Open the book, and this happens.</h2>
   );
 
   return (
@@ -109,18 +112,10 @@ export function App({ device }: { device: Device }) {
       <motion.div aria-hidden className="pointer-events-none fixed inset-0 z-10 bg-room" initial={{ opacity: 1 }} animate={{ opacity: artReady ? 0 : 1 }} transition={{ duration: 1.1, ease: 'easeOut' }} />
 
       <main>
-        <Story hero={hero} />
-        <Storyteller
-          device={device}
-          library={library}
-          signedIn={reader}
-          onSignIn={() => setSheet('plate')}
-          enterStoryteller={state.kind === 'ready' && state.storyteller ? () => openingTap(state.storyteller!.run) : null}
-          playByHand={state.kind === 'ready' && state.storyteller?.byHand ? () => openingTap(state.storyteller!.byHand!) : null}
-          openBook={state.kind === 'ready' ? () => openingTap(state.open) : null}
-          onStories={() => setSheet('chapters')}
-          storytellerLabel={state.kind === 'ready' ? (state.storyteller?.label ?? null) : null}
-        />
+        <Hero device={device} ready={artReady} title={BOOK_TITLE} tagline={TAGLINE} openBook={action(true)} door={doorProps} />
+        <Story hero={storyIntro} />
+        <HowItWorks />
+        <Storyteller {...doorProps} />
 
         <section className="px-5 pb-20 pt-[16vh] text-center" aria-labelledby="end-title">
           <h2 id="end-title" className="display m-0 text-[clamp(36px,4.6vw,64px)] leading-[1.02]">

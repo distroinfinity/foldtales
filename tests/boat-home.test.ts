@@ -30,9 +30,22 @@ describe("boat-home, chapter 2's signature peak", () => {
     const a = boatAt(story.boatMs!, story.boatHomeMs, { x: 0.2, z: -0.5 });
     const b = boatAt(roomAt(items, 64_000).boatMs!, roomAt(items, 64_000).boatHomeMs, { x: 0.2, z: -0.5 });
     expect(b).toEqual(a);
-    // It left the circle where the circle had brought it by then, in story time.
-    const left = boatAt(roomAt(items, 60_000).boatMs!, null, null);
+    // It left its arc where the arc had brought it by then, in story time.
+    const left = boatAt(roomAt(items, 60_000).boatMs!, null, { x: 0.2, z: -0.5 });
     expect(boatAt(roomAt(items, 60_000).boatMs!, 0, { x: 0.2, z: -0.5 })).toEqual({ ...left, alpha: 1 });
+  });
+
+  test('it stays in front of you, wherever the book is: never more than 55 degrees off the way to the book, sailing or coming home', () => {
+    for (const deg of [0, 40, 90, 135, 180, 250, 315]) {
+      const toward = { x: Math.sin((deg * Math.PI) / 180) * 0.6, z: -Math.cos((deg * Math.PI) / 180) * 0.6 };
+      for (let ms = 0; ms <= 120_000; ms += 1500) {
+        for (const home of [null, 3000, BOAT_HOME_MS]) {
+          const p = boatAt(ms, home, toward);
+          const off = Math.acos(Math.min(1, (p.x * toward.x + p.z * toward.z) / (Math.hypot(p.x, p.z) * 0.6)));
+          expect(off, `book at ${deg} deg, ${ms} ms, home ${home}`).toBeLessThanOrEqual((55 * Math.PI) / 180 + 1e-6);
+        }
+      }
+    }
   });
 
   test('with no book to sail to, it fades where it turned', () => {

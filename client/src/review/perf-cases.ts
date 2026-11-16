@@ -46,7 +46,14 @@ export const PERF_CASES: PerfCase[] = [
   { id: 'rain+shadows', jump: 'the-shore', hold: on('rain', 'shadows') },
 ];
 
-export const perfCase = (id: string | null): PerfCase | null => PERF_CASES.find((c) => c.id === id) ?? null;
+/**
+ * The fixture a review link names. In a query, `+` reads as a space, so `?perf=rain+sea` arrives as
+ * "rain sea": a space is read back as `+`, and the link works as typed.
+ */
+export const perfCase = (id: string | null): PerfCase | null => {
+  const wanted = id?.trim().replace(/ +/g, '+');
+  return PERF_CASES.find((c) => c.id === wanted) ?? null;
+};
 
 /** Whether the room shows an effect, for checking a fixture really holds what it says. */
 export function shows(now: RoomNow, effect: RoomEffect): boolean {

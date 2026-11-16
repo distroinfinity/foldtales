@@ -44,14 +44,18 @@ export const head = new Vector3(0, 0.45, 0.55);
 /** A whole stage on chapter 1, or on `chapter`'s spine for a chapter-specific check. */
 export function stage(chapter: Spine = spine) {
   const spine = chapter;
+  // Only the sets this chapter's spreads use. The client also builds the ones the AI Storyteller may
+  // stage; no stage test plays the Storyteller, and each extra set costs every test its build time.
+  const used = new Set(spine.scenes.map((scene) => scene.setId));
+  const chapterSets = sets.filter((s) => used.has(s.id));
   const files = new Set<string>();
-  for (const s of sets) {
+  for (const s of chapterSets) {
     for (const f of bookFiles(book, 'book', s.spec, s.base)) files.add(f);
     for (const e of Object.values(s.spec.effects)) files.add(artJoin(s.base, e.file));
   }
   const textures = new Map([...files].map((f) => [f, ref(f)]));
   const soft = { shadow: new Texture(), hinge: new Texture(), gutter: new Texture() };
-  const view = buildBook({ book, sets, textures, bookBase: 'book', soft, castOnStage: [] });
+  const view = buildBook({ book, sets: chapterSets, textures, bookBase: 'book', soft, castOnStage: [] });
   const puppets = new Map<string, PuppetView>();
   const actors = new Map<string, Object3D>();
   const heads = new Map<string, string[]>();
@@ -120,7 +124,7 @@ export function stage(chapter: Spine = spine) {
     manifest,
     spine,
     defs,
-    moods: sets[0]!.spec.moods,
+    moods: chapterSets[0]!.spec.moods,
     views: {
       stageRoot: root,
       book: view,

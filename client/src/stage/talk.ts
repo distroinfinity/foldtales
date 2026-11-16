@@ -1,4 +1,4 @@
-import { DoubleSide, Mesh, MeshBasicMaterial, Object3D, PlaneGeometry, SRGBColorSpace, TextureLoader, Vector3 } from '@iwsdk/core';
+import { DoubleSide, Mesh, MeshBasicMaterial, Object3D, PlaneGeometry, Vector3 } from '@iwsdk/core';
 import { Text } from 'troika-three-text';
 import captionFont from '@fontsource/atkinson-hyperlegible-next/files/atkinson-hyperlegible-next-latin-500-normal.woff?url';
 import type { ExtraTarget } from './controls.ts';
@@ -24,10 +24,6 @@ export interface TalkTabDeps {
 }
 
 export function createTalkTab(deps: TalkTabDeps) {
-  const loader = new TextureLoader();
-  const paper = loader.load('./art/book/paper-tag.png');
-  paper.colorSpace = SRGBColorSpace;
-
   const root = new Object3D();
   root.name = 'talk-tab';
   root.visible = false;
@@ -37,14 +33,14 @@ export function createTalkTab(deps: TalkTabDeps) {
   root.rotation.x = -Math.PI / 2;
   deps.bookRoot.add(root);
 
-  // One button: a piece of the book's paper with a gold rim, and the words printed on it.
+  // One button: a clean-cut piece of the book's paper (no deckle: it read as torn in the headset) with a gold rim, and the words printed on it.
   const W = 0.078;
   const H = 0.03;
   const rimMaterial = new MeshBasicMaterial({ color: '#D4A23E', transparent: true, opacity: 0.85, side: DoubleSide, toneMapped: false });
   const rim = new Mesh(new PlaneGeometry(W + 0.005, H + 0.005), rimMaterial);
   rim.renderOrder = 500;
   root.add(rim);
-  const face = new Mesh(new PlaneGeometry(W, H), new MeshBasicMaterial({ map: paper, side: DoubleSide, toneMapped: false }));
+  const face = new Mesh(new PlaneGeometry(W, H), new MeshBasicMaterial({ color: '#F6EFE2', side: DoubleSide, toneMapped: false }));
   face.position.z = 0.0004;
   face.renderOrder = 501;
   root.add(face);

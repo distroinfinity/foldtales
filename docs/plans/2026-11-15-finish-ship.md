@@ -156,6 +156,23 @@ This lane makes what the other lanes build submittable and production-ready. It 
   `reviewQuery` returns null outside review builds, so production never sees any of it.
 - **The client's side, on `finish-ship` once #32 merges:** `client/src/telemetry.ts` counts frames over 16.7 ms and the slowest frame per window. `scripts/telemetry-report.ts` then reads per test case, drops each session's first window (the transition into the fixture), and checks the observed `room_fx` against the case.
 
+### Task 3: the frame-rate fixtures, validated in the emulator (Nov 16, evening)
+
+Lane A's `?perf=` hook merged (#42). The client now sends contracts v9's `slowFrames` and `worstFrameMs` with every 10-second summary (`client/src/telemetry.ts`).
+
+- **The report per fixture:** `node scripts/telemetry-report.ts <since> --cases`. Each fixture's numbers exclude:
+  - its first window (getting into the fixture);
+  - any window that straddles a change of effects.
+
+  It checks the fixture's lasting effects against the `room_fx` that was really on. Labels are honest: the median of window medians, the **1% low** (not the slowest frame), frames under 60 fps, and the slowest frame.
+- **Links typed with `+`** (`?perf=rain+sea`) now work: a query reads `+` as a space, so the lookup reads it back.
+- **The emulator run:**
+  - All 21 fixtures ran in the IWSDK emulator, hands only, about 35 s each, against a local backend so the telemetry arrived.
+  - **All 21 came back as sessions tagged with their fixture**, and every lasting effect a fixture names was on in its counted windows, the seven pairs included. The bottle and the hunt are one-off moments with no lasting state, so the report has nothing to check for them.
+  - `ch1-lamp` counted no windows: it was the first fixture and loaded slowest. On the Quest, 60 s holds give each fixture several windows.
+- **For the Quest:** the emulator's fps means nothing, but some fixtures logged a long worst frame as their effect started (rain 758 ms, rain with shadows 888 ms). That's likely shaders compiling. The device pass will show whether the Quest hitches too, and if it does, the fix is to warm the effects' materials before the book appears.
+- **The device pass:** nine fixtures, about 12 minutes, under "If there's time" in `docs/headset-session.md`, served from a review build over USB.
+
 ### The first Pages build with the committed art cache (Nov 16)
 
 - **#33 merged at 09:51:21 UTC. The site served its build at 09:54:23 UTC: 3 min 2 s,** counting Cloudflare's queue, clone, install, build and deploy. The first build, without the cache, took 14 minutes.
