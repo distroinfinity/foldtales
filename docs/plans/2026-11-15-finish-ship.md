@@ -156,6 +156,14 @@ This lane makes what the other lanes build submittable and production-ready. It 
   `reviewQuery` returns null outside review builds, so production never sees any of it.
 - **The client's side, on `finish-ship` once #32 merges:** `client/src/telemetry.ts` counts frames over 16.7 ms and the slowest frame per window. `scripts/telemetry-report.ts` then reads per test case, drops each session's first window (the transition into the fixture), and checks the observed `room_fx` against the case.
 
+### The first Pages build with the committed art cache (Nov 16)
+
+- **#33 merged at 09:51:21 UTC. The site served its build at 09:54:23 UTC: 3 min 2 s,** counting Cloudflare's queue, clone, install, build and deploy. The first build, without the cache, took 14 minutes.
+- Measured by watching `https://www.foldtales.xyz/sw.js` until it was served as JavaScript.
+- **The live build is #33's merge commit:** the book's chunk carries `37ae0cc2a8c0-production`. So Pages passes its commit through, and production telemetry is tagged by build.
+- **Served as expected:** `sw.js` (`no-cache`), `notices.txt`, `manifest.webmanifest`, `sound/music/bed.mp3` and the icons, each with the right content type.
+- **The owner's consolidated headset session** (lanes A, D and E, 20 steps): `docs/headset-session.md`.
+
 ### Task 6, the music bed: a CC0 track (owner, Nov 16)
 
 - **The owner's decisions:** no ElevenLabs, so run 027 is cancelled (nothing was sent or spent); a free, clearly licensed track; evidence in `CREDITS.md` and the notices; a private YouTube Content ID test before the video. Launch date: "Spring 2027, on the Meta Horizon Store and Meta VR Glasses", now in the form copy.
