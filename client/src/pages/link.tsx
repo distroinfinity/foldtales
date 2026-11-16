@@ -1,9 +1,14 @@
 /**
  * On your phone or laptop: sign your headset in. Three steps, each saying what happens next:
  * enter the headset's code, sign in here (Google or an email code), then say yes to the headset.
+ *
+ * Google leaves this page and comes back. Back with a session, it's the last step; back without one
+ * (cancelled, a failure, or Google not set up) it's the sign-in step again, saying what happened, with
+ * the headset's code kept. Only the ways in the backend has switched on are offered.
  */
 import { useEffect, useState, type FormEvent } from 'react';
-import { approveDevice, denyDevice, emailSendCode, emailVerify, getSession, googleStartUrl, phoneVerifyCode } from '../account/index.ts';
+import { approveDevice, denyDevice, emailSendCode, emailVerify, getSession, googleStartUrl, phoneVerifyCode, signInMethods, type SignInMethods } from '../account/index.ts';
+import { signInProblemText } from '../landing/account-ui.ts';
 import { ACCOUNTS_ON } from '../landing/flags.ts';
 import { Shell, mount } from './shell.tsx';
 
@@ -23,16 +28,33 @@ function Link() {
   const [emailCode, setEmailCode] = useState('');
   const [problem, setProblem] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [methods, setMethods] = useState<SignInMethods | null>(null);
 
-  // Back from Google with the code still in the address: straight to the last step.
   useEffect(() => {
-    if (params.get('step') !== 'approve' || !code) return;
-    void getSession().then((s) => {
-      if (s) {
-        setWho(s.user.email);
+    void signInMethods().then(setMethods);
+    // Back from Google, with the headset's code still in the address.
+    const back = params.get('step');
+    if ((back !== 'approve' && back !== 'sign-in') || !code) return;
+    const said = signInProblemText(params.get('problem'));
+    history.replaceState(null, '', `${location.pathname}?user_code=${encodeURIComponent(code)}`);
+    void (async () => {
+      const session = back === 'approve' ? await getSession() : null;
+      if (session) {
+        setWho(session.user.email);
         setStep('approve');
+        return;
       }
-    });
+      // No session: the sign-in step again, if the headset's code is still waiting, saying what happened.
+      const waiting = await phoneVerifyCode(code);
+      if (waiting === 'pending') {
+        setProblem(said ?? 'Google didn’t finish signing you in. Try again, or get a code by email.');
+        setStep('sign-in');
+      } else if (waiting === 'expired') {
+        setCode('');
+        setProblem('That headset code expired while you were signing in. Your headset shows a new one: enter it here.');
+      } else if (waiting === 'offline') setProblem('Couldn’t reach the server. Check your connection, then try again.');
+      else setProblem(said);
+    })();
   }, []);
 
   const checkCode = async (e: FormEvent) => {
@@ -114,18 +136,26 @@ function Link() {
         {step === 'sign-in' && (
           <div className="flex flex-col gap-4">
             <p className="m-0">Now sign in. This is the account your headset will use.</p>
-            <a className={secondary} href={googleStartUrl(returnTo)}>
-              Continue with Google
-            </a>
-            <form className="mt-2 flex flex-col gap-3" onSubmit={sendEmail}>
-              <label className="text-[16px] text-page/70" htmlFor="email">
-                Or get a code by email
-              </label>
-              <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" className={field} placeholder="you@example.com" required />
-              <button type="submit" className={primary} disabled={busy}>
-                Email me a code
-              </button>
-            </form>
+            {methods?.google === false ? (
+              <p className="m-0 text-[16px] text-page/70">Google sign-in isn’t switched on here yet, so use an email code.</p>
+            ) : (
+              <a className={secondary} href={googleStartUrl(returnTo)}>
+                Continue with Google
+              </a>
+            )}
+            {methods?.email === false ? (
+              <p className="m-0 text-[16px] text-page/70">Email codes aren’t switched on here yet{methods.google ? ', so use Google' : ''}.</p>
+            ) : (
+              <form className="mt-2 flex flex-col gap-3" onSubmit={sendEmail}>
+                <label className="text-[16px] text-page/70" htmlFor="email">
+                  {methods?.google === false ? 'Get a code by email' : 'Or get a code by email'}
+                </label>
+                <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" className={field} placeholder="you@example.com" required />
+                <button type="submit" className={primary} disabled={busy}>
+                  Email me a code
+                </button>
+              </form>
+            )}
           </div>
         )}
         {step === 'email-code' && (

@@ -10,6 +10,7 @@ import {
   linkThisDevice,
   pollDeviceSignIn,
   readGeneration,
+  signInMethods,
   readLocalBook,
   sessionLapsed,
   signOut,
@@ -17,7 +18,10 @@ import {
   syncBook,
   writeLocalBook,
   type DeviceSignInStatus,
+  type SignInMethods,
 } from '../account/index.ts';
+import { chooseEntry } from './entry.ts';
+import { primaryLabel, readLibrary } from './library.ts';
 
 const SERIES_ID = 'flagship-1';
 
@@ -83,10 +87,129 @@ export function clearIfReaderChanged(): void {
   }
 }
 
+// ---- The sign-in round trip: what it was for, and how it ended ----------------------------
+
+/** What a sign-in was started for: the Storyteller's door, or just the bookplate (null). */
+export type SignInFor = 'storyteller' | null;
+/** How a Google sign-in came back without a session, as `/auth/return/` reads it from the address. */
+export type SignInProblem = 'google' | 'google-cancelled' | 'google-off';
+
+interface SignInTrip {
+  for: SignInFor;
+  at: number;
+  /** Where on the page the reader was, so the page comes back to the same door. */
+  y?: number;
+  outcome?: 'ok' | SignInProblem;
+}
+
+const TRIP = 'tt.sign-in';
+/** Untouched this long, a started sign-in is forgotten (as a chosen entry is). */
+const TRIP_TTL_MS = 30 * 60_000;
+
+function readTrip(now = Date.now()): SignInTrip | null {
+  try {
+    const trip = JSON.parse(sessionStorage.getItem(TRIP) ?? 'null') as SignInTrip | null;
+    if (!trip || typeof trip.at !== 'number' || now - trip.at > TRIP_TTL_MS) return null;
+    return trip.for === 'storyteller' || trip.for === null ? trip : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeTrip(trip: SignInTrip | null): void {
+  try {
+    if (trip) sessionStorage.setItem(TRIP, JSON.stringify(trip));
+    else sessionStorage.removeItem(TRIP);
+  } catch {
+    // Without session storage the reader lands at the top of the page, signed in all the same.
+  }
+}
+
+/**
+ * A sign-in is starting, from the Storyteller's door or from the bookplate. Kept in this tab across
+ * Google's round trip and the reload after a phone code, so the reader comes back to the same door.
+ */
+export function signInFor(target: SignInFor, y: number = globalThis.scrollY ?? 0): void {
+  writeTrip({ for: target, at: Date.now(), y: Math.max(0, Math.round(y)) });
+}
+
+/** Signed in: a sign-in for the Storyteller makes it the page's destination ("Let them hear you"). */
+export function signedIn(): void {
+  const trip = readTrip();
+  if (trip?.for === 'storyteller') {
+    try {
+      chooseEntry({ kind: 'storyteller' }, primaryLabel(readLibrary(localStorage)).target);
+    } catch {
+      // Without storage the door still opens from the page.
+    }
+  }
+  writeTrip({ for: trip?.for ?? null, at: Date.now(), y: trip?.y, outcome: 'ok' });
+}
+
+/** Google came back without a session: the page that started it says why. */
+export function signInFailed(problem: SignInProblem): void {
+  const trip = readTrip();
+  writeTrip({ for: trip?.for ?? null, at: Date.now(), y: trip?.y, outcome: problem });
+}
+
+const PROBLEMS: Record<SignInProblem, string> = {
+  google: 'Google didn’t finish signing you in. Try again, or use your phone.',
+  'google-cancelled': 'You didn’t finish signing in with Google, so nothing changed. Try again, or use your phone.',
+  'google-off': 'Signing in with Google isn’t available just now. Use your phone instead.',
+};
+
+/** The words for a problem from the address (`error=` or `problem=`). Unknown ones read as Google's failure. */
+export function signInProblemText(code: string | null): string | null {
+  return code ? PROBLEMS[readProblem(code)] : null;
+}
+
+/** A problem code from the address; anything unknown reads as Google's failure. */
+export function readProblem(raw: string | null): SignInProblem {
+  return raw !== null && raw in PROBLEMS ? (raw as SignInProblem) : 'google';
+}
+
+/** Where Google's return goes: the page that asked, if it's on this site, else home. */
+export function returnTarget(requested: string | null, here: string, home: string): URL {
+  try {
+    const url = requested ? new URL(requested, here) : null;
+    if (url && url.origin === new URL(here).origin) return url;
+  } catch {
+    // Home it is.
+  }
+  return new URL(home);
+}
+
+/**
+ * Where a return without a session goes. The phone's page goes back to its sign-in step with the
+ * headset's code and the problem in its address; the headset's page is left as it was, and the
+ * problem travels in this tab's session storage (`signInFailed`).
+ */
+export function failedTarget(target: URL, problem: SignInProblem): string {
+  if (!target.pathname.includes('/link/')) return target.href;
+  const back = new URL(target.href);
+  back.searchParams.set('step', 'sign-in');
+  back.searchParams.set('problem', problem);
+  return back.href;
+}
+
+/** On load, once: the round trip that just ended, where it started, and what to say if it failed. */
+export function takeSignInReturn(): { for: SignInFor; y: number; problem: string | null } | null {
+  const trip = readTrip();
+  if (!trip?.outcome) return null;
+  writeTrip(null);
+  return { for: trip.for, y: trip.y ?? 0, problem: trip.outcome === 'ok' ? null : signInProblemText(trip.outcome) };
+}
+
+/** Which ways in are switched on; null when the backend couldn't say. */
+export function availableSignIn(): Promise<SignInMethods | null> {
+  return signInMethods();
+}
+
 /** After any sign-in: record this headset, merge its guest book into the account's, then start fresh. */
 export async function finishSignIn(): Promise<void> {
   await linkThisDevice(navigator.userAgent.includes('Quest') ? 'Meta Quest' : undefined);
   writeLocalBook(await syncBook(readLocalBook()), SERIES_ID);
+  signedIn();
   location.reload();
 }
 
@@ -100,7 +223,7 @@ export function watchPhoneSignIn(onUpdate: (status: DeviceSignInStatus) => void)
   return pollDeviceSignIn(onUpdate);
 }
 
-export function googleSignInUrl(returnTo: string): string | null {
+export function googleSignInUrl(returnTo: string): string {
   return googleStartUrl(returnTo);
 }
 

@@ -399,6 +399,29 @@ export async function finishSignIn(): Promise<'ok' | 'failed'> {
   return 'ok';
 }
 
+// ---- Which ways in are switched on -----------------------------------------------------------
+
+export interface SignInMethods {
+  google: boolean;
+  email: boolean;
+}
+
+let methods: Promise<SignInMethods | null> | null = null;
+
+/**
+ * Which ways in the backend has switched on (Google needs its client set up; email codes need Resend),
+ * so a page offers only those. Null when it couldn't say (offline); that answer isn't kept.
+ */
+export function signInMethods(): Promise<SignInMethods | null> {
+  methods ??= request(`${AUTH}/methods`).then((answer) => {
+    const body = record(answer?.json);
+    if (answer?.status === 200 && typeof body?.google === 'boolean' && typeof body.email === 'boolean') return { google: body.google, email: body.email };
+    methods = null;
+    return null;
+  });
+  return methods;
+}
+
 // ---- Google, by top-level navigation on the API's own address -----------------
 
 /** Where "Continue with Google" navigates. Google ends on `/auth/return/?ott=…&return=<returnTo>` (or `&error=google`). */

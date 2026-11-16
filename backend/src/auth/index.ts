@@ -21,6 +21,8 @@ export interface AuthSettings {
   clientOrigins: string[];
   google: { clientId: string; clientSecret: string } | null;
   sendCode: SendCode;
+  /** Email codes can be sent (a Resend key, or dev printing them). Unset means yes. */
+  email?: boolean;
   /** The welcome email's sender, or null when email is off (no RESEND_API_KEY). */
   sendWelcome?: SendWelcome | null;
 }
@@ -46,7 +48,7 @@ export function readAuthSettings(
   const sendWelcome = env.RESEND_API_KEY
     ? resendWelcome({ resendKey: env.RESEND_API_KEY, from: env.RESEND_FROM ?? 'Foldtales <onboarding@resend.dev>', replyTo: env.WELCOME_REPLY_TO })
     : null;
-  return { secret, baseURL: baseURL.replace(/\/+$/, ''), clientOrigins, google, sendCode, sendWelcome };
+  return { secret, baseURL: baseURL.replace(/\/+$/, ''), clientOrigins, google, sendCode, email: Boolean(env.RESEND_API_KEY) || dev, sendWelcome };
 }
 
 function createAuth(db: DatabaseSync, settings: AuthSettings, books: BookStore, forget: (userId: string) => void, welcomer: Welcomer) {
@@ -154,7 +156,7 @@ export async function openAccounts(db: DatabaseSync, settings: AuthSettings, now
 
     mountAuth(app) {
       /** The client's `auth/return/` page, which trades `ott` for the session, or shows `error`, then goes on to `return`. */
-      const backTo = (back: URL, outcome: { ott: string } | { error: 'google' }, cookies: string[] = []): Response => {
+      const backTo = (back: URL, outcome: { ott: string } | { error: 'google' | 'google-cancelled' | 'google-off' }, cookies: string[] = []): Response => {
         const page = new URL('/auth/return/', back.origin);
         if ('ott' in outcome) page.searchParams.set('ott', outcome.ott);
         else page.searchParams.set('error', outcome.error);
@@ -164,11 +166,17 @@ export async function openAccounts(db: DatabaseSync, settings: AuthSettings, now
         return response;
       };
 
+      // Which ways in are switched on, so the bookplate and the phone's page offer only those.
+      app.get(`${AUTH_BASE_PATH}/methods`, (c) => {
+        c.header('cache-control', 'no-store');
+        return c.json({ google: settings.google !== null, email: settings.email ?? true });
+      });
+
       // Google starts and ends here by top-level navigation, so its state cookie stays on one site.
       app.get(`${AUTH_BASE_PATH}/google/start`, async (c) => {
         const back = clientReturn(c.req.query('return'));
         if (!back) return c.text('return must be a page on the client', 400);
-        if (!settings.google) return backTo(back, { error: 'google' });
+        if (!settings.google) return backTo(back, { error: 'google-off' });
         const done = `${settings.baseURL}${AUTH_BASE_PATH}/google/done?return=${encodeURIComponent(back.href)}`;
         const started = await auth.api
           .signInSocial({
@@ -189,7 +197,9 @@ export async function openAccounts(db: DatabaseSync, settings: AuthSettings, now
         const failed = Boolean(c.req.query('failed') || c.req.query('error'));
         const session = failed ? null : await auth.api.getSession({ headers: c.req.raw.headers }).catch(() => null);
         const minted = session ? await auth.api.generateOneTimeToken({ headers: c.req.raw.headers }).catch(() => null) : null;
-        return backTo(back, minted ? { ott: minted.token } : { error: 'google' }, await clearedCookies());
+        // The reader said no on Google's page (access_denied): the page says so, rather than "it failed".
+        const error = c.req.query('error') === 'access_denied' ? 'google-cancelled' : 'google';
+        return backTo(back, minted ? { ott: minted.token } : { error }, await clearedCookies());
       });
 
       app.on(['GET', 'POST'], `${AUTH_BASE_PATH}/*`, (c) => auth.handler(c.req.raw));

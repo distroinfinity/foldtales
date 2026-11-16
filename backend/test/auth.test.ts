@@ -66,12 +66,12 @@ describe('Google', () => {
   test('coming back without a session (cancelled, or an error) goes to the return page with the door kept', async () => {
     const { call } = await accounts();
     const back = `${SITE}/?go=storyteller`;
-    for (const tail of ['', '&failed=1', '&error=access_denied']) {
+    for (const [tail, error] of [['', 'google'], ['&failed=1', 'google'], ['&failed=1&error=access_denied', 'google-cancelled'], ['&error=server_error', 'google']]) {
       const answer = await call(`/v1/auth/google/done?return=${encodeURIComponent(back)}${tail}`);
       expect(answer.status).toBe(302);
       const to = new URL(answer.headers.get('location')!);
       expect(`${to.origin}${to.pathname}`).toBe(`${SITE}/auth/return/`);
-      expect(to.searchParams.get('error')).toBe('google');
+      expect(to.searchParams.get('error')).toBe(error);
       expect(to.searchParams.get('return')).toBe(back);
     }
   });
@@ -82,7 +82,18 @@ describe('Google', () => {
     const app = new Hono();
     acc.mountAuth(app);
     const answer = await app.request(`${API}/v1/auth/google/start?return=${encodeURIComponent(`${SITE}/`)}`);
-    expect(new URL(answer.headers.get('location')!).searchParams.get('error')).toBe('google');
+    expect(new URL(answer.headers.get('location')!).searchParams.get('error')).toBe('google-off');
+    // And the page can tell beforehand, so it never offers the button.
+    expect(await (await app.request(`${API}/v1/auth/methods`)).json()).toEqual({ google: false, email: true });
+  });
+
+  test('the ways in that are switched on', async () => {
+    const { call } = await accounts();
+    expect(await (await call('/v1/auth/methods')).json()).toEqual({ google: true, email: true });
+    const off = await openAccounts(new DatabaseSync(':memory:'), { secret: 'a-test-secret-that-is-long-enough-for-better-auth-0123456789', baseURL: API, clientOrigins: [SITE], google: null, email: false, sendCode: async () => undefined });
+    const app = new Hono();
+    off.mountAuth(app);
+    expect(await (await app.request(`${API}/v1/auth/methods`)).json()).toEqual({ google: false, email: false });
   });
 });
 
