@@ -13,6 +13,7 @@
 import { BackendError, SIGN_IN_REQUIRED, StoryPage, type BackendApi, type StoryRecord } from '@tabletop/contracts';
 import { cachedReader, getSession, readGeneration, readerBackend, sessionLapsed } from '../account/index.ts';
 import { ACCOUNTS_ON, STORYTELLER_ON } from '../landing/flags.ts';
+import { reviewQuery } from '../dev.ts';
 import { createKeepsakes } from './keepsakes.ts';
 import { indexedPending, type PendingStore, type PendingStory } from './pending.ts';
 
@@ -216,6 +217,11 @@ export function createStorytellerProvider(deps: ProviderDeps) {
 
   const self = {
     snapshot: (): StorytellerSnapshot => snapshot,
+    /** Review builds only: shows this door, whatever is true. */
+    force(next: DoorState): void {
+      door = next;
+      publish();
+    },
     subscribe(listener: () => void): () => void {
       listeners.add(listener);
       return () => {
@@ -346,6 +352,14 @@ export function subscribeStoryteller(listener: () => void): () => void {
 
 /** Re-checks sign-in, the microphone, the connection and tonight's limit. Never throws. Also sends any finished story still waiting. */
 export function refreshStoryteller(): Promise<void> {
+  // Review builds: `?door=mic-refused` (any state) shows that door, for the page's proofs (lane A).
+  let forced: DoorState['kind'] | null = null;
+  try {
+    forced = reviewQuery('door') as DoorState['kind'] | null;
+  } catch {
+    // No page address to read (tests, workers): no override.
+  }
+  if (forced) return Promise.resolve(real().force(forced === 'unavailable' ? { kind: 'unavailable', why: 'offline' } : forced === 'limit-reached' ? { kind: 'limit-reached', until: null } : ({ kind: forced } as DoorState)));
   return real().refresh();
 }
 

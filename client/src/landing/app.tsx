@@ -7,7 +7,9 @@ import { landingSnapshot, openingTap, subscribeLanding } from './landing.ts';
 import { BOOK_TITLE, readLibrary, type LibraryState } from './library.ts';
 import { ACCOUNTS_ON } from './flags.ts';
 import { HERO_ART, WEB_ART, preloadArt } from './preload.ts';
-import { Bookplate, ChaptersSheet } from './sheets.tsx';
+import { BookSheet, Bookplate, type ShelfAction } from './sheets.tsx';
+import { shelfTarget } from './library.ts';
+import { storytellerSnapshot, subscribeStoryteller } from '../stage/seams.ts';
 import { Story } from './story.tsx';
 import { Storyteller } from './storyteller.tsx';
 
@@ -60,6 +62,19 @@ export function App({ device }: { device: Device }) {
     });
   }, []);
 
+  const storyteller = useSyncExternalStore(subscribeStoryteller, storytellerSnapshot);
+  /**
+   * A chapter on the shelf: on a headset, the one the button opens goes in one tap; another one is
+   * chosen as the entry target, and the page reloads to prepare it. Elsewhere, only its state shows.
+   */
+  const shelfAction = (n: number): ShelfAction => {
+    if (device !== 'headset' || state.kind !== 'ready' || !state.openChapter) return null;
+    const c = library.chapters.find((x) => x.n === n);
+    if (!c) return null;
+    const t = shelfTarget(c);
+    const open = state.openChapter;
+    return { label: t.label, run: () => openingTap(() => open(n, t.from)) };
+  };
   const action = (compact: boolean) =>
     device === 'headset' ? <OpenTheBook state={state} library={library} signedIn={reader} onSignIn={() => setSheet('plate')} compact={compact} /> : <SendToQuest compact={compact} />;
 
@@ -101,6 +116,9 @@ export function App({ device }: { device: Device }) {
           signedIn={reader}
           onSignIn={() => setSheet('plate')}
           enterStoryteller={state.kind === 'ready' && state.storyteller ? () => openingTap(state.storyteller!.run) : null}
+          playByHand={state.kind === 'ready' && state.storyteller?.byHand ? () => openingTap(state.storyteller!.byHand!) : null}
+          openBook={state.kind === 'ready' ? () => openingTap(state.open) : null}
+          onStories={() => setSheet('chapters')}
           storytellerLabel={state.kind === 'ready' ? (state.storyteller?.label ?? null) : null}
         />
 
@@ -118,7 +136,7 @@ export function App({ device }: { device: Device }) {
       <footer className="border-t border-page/10 px-5 py-7 md:px-10">
         <nav className="mx-auto flex max-w-[1200px] flex-wrap items-center gap-x-8 gap-y-3" aria-label="More">
           <button type="button" className={footLink} onClick={() => setSheet('chapters')}>
-            Chapters
+            Your book
           </button>
           <PaintedRoomLink state={state} device={device} className={footLink} />
           <a className={footLink} href="./about/">
@@ -137,7 +155,7 @@ export function App({ device }: { device: Device }) {
       </footer>
 
       {ACCOUNTS_ON && <Bookplate open={sheet === 'plate'} onClose={() => setSheet(null)} signedIn={reader} />}
-      <ChaptersSheet open={sheet === 'chapters'} onClose={() => setSheet(null)} library={library} />
+      <BookSheet open={sheet === 'chapters'} onClose={() => setSheet(null)} library={library} actionFor={shelfAction} stories={storyteller.finished} />
     </>
   );
 }

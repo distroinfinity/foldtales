@@ -225,8 +225,8 @@ export interface LibraryState {
   /** `where` is the saved place in the reader's words ("Stopped on the shore."), when there is one. */
   chapters: Array<{ n: number; title: string; state: 'unread' | 'started' | 'finished'; canResume: boolean; where?: string }>;
   next: { kind: 'chapter'; n: number; resume: boolean };
-  /** Lane D's provider's snapshot (the door's state, the finished stories), plus the older fields today's page reads. */
-  storyteller: StorytellerSnapshot & { available: boolean; sessions: Array<{ id: string; title: string; updatedAt: string }> };
+  /** Lane D's provider's snapshot: the door's state and the finished stories. */
+  storyteller: StorytellerSnapshot;
 }
 
 /** Where the landing page sends the reader into the book. */
@@ -247,13 +247,8 @@ export function libraryState(store: Pick<Storage, 'getItem' | 'setItem' | 'remov
   return {
     chapters,
     next: { kind: 'chapter', n: current.n, resume: current.canResume },
-    storyteller: storytellerOf(storytellerSnapshot()),
+    storyteller: storytellerSnapshot(),
   };
-}
-
-/** The provider's snapshot as the library carries it. */
-function storytellerOf(snapshot: StorytellerSnapshot): LibraryState['storyteller'] {
-  return { ...snapshot, available: STORYTELLER_AVAILABLE, sessions: snapshot.finished.map((f) => ({ id: f.id, title: f.title, updatedAt: f.endedAt })) };
 }
 
 /** The saved place's spread, in the reader's words, from the runtime snapshot's last beat. */

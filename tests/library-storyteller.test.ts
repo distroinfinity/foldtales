@@ -15,7 +15,7 @@ describe("the library's Storyteller", () => {
     const snapshot = storytellerSnapshot();
     expect(state.storyteller.door).toEqual(snapshot.door);
     expect(state.storyteller.finished).toEqual(snapshot.finished);
-    expect(state.storyteller.sessions).toEqual(snapshot.finished.map((f) => ({ id: f.id, title: f.title, updatedAt: f.endedAt })));
+    expect(state.storyteller).toEqual(snapshot);
   });
 
   test('a library subscriber hears the Storyteller change, and stops hearing it once unsubscribed', async () => {
