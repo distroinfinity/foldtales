@@ -4,12 +4,30 @@ import { ErrorCode, Id, RouteName } from './primitives.ts';
 import { RoomEffect } from './stage-actions.ts';
 
 const Count = z.number().nonnegative();
+/**
+ * A review build's test fixture (`?perf=<id>`), so frame numbers can be read per scene and effect.
+ * An id, never free text, so nothing a reader says can travel in it.
+ */
+const TestCase = z.string().regex(/^[a-z0-9][a-z0-9+._-]{0,63}$/);
 const event = <K extends string, F extends z.ZodRawShape>(kind: K, fields: F) =>
   z.strictObject({ at: z.iso.datetime(), kind: z.literal(kind), ...fields });
 
 const variants = [
-  event('session', { xrMode: z.enum(['ar', 'vr', 'none']), device: z.string().min(1), passthrough: z.boolean() }),
-  event('frame_summary', { windowSeconds: Count, medianFps: Count, lowFps: Count, drawCalls: Count, triangles: Count }),
+  event('session', { xrMode: z.enum(['ar', 'vr', 'none']), device: z.string().min(1), passthrough: z.boolean(), testCase: TestCase.optional() }),
+  /**
+   * Every ~10 s. `lowFps` is the 1% low: the frame rate of the 99th-percentile frame time, not the
+   * slowest frame. `slowFrames` counts frames over 16.7 ms (under 60 fps) in the window, and
+   * `worstFrameMs` is the slowest, so a single dropped frame shows even when the 1% low hides it.
+   */
+  event('frame_summary', {
+    windowSeconds: Count,
+    medianFps: Count,
+    lowFps: Count,
+    drawCalls: Count,
+    triangles: Count,
+    slowFrames: z.number().int().nonnegative().optional(),
+    worstFrameMs: Count.optional(),
+  }),
   event('hitch', { ms: Count, phase: z.string().min(1) }),
   event('ai_call', { route: RouteName, ms: Count, outcome: z.union([z.literal('ok'), ErrorCode]) }),
   event('beat_gap', { ms: Count }),

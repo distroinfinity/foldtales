@@ -534,6 +534,27 @@ A real dev build from this workspace, the IWSDK emulator with emulated hands onl
 
 ---
 
+## The owner's headset script (live site)
+
+One session, for feel, look and sound; every path below already passed in the emulator (see the progress section). About 25 minutes, seated at a table, hands only.
+
+**Open it:** on the Quest, open **https://www.foldtales.xyz** in Quest Browser. First check it's the latest build: scroll to the AI Storyteller's shore; under its door there should be a quiet line, "The cast's voices … are made by AI, not people. Powered by Runway". If it isn't there, the latest deploy hasn't gone live yet: wait, and reload.
+
+| # | Do | Look and listen for |
+|---|---|---|
+| 1 | On the page, look at the hero, then scroll to the Storyteller and the foot; open **Your book** | The one button says where you are ("Open the book", or "Continue chapter N"). The door says exactly what it needs (the microphone, or sign-in). Your book: each chapter with Start, Continue or Read again; your stories; what you've kept, by name. Nothing feels like a website about the product |
+| 2 | **Open the book** and let it start | A small standing card by the ribbon: "Pinch the ribbon to pause". Easy to read, quiet enough not to steal the opening? |
+| 3 | Pinch the **ribbon** (either hand) | A paper card pops up from the spread, turned to face you, and the story stops. The pop and its sound, the card's size, the type (easy to read without leaning in?), the gold rules. Not floating UI: it should feel like part of the book |
+| 4 | **Contents → Settings**: Sound off, then on; Room: lighter, then dark. **Back, Back, Carry on** | Sound goes silent and comes back. The room's dim is lighter, then theatre-dark again. Carry on picks up on the same word, with nothing missed |
+| 5 | Pick up something (the lantern, or a drawer object) and, holding it, pinch the ribbon with the other hand. Then shut the cover with the card up, and open it again | What you held goes back where it came from (not given, not dropped). The card folds away with the cover and stands up again when it opens |
+| 6 | **Put the book away**, then tap **Continue** on the page | The book closes, the page shows "Continue chapter N" with where you stopped; one tap and the book arrives back at your place |
+| 7 | Play to the end of the chapter | The end card: "The end of chapter N", what lasts, what you kept, then Continue to the next chapter (one tap on the page opens it) or Read again. Does it feel like an ending, not a stop? |
+| 8 | Ribbon → **Contents → The AI Storyteller → Start a new story**; on the page, "Let them hear you" (or "or play by hand"); in the story, ribbon → **End the story here** → **Your stories** → **Tell another** | The book is put away and the page is ready for the Storyteller in one tap. Its pause card says "End the story here"; its end card has the story's title and what was painted; Hold to talk disappears while any card is up |
+
+**Afterwards:** say what felt off in plain words; it goes in `docs/playtest-notes.md` under a dated lane A section.
+
+---
+
 ## Review log
 
 **Codex, stage 1 (Nov 15), with the sprint master's rulings:**

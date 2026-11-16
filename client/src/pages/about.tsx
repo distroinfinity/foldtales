@@ -24,5 +24,10 @@ mount(
     <p>
       Every licence, in full: <a href="../notices.txt">third-party notices</a>.
     </p>
+    <p className="text-[15px] opacity-70">
+      <a href="https://runwayml.com" target="_blank" rel="noopener">
+        Powered by Runway
+      </a>
+    </p>
   </Shell>,
 );

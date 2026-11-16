@@ -82,3 +82,12 @@ export function cancelEntry(s?: Store): EnterTarget | null {
   write(st, null);
   return back;
 }
+
+/**
+ * Whether going to `target` needs a fresh page load: each load prepares one chapter, and runs one mode.
+ * A chapter other than the prepared one, or the other mode once one has run, means reloading.
+ */
+export function needsReload(target: EnterTarget, prepared: { chapter: number; ran: 'chapter' | 'story' | null }): boolean {
+  if (target.kind === 'chapter') return target.n !== prepared.chapter || prepared.ran === 'story';
+  return prepared.ran === 'chapter';
+}

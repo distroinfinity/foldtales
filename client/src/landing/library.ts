@@ -27,3 +27,13 @@ export function shelfTarget(c: LibraryState['chapters'][number]): { label: strin
   if (c.state === 'started' && c.canResume) return { label: 'Continue', from: 'resume' };
   return { label: c.state === 'finished' ? 'Read again' : 'Start', from: 'start' };
 }
+
+/**
+ * The page's one button when this page load prepared a chapter other than the library's next (a review
+ * link, or a fallback after another chapter failed): it speaks for what was prepared, resumes its saved
+ * place if there is one, and always carries the failure line.
+ */
+export function preparedChoice(prepared: number, hasSavedPlace: boolean, problem: string | null): { label: string; detail: string; resume: boolean } {
+  const base = hasSavedPlace ? `You stopped partway through chapter ${prepared}.` : 'About six minutes. You only need your hands.';
+  return { label: `${hasSavedPlace ? 'Continue' : 'Open'} chapter ${prepared}`, detail: problem ? `${problem} ${base}` : base, resume: hasSavedPlace };
+}
