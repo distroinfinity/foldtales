@@ -62,6 +62,7 @@ const ROOM_HELP: Record<RoomEffect, string> = {
   'tide-in': 'the tide rises on their floor (only with the sea)',
   'tide-out': 'the tide falls (only with the sea)',
   boat: 'a paper boat sails off the page onto the sea (only with the sea)',
+  'boat-home': 'the circling paper boat turns for home and sails across the floor to the book (only with the sea and a boat)',
   bottle: 'a bottle with a message washes up at the reader\'s feet: name the object',
   'sea-off': 'the sea ends',
   shadows: 'the cast throw giant shadows on the reader\'s wall from the light',

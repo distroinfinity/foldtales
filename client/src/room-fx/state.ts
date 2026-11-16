@@ -35,6 +35,8 @@ export interface RoomNow {
   /** 1 high, 0 low, and since when it last turned. */
   tide: { high: boolean; sinceMs: number };
   boatMs: number | null;
+  /** Since the circling boat turned for home toward the book (chapter 2's signature), or null. */
+  boatHomeMs: number | null;
   bottle: { what: string; at: string | null; sinceMs: number } | null;
   shadows: Lasting<'shadows'>;
   fireflies: Lasting<'fireflies'>;
@@ -62,6 +64,7 @@ export function roomAt(items: readonly Item[], ms: number): RoomNow {
     sea: off('sea'),
     tide: { high: false, sinceMs: Number.POSITIVE_INFINITY },
     boatMs: null,
+    boatHomeMs: null,
     bottle: null,
     shadows: off('shadows'),
     fireflies: off('fireflies'),
@@ -148,7 +151,13 @@ export function roomAt(items: readonly Item[], ms: number): RoomNow {
         if (now.sea.on && now.tide.high !== (effect === 'tide-in')) now.tide = { high: effect === 'tide-in', sinceMs: since };
         break;
       case 'boat':
-        if (now.sea.on) now.boatMs = since;
+        if (now.sea.on) {
+          now.boatMs = since;
+          now.boatHomeMs = null;
+        }
+        break;
+      case 'boat-home':
+        if (now.sea.on && now.boatMs !== null && now.boatHomeMs === null) now.boatHomeMs = since;
         break;
       case 'bottle': {
         const what = objectOf(action.what);
@@ -159,6 +168,7 @@ export function roomAt(items: readonly Item[], ms: number): RoomNow {
         lasting(now.sea, false, startMs);
         turnBig('sea', false, startMs);
         now.boatMs = null;
+        now.boatHomeMs = null;
         break;
       case 'shadows':
       case 'shadows-off':

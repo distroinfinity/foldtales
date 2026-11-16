@@ -24,5 +24,7 @@
   { "id": "shiny", "meaning": "Reflects light, and tempts anything that loves it" },
   { "id": "edible", "meaning": "Someone could eat it" },
   { "id": "rolls", "meaning": "Round enough to roll along" },
-  { "id": "message", "meaning": "Carries words for someone to read" }
+  { "id": "message", "meaning": "Carries words for someone to read" },
+  { "id": "thread", "meaning": "Fine thread wound for sewing, light enough to throw and haul on" },
+  { "id": "pages", "meaning": "Bound pages to read or write in" }
 ]
