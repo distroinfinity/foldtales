@@ -32,10 +32,11 @@ def ch2():
     b1 = [
         beat(s1, 'opening', 40, 'trim', [
             C('open-book'), C('lamp-lit', w=True), L('gold', 2.0, w=True), C('beam', w=True), W(1.0),
-            N('The next night, the lamp burned bright, and a new keeper stood on the gallery. A very small one, in a very big coat.', 'wonder'),
+            N('The next night, up at the very top of the tall lighthouse, the lamp burned bright, and a new keeper stood on its gallery. A very small one, in a very big coat.', 'wonder'),
             E('pip', 'look', 'reader'),
             S('pip', 'You came back! Wick, look, they came back!', 'wonder', 'reader', w=True),
             S('wick', 'Hmph. So they did. Evening, whoever you are.', 'warm', 'reader'),
+            W(0.4), S('pip', 'Look how far down the sea is, Wick!', 'wonder', 'cast:wick'),
         ]),
         beat(s1, 'carry-kite', 4, 'trim', [S('pip', 'I still dream about flying over the gap on that kite.', 'wonder', 'reader')], 'carry: chapter 1 crossing = kite'),
         beat(s1, 'carry-thread', 4, 'trim', [S('pip', "Moth's still ever so proud of carrying that thread across.", 'wonder', 'reader')], 'carry: chapter 1 crossing = thread'),

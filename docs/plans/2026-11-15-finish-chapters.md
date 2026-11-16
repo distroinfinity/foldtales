@@ -131,10 +131,11 @@ Problem `the-letter`: A bottle with a letter has washed up at the Reader's feet.
 - + light gold over 2.0 s
 - + cue `beam`
 - wait 1.0 s
-- **Narrator** (wonder): "The next night, the lamp burned bright, and a new keeper stood on the gallery. A very small one, in a very big coat."
+- **Narrator** (wonder): "The next night, up at the very top of the tall lighthouse, the lamp burned bright, and a new keeper stood on its gallery. A very small one, in a very big coat."
 - pip look → reader
 - + **Pip** (wonder, to reader): "You came back! Wick, look, they came back!"
 - **Wick** (warm, to reader): "Hmph. So they did. Evening, whoever you are."
+- **Pip** (wonder, to Wick): "Look how far down the sea is, Wick!" *(owner, Nov 16: where chapter 2 opens, after chapter 1 ends on the tall lighthouse)*
 
 **`carry-kite`** (est. 4 s, next `trim`) *[carry slot: crossing = kite]*
   *carry: chapter 1 crossing = kite*

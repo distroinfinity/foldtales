@@ -1054,10 +1054,6 @@
       "url": "sound/m2/pip-that-s-all-right-i-ve-still-got-my-light.mp3",
       "durationMs": 2400
     },
-    "line_11oryx4oqtz": {
-      "url": "sound/ch2/narrator-the-next-night-the-lamp-burned-bright-an.mp3",
-      "durationMs": 8240
-    },
     "line_1ogeesy2b0w": {
       "url": "sound/ch2/pip-you-came-back-wick-look-they-came-back.mp3",
       "durationMs": 3760
@@ -1369,6 +1365,14 @@
     "line_ds50gw2m1d": {
       "url": "sound/ch2/narrator-up-at-the-top-of-the-lighthouse-the-grea.mp3",
       "durationMs": 4560
+    },
+    "line_wkny4tml6k": {
+      "url": "sound/ch2/narrator-the-next-night-up-at-the-very-top-of-the.mp3",
+      "durationMs": 10960
+    },
+    "line_1l0ov374izo": {
+      "url": "sound/ch2/pip-look-how-far-down-the-sea-is-wick.mp3",
+      "durationMs": 2480
     },
     "line_1ai4k3q92hl": {
       "url": "sound/ch3/narrator-on-the-longest-night-of-the-year-the-sno.mp3",
