@@ -16,7 +16,16 @@ export const ChapterCanon = z.strictObject({
   episodeId: Id,
   title: z.string().min(1),
   /** Facts the next chapter can branch on: `key` is what it reads (e.g. how the lantern came back), `value` the answer. */
-  facts: z.array(z.strictObject({ key: Id, value: Id, beats: z.array(Id).min(1), text: z.string().min(1) })),
+  facts: z.array(
+    z.strictObject({
+      key: Id,
+      value: Id,
+      beats: z.array(Id).min(1),
+      text: z.string().min(1),
+      /** The line the recorded page prints, said to the reader ("You held the lantern…"). Facts without one aren't printed. */
+      page: z.string().min(1).max(120).optional(),
+    }),
+  ),
   /** One sentence of history for whatever you keep, by object def (or `default`): the first whose beats played, or one with no beats. */
   history: z.record(z.string(), z.array(z.strictObject({ beats: z.array(Id).optional(), text: z.string().min(1) })).min(1)),
 });
@@ -119,6 +128,9 @@ export function keptAfter(memory: Memory, episodeId: string, defs: ReadonlyMap<s
   return out;
 }
 
+/** The recorded page prints at most this many lines (API shapes, section 1). */
+export const PAGE_LINES = 3;
+
 export type Append = ShowLog['append'];
 
 /**
@@ -132,7 +144,7 @@ export function recordChapterEnd(append: Append, canonData: ChapterCanon, played
   for (const f of canonData.facts) {
     if (seen.has(f.key) || !f.beats.some((b) => played.has(b))) continue;
     seen.add(f.key);
-    lines.push(f.text);
+    if (f.page && lines.length < PAGE_LINES) lines.push(f.page);
     append('canon.recorded', { entry: { id: factId(episodeId, f.key), kind: 'event', text: f.text, episodeId, sourceEventId: `${f.key}=${f.value}` } });
   }
   for (const id of kept) {
