@@ -287,6 +287,38 @@ If the hunt fails, `episode` becomes `show/episode-3.page-hunt.json` (its canon 
 
 **Nov 16, later: run 021 batch 1 voiced** (sprint master: cap raised to 90; "keep everything ready"). The narrator's, Pip's and Wick's 72 lines across both versions, 72 credits by the run's own ledger, finished into `art/sound/ch3/` and the manifest's `voiceLines` (`art/runs/021-chapter-3-voices/results.md`). Thimble's 9 lines wait for her voice (lane B). Re-timed from the real voices: room version quick 1:32–1:34 / 5:08–5:10, zero input 1:52–1:54 / 6:15–6:17, late wrong 2:10–2:12 / 6:46–6:48, holding 2:04–2:06 / 6:35–6:37; page version the same turns, ends 5:05–6:55. `tests/chapter-3.test.ts`: 23 pass (the voice check is live: every narrator, Pip and Wick line has its clip), 4 wait. Lane C's spend so far: 72 of 144.
 
+### The emulator pass, round 1 (Nov 16, from 12:30 IST)
+
+**Build:** a local scratch merge, never pushed: `finish-chapter-3` + `main` (with #34, chapters by number) + lane B's `finish-chapters-library` (Thimble, her chosen voice, the logbook, the landing, carry slots in `loadChapter`, a chapter loads only its own sets), plus, locally only, chapter 3 in the manifest's `chapters` list and **stand-ins for lane B's still-missing marks and cues** (below). IWSDK emulator (Quest 3 profile) through the IWSDK CLI, emulated hands only, the managed dev runtime on this workspace's port 5140. Screenshots are in this workspace under `.c3-shots/` (kept out of git): `zero-input/`, `reader/`, `carry/`, `edge/`.
+
+**What I played, and what happened:**
+
+| Pass | Result |
+|---|---|
+| **Zero input, uninterrupted, normal speed** (from the page's "Open chapter 3" into the book, no hand lifted) | Every beat in order: frost ask 0:45, Thimble polishes the glass 1:04, the page turns by itself 1:54, the hunt 1:57, the beam brings the logbook home 2:46, Moth's beacon 3:05, the gap 3:25, Pip throws Wick's own rope 4:10, the handover 4:28, **the stars 5:01**, morning 5:37, **the end page at 5:58**. Chapter 3 recorded as finished. Room snow by 0:07, settling on the real couch and bed (`reader/lamp-errand.png`); the night sky on the ceiling (`zero-input/ceiling.png`) |
+| **A first-time reader, with hands** (storage cleared first) | The sock from the drawer to Pip: `frost-wipe`. The hunt: the logbook hid on the room's couch 1.8 m away; the reader stepped over, pinched it and carried it to Pip: `log-found`. The ladder from the drawer: `wick-ladder`. **Three gifts in a row, so Pip's paw stays free (ruling 1).** The handover, the sky, the end card with "Kept: odd sock, little wooden ladder", then out of XR back to the page (`reader/*.png`) |
+| **The carried consequence** (a finished chapter 2 seeded through the app's own `recordChapterEnd`: the light up on the kite, Thimble in by the thread, the kite kept) | `loadChapter` chose `carry-thread` and `beacon-kite`; Thimble's thread line played; the kite sits in the satchel; at the beacon it comes out and lifts Pip's light high over the snowy landing, then comes down (`carry/*.png`). **Ruling 5 holds** |
+| **A wrong gift** (the brass key at the gap) | `wick-puzzled`, then Pip spots Wick's own rope and throws it: `wick-rope-self` |
+| **Reload mid-chapter** | The page offers "Continue chapter 3"; it resumes at the frost ask with its history (`edge/reload-resume.png`) |
+| **Console** | Nothing from chapter 3. Present but not chapter 3's: the sign-in device-code poll (`/v1/device`) answers 500 every 10 s because this workspace runs no backend; THREE.Clock deprecation and the gaze-not-granted notices (framework) |
+| **Simulator** (all lines voiced) | Room version: quick 1:29–1:30 / 5:05–5:07; zero input 1:49–1:51 / 6:13–6:15; late wrong 2:07–2:08 / 6:44–6:56; holding 2:01–2:03 / 6:33–6:35. Page version the same turns, ends 5:02–6:55. `tests/chapter-3.test.ts` on the scratch build: 27 of 27, including `checkSpine` against the real library |
+
+**The snowy pages, judged in the emulator:** the gap and the landing read as snow at reading distance; the lamp's gallery reads as pale, snowy stone with frosted glass on the unlit lamp, which is what the frost beat needs. **No paid repaint requested**; run 020 stays at 0 credits until the owner's look in the headset says otherwise.
+
+**Found and fixed (lane C):** spreads 2 and 3 didn't list the kite, ladder and logbook they use (`checkSpine` scopes objects per scene): listed. My stand-in marks first hid Thimble behind Pip's lantern, sat Moth over Wick's head and let Wick peek round the lamp: moved (positions below, for lane B).
+
+**Not green yet: what stands in the way (none of it is chapter 3's data):**
+
+1. **Lane B, missing marks and cues.** Not in the library yet: `thimble`, `moth-lamp`, `stair` on the lamp; `rope-far`, `lamp-thimble` on the gap; cues `wick-rope`, `wick-ladder`, `wick-kite`. The positions that read right in the emulator: `thimble` [0.02, 0, 0.0] (left of Pip, clear of his lantern), `moth-lamp` [-0.093, 0.175, -0.085] (above the lamp, clear of Wick's head), `stair` [-0.093, 0, -0.125] (wholly behind the lamp room's glass), `rope-far` [-0.105, 0, -0.03], `lamp-thimble` [-0.03, 0, -0.022]; `wick-*` as chapter 1's `cross-*` with `travels: { who: wick, to: far-side }`.
+2. **Lane B, the logbook twice.** Wick's rig always draws his logbook, so at the gap he already holds one while the real one is in Pip's coat, and Pip says "You dropped this." Either the linked part (E8) lands, or lane B's own fallback: the hunt finds Wick's brass key (new lines, voiced from run 021's 9 remaining credits).
+3. **Lane A, the printed end page** says "The end of chapter one" in chapter 3 (`client/src/book/text.ts:107`).
+4. **Lane A, leaving mid-chapter in the same page load** (out of XR, then "Open chapter 3" again) restarts from the opening: the open button's resume comes from progress read when the page loaded (chapter 3 was finished then). A reload offers "Continue" and resumes correctly.
+5. **Lane B, `CHAPTERS`** still lists chapter 1 only, so chapter 3 isn't on the contents or Your book (ask 3).
+6. **Lane B, `tests/light-up.test.ts`** times out at vitest's 5 s default inside the full suite once the manifest has more sets (the stage harness builds every set; with the snowy sets its first case takes 1.9 s alone, 5 s+ under load). Main gave its other whole-stage files 30 s (`vi.setConfig`, 51f225c). `finish-chapter-3`'s last commits (Thimble's voices, the main merge) wait to be pushed until `pnpm check` is green.
+7. **Lane B, the end card's lines** are the canon's third-person text ("Thimble polished the frost…") until E3's per-fact `page` lines land.
+
+**Not covered yet in round 1:** pausing mid-moment from the ribbon or the cover, and the headset taken off; the glasses view for the drawer and the logbook; fps from the headset (the desktop emulator's frame rate isn't the Quest's). Round 2, on lane B's real marks, does these and repeats the full pass.
+
 ## Appendix: the line ledger
 
 From `docs/plans/finish-chapters/episode-3.draft.json` and its bridges, by contract line id (`lineIdOf`), against `client/public/show/manifest.json` and `episode-2.draft.json`. Re-run when the lines freeze; run 021's jobs are written from the frozen file, not from this list.
