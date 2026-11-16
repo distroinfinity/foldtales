@@ -1,0 +1,15 @@
+{
+  "note": "The welcome email's words (owner to approve). The book's words are data, so the engine knows no character's name.",
+  "subject": "Your book is ready",
+  "preheader": "Thank you for being one of Foldtales' first readers.",
+  "headline": "Your book is ready.",
+  "paragraphs": [
+    "Thank you for signing in to Foldtales. You are one of its very first readers, and that really means a lot to me.",
+    "Foldtales is a pop-up storybook that opens on your real table. Pip, Wick and Moth live in it, at the Lost and Found at the edge of the table, and the AI Storyteller makes up tonight’s story with you, out loud.",
+    "When you’re ready, open www.foldtales.xyz on your Quest and pinch “Open the book”. Your place is kept, and so are the stories you make."
+  ],
+  "signature": "Manu",
+  "why": "You’re getting this because you signed in to Foldtales. It’s the only welcome we send; sign-in codes come only when you ask for one.",
+  "button": "Open Foldtales",
+  "buttonNote": "On your Quest? Open the same link in its browser."
+}

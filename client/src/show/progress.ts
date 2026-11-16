@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { clearCheckpoint, readCheckpoint } from './checkpoint.ts';
 import { whereIn } from './chapters.ts';
+import { storytellerSnapshot, subscribeStoryteller, type StorytellerSnapshot } from '../storyteller/provider.ts';
 
 /** The furthest chapter and its state. Account sync reads and writes this key, so its shape stays. */
 const KEY = 'tt.progress';
@@ -194,7 +195,12 @@ function notifyLibrary(): void {
  */
 export function subscribeLibrary(listener: () => void): () => void {
   libraryListeners.add(listener);
-  return () => void libraryListeners.delete(listener);
+  // The Storyteller's door and shelf change on their own (sign-in, tonight's limit, a story saved).
+  const stopStoryteller = subscribeStoryteller(listener);
+  return () => {
+    libraryListeners.delete(listener);
+    stopStoryteller();
+  };
 }
 
 /** What the landing page's one button says. Continuing needs a saved place to continue from. */
@@ -219,7 +225,8 @@ export interface LibraryState {
   /** `where` is the saved place in the reader's words ("Stopped on the shore."), when there is one. */
   chapters: Array<{ n: number; title: string; state: 'unread' | 'started' | 'finished'; canResume: boolean; where?: string }>;
   next: { kind: 'chapter'; n: number; resume: boolean };
-  storyteller: { available: boolean; sessions: Array<{ id: string; title: string; updatedAt: string }> };
+  /** Lane D's provider's snapshot: the door's state and the finished stories. */
+  storyteller: StorytellerSnapshot;
 }
 
 /** Where the landing page sends the reader into the book. */
@@ -240,7 +247,7 @@ export function libraryState(store: Pick<Storage, 'getItem' | 'setItem' | 'remov
   return {
     chapters,
     next: { kind: 'chapter', n: current.n, resume: current.canResume },
-    storyteller: { available: STORYTELLER_AVAILABLE, sessions: [] },
+    storyteller: storytellerSnapshot(),
   };
 }
 

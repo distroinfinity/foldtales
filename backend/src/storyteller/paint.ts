@@ -4,6 +4,7 @@ import { TAG_VOCABULARY, type ObjectDef, type PaintRequest, type PaintResult } f
 import { z } from 'zod';
 import { REACTOR, type Claude } from '../director/claude.ts';
 import { cutOut } from './cutout.ts';
+import type { Stories } from './stories.ts';
 
 /**
  * The live painter: something new the story needs, painted in the book's object style (run 013's
@@ -13,8 +14,6 @@ import { cutOut } from './cutout.ts';
 
 const API = 'https://api.dev.runwayml.com/v1';
 const MODEL = 'seedream5_flash';
-const PER_EVENING = 6;
-const CREDITS_PER_PAINTING = 2;
 const JOB_TTL_MS = 10 * 60_000;
 
 const template = (thing: string) =>
@@ -37,15 +36,30 @@ export interface PainterDeps {
   claude: Claude | null;
   /** The style reference, Figure 1 (run 013). */
   styleRefPath: string;
-  /** Total credits this process may spend on paintings. */
-  creditCap: number;
+  /** Jobs, per-story and per-reader limits, and the lifetime credit pool, kept in the database. */
+  stories: Pick<Stories, 'claimPaint' | 'refundPaint' | 'paintUnknown' | 'paintArrived'>;
+  /** The look check on the finished picture. Fails closed. Painting never ships without it. */
+  checkPicture: (png: Buffer, description: string) => Promise<boolean>;
+  /** The check on the painting's generated name, before it can reach a saved page. Fails closed. */
+  checkLine: (text: string) => Promise<boolean>;
+  /** Live painting is switched on (TT_PAINTING=on). */
+  enabled: () => boolean;
   log?: (m: string) => void;
+  /** For tests: Runway's API. */
+  fetch?: typeof fetch;
+  /** For tests: the wait between checks on a painting in progress. */
+  pollMs?: number;
 }
+
+/**
+ * Where a painting's submission to Runway stands, so its credits are refunded only when Runway
+ * certainly didn't take it: never sent, or refused outright. A lost answer (a network error, a
+ * server error, an unreadable reply) may have been a job, so it keeps its credits.
+ */
+type Submission = 'unsent' | 'refused' | 'unknown' | 'accepted';
 
 export function createPainter(deps: PainterDeps) {
   const jobs = new Map<string, { result: PaintResult; at: number }>();
-  const perEvening = new Map<string, number>();
-  let spent = 0;
   let styleRef: string | null = null;
   const ref = () => (styleRef ??= `data:image/png;base64,${readFileSync(deps.styleRefPath).toString('base64')}`);
   const headers = () => ({ Authorization: `Bearer ${deps.runwayKey}`, 'X-Runway-Version': '2024-11-06', 'Content-Type': 'application/json' });
@@ -78,23 +92,40 @@ export function createPainter(deps: PainterDeps) {
       parse: Named,
       maxTokens: 400,
       timeoutMs: 8000,
+      estimate: 'name',
     });
   }
 
   /** `job.charged` turns true once Runway has accepted the job (its credits are really spent then). */
-  async function paint(thing: string, job: { charged: boolean }): Promise<Buffer> {
-    const r = await fetch(`${API}/text_to_image`, {
-      method: 'POST',
-      headers: headers(),
-      body: JSON.stringify({ model: MODEL, ratio: '1024:1024', promptText: template(thing), referenceImages: [{ uri: ref() }] }),
-    });
-    const made = (await r.json()) as { id?: string };
-    if (!r.ok || !made.id) throw new Error(`runway refused (${r.status})`);
-    job.charged = true;
+  const send = deps.fetch ?? fetch;
+  const pollMs = deps.pollMs ?? 2500;
+
+  async function paint(thing: string, job: { submission: Submission }): Promise<Buffer> {
+    let r: Response;
+    job.submission = 'unknown';
+    try {
+      r = await send(`${API}/text_to_image`, {
+        method: 'POST',
+        headers: headers(),
+        body: JSON.stringify({ model: MODEL, ratio: '1024:1024', promptText: template(thing), referenceImages: [{ uri: ref() }] }),
+        signal: AbortSignal.timeout(20_000),
+      });
+    } catch (cause) {
+      // The request may have reached Runway before the answer was lost.
+      throw new Error(`runway didn't answer (${String(cause).slice(0, 60)})`);
+    }
+    // A client error is a definite refusal; a server error may still have made a job.
+    if (r.status >= 400 && r.status < 500) {
+      job.submission = 'refused';
+      throw new Error(`runway refused (${r.status})`);
+    }
+    const made = (await r.json().catch(() => ({}))) as { id?: string };
+    if (!r.ok || !made.id) throw new Error(`runway's answer was unclear (${r.status})`);
+    job.submission = 'accepted';
     for (let i = 0; i < 30; i++) {
-      await new Promise((resolve) => setTimeout(resolve, 2500));
-      const task = (await fetch(`${API}/tasks/${made.id}`, { headers: headers() }).then((x) => x.json()).catch(() => ({ status: 'UNKNOWN' }))) as { status: string; output?: string[] };
-      if (task.status === 'SUCCEEDED' && task.output?.[0]) return Buffer.from(await (await fetch(task.output[0])).arrayBuffer());
+      await new Promise((resolve) => setTimeout(resolve, pollMs));
+      const task = (await send(`${API}/tasks/${made.id}`, { headers: headers() }).then((x) => x.json()).catch(() => ({ status: 'UNKNOWN' }))) as { status: string; output?: string[] };
+      if (task.status === 'SUCCEEDED' && task.output?.[0]) return Buffer.from(await (await send(task.output[0])).arrayBuffer());
       if (task.status === 'FAILED' || task.status === 'CANCELLED') throw new Error(`runway ${task.status.toLowerCase()}`);
     }
     throw new Error('runway took too long');
@@ -102,13 +133,18 @@ export function createPainter(deps: PainterDeps) {
 
   async function run(jobId: string, request: PaintRequest, objectId: string | null): Promise<void> {
     const started = Date.now();
-    const job = { charged: false };
+    const job: { submission: Submission } = { submission: 'unsent' };
     try {
       const named = await name(request);
       if (!named.fit) throw new Error('not for this book');
+      // Fail closed: the generated name and description are saved with the keepsake and read in later prompts.
+      const [nameOk, descriptionOk] = await Promise.all([deps.checkLine(named.name).catch(() => false), deps.checkLine(named.description).catch(() => false)]);
+      if (!nameOk || !descriptionOk) throw new Error('its name or description failed the check');
       const image = await paint(named.paint, job);
       const cut = await cutOut(image);
       if (!cut.ok) throw new Error(cut.reason);
+      // Fail closed: a picture that isn't checked is never shown.
+      if (!(await deps.checkPicture(cut.cutout.png, request.description))) throw new Error('it failed the look check');
       const id = objectId ?? `live-${jobId.slice(-8)}`;
       const known = [...new Set(named.tags)].filter((t) => TAG_VOCABULARY.some((v) => v.id === t)).slice(0, 4);
       const def: ObjectDef = {
@@ -122,10 +158,12 @@ export function createPainter(deps: PainterDeps) {
         provenance: 'live',
       };
       jobs.set(jobId, { result: { status: 'done', object: def }, at: Date.now() });
-      deps.log?.(`painted "${named.name}" in ${Date.now() - started} ms (${spent} credits so far)`);
+      deps.stories.paintArrived(jobId, def.name);
+      deps.log?.(`painted "${named.name}" in ${Date.now() - started} ms`);
     } catch (cause) {
-      // Never reached Runway (or it refused): the reserved credits go back.
-      if (!job.charged) spent -= CREDITS_PER_PAINTING;
+      // Credits go back only when Runway certainly didn't take the job; a lost answer keeps them.
+      if (job.submission === 'unsent' || job.submission === 'refused') deps.stories.refundPaint(jobId);
+      else if (job.submission === 'unknown') deps.stories.paintUnknown(jobId);
       deps.log?.(`painting failed after ${Date.now() - started} ms: ${String(cause)}`);
       jobs.set(jobId, { result: { status: 'failed', reason: String(cause).slice(0, 120) }, at: Date.now() });
     }
@@ -137,22 +175,24 @@ export function createPainter(deps: PainterDeps) {
   };
 
   return {
-    /** Starts a painting; the job id is returned at once. Over a cap, the job fails straight away. */
-    start(request: PaintRequest, objectId: string | null = null): string {
+    /**
+     * Starts a painting for (story, object), or hands back the job already started for it. Null when
+     * painting is off or this story, this reader or the credit pool has none left.
+     */
+    start(userId: string, request: PaintRequest): string | null {
       prune();
-      const jobId = `paint-${randomUUID().slice(0, 12)}`;
-      const count = perEvening.get(request.storyId) ?? 0;
-      if (!deps.runwayKey || !deps.claude) jobs.set(jobId, { result: { status: 'failed', reason: 'painting is off' }, at: Date.now() });
-      else if (count >= PER_EVENING) jobs.set(jobId, { result: { status: 'failed', reason: 'enough painting for one evening' }, at: Date.now() });
-      else if (spent + CREDITS_PER_PAINTING > deps.creditCap) jobs.set(jobId, { result: { status: 'failed', reason: 'the painting budget is spent' }, at: Date.now() });
-      else {
-        // Reserved now, before the job starts, so paintings started together can't pass the cap.
-        spent += CREDITS_PER_PAINTING;
-        perEvening.set(request.storyId, count + 1);
-        jobs.set(jobId, { result: { status: 'pending' }, at: Date.now() });
-        void run(jobId, request, objectId);
+      if (!deps.enabled() || !deps.runwayKey || !deps.claude) return null;
+      let claim: { jobId: string; fresh: boolean };
+      try {
+        claim = deps.stories.claimPaint(userId, request.storyId, request.objectId);
+      } catch {
+        return null;
       }
-      return jobId;
+      if (claim.fresh) {
+        jobs.set(claim.jobId, { result: { status: 'pending' }, at: Date.now() });
+        void run(claim.jobId, request, request.objectId);
+      }
+      return claim.jobId;
     },
     result(jobId: string): PaintResult {
       return jobs.get(jobId)?.result ?? { status: 'failed', reason: 'no such painting' };

@@ -58,6 +58,12 @@ export function createKeepsakes() {
       if (!d) return [];
       return (await all(d)).sort((a, b) => b.usedAt - a.usedAt);
     },
+    /** Everything kept, or null when storage can't be read at all (so "nothing yet" and "couldn't read" differ). */
+    async read(): Promise<Keepsake[] | null> {
+      const d = await db;
+      if (!d) return null;
+      return (await all(d)).sort((a, b) => b.usedAt - a.usedAt);
+    },
     /** Keep a painted thing (or mark it used again). One transaction, so two at once can't pass the cap. */
     async keep(def: ObjectDef): Promise<void> {
       const d = await db;
