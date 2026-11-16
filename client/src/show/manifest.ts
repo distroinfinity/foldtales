@@ -21,6 +21,12 @@ export const CastEntry = z.strictObject({
     })
     .nullable(),
   shadow: z.strictObject({ widthM: z.number().positive(), depthM: z.number().positive() }),
+  /**
+   * A rig part that is also a library object (a keeper's logbook): the part shows only while that
+   * object isn't in this chapter's play, so it's never in two places at once. Client-only; the shared
+   * library never sees it.
+   */
+  linkedPart: z.strictObject({ part: z.string().min(1), object: Id }).optional(),
   /** Mirror the art, so the character turns toward the other side. */
   flip: z.boolean(),
 });

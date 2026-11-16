@@ -146,7 +146,11 @@
         "widthM": 0.1,
         "depthM": 0.034
       },
-      "flip": true
+      "flip": true,
+      "linkedPart": {
+        "part": "logbook",
+        "object": "logbook"
+      }
     },
     {
       "member": {
@@ -402,6 +406,86 @@
       "summary": "the light comes back down to its keeper, and what held it is set down",
       "nominalMs": 2000,
       "kind": "light-down"
+    },
+    {
+      "id": "thimble-thread",
+      "summary": "the moth carries a thread out to the rock, and the mouse is hauled in on it",
+      "nominalMs": 7000,
+      "kind": "cross-thread",
+      "travels": {
+        "who": "thimble",
+        "to": "far-side"
+      }
+    },
+    {
+      "id": "thimble-rope",
+      "summary": "a line is thrown out to the rock and the mouse comes in on it",
+      "nominalMs": 6500,
+      "kind": "cross-rope",
+      "travels": {
+        "who": "thimble",
+        "to": "far-side"
+      }
+    },
+    {
+      "id": "thimble-ladder",
+      "summary": "a ladder is laid from the rock to the step and the mouse comes across",
+      "nominalMs": 7500,
+      "kind": "cross-ladder",
+      "travels": {
+        "who": "thimble",
+        "to": "far-side"
+      }
+    },
+    {
+      "id": "thimble-kite",
+      "summary": "the mouse holds a kite tail and the wind carries her in",
+      "nominalMs": 6500,
+      "kind": "cross-kite",
+      "travels": {
+        "who": "thimble",
+        "to": "far-side"
+      }
+    },
+    {
+      "id": "thimble-heave",
+      "summary": "the sea lifts the mouse and sets her down on the step",
+      "nominalMs": 4500,
+      "kind": "cross-kite",
+      "travels": {
+        "who": "thimble",
+        "to": "far-side"
+      }
+    },
+    {
+      "id": "wick-rope",
+      "summary": "a rope is thrown across the gap and the old badger climbs over",
+      "nominalMs": 6500,
+      "kind": "cross-rope",
+      "travels": {
+        "who": "wick",
+        "to": "far-side"
+      }
+    },
+    {
+      "id": "wick-ladder",
+      "summary": "a ladder is laid across the gap and the old badger feels his way over",
+      "nominalMs": 7500,
+      "kind": "cross-ladder",
+      "travels": {
+        "who": "wick",
+        "to": "far-side"
+      }
+    },
+    {
+      "id": "wick-kite",
+      "summary": "a kite carries the old badger over the gap",
+      "nominalMs": 6500,
+      "kind": "cross-kite",
+      "travels": {
+        "who": "wick",
+        "to": "far-side"
+      }
     }
   ],
   "narrator": {
@@ -1007,6 +1091,33 @@
             0,
             0.072
           ]
+        },
+        {
+          "id": "moth-lamp",
+          "label": "by the great lamp",
+          "position": [
+            -0.06,
+            0.1,
+            -0.07
+          ]
+        },
+        {
+          "id": "thimble",
+          "label": "on the gallery by Pip",
+          "position": [
+            0.11,
+            0,
+            -0.01
+          ]
+        },
+        {
+          "id": "stair",
+          "label": "the top of the stair, behind the lamp room",
+          "position": [
+            -0.15,
+            0,
+            -0.1
+          ]
         }
       ]
     },
@@ -1257,6 +1368,24 @@
             0.205,
             -0.075
           ]
+        },
+        {
+          "id": "rope-far",
+          "label": "on the far side, where Wick left his rope",
+          "position": [
+            -0.1,
+            0,
+            0.01
+          ]
+        },
+        {
+          "id": "lamp-thimble",
+          "label": "below the lighthouse, beside Pip",
+          "position": [
+            -0.04,
+            0,
+            -0.01
+          ]
         }
       ]
     },
@@ -1379,5 +1508,26 @@
   ],
   "drawer": "book/drawer/drawer.json",
   "satchel": "satchel/satchel.json",
-  "episode": "show/episode-1.json"
+  "episode": "show/episode-1.json",
+  "chapters": [
+    {
+      "n": 1,
+      "episode": "show/episode-1.json",
+      "onStage": [
+        {
+          "cast": "pip",
+          "mark": "pip"
+        },
+        {
+          "cast": "wick",
+          "mark": "wick"
+        }
+      ],
+      "where": [
+        "Stopped at the top of the lighthouse.",
+        "Stopped on the shore.",
+        "Stopped at the gap."
+      ]
+    }
+  ]
 }
