@@ -106,6 +106,8 @@ export interface ControlsDeps {
     commit(choice: { id: string; generation: number }): void;
     /** The menu's generation now, so a pinch started on an older card chooses nothing. */
     generation(): number;
+    /** True while a hand's fingertip is at the card, touching rather than pointing: its pinch chooses nothing. */
+    inTouchReach?(side: HandSide): boolean;
   };
 }
 
@@ -150,6 +152,7 @@ export function createBookControls({ world, stageRoot, book, sound, pause, glow,
   const ribbonPresser = createPresser({ travelM: 0.006, fireAtM: 0.004, hoverM: 0.05 });
   /** When each hand last pressed the ribbon: its pinch letting go just after doesn't count twice. */
   const ribbonPressedAt: Record<HandSide, number> = { left: -1e9, right: -1e9 };
+  const tugAfterTouch: Record<HandSide, boolean> = { left: false, right: false };
   let clockMs = 0;
   const pinchingNow: Record<HandSide, boolean> = { left: false, right: false };
   const lost: Record<HandSide, boolean> = { left: false, right: false };
@@ -261,6 +264,9 @@ export function createBookControls({ world, stageRoot, book, sound, pause, glow,
           maybeStartResize();
         } else if (event.id === 'spine') {
           spineOffset = null;
+        } else if (event.id === 'ribbon') {
+          // A pinch on the ribbon just after this hand touched it is the same gesture: its release won't count again.
+          tugAfterTouch[event.hand] = clockMs - ribbonPressedAt[event.hand] < 1500;
         }
         break;
       case 'drag':
@@ -289,7 +295,8 @@ export function createBookControls({ world, stageRoot, book, sound, pause, glow,
           onMoved();
         } else if (event.id === 'ribbon') {
           // A tug: the same as a touch. A touch just made with this hand already counted.
-          if (clockMs - ribbonPressedAt[event.hand] > 900) ribbonUsed();
+          if (!tugAfterTouch[event.hand]) ribbonUsed();
+          tugAfterTouch[event.hand] = false;
         }
         break;
       case 'cancel':
@@ -446,7 +453,7 @@ export function createBookControls({ world, stageRoot, book, sound, pause, glow,
               ? null
               : gaze.valid
                 ? cardGaze.pick(gaze.origin.clone(), gaze.direction.clone())
-                : ray && limited?.()
+                : ray && limited?.() && (side === 'left' || side === 'right') && !cardGaze.inTouchReach?.(side)
                   ? cardGaze.pick(ray.origin.clone(), ray.direction.clone())
                   : null;
           gate.start(slot(event.inputSource), pick);

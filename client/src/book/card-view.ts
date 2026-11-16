@@ -38,7 +38,12 @@ export const MENU_DISTANCE_M = 0.45;
  * edge, so it reads as standing behind the book while it's within reach. Kept between these.
  */
 const PITCH_MIN = (15 * Math.PI) / 180;
-const PITCH_MAX = (40 * Math.PI) / 180;
+const PITCH_MAX = (70 * Math.PI) / 180;
+/**
+ * Looking at the book, the card's top edge stays within this much above the view (the VR Glasses see
+ * 25° up): a standing reader, looking steeply down, gets the card lower, over the book.
+ */
+const TOP_OVER_BOOK = (21 * Math.PI) / 180;
 /** The card's height assumed when it's placed (before its type is measured), and a little air above the edge. */
 const PLACE_HEIGHT_M = 0.13;
 const OVER_EDGE = (1.5 * Math.PI) / 180;
@@ -292,7 +297,10 @@ export function createCardView(deps: CardViewDeps) {
   let building = 0;
   /** Where the card stands, fixed when it rises from nothing (world-locked). */
   const placedAt = new Vector3();
+  const facing = new Vector3();
   let placed = false;
+  /** A new card is being built: the old buttons press nothing and aren't targets until it's done. */
+  let replacing = false;
   let raisedForHeight = false;
   const buttons = new Map<string, Button>();
   const texts: Array<{ what: string; text: Text }> = [];
@@ -325,12 +333,23 @@ export function createCardView(deps: CardViewDeps) {
     flatDir.normalize();
     const far = deps.bookRoot.localToWorld(new Vector3(0, deps.pageY, -deps.pageD / 2));
     const farBelow = Math.atan2(head.y - far.y, Math.hypot(far.x - head.x, far.z - head.z));
+    const bookBelow = Math.atan2(head.y - book.y, Math.hypot(book.x - head.x, book.z - head.z));
     const halfCard = Math.atan(PLACE_HEIGHT_M / 2 / MENU_DISTANCE_M);
-    const pitch = Math.max(PITCH_MIN, Math.min(PITCH_MAX, farBelow - halfCard - OVER_EDGE));
+    const behind = farBelow - halfCard - OVER_EDGE;
+    const inView = bookBelow - TOP_OVER_BOOK + halfCard;
+    const pitch = Math.max(PITCH_MIN, Math.min(PITCH_MAX, Math.max(behind, inView)));
     placedAt.copy(head).addScaledVector(flatDir, MENU_DISTANCE_M * Math.cos(pitch));
     placedAt.y -= MENU_DISTANCE_M * Math.sin(pitch);
+    facing.copy(head);
+    turn();
     placed = true;
     raisedForHeight = false;
+  }
+
+  /** Turned once toward where your eyes were when it rose, level, and then held: it never turns under a finger. */
+  function turn(): void {
+    pivot.position.copy(placedAt);
+    pivot.lookAt(facing);
   }
 
   function pageWorldY(): number {
@@ -340,6 +359,10 @@ export function createCardView(deps: CardViewDeps) {
   /** Builds the card for this distance: type first (so it can be measured), then the paper round it. */
   async function build(next: CardSpec, distanceM: number): Promise<void> {
     const ticket = ++building;
+    // Until the new card is up, nothing on the old one answers, and no touch in progress carries over.
+    replacing = true;
+    presser.reset();
+    for (const b of buttons.values()) b.depth = 0;
     const em = emFor(distanceM);
     const width = cardWidthFor(em);
     const textWidth = width - 2.4 * em;
@@ -435,7 +458,8 @@ export function createCardView(deps: CardViewDeps) {
     geometry = g;
     builtFor = distanceM;
     presser.reset();
-    setNear(near);
+    replacing = false;
+    setNear(null);
   }
 
   function setNear(id: string | null): void {
@@ -476,7 +500,7 @@ export function createCardView(deps: CardViewDeps) {
     },
     /** Standing and ready to be pressed. */
     get ready(): boolean {
-      return wanted === 1 && pop >= 1 && face !== null;
+      return wanted === 1 && pop >= 1 && face !== null && !replacing;
     },
     get spec(): CardSpec | null {
       return spec;
@@ -507,11 +531,9 @@ export function createCardView(deps: CardViewDeps) {
         raisedForHeight = true;
         const lowest = pageWorldY() + CLEAR_OF_BOOK_M + geometry.heightM / 2;
         if (placedAt.y < lowest) placedAt.y = lowest;
+        turn();
       }
       const h = geometry?.heightM ?? 0.15;
-      pivot.position.copy(placedAt);
-      // Level and facing you: turned toward your eyes, never rolled.
-      pivot.lookAt(head);
       // Rises from a little lower, unfolding from its bottom edge, with a slight overshoot as it lands.
       const t = pop;
       const eased = wanted ? 1 - (1 - t) ** 3 + Math.sin(Math.PI * t) * 0.05 : t * t;
@@ -536,7 +558,7 @@ export function createCardView(deps: CardViewDeps) {
      * landed this frame. Nothing presses until the card is standing.
      */
     press(hands: Record<Side, PressInput>): string[] {
-      if (!face || wanted !== 1 || pop < 1) {
+      if (!face || wanted !== 1 || pop < 1 || replacing) {
         for (const b of buttons.values()) b.depth = 0;
         return [];
       }
@@ -568,8 +590,14 @@ export function createCardView(deps: CardViewDeps) {
     },
     /** Every enabled button's centre, on its face. Empty until the card is standing. */
     targets(): CardTarget[] {
-      if (!face || wanted !== 1 || pop < 1 || !geometry) return [];
+      if (!face || wanted !== 1 || pop < 1 || !geometry || replacing) return [];
       return [...buttons.values()].map((b) => ({ id: b.id, position: b.face.getWorldPosition(new Vector3()), radiusM: Math.max(0.02, Math.min(b.cell.w, b.cell.h) / 2) }));
+    },
+    /** Whether a fingertip is in front of the card, close enough to be touching it rather than pointing from afar. */
+    inTouchReach(tip: Vector3 | null): boolean {
+      if (!tip || !face || !geometry || wanted !== 1) return false;
+      const p = face.worldToLocal(tip.clone());
+      return p.z > -0.03 && p.z < 0.1 && Math.abs(p.x) < geometry.widthM / 2 + 0.05 && p.y > -0.05 && p.y < geometry.heightM + 0.05;
     },
     /** A button's centre in the world, for a sound or the emulator. */
     buttonAt(id: string): Vector3 | null {

@@ -313,6 +313,7 @@ async function prepare(world: World, chapter: ChapterData) {
     pick: (_origin: Vector3, _direction: Vector3): { id: string; generation: number } | null => null,
     commit: (_choice: { id: string; generation: number }): void => undefined,
     generation: (): number => 0,
+    inTouchReach: (_side: 'left' | 'right'): boolean => false,
   };
   const controls = createBookControls({
     world,
@@ -329,7 +330,7 @@ async function prepare(world: World, chapter: ChapterData) {
     onHeadSelect: (origin, direction) => hands.headSelect(origin, direction),
     onRibbon: () => menuHooks.onRibbon(),
     limited: () => menuHooks.showing(),
-    cardGaze: { pick: (o, d) => menuHooks.pick(o, d), commit: (c) => menuHooks.commit(c), generation: () => menuHooks.generation() },
+    cardGaze: { pick: (o, d) => menuHooks.pick(o, d), commit: (c) => menuHooks.commit(c), generation: () => menuHooks.generation(), inTouchReach: (side) => menuHooks.inTouchReach(side) },
     // A new size keeps the printed lines at least 1° tall.
     onResized: (scale) => {
       sizing.userScale = scale;
@@ -846,7 +847,8 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
     }
     // A finished story stays frozen under its end card; a chapter's has simply ended.
     const freeze = holdsStory(menu) || (storyMode && menu.root === 'ending');
-    if (freeze !== controls.ribbonUp) controls.setRibbon(freeze);
+    // Held at once; let go only once the card has folded away and the stage stands again (cardStep).
+    if (freeze && !controls.ribbonUp) controls.setRibbon(true);
     syncLifecycle();
     shownGeneration = -1;
   }
@@ -944,6 +946,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
   };
   menuHooks.commit = (c) => commit(c.id, c.generation);
   menuHooks.generation = () => menu.generation;
+  menuHooks.inTouchReach = (side) => card.inTouchReach(controls.fingertip(side));
   /**
    * Each frame: while a card is wanted, the stage folds down flat first and then the card rises; when it
    * goes, the card folds away first and then the stage stands back up. Fingertips press its buttons.
@@ -951,6 +954,9 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
   function cardStep(deltaMs: number): void {
     const menuUp = cardShowing(menu) && controls.amount > 0.98 && !away.requested;
     controls.setFlat(menuUp || card.shown);
+    // The menu is done with the story: it plays on once the card is gone and the pages stand again.
+    const freeze = holdsStory(menu) || (storyMode && menu.root === 'ending');
+    if (!freeze && controls.ribbonUp && !card.shown && controls.flatness <= 0) controls.setRibbon(false);
     const want = menuUp && controls.flatness >= 1;
     if (want && shownGeneration !== menu.generation) {
       shownGeneration = menu.generation;
