@@ -5,7 +5,7 @@ import type { RoomNow } from './state.ts';
 /**
  * The sea on your floor: run 015's painted night water in a ring round you (never at your feet),
  * moving slowly, with a lacy foam edge that rolls in and out. Real furniture hides it, through the
- * room's depth. The tide moves the edge; a paper boat sails a slow circle on it. Calm on purpose
+ * room's depth. The tide moves the edge; a paper boat sails to and fro on it, always in front of you. Calm on purpose
  * (owner, Nov 15: busy things on the floor didn't look good).
  */
 
@@ -19,7 +19,10 @@ const TIDE_MS = 6000;
 /** One repeat of the painted water, metres. */
 const TILE_M = 1.1;
 const BOAT_CIRCLE_M = 1.55;
-const BOAT_LAP_S = 70;
+/** The boat keeps in front of you: it sails to and fro across this far either side of the way to the book. */
+const BOAT_ARC_RAD = (55 * Math.PI) / 180;
+/** Across and back, seconds. */
+const BOAT_SWAY_S = 48;
 /** How long the boat takes to sail home toward the book, and when it starts to fade. */
 export const BOAT_HOME_MS = 9000;
 const BOAT_FADE_FROM = 0.7;
@@ -35,15 +38,18 @@ const easeInOut = (v: number): number => (v < 0.5 ? 2 * v * v : 1 - (-2 * v + 2)
  */
 export function boatAt(sailedMs: number, homeMs: number | null, towardBook: { x: number; z: number } | null): { x: number; z: number; alpha: number } {
   const nowMs = sailedMs;
+  const len = towardBook ? Math.hypot(towardBook.x, towardBook.z) : 0;
+  // Straight toward the book (or ahead, with no book to go by) is the middle of its arc.
+  const ahead = towardBook && len >= 1e-3 ? Math.atan2(towardBook.x, -towardBook.z) : 0;
   const circle = (ms: number) => {
-    const a = (ms / 1000 / BOAT_LAP_S) * Math.PI * 2;
+    // From one side across to the other and back, easing at each end as a boat turning about.
+    const a = ahead - BOAT_ARC_RAD * Math.cos((ms / 1000 / BOAT_SWAY_S) * Math.PI * 2);
     return { x: Math.sin(a) * BOAT_CIRCLE_M, z: -Math.cos(a) * BOAT_CIRCLE_M };
   };
   if (homeMs === null) return { ...circle(nowMs), alpha: 1 };
   const from = circle(nowMs - homeMs);
   const k = clamp01(homeMs / BOAT_HOME_MS);
   const alpha = 1 - clamp01((k - BOAT_FADE_FROM) / (1 - BOAT_FADE_FROM));
-  const len = towardBook ? Math.hypot(towardBook.x, towardBook.z) : 0;
   // No book to sail to: it only fades where it turned.
   if (!towardBook || len < 1e-3) return { ...from, alpha };
   const reach = INNER_M + 0.12;
@@ -181,7 +187,7 @@ export function createSea(art: { water: TexRef; boat: TexRef | null }): SeaView 
       (material.uniforms.uCentre!.value as Vector3).copy(centre);
       material.uniforms.uAmount!.value = amount;
 
-      // The boat sails a slow circle once it's been launched, bobbing on the swell.
+      // The boat sails to and fro in front of you once it has been launched, bobbing on the swell.
       if (boat && boatMaterial) {
         const home = now.boatHomeMs;
         const at = boatAt(now.boatMs ?? 0, home, book ? { x: book.x - centre.x, z: book.z - centre.z } : null);

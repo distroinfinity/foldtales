@@ -215,3 +215,13 @@ Run on `finish-chapter-2` after #35 (lane A's host reads `?chapter=n`). Screensh
 2. **`boat-home` had no book to sail to:** the host didn't pass the book's position to the sea (amendment 2). *Fixed:* one line in `index.ts`, as for the night sky.
 
 **Not established in the emulator:** a gift by the emulated hand. Three tries (the kite on spread 2, the kite on spread 3, the floated bottle on spread 1) moved or reached the thing, but none registered as a hand-over, so each ask ran to its ignored path. The run-sequence reported no warnings on the last; lane A records the same limit (the in-book hand checks are hand-distance code the emulator doesn't drive reliably). Gifts are covered by `tests/handover.test.ts` and by chapter 1's headset sessions; the owner's headset pass checks them by feel.
+
+## Progress: the owner's first headset notes and the #49 review fixes (Nov 16-17)
+
+- **The beam you can see (owner):** chapter 2's room beam already took chapter 1's path, but only the lit patch on the walls showed, so the owner couldn't follow the light. The book's beam cone (until now only the treasure hunt's) is now drawn whenever the room beam is on, from the lamp out to the walls (`BEAM_REACH_M`, 3 m). It adds light without adding alpha: with alpha over passthrough the shaft read as a dark wedge. Chapter 1's lighthouse gets the same shaft, so the chapters match. Emulator: `emu/15-beam-shaft-ch1-vs-ch2.jpg` (chapter 1's gap, chapter 2's gallery, the raised lantern on the shore, each at two moments of the turn).
+- **The raised lantern is the lamp (review 4):** from `light-up` to `light-down`, the beam and its shaft turn from the held-up light, on all three branches and after a restore (`tests/chapter-2-fixes.test.ts`). It fades over `LANTERN_BEAM_FADE_MS` as the light comes down.
+- **Keepsakes stay yours (review P1):** a set find isn't laid on the page while your carried-in copy is in the satchel; a carried kite and spool stay in the satchel through chapter 2.
+- **The boat stays in front of you (review 2):** it sails to and fro across 55° either side of the way to the book, and comes home in that arc. Emulator: within 23° of the book's direction over 30 s, home 1.0 m in front.
+- **Moth carries the light (review 3):** he flies up to `moth-high`, just above the light, and back to `moth-follow` with `light-down`.
+- **Where chapter 2 opens (owner, approved):** the opening narration now says it's the top of the tall lighthouse, and Pip adds "Look how far down the sea is, Wick!" (run 019, 2 credits, 85 of 89).
+- Timings after all of it: every path inside 5-7 min, longest 6:57.

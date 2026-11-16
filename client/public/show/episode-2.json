@@ -956,6 +956,12 @@
               "target": "cast:moth"
             },
             {
+              "do": "move",
+              "withPrev": true,
+              "who": "moth",
+              "to": "mark:moth-high"
+            },
+            {
               "do": "speak",
               "withPrev": true,
               "who": "pip",
@@ -1034,6 +1040,12 @@
               "withPrev": false,
               "cue": "light-down",
               "target": null
+            },
+            {
+              "do": "move",
+              "withPrev": true,
+              "who": "moth",
+              "to": "mark:moth-follow"
             },
             {
               "do": "light",
