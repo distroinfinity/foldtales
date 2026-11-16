@@ -34,6 +34,20 @@ describe('TelemetryBatch', () => {
     const event = { at, kind: 'ai_call', ...examples.ai_call!.valid, transcript: 'hello' };
     expect(TelemetryBatch.safeParse(batch([event])).success).toBe(false);
   });
+  test('a session may name its test fixture, as an id only', () => {
+    const session = (testCase: string) => batch([{ at, kind: 'session', ...examples.session!.valid, testCase }]);
+    expect(TelemetryBatch.safeParse(session('night-sky+sea')).success).toBe(true);
+    expect(TelemetryBatch.safeParse(session('ch1-shore')).success).toBe(true);
+    expect(TelemetryBatch.safeParse(session('Hello Pip, can you hear me?')).success).toBe(false);
+    expect(TelemetryBatch.safeParse(session('x'.repeat(65))).success).toBe(false);
+  });
+  test('a frame summary may count slow frames and its slowest, and still parses without them', () => {
+    const summary = (extra: object) => batch([{ at, kind: 'frame_summary', ...examples.frame_summary!.valid, ...extra }]);
+    expect(TelemetryBatch.safeParse(summary({ slowFrames: 3, worstFrameMs: 41.7 })).success).toBe(true);
+    expect(TelemetryBatch.safeParse(summary({})).success).toBe(true);
+    expect(TelemetryBatch.safeParse(summary({ slowFrames: 1.5 })).success).toBe(false);
+    expect(TelemetryBatch.safeParse(summary({ worstFrameMs: -1 })).success).toBe(false);
+  });
   test('ai_call accepts an error code as its outcome', () => {
     const event = { at, kind: 'ai_call', route: 'planBeat', ms: 5, outcome: 'quota_exceeded' };
     expect(TelemetryBatch.safeParse(batch([event])).success).toBe(true);
