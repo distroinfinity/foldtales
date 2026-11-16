@@ -50,7 +50,7 @@ import { createSessionFlow } from './stage/session-flow.ts';
 import { cardFor, cardShowing, choose, ended, holdsStory, initialMenu, restarted, returned, ribbon as ribbonPinched, type MenuContext, type MenuEffect, type MenuState } from './stage/book-menu.ts';
 import { chapterEnding } from './book/end-sheet.ts';
 import { cancelEntry, chooseEntry, consumeEntry, needsReload, pendingEntry, prepareEntry, type Entry } from './landing/entry.ts';
-import { preparedChoice, primaryLabel, readLibrary } from './landing/library.ts';
+import { hasSavedPlace, preparedChoice, primaryLabel, readLibrary } from './landing/library.ts';
 import { carryIntoSatchel } from './stage/carry.ts';
 import { chapterManifest, prepareWithFallback } from './stage/chapter-load.ts';
 import { loadChapter, recordFinished, storytellerSnapshot, type ChapterData, type StoryEnding } from './stage/seams.ts';
@@ -157,6 +157,7 @@ async function prepare(world: World, chapter: ChapterData) {
   // Review builds only: `?review=cast` stands the whole cast on the open book, cycling every acting.
   const review = reviewQuery('review') === 'cast';
   const stage = buildStage(manifest, assets, soft, review);
+  stage.endPage.setChapter(chapter.n);
   stage.root.visible = false;
   world.scene.add(stage.root);
   // Built before the upload, so every texture goes up with the settings its material gave it.
@@ -1107,8 +1108,6 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
     card.frame(deltaMs, head);
     syncLifecycle();
     if (!cardProof) cardStep(deltaMs);
-    // The old printed end line gives way to the end card.
-    stage.endPage.root.visible = false;
     if (cardProof && PROOF_CARDS[cardProof] && runtime.started && controls.amount > 0.98) {
       if (cardProofAt === null) {
         cardProofAt = nowMs;
@@ -1159,6 +1158,8 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       }
     }
     const { unfold, room: roomNow } = runtime.frame(deltaMs * speed, nowMs, head, { fold: roomLightFold(controls.fold()), ribbon: controls.ribbonLift() }, { left: controls.pinchPoint('left'), right: controls.pinchPoint('right') });
+    // The printed end line gives way to the end card. Hidden after the runtime's frame, which would show it again.
+    stage.endPage.root.visible = false;
     devRoomTick();
     shadowPlay.frame({
       renderer: world.renderer,
@@ -1546,7 +1547,8 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, world
         }
         const p = primaryLabel(readLibrary(localStorage));
         // This page prepared another chapter than the library's next (a review link's ?chapter=n): the button says which.
-        if (p.target.kind === 'chapter' && p.target.n !== thisChapter) return { ...preparedChoice(thisChapter, saved !== null, entryProblem), restartLabel: null, mode: 'chapter' };
+        // Read now, not at load: leaving mid-chapter in this page load has saved a place since.
+        if (p.target.kind === 'chapter' && p.target.n !== thisChapter) return { ...preparedChoice(thisChapter, hasSavedPlace(localStorage, Date.now(), { seriesId: series, episodeId: show.assets.spine.id }), entryProblem), restartLabel: null, mode: 'chapter' };
         const resume = p.target.kind === 'chapter' && p.target.from === 'resume';
         return { label: p.label, detail: entryProblem ? `${entryProblem} ${p.detail}` : p.detail, restartLabel: p.secondary, resume, mode: 'chapter' };
       };

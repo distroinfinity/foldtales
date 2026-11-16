@@ -39,6 +39,11 @@ export interface CaptionView {
   setSize(sizeM: number): void;
 }
 
+/** The chapter's printed end line, for the chapter that's loaded. */
+export function endLine(n: number): string {
+  return `The end of chapter ${n}`;
+}
+
 /** Captions are printed on the page, never over your room. At least 1° tall at reading distance. */
 export function captionText(widthM: number): CaptionView {
   const text = new Text();
@@ -83,6 +88,8 @@ export interface EndPageView {
   /** A hand is near "Read it again": its gold rule brightens. */
   setNear(near: boolean): void;
   setSize(sizeM: number): void;
+  /** Prints the loaded chapter's number in the end line. */
+  setChapter(n: number): void;
 }
 
 /**
@@ -104,7 +111,7 @@ export function endPageText(widthM: number): EndPageView {
     t.sync();
     return t;
   };
-  const end = make('The end of chapter one', titleFont, NAVY, 'left');
+  const end = make(endLine(1), titleFont, NAVY, 'left');
   end.position.x = -widthM / 2 + 0.01;
   // Well clear of the ribbon's tail at the near right corner, so one is never taken for the other.
   const AGAIN_X = 0.075;
@@ -125,6 +132,12 @@ export function endPageText(widthM: number): EndPageView {
       end.fillOpacity = opacity;
       again.fillOpacity = opacity;
       (rule.material as MeshBasicMaterial).opacity = opacity * (near ? 1 : 0.7);
+    },
+    setChapter(n) {
+      const line = endLine(n);
+      if (end.text === line) return;
+      end.text = line;
+      end.sync();
     },
     setNear(value) {
       near = value;
