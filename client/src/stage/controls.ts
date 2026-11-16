@@ -8,6 +8,7 @@ import { controlFold, dragCover } from './book-control.ts';
 import { closestOn, createGestures, type GestureEvent, type HandFrame, type HandSide, type Proxy } from './gestures.ts';
 import { RESIZE_NOTCH, resizeScale } from './resize.ts';
 import { createSelectGate, dispatchUntilChanged, type Slot } from './select-gate.ts';
+import { createPresser } from './press.ts';
 
 /** How fast the book finishes closing or opening after you let go: a full swing in 0.7 s. */
 const SWING_PER_MS = 1 / 700;
@@ -15,6 +16,12 @@ const PROXY_RADIUS_M = 0.035;
 const GLOW_M = 0.07;
 /** Fingertips stop on the real table: a pinch up to this far above a target still takes it. */
 const REACH_UP_M = 0.05;
+/** How long the stage takes to fold down flat for the menu, or stand back up. */
+const FLAT_MS = 650;
+/** A hand counts as pinching (holding, not pressing) under this thumb-to-index gap. */
+const PINCHING_M = 0.03;
+/** The ribbon's tail as a press target, on the page: across, along the page toward you, in metres at desk size. */
+const RIBBON_PRESS = { w: 0.045, h: 0.055, inFromEdge: 0.024 };
 
 /** Anything else the hands can take: objects, the drawer pull, the page's edge, characters. */
 export interface ExtraTarget {
@@ -46,6 +53,16 @@ export interface BookControls {
   setRibbon(on: boolean): void;
   /** Whether the ribbon is holding the story. */
   readonly ribbonUp: boolean;
+  /** Folds the pop-up stage down flat (for the menu card), or lets it stand again. */
+  setFlat(on: boolean): void;
+  /** How flat the stage lies for the menu, 0 standing to 1 flat. */
+  readonly flatness: number;
+  /** Whether a hand is pinching: a pinching hand holds things and never presses. */
+  pinching(side: HandSide): boolean;
+  /** Each hand's pointing ray: the far fallback for a card's buttons, pointed at and pinched. */
+  ray(side: HandSide): { origin: Vector3; direction: Vector3 } | null;
+  /** True on a device with real gaze (VR Glasses): there a look and a pinch choose. */
+  readonly gazing: boolean;
   /** How open your hands have it, 0 to 1. */
   readonly amount: number;
   frame(frame: XRFrame, deltaMs: number, enabled: boolean, head: Vector3): void;
@@ -76,7 +93,7 @@ export interface ControlsDeps {
   onGazeSelect?: (origin: Vector3, direction: Vector3) => void;
   /** Quest 3, with no eye tracking: a pinch that took nothing, with where your head points. Only things out in the room answer it. */
   onHeadSelect?: (origin: Vector3, direction: Vector3) => void;
-  /** The ribbon was pinched: the menu decides what that means. Without it, the ribbon only pauses. */
+  /** The ribbon was touched or tugged: the menu decides what that means. Without it, the ribbon only pauses. */
   onRibbon?: () => void;
   /** While a card stands, only the cover and the ribbon answer: the book can't be moved or stretched. */
   limited?: () => boolean;
@@ -119,12 +136,22 @@ export function createBookControls({ world, stageRoot, book, sound, pause, glow,
   let interaction = 0;
   const pinch: Record<HandSide, Vector3 | null> = { left: null, right: null };
   const tips: Record<HandSide, Vector3 | null> = { left: null, right: null };
+  /** Each hand's (or controller's) pointing ray, from the system. */
+  const rays: Record<HandSide, { origin: Vector3; direction: Vector3 } | null> = { left: null, right: null };
   const gestures = createGestures();
   let amount = 1;
   let target: number | null = null;
   let stable = 1;
   let ribbon = false;
   let ribbonLift = 0;
+  let flatWanted = false;
+  let flat = 0;
+  /** Touching the ribbon's tail with a fingertip, as a press on the page. */
+  const ribbonPresser = createPresser({ travelM: 0.006, fireAtM: 0.004, hoverM: 0.05 });
+  /** When each hand last pressed the ribbon: its pinch letting go just after doesn't count twice. */
+  const ribbonPressedAt: Record<HandSide, number> = { left: -1e9, right: -1e9 };
+  let clockMs = 0;
+  const pinchingNow: Record<HandSide, boolean> = { left: false, right: false };
   const lost: Record<HandSide, boolean> = { left: false, right: false };
   let spineOffset: Vector3 | null = null;
   let coverGrab: { amount: number; angle: number } | null = null;
@@ -261,12 +288,8 @@ export function createBookControls({ world, stageRoot, book, sound, pause, glow,
           sound.play('settle', stageRoot.position, undefined, 'ui');
           onMoved();
         } else if (event.id === 'ribbon') {
-          sound.play('felt', stageRoot.position, undefined, 'ui');
-          if (onRibbon) onRibbon();
-          else {
-            ribbon = !ribbon;
-            pause.set('ribbon', ribbon);
-          }
+          // A tug: the same as a touch. A touch just made with this hand already counted.
+          if (clockMs - ribbonPressedAt[event.hand] > 900) ribbonUsed();
         }
         break;
       case 'cancel':
@@ -281,8 +304,57 @@ export function createBookControls({ world, stageRoot, book, sound, pause, glow,
     }
   }
 
+  function ribbonUsed(): void {
+    sound.play('tap', stageRoot.position, undefined, 'ui');
+    sound.play('felt', stageRoot.position, undefined, 'ui');
+    if (onRibbon) onRibbon();
+    else {
+      ribbon = !ribbon;
+      pause.set('ribbon', ribbon);
+    }
+  }
+
+  /** A fingertip pressing the ribbon's tail down onto the page. */
+  function pressRibbon(): void {
+    const scale = stageRoot.scale.x;
+    const tipIn = (side: HandSide) => {
+      const tip = tips[side];
+      if (!tip) return null;
+      local.copy(tip);
+      book.root.worldToLocal(local);
+      // Metres on the page: x across, y toward you, z up from the page.
+      return { x: local.x * scale, y: local.z * scale, z: (local.y - half) * scale };
+    };
+    const fired = ribbonPresser.step(
+      [{ id: 'ribbon', x: W * RIBBON_X_SHARE * scale, y: (D / 2 - RIBBON_PRESS.inFromEdge) * scale, w: RIBBON_PRESS.w, h: RIBBON_PRESS.h }],
+      { left: { tip: tipIn('left'), pinching: pinchingNow.left }, right: { tip: tipIn('right'), pinching: pinchingNow.right } },
+    ).fired;
+    for (const f of fired) {
+      ribbonPressedAt[f.hand] = clockMs;
+      ribbonUsed();
+    }
+  }
+
   return {
-    fold: () => controlFold(amount, cards),
+    fold: () => {
+      const hands = controlFold(amount, cards);
+      if (flat <= 0) return hands;
+      // Folded flat for the menu: every layer lies down together, front ones a moment first.
+      const e = flat * flat * (3 - 2 * flat);
+      return { ...hands, layers: hands.layers.map((l, i) => Math.min(l, Math.max(0, Math.min(1, 1 - e * (1 + 0.15 * (cards - 1 - i)))))) };
+    },
+    setFlat(on) {
+      if (on && !flatWanted) sound.play('fold', stageRoot.position, undefined, 'ui');
+      flatWanted = on;
+    },
+    get flatness() {
+      return flat;
+    },
+    pinching: (side) => pinchingNow[side],
+    ray: (side) => rays[side],
+    get gazing() {
+      return gaze.valid;
+    },
     ribbonLift: () => ribbonLift,
     pinchPoint: (side) => pinch[side],
     fingertip: (side) => tips[side],
@@ -333,6 +405,8 @@ export function createBookControls({ world, stageRoot, book, sound, pause, glow,
     },
     frame(frame, deltaMs, enabled, head) {
       enabledNow = enabled;
+      clockMs += deltaMs;
+      flat = Math.max(0, Math.min(1, flat + (flatWanted ? 1 : -1) * (deltaMs / FLAT_MS)));
       if (target !== null) {
         const step = deltaMs * SWING_PER_MS;
         setAmount(amount + Math.sign(target - amount) * Math.min(step, Math.abs(target - amount)));
@@ -364,7 +438,18 @@ export function createBookControls({ world, stageRoot, book, sound, pause, glow,
           const side = event.inputSource.handedness;
           if (side === 'left' || side === 'right') grabbedThisPinch[side] = false;
           // The card's choice is fixed when the pinch starts; looking away before letting go doesn't change it.
-          gate.start(slot(event.inputSource), enabledNow && cardGaze && gaze.valid ? cardGaze.pick(gaze.origin.clone(), gaze.direction.clone()) : null);
+          // With real gaze (VR Glasses) it's what you look at. Without it, while a card stands, a hand's own
+          // ray: pointing at a button and pinching is the far fallback to pressing it.
+          const ray = side === 'left' || side === 'right' ? rays[side] : null;
+          const pick =
+            !enabledNow || !cardGaze
+              ? null
+              : gaze.valid
+                ? cardGaze.pick(gaze.origin.clone(), gaze.direction.clone())
+                : ray && limited?.()
+                  ? cardGaze.pick(ray.origin.clone(), ray.direction.clone())
+                  : null;
+          gate.start(slot(event.inputSource), pick);
         });
         frame.session.addEventListener('selectend', (event) => {
           const s = slot(event.inputSource);
@@ -394,12 +479,21 @@ export function createBookControls({ world, stageRoot, book, sound, pause, glow,
       const hands: Record<HandSide, HandFrame | null> = { left: null, right: null };
       tips.left = null;
       tips.right = null;
+      rays.left = null;
+      rays.right = null;
       for (const source of frame.session.inputSources) {
         if (source.handedness !== 'left' && source.handedness !== 'right') continue;
         hands[source.handedness] = readHand(frame, source, space);
         const joint = source.hand?.get('index-finger-tip');
         const pose = joint && frame.getJointPose ? frame.getJointPose(joint, space) : null;
         if (pose) tips[source.handedness] = new Vector3(pose.transform.position.x, pose.transform.position.y, pose.transform.position.z);
+        const rayPose = frame.getPose(source.targetRaySpace, space);
+        if (rayPose) {
+          const { position: p, orientation: q } = rayPose.transform;
+          const ray = (rays[source.handedness] ??= { origin: new Vector3(), direction: new Vector3() });
+          ray.origin.set(p.x, p.y, p.z);
+          ray.direction.set(0, 0, -1).applyQuaternion(new Quaternion(q.x, q.y, q.z, q.w));
+        } else rays[source.handedness] = null;
       }
       for (const side of ['left', 'right'] as const) {
         if (lost[side] && hands[side]?.tracked) {
@@ -410,8 +504,10 @@ export function createBookControls({ world, stageRoot, book, sound, pause, glow,
       for (const side of ['left', 'right'] as const) {
         const h = hands[side];
         pinch[side] = h?.tracked ? (pinch[side] ?? new Vector3()).set(h.pinchPoint.x, h.pinchPoint.y, h.pinchPoint.z) : null;
+        pinchingNow[side] = !!h?.tracked && (h.pinchGapM < PINCHING_M || gestures.held(side) !== null);
       }
       if (!enabled) return;
+      if (amount > 0.98) pressRibbon();
       lastHands = hands;
       extraTargets = extras?.() ?? [];
       const replaced = new Set(extraTargets.flatMap((t) => (t.replaces ? [t.replaces] : [])));

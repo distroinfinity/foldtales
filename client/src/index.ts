@@ -54,7 +54,6 @@ import { carryIntoSatchel } from './stage/carry.ts';
 import { perfCase } from './review/perf-cases.ts';
 import { chapterManifest, prepareWithFallback } from './stage/chapter-load.ts';
 import { askMicrophone, loadChapter, recordFinished, storytellerSnapshot, type ChapterData, type StoryEnding } from './stage/seams.ts';
-import type { ExtraTarget as CardExtra } from './stage/controls.ts';
 import { createLiveScheduler } from './storyteller/live.ts';
 import { createStorySession, type StorySession } from './storyteller/session.ts';
 import { createEars } from './storyteller/ears.ts';
@@ -66,6 +65,7 @@ import { presentCast } from './director/director.ts';
 import { minTextSizeM, settleOnTable } from './stage/sizing.ts';
 import { warmUp } from './stage/warm-up.ts';
 import { createCardView, type CardSpec } from './book/card-view.ts';
+import { createGhostHand } from './stage/ghost-hand.ts';
 import { buildEmber, buildWash } from './stage/wash.ts';
 import { createTelemetry } from './telemetry.ts';
 
@@ -310,7 +310,6 @@ async function prepare(world: World, chapter: ChapterData) {
   const menuHooks = {
     onRibbon: (): void => undefined,
     showing: (): boolean => false,
-    cardTargets: (): CardExtra[] => [],
     pick: (_origin: Vector3, _direction: Vector3): { id: string; generation: number } | null => null,
     commit: (_choice: { id: string; generation: number }): void => undefined,
     generation: (): number => 0,
@@ -324,8 +323,8 @@ async function prepare(world: World, chapter: ChapterData) {
     glow: soft.glow,
     cards: stage.book.cards.length,
     onMoved: () => undefined,
-    // While a card stands, its choices are the only things the hands can take (with the cover and the ribbon).
-    extras: () => (menuHooks.showing() ? menuHooks.cardTargets() : [...hands.targets(), ...moreTargets.flatMap((f) => f())]),
+    // While a card stands, nothing on the stage can be taken: its buttons are pressed with a fingertip (the cover and the ribbon still answer).
+    extras: () => (menuHooks.showing() ? [] : [...hands.targets(), ...moreTargets.flatMap((f) => f())]),
     onGazeSelect: (origin, direction) => hands.gazeSelect(origin, direction),
     onHeadSelect: (origin, direction) => hands.headSelect(origin, direction),
     onRibbon: () => menuHooks.onRibbon(),
@@ -722,8 +721,8 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
   const card = createCardView({ bookRoot: stage.book.root, pageY: stage.book.pageY, pageD: assets.book.closedSizeM[1], scene: world.scene });
   const cardProof = reviewQuery('card');
   /**
-   * The first time: a small card stands on the table under the ribbon's tail, "Pinch the ribbon to pause",
-   * until the first time you use the ribbon on this headset. Its type is sized like the menu's.
+   * The first time: a ghost of a hand touches the ribbon's tail, a few times and then it rests, until the
+   * first time you use the ribbon on this headset. Shown, not told (docs/plans/2026-11-16-hands-and-controls.md).
    */
   const RIBBON_HINT_KEY = 'tt.ribbon-used';
   let ribbonUsed = (() => {
@@ -733,15 +732,10 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       return false;
     }
   })();
-  const hint = createCardView({
-    bookRoot: stage.book.root,
-    pageY: stage.book.pageY,
-    pageD: assets.book.closedSizeM[1],
-    scene: world.scene,
-    // On the table just past the right page's front edge, beside where the ribbon hangs out (clear of Hold to talk).
-    stand: { x: assets.book.closedSizeM[0] * RIBBON_X_SHARE + 0.03, y: 0, z: assets.book.closedSizeM[1] / 2 + 0.03 },
-    widthEm: 9,
-  });
+  // Review builds: `?ghost=loop` shows the lesson at once and keeps it looping, for screenshots.
+  const ghostLoop = reviewQuery('ghost') === 'loop';
+  if (ghostLoop) ribbonUsed = false;
+  const ghostHand = createGhostHand({ scene: world.scene, glow: show.soft.glow, always: ghostLoop });
   const PROOF_CARDS: Record<string, CardSpec> = {
     pause: { over: 'Chapter 1', title: 'The night the light went out', choices: [{ id: 'carry-on', label: 'Carry on' }, { id: 'again', label: 'Start again' }, { id: 'contents', label: 'Contents' }, { id: 'away', label: 'Put the book away' }] },
     busiest: {
@@ -920,11 +914,11 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
   menuHooks.onRibbon = () => {
     if (!ribbonUsed) {
       ribbonUsed = true;
-      hint.close();
+      ghostHand.wanted = false;
       try {
         localStorage.setItem(RIBBON_HINT_KEY, '1');
       } catch {
-        // The hint simply shows again next time.
+        // The lesson simply plays again next time.
       }
     }
     setMenu(ribbonPinched(menu));
@@ -932,18 +926,11 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
   menuHooks.showing = () => cardShowing(menu) && !cardProof;
   const commit = (id: string, generation: number) => {
     if (generation !== menu.generation || !card.ready) return;
-    sound.play('felt', stage.book.root.getWorldPosition(new Vector3()), undefined, 'ui');
+    // Every press is heard: hands have no haptics, so the sound is the confirmation.
+    sound.play('tap', card.buttonAt(id) ?? stage.book.root.getWorldPosition(new Vector3()), undefined, 'ui');
     const r = choose(menu, id, menuContext());
     setMenu(r.state);
     apply(r.effect);
-  };
-  menuHooks.cardTargets = () => {
-    const generation = menu.generation;
-    return card.targets().map((t) => ({
-      proxy: { id: `card:${t.id}`, position: { x: t.position.x, y: t.position.y, z: t.position.z }, radiusM: t.radiusM },
-      onRelease: () => commit(t.id, generation),
-      halo: false,
-    }));
   };
   menuHooks.pick = (origin, direction) => {
     const CONE = (6 * Math.PI) / 180;
@@ -957,9 +944,14 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
   };
   menuHooks.commit = (c) => commit(c.id, c.generation);
   menuHooks.generation = () => menu.generation;
-  /** Each frame: the card shows what the menu says, while the book is open; a hand near a choice brightens its rule. */
+  /**
+   * Each frame: while a card is wanted, the stage folds down flat first and then the card rises; when it
+   * goes, the card folds away first and then the stage stands back up. Fingertips press its buttons.
+   */
   function cardStep(deltaMs: number): void {
-    const want = cardShowing(menu) && controls.amount > 0.98 && !away.requested;
+    const menuUp = cardShowing(menu) && controls.amount > 0.98 && !away.requested;
+    controls.setFlat(menuUp || card.shown);
+    const want = menuUp && controls.flatness >= 1;
     if (want && shownGeneration !== menu.generation) {
       shownGeneration = menu.generation;
       const spec = cardFor(menu, menuContext());
@@ -968,25 +960,24 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       card.close();
       shownGeneration = -1;
     }
-    let near: string | null = null;
-    let bestD = Infinity;
-    for (const side of ['left', 'right'] as const) {
-      const p = controls.pinchPoint(side);
-      if (!p) continue;
-      for (const t of card.targets()) {
-        const d = p.distanceTo(t.position);
-        if (d < t.radiusM && d < bestD) {
-          near = t.id;
-          bestD = d;
+    const generation = menu.generation;
+    for (const id of card.press({ left: { tip: controls.fingertip('left'), pinching: controls.pinching('left') }, right: { tip: controls.fingertip('right'), pinching: controls.pinching('right') } })) {
+      commit(id, generation);
+    }
+    // No fingertip near the card: a hand pointing at a button lights its edge, so a far pinch knows its aim.
+    if (card.ready && !card.near && !controls.gazing) {
+      for (const side of ['right', 'left'] as const) {
+        const ray = controls.ray(side);
+        const at = ray && menuHooks.pick(ray.origin, ray.direction);
+        if (at && at.id !== 'ribbon') {
+          card.setNear(at.id);
+          break;
         }
       }
     }
-    card.setNear(near);
-    // The ribbon's hint: while the story plays with the book open, until the ribbon has been used once.
-    hint.frame(deltaMs, head);
-    const hintWanted = !ribbonUsed && runtime.started && !cardShowing(menu) && controls.amount > 0.98 && !away.requested;
-    if (hintWanted && !hint.shown) void hint.open({ lines: ['Pinch the ribbon to pause'], choices: [] }, head);
-    else if (!hintWanted && hint.shown && hint.spec) hint.close();
+    // The ribbon's lesson: while the story plays with the book open, until the ribbon has been used once.
+    ghostHand.wanted = !ribbonUsed && runtime.started && !cardShowing(menu) && controls.amount > 0.98 && !away.requested;
+    ghostHand.frame(deltaMs, stage.book.root.localToWorld(new Vector3(assets.book.closedSizeM[0] * RIBBON_X_SHARE, stage.book.pageY, assets.book.closedSizeM[1] / 2 - 0.024)), head, stage.root.scale.x);
     // Back to a chapter that had already ended (a reload at its end): its end card, not a silent page.
     if (!storyMode && runtime.ended && wasEnded && menu.root === 'playing' && !readAgain.requested && runtime.started) {
       ending ??= chapterEnding(chapterN, null, defs, null);
@@ -997,7 +988,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       const top = menu.stack[menu.stack.length - 1];
       const ribbonAt = stage.book.root.localToWorld(new Vector3(assets.book.closedSizeM[0] * RIBBON_X_SHARE, stage.book.pageY + 0.01, assets.book.closedSizeM[1] / 2 - 0.012));
       const r3 = (v: Vector3) => [v.x, v.y, v.z].map((n) => +n.toFixed(3));
-      const info = JSON.stringify({ objects: Object.fromEntries(hands.targets().filter((t) => t.proxy.id.startsWith("object:")).slice(0, 6).map((t) => [t.proxy.id.slice(7), { at: [t.proxy.position.x, t.proxy.position.y, t.proxy.position.z].map((n) => +n.toFixed(3)), home: stage.objects.get(t.proxy.id.slice(7))?.home.kind }])), mode: storyMode ? "story" : "chapter", story: story !== null, talk: earsOn, root: menu.root, top: top?.kind ?? null, gen: menu.generation, ready: card.ready, card: card.debug, hint: hint.ready ? Math.round(1000 * (hint.measure(head, stage.book.root.getWorldPosition(new Vector3()))?.minTextDeg ?? 0)) / 1000 : hint.shown, shown: card.shown, spec: card.spec?.title ?? null, open: +controls.amount.toFixed(2), shownGen: shownGeneration, clockMs: Math.round(clock.ms), paused: clock.paused, ribbon: r3(ribbonAt), pinchL: controls.pinchPoint("left") && r3(controls.pinchPoint("left")!), pinchR: controls.pinchPoint("right") && r3(controls.pinchPoint("right")!), targets: Object.fromEntries(card.targets().map((t) => [t.id, r3(t.position)])), talkAt: talk.targets()[0] ? [talk.targets()[0]!.proxy.position.x, talk.targets()[0]!.proxy.position.y, talk.targets()[0]!.proxy.position.z].map((n) => +n.toFixed(3)) : null });
+      const info = JSON.stringify({ objects: Object.fromEntries(hands.targets().filter((t) => t.proxy.id.startsWith("object:")).slice(0, 6).map((t) => [t.proxy.id.slice(7), { at: [t.proxy.position.x, t.proxy.position.y, t.proxy.position.z].map((n) => +n.toFixed(3)), home: stage.objects.get(t.proxy.id.slice(7))?.home.kind }])), mode: storyMode ? "story" : "chapter", story: story !== null, talk: earsOn, root: menu.root, top: top?.kind ?? null, gen: menu.generation, ready: card.ready, card: card.debug, ghost: ghostHand.playing && ghostHand.debug, grabbable: hands.targets().map((t) => `${t.proxy.id}@${r3(new Vector3(t.proxy.position.x, t.proxy.position.y, t.proxy.position.z)).join(",")}`), holding: [controls.holding("left"), controls.holding("right")], flat: +controls.flatness.toFixed(2), head: r3(head), bookAt: r3(stage.book.root.getWorldPosition(new Vector3())), bookScale: +stage.root.scale.x.toFixed(2), shown: card.shown, spec: card.spec?.title ?? null, open: +controls.amount.toFixed(2), shownGen: shownGeneration, clockMs: Math.round(clock.ms), paused: clock.paused, ribbon: r3(ribbonAt), pinchL: controls.pinchPoint("left") && r3(controls.pinchPoint("left")!), pinchR: controls.pinchPoint("right") && r3(controls.pinchPoint("right")!), targets: Object.fromEntries(card.targets().map((t) => [t.id, r3(t.position)])), talkAt: talk.targets()[0] ? [talk.targets()[0]!.proxy.position.x, talk.targets()[0]!.proxy.position.y, talk.targets()[0]!.proxy.position.z].map((n) => +n.toFixed(3)) : null });
       if (document.documentElement.dataset.menu !== info) document.documentElement.dataset.menu = info;
     }
     if (host.waiting.length && !clock.paused && !cardShowing(menu)) for (const resolve of host.waiting.splice(0)) resolve();
@@ -1163,7 +1154,11 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
     syncLifecycle();
     if (!cardProof) cardStep(deltaMs);
     if (cardProof && PROOF_CARDS[cardProof] && runtime.started && controls.amount > 0.98) {
-      if (cardProofAt === null) {
+      controls.setFlat(true);
+      card.press({ left: { tip: controls.fingertip('left'), pinching: false }, right: { tip: controls.fingertip('right'), pinching: false } });
+      if (controls.flatness < 1) {
+        // The stage folds flat before the card rises.
+      } else if (cardProofAt === null) {
         cardProofAt = nowMs;
         pause.set('ribbon', true);
         void card.open(PROOF_CARDS[cardProof]!, head);
