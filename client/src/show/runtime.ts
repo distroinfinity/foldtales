@@ -197,8 +197,6 @@ export interface RuntimeDeps {
 export const BOTTLE_UP_MS = 12_000;
 /** A raised light's beam fades this long once it comes down. */
 export const LANTERN_BEAM_FADE_MS = 700;
-/** How far the beam's shaft reaches, in metres: past most walls, which end it. */
-export const BEAM_REACH_M = 3;
 
 export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods, views, clock }: RuntimeDeps): ShowRuntime {
   /** The spine showing: the authored chapter, or a live one whose spreads are added as the story visits them. */
@@ -1055,7 +1053,6 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
       // A keeper's light held up high (light-up) is the lamp now: its beam turns round your room from where it
       // shines, as the lighthouse's does, and fades as it comes down (light-down). From the cues and the
       // light's home, so a restored place has it too.
-      let beamFromLight = false;
       const upCue = cueOf(state, 'light-up');
       if (upCue && bookOpen) {
         const downCue = cueOf(state, 'light-down');
@@ -1065,15 +1062,9 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
         if (held) {
           const turning = beamAt(upCue.localMs);
           const strength = turning.strength * (down === null ? 1 : clamp01(1 - down / LANTERN_BEAM_FADE_MS));
-          if (strength > 0.001) {
-            worldBeam = { lamp: views.objects.worldOf(held[0], lantern), azimuth: turning.azimuth + views.stageRoot.rotation.y, strength };
-            beamFromLight = true;
-          }
+          if (strength > 0.001) worldBeam = { lamp: views.objects.worldOf(held[0], lantern), azimuth: turning.azimuth + views.stageRoot.rotation.y, strength };
         }
       }
-      // The beam you can see: a shaft from the lamp (or the raised light) out to your walls, turning with the light it casts there.
-      if (worldBeam) views.book.setBeam(worldBeam.azimuth - views.stageRoot.rotation.y, worldBeam.strength, { reachM: BEAM_REACH_M, from: beamFromLight ? worldBeam.lamp : null });
-      else views.book.setBeam(0, 0);
       let spot: { at: Vector3; radiusM: number; strength: number } | null = null;
 
       // The treasure hunt: the beam sweeps your room and stops where the lost thing waits.
@@ -1104,7 +1095,7 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
           }
         }
         views.book.setLamp(true);
-        views.book.setBeam(look.azimuth - views.stageRoot.rotation.y, look.strength * (bookOpen ? 1 : 0), { reachM: BEAM_REACH_M });
+        views.book.setBeam(look.azimuth - views.stageRoot.rotation.y, look.strength * (bookOpen ? 1 : 0));
         if (bookOpen) {
           worldBeam = { lamp: lampAt, azimuth: look.azimuth, strength: look.strength };
           spot = { at: huntTarget, radiusM: 0.45, strength: look.spot };

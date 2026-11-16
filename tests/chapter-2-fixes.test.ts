@@ -11,11 +11,11 @@ vi.setConfig({ testTimeout: 90_000 });
 const chapter2 = Spine.parse(JSON.parse(readFileSync(new URL('../client/public/show/episode-2.json', import.meta.url), 'utf8')));
 const mark = (set: string, id: string) => manifest.sets.find((s) => s.id === set)!.marks.find((m) => m.id === id)!.position as [number, number, number];
 
-/** The beam on your walls: where it comes from and how strong. And the shaft you can see, from the same place. */
+/** The beam on your walls: where it comes from and how strong. And whether the book's cone shows (only the treasure hunt's, as on main). */
 function beam(s: Harness) {
   const u = (s.dim.mesh.material as ShaderMaterial).uniforms;
   const shaft = s.view.root.getObjectByName('beam')!;
-  return { strength: u.uBeamStrength!.value as number, lamp: (u.uLamp!.value as Vector3).clone(), shaftShown: shaft.visible, shaftFrom: shaft.getWorldPosition(new Vector3()) };
+  return { strength: u.uBeamStrength!.value as number, lamp: (u.uLamp!.value as Vector3).clone(), coneShown: shaft.visible };
 }
 const lanternAt = (s: Harness) => s.objects.worldOf('lantern', new Vector3());
 /** Chapter 2's stage as the host starts it: Pip carrying his lantern (startingObjects). */
@@ -34,7 +34,7 @@ function give(s: Harness, id: string) {
   return s;
 }
 
-describe('a keeper\'s light held up high is the lamp: its beam and shaft turn round your room from it', () => {
+describe("a keeper's light held up high is the lamp: chapter 1's beam turns round your room from it, with no new look", () => {
   test.each([
     ['nobody helps: Moth carries it', (s: Harness) => s, 'high-moth'],
     ['the kite takes it up', (s: Harness) => give(s, 'kite'), 'high-kite'],
@@ -47,8 +47,7 @@ describe('a keeper\'s light held up high is the lamp: its beam and shaft turn ro
     const up = beam(s);
     expect(up.strength).toBeGreaterThan(0.9);
     expect(up.lamp.distanceTo(lanternAt(s))).toBeLessThan(1e-6);
-    expect(up.shaftShown).toBe(true);
-    expect(up.shaftFrom.distanceTo(lanternAt(s))).toBeLessThan(1e-6);
+    expect(up.coneShown).toBe(false);
 
     // Restored at this moment, the light is still up and the beam still comes from it.
     const after = stage(chapter2);
