@@ -147,3 +147,35 @@ describe('which ways in are offered', () => {
     expect(await availableSignIn()).toEqual({ google: true, email: false });
   });
 });
+
+describe('Google’s return is redeemed only by the tab that started it (Codex review of #52, P1)', () => {
+  const account = () => import('../client/src/account/index.ts');
+
+  test('a return this tab never started asks nothing and signs nothing in', async () => {
+    const { finishGoogleReturn } = await account();
+    expect(await finishGoogleReturn('a-one-time-code-from-someone-else')).toBe(false);
+    expect(vi.mocked(fetch).mock.calls.some(([u]) => String(u).includes('/google/finish') || String(u).includes('one-time-token'))).toBe(false);
+    expect(local.getItem('tt.session')).toBeNull();
+  });
+
+  test('the start sends only the hash of the tab’s nonce, and the return redeems with the nonce, once', async () => {
+    const { startGoogleSignIn, finishGoogleReturn } = await account();
+    let went = '';
+    await startGoogleSignIn('https://www.foldtales.xyz/', (url) => (went = url));
+    const nonce = session.getItem('tt.google-nonce')!;
+    expect(nonce.length).toBeGreaterThanOrEqual(43);
+    const sent = new URL(went, 'https://api.foldtales.xyz').searchParams.get('nonce');
+    const { createHash } = await import('node:crypto');
+    expect(sent).toBe(createHash('sha256').update(nonce).digest('base64url'));
+    expect(went).not.toContain(nonce);
+
+    vi.mocked(fetch).mockImplementationOnce(async () => new Response(JSON.stringify({ session: { token: 'session-token' }, user: { id: 'u1', name: 'Ann', email: 'ann@example.com' } }), { status: 200 }));
+    expect(await finishGoogleReturn('the-code')).toBe(true);
+    const [url, init] = vi.mocked(fetch).mock.calls.at(-1)!;
+    expect(String(url)).toMatch(/\/v1\/auth\/google\/finish$/);
+    expect(JSON.parse(String(init?.body))).toEqual({ ott: 'the-code', nonce });
+    // Spent: a second return in this tab has nothing to redeem with.
+    expect(session.getItem('tt.google-nonce')).toBeNull();
+    expect(await finishGoogleReturn('the-code')).toBe(false);
+  });
+});

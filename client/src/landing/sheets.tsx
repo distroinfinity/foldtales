@@ -3,7 +3,7 @@
  * book's contents. Built on <dialog>, so focus, Escape and the backdrop come from the browser.
  */
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { availableSignIn, deleteMyBook, finishSignIn, googleSignInUrl, signOutHere, startPhoneSignIn, watchPhoneSignIn, type DeviceCode } from './account-ui.ts';
+import { availableSignIn, deleteMyBook, finishSignIn, googleSignIn, signOutHere, startPhoneSignIn, watchPhoneSignIn, type DeviceCode } from './account-ui.ts';
 import { pageLink } from './actions.tsx';
 import { BOOK_TITLE, type LibraryState } from './library.ts';
 import { readCollection, type Collection } from './collection.ts';
@@ -107,7 +107,6 @@ export function Bookplate({ open, onClose, signedIn, notice = null }: { open: bo
   const [shown, setShown] = useState<string | null>(notice);
   // Google needs its client set up on the backend; until the backend says it isn't, the button is offered.
   const [googleOff, setGoogleOff] = useState(false);
-  const google = googleSignInUrl(pageLink());
   useEffect(() => {
     if (!open) {
       setMode('choose');
@@ -206,10 +205,10 @@ export function Bookplate({ open, onClose, signedIn, notice = null }: { open: bo
                   </p>
                 </>
               ) : (
-                <a href={google} className={`${plateButton} border-ink/20 bg-white text-ink no-underline hover:bg-[#fffaf0]`}>
+                <button type="button" onClick={() => googleSignIn(pageLink())} className={`${plateButton} border-ink/20 bg-white text-ink no-underline hover:bg-[#fffaf0]`}>
                   {GOOGLE_ICON}
                   Continue with Google
-                </a>
+                </button>
               )}
               <button type="button" className={`${plateButton} border-navy/25 bg-navy text-page hover:bg-[#283657]`} onClick={() => setMode('phone')}>
                 Use your phone

@@ -6,7 +6,7 @@
 import {
   deleteAccount,
   getSession,
-  googleStartUrl,
+  startGoogleSignIn,
   linkThisDevice,
   pollDeviceSignIn,
   readGeneration,
@@ -224,8 +224,9 @@ export function watchPhoneSignIn(onUpdate: (status: DeviceSignInStatus) => void)
   return pollDeviceSignIn(onUpdate);
 }
 
-export function googleSignInUrl(returnTo: string): string {
-  return googleStartUrl(returnTo);
+/** "Continue with Google": off to Google from this tab, which keeps the nonce its return is redeemed with. */
+export function googleSignIn(returnTo: string): void {
+  void startGoogleSignIn(returnTo);
 }
 
 /** Sign out, saving first. `offline` means nothing changed: the page asks before forcing it. */

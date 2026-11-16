@@ -1,4 +1,4 @@
-import { randomBytes } from 'node:crypto';
+import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import type { DatabaseSync } from 'node:sqlite';
 import { AUTH_BASE_PATH } from '@tabletop/contracts';
 import { betterAuth } from 'better-auth';
@@ -8,6 +8,16 @@ import type { Hono } from 'hono';
 import { mountBookRoutes, openBookStore, type BookStore } from './book.ts';
 import { codeSender, type SendCode } from './email.ts';
 import { createWelcomer, resendWelcome, type SendWelcome, type Welcomer } from './welcome.ts';
+
+/** How long a Google trip may take, start to return (Google's own state lasts as long). */
+const GOOGLE_TRIP_MS = 10 * 60_000;
+/** How long the one-time code from Google's return lasts (Better Auth's oneTimeToken, 3 minutes). */
+const GOOGLE_OTT_MS = 3 * 60_000;
+/** A SHA-256 in base64url: what the starting tab sends instead of its nonce. */
+const NONCE_HASH = /^[A-Za-z0-9_-]{43}$/;
+
+const sha256 = (value: string): string => createHash('sha256').update(value).digest('base64url');
+const sameText = (a: string, b: string): boolean => a.length === b.length && timingSafeEqual(Buffer.from(a), Buffer.from(b));
 
 /** The one client allowed to ask for a device code: the headset's page. */
 export const DEVICE_CLIENT_ID = 'tabletop-headset';
@@ -141,6 +151,26 @@ export async function openAccounts(db: DatabaseSync, settings: AuthSettings, now
     }
   };
 
+  /**
+   * A Google sign-in in progress, bound to the browser tab that started it. The tab keeps a random
+   * nonce and sends only its hash at the start; the one-time code minted on the return can only be
+   * redeemed with the nonce itself, once. So a return this tab didn't start (a link someone else
+   * made, or an OTT minted for another account) never signs it in (Codex review of #52, P1).
+   */
+  db.exec(`CREATE TABLE IF NOT EXISTS google_trip (
+    id TEXT PRIMARY KEY,
+    nonce_hash TEXT NOT NULL,
+    return_to TEXT NOT NULL,
+    started_at INTEGER NOT NULL,
+    ott_hash TEXT,
+    minted_at INTEGER,
+    state TEXT NOT NULL DEFAULT 'started'
+  )`);
+  type Trip = { id: string; nonce_hash: string; return_to: string; started_at: number; ott_hash: string | null; minted_at: number | null; state: 'started' | 'minted' | 'ended' };
+  const tripById = (id: string): Trip | null => (db.prepare('SELECT * FROM google_trip WHERE id = ?').get(id) as Trip | undefined) ?? null;
+  const endTrip = (id: string): void => void db.prepare("UPDATE google_trip SET state = 'ended' WHERE id = ?").run(id);
+  const sweepTrips = (): void => void db.prepare('DELETE FROM google_trip WHERE started_at < ?').run(now().getTime() - 24 * 60 * 60_000);
+
   /** The session cookie is only a step on the API's own origin: the client gets its token from the one-time code. */
   const clearedCookies = async (): Promise<string[]> => {
     const { authCookies } = await auth.$context;
@@ -176,8 +206,15 @@ export async function openAccounts(db: DatabaseSync, settings: AuthSettings, now
       app.get(`${AUTH_BASE_PATH}/google/start`, async (c) => {
         const back = clientReturn(c.req.query('return'));
         if (!back) return c.text('return must be a page on the client', 400);
+        // The starting tab's nonce, hashed: the only way this trip's code can be redeemed later.
+        const nonceHash = c.req.query('nonce') ?? '';
+        if (!NONCE_HASH.test(nonceHash)) return c.text('nonce must be the SHA-256 of the tab\'s nonce, in base64url', 400);
         if (!settings.google) return backTo(back, { error: 'google-off' });
-        const done = `${settings.baseURL}${AUTH_BASE_PATH}/google/done?return=${encodeURIComponent(back.href)}`;
+        sweepTrips();
+        const trip = randomBytes(24).toString('base64url');
+        db.prepare('INSERT INTO google_trip (id, nonce_hash, return_to, started_at) VALUES (?, ?, ?, ?)').run(trip, nonceHash, back.href, now().getTime());
+        // The trip rides inside Google's own state (Better Auth keeps the callback address in it).
+        const done = `${settings.baseURL}${AUTH_BASE_PATH}/google/done?trip=${trip}`;
         const started = await auth.api
           .signInSocial({
             body: { provider: 'google', callbackURL: done, errorCallbackURL: `${done}&failed=1`, disableRedirect: true },
@@ -191,16 +228,54 @@ export async function openAccounts(db: DatabaseSync, settings: AuthSettings, now
         return redirect;
       });
 
+      /**
+       * Google's callback ends here. It completes only a trip started here, within its time, once,
+       * and only with the session cookie Google's callback just set on this origin (made after the
+       * trip began). A bearer token, an old session or an unknown trip never mints a code.
+       */
       app.get(`${AUTH_BASE_PATH}/google/done`, async (c) => {
-        const back = clientReturn(c.req.query('return'));
-        if (!back) return c.text('return must be a page on the client', 400);
-        const failed = Boolean(c.req.query('failed') || c.req.query('error'));
-        const session = failed ? null : await auth.api.getSession({ headers: c.req.raw.headers }).catch(() => null);
-        const minted = session ? await auth.api.generateOneTimeToken({ headers: c.req.raw.headers }).catch(() => null) : null;
+        const trip = tripById(c.req.query('trip') ?? '');
+        const fresh = trip !== null && trip.state === 'started' && now().getTime() - trip.started_at <= GOOGLE_TRIP_MS;
+        const back = (trip && clientReturn(trip.return_to)) ?? new URL(`${settings.clientOrigins[0]}/`);
+        if (!trip || !fresh) return backTo(back, { error: 'google' }, await clearedCookies());
+        endTrip(trip.id);
         // The reader said no on Google's page (access_denied): the page says so, rather than "it failed".
         const error = c.req.query('error') === 'access_denied' ? 'google-cancelled' : 'google';
-        return backTo(back, minted ? { ott: minted.token } : { error }, await clearedCookies());
+        if (c.req.query('failed') || c.req.query('error')) return backTo(back, { error }, await clearedCookies());
+        const cookieOnly = new Headers();
+        const cookie = c.req.header('cookie');
+        if (cookie) cookieOnly.set('cookie', cookie);
+        const session = await auth.api.getSession({ headers: cookieOnly }).catch(() => null);
+        const madeAt = session ? new Date(session.session.createdAt).getTime() : 0;
+        if (!session || madeAt < trip.started_at) return backTo(back, { error: 'google' }, await clearedCookies());
+        const minted = await auth.api.generateOneTimeToken({ headers: cookieOnly }).catch(() => null);
+        if (!minted) return backTo(back, { error: 'google' }, await clearedCookies());
+        db.prepare("UPDATE google_trip SET ott_hash = ?, minted_at = ?, state = 'minted' WHERE id = ?").run(sha256(minted.token), now().getTime(), trip.id);
+        return backTo(back, { ott: minted.token }, await clearedCookies());
       });
+
+      /**
+       * The return page trades the one-time code for the session here, with the nonce its tab kept.
+       * Once: a wrong nonce ends the trip too. Better Auth's own verify route is closed (below).
+       */
+      app.post(`${AUTH_BASE_PATH}/google/finish`, async (c) => {
+        const body = (await c.req.json().catch(() => null)) as { ott?: unknown; nonce?: unknown } | null;
+        const ott = typeof body?.ott === 'string' ? body.ott : '';
+        const nonce = typeof body?.nonce === 'string' ? body.nonce : '';
+        const refused = () => c.json({ error: 'google_trip', message: 'this sign-in was not started here' }, 403);
+        if (!ott || nonce.length < 32) return refused();
+        const trip = db.prepare("SELECT * FROM google_trip WHERE ott_hash = ? AND state = 'minted'").get(sha256(ott)) as Trip | undefined;
+        if (!trip) return refused();
+        endTrip(trip.id);
+        if (!sameText(sha256(nonce), trip.nonce_hash) || now().getTime() - (trip.minted_at ?? 0) > GOOGLE_OTT_MS) return refused();
+        const verified = await auth.api.verifyOneTimeToken({ body: { token: ott } }).catch(() => null);
+        if (!verified) return refused();
+        c.header('cache-control', 'no-store');
+        return c.json({ session: { token: verified.session.token }, user: { id: verified.user.id, name: verified.user.name, email: verified.user.email } });
+      });
+
+      // The one-time code is redeemed only through /google/finish, with the starting tab's nonce.
+      app.post(`${AUTH_BASE_PATH}/one-time-token/verify`, (c) => c.json({ error: 'not_found' }, 404));
 
       app.on(['GET', 'POST'], `${AUTH_BASE_PATH}/*`, (c) => auth.handler(c.req.raw));
     },

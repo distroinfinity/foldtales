@@ -7,7 +7,7 @@
  * the headset's code kept. Only the ways in the backend has switched on are offered.
  */
 import { useEffect, useState, type FormEvent } from 'react';
-import { approveDevice, denyDevice, emailSendCode, emailVerify, getSession, googleStartUrl, phoneVerifyCode, signInMethods, type SignInMethods } from '../account/index.ts';
+import { approveDevice, denyDevice, emailSendCode, emailVerify, getSession, phoneVerifyCode, startGoogleSignIn, signInMethods, type SignInMethods } from '../account/index.ts';
 import { signInProblemText } from '../landing/account-ui.ts';
 import { ACCOUNTS_ON } from '../landing/flags.ts';
 import { Shell, mount } from './shell.tsx';
@@ -139,9 +139,9 @@ function Link() {
             {methods?.google === false ? (
               <p className="m-0 text-[16px] text-page/70">Google sign-in isn’t switched on here yet, so use an email code.</p>
             ) : (
-              <a className={secondary} href={googleStartUrl(returnTo)}>
+              <button type="button" className={secondary} onClick={() => void startGoogleSignIn(returnTo)}>
                 Continue with Google
-              </a>
+              </button>
             )}
             {methods?.email === false ? (
               <p className="m-0 text-[16px] text-page/70">Email codes aren’t switched on here yet{methods.google ? ', so use Google' : ''}.</p>
