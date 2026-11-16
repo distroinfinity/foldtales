@@ -6,8 +6,8 @@ import { stageLook } from '../client/src/paint/card-material.ts';
 import { manifest, playTo, playUntil, stage, type Harness } from './stage-harness.ts';
 
 // These play the whole stage frame by frame: 3–9 s each on a busy machine, past vitest's 5 s
-// default. A longer limit for this file only, as in handover and resume; what each test checks is unchanged.
-vi.setConfig({ testTimeout: 30_000 });
+// default, and over 30 s in a full run on a loaded machine. A longer limit for this file only, as in handover and resume; what each test checks is unchanged.
+vi.setConfig({ testTimeout: 60_000 });
 
 /** What the reader sees of the lantern: lit painting, glow, the pool of light, and the one in Pip's paw. */
 const seen = (s: Harness) => {

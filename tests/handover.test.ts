@@ -4,8 +4,8 @@ import { createObjectHands, GIVE_M, NOTICE_M, restingHome } from '../client/src/
 import { playTo, playUntil, stage, type Harness } from './stage-harness.ts';
 
 // These play the whole stage frame by frame: 3–10 s each on a busy machine, past vitest's 5 s
-// default. A longer limit for this file only; what each test checks is unchanged.
-vi.setConfig({ testTimeout: 30_000 });
+// default, and over 30 s in a full run on a loaded machine. A longer limit for this file only; what each test checks is unchanged.
+vi.setConfig({ testTimeout: 60_000 });
 
 const grip = (s: Harness, who = 'pip') => s.puppets.get(who)!.grip!.getWorldPosition(new Vector3());
 

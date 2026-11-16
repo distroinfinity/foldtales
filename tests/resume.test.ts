@@ -5,8 +5,8 @@ import type { RuntimeSnapshot } from '../client/src/show/runtime.ts';
 import { manifest, playTo, playUntil, spine, stage, type Harness } from './stage-harness.ts';
 
 // These play the whole stage frame by frame: 3–10 s each on a busy machine, past vitest's 5 s
-// default. A longer limit for this file only; what each test checks is unchanged.
-vi.setConfig({ testTimeout: 30_000 });
+// default, and over 30 s in a full run on a loaded machine. A longer limit for this file only; what each test checks is unchanged.
+vi.setConfig({ testTimeout: 60_000 });
 
 const storage = () => {
   const data = new Map<string, string>();
