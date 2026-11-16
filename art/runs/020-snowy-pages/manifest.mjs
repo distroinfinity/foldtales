@@ -20,6 +20,8 @@ for (const base of SNOWY) {
     description: `${from.description} Under fresh snow, on the longest night.`,
     file: `sets/${id}/set.json`,
     marks: structuredClone(from.marks),
+    // Only chapter 3 stages these: the Storyteller isn't offered them, and other chapters don't load them.
+    chapterOnly: true,
   };
   const at = manifest.sets.findIndex((s) => s.id === id);
   if (at >= 0) manifest.sets[at] = entry;

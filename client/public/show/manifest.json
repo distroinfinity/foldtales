@@ -1875,7 +1875,8 @@
             -0.125
           ]
         }
-      ]
+      ],
+      "chapterOnly": true
     },
     {
       "id": "the-landing-snow",
@@ -1955,7 +1956,8 @@
             -0.03
           ]
         }
-      ]
+      ],
+      "chapterOnly": true
     },
     {
       "id": "the-gap-snow",
@@ -2080,7 +2082,8 @@
             -0.01
           ]
         }
-      ]
+      ],
+      "chapterOnly": true
     }
   ],
   "objectFiles": [
