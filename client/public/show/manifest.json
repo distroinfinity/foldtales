@@ -20,7 +20,10 @@
     "room-fx",
     "sound/room",
     "sets/the-landing",
-    "sound/ch3"
+    "sound/ch3",
+    "sets/the-lamp-snow",
+    "sets/the-landing-snow",
+    "sets/the-gap-snow"
   ],
   "book": "book/book.json",
   "room": "room/room.json",
@@ -1375,7 +1378,7 @@
           "id": "water-edge",
           "label": "the water's edge",
           "position": [
-            0.0,
+            0,
             0,
             -0.045
           ]
@@ -1384,7 +1387,7 @@
           "id": "light-high",
           "label": "up high over the water",
           "position": [
-            0.0,
+            0,
             0.11,
             -0.05
           ]
@@ -1574,6 +1577,246 @@
             -0.1,
             0.11,
             -0.03
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the-lamp-snow",
+      "name": "The lamp, in the snow",
+      "description": "The gallery at the top of the lighthouse, around its great lamp, high above the sea. Under fresh snow, on the longest night.",
+      "file": "sets/the-lamp-snow/set.json",
+      "marks": [
+        {
+          "id": "pip",
+          "label": "Pip's mark",
+          "position": [
+            0.07,
+            0,
+            -0.0175
+          ]
+        },
+        {
+          "id": "wick",
+          "label": "by the lamp",
+          "position": [
+            -0.03,
+            0,
+            -0.022
+          ]
+        },
+        {
+          "id": "lamp",
+          "label": "the great lamp",
+          "position": [
+            -0.093,
+            0.07,
+            -0.0925
+          ]
+        },
+        {
+          "id": "lantern-edge",
+          "label": "the edge of the gallery",
+          "position": [
+            0.04,
+            0,
+            0.094
+          ]
+        },
+        {
+          "id": "edge-step",
+          "label": "a step from the edge",
+          "position": [
+            0.045,
+            0,
+            0.072
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the-landing-snow",
+      "name": "The landing, in the snow",
+      "description": "Stone steps go down into the sea at the foot of the lighthouse, with a flat rock out on the water. Under fresh snow, on the longest night.",
+      "file": "sets/the-landing-snow/set.json",
+      "marks": [
+        {
+          "id": "near-edge",
+          "label": "the rock out on the water",
+          "position": [
+            0.085,
+            0,
+            -0.0175
+          ]
+        },
+        {
+          "id": "far-side",
+          "label": "the bottom step",
+          "position": [
+            -0.072,
+            0,
+            -0.0175
+          ]
+        },
+        {
+          "id": "pip-step",
+          "label": "on the steps above the water",
+          "position": [
+            -0.115,
+            0,
+            -0.0175
+          ]
+        },
+        {
+          "id": "pip-side",
+          "label": "tucked at Pip's side",
+          "position": [
+            -0.092,
+            0,
+            -0.006
+          ]
+        },
+        {
+          "id": "landing-in",
+          "label": "where the steps come down",
+          "position": [
+            -0.17,
+            0,
+            -0.03
+          ]
+        },
+        {
+          "id": "wick-steps",
+          "label": "coming down the steps",
+          "position": [
+            -0.15,
+            0,
+            -0.04
+          ]
+        },
+        {
+          "id": "moth-landing",
+          "label": "in the air over the water",
+          "position": [
+            -0.04,
+            0.12,
+            -0.03
+          ]
+        },
+        {
+          "id": "light-high",
+          "label": "up high over the steps",
+          "position": [
+            -0.1,
+            0.11,
+            -0.03
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the-gap-snow",
+      "name": "The gap, in the snow",
+      "description": "The sandy path ends at a narrow chasm in the dunes, with the lighthouse waiting on the far side. Under fresh snow, on the longest night.",
+      "file": "sets/the-gap-snow/set.json",
+      "marks": [
+        {
+          "id": "near-edge",
+          "label": "the near edge of the gap",
+          "position": [
+            0.0759,
+            0,
+            -0.0175
+          ]
+        },
+        {
+          "id": "far-side",
+          "label": "the far side of the gap",
+          "position": [
+            -0.0751,
+            0,
+            -0.0175
+          ]
+        },
+        {
+          "id": "gap-middle",
+          "label": "over the middle of the gap",
+          "position": [
+            0,
+            0,
+            -0.0175
+          ]
+        },
+        {
+          "id": "wick-arrives",
+          "label": "the path on the far side",
+          "position": [
+            -0.13,
+            0,
+            -0.0175
+          ]
+        },
+        {
+          "id": "lighthouse-way",
+          "label": "the way to the lighthouse",
+          "position": [
+            -0.19,
+            0,
+            -0.0175
+          ]
+        },
+        {
+          "id": "moth-hover",
+          "label": "in the air above the gap",
+          "position": [
+            -0.025,
+            0.14,
+            -0.035
+          ]
+        },
+        {
+          "id": "gap-start",
+          "label": "where the path comes in",
+          "position": [
+            0.155,
+            0,
+            -0.0175
+          ]
+        },
+        {
+          "id": "moth-gap",
+          "label": "in the air over the path",
+          "position": [
+            0.14,
+            0.12,
+            -0.03
+          ]
+        },
+        {
+          "id": "lamp-pip",
+          "label": "below the lighthouse, near",
+          "position": [
+            -0.065,
+            0,
+            -0.0175
+          ]
+        },
+        {
+          "id": "lamp-wick",
+          "label": "below the lighthouse, far",
+          "position": [
+            -0.16,
+            0,
+            -0.022
+          ]
+        },
+        {
+          "id": "moth-lamp",
+          "label": "circling the lamp",
+          "position": [
+            -0.035,
+            0.205,
+            -0.075
           ]
         }
       ]

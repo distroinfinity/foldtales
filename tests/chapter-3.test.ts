@@ -224,8 +224,9 @@ const playable = new Map(
 );
 /** Chapter 1's two closing lines are voiced already; any more means run 021 has started landing. */
 const voicedHere = [...playable.keys()].filter((id) => manifest.voiceLines[id]).length;
-/** A speaker's voice is chosen once the library has their cast entry (Thimble's comes with lane B's run 017/019). */
-const chosen = (speaker: string) => speaker !== 'thimble' || manifest.cast.some((c) => c.member.id === 'thimble');
+/** Thimble's voice counts as chosen once run 021's plan records it (lane B's choice, confirmed through the sprint master). */
+const run021 = read('../art/runs/021-chapter-3-voices/plan.json') as { thimblePreset?: string | null };
+const chosen = (speaker: string) => speaker !== 'thimble' || Boolean(run021.thimblePreset);
 const hasVoice = (id: string) => {
   const voice = manifest.voiceLines[id];
   return Boolean(voice?.url && existsSync(new URL(`../art/${voice.url}`, import.meta.url)));

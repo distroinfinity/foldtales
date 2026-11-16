@@ -11,7 +11,7 @@
   "scenes": [
     {
       "id": "the-frost",
-      "setId": "the-lamp",
+      "setId": "the-lamp-snow",
       "summary": "The lamp glass frosts over on the longest night",
       "objects": [
         {
@@ -612,13 +612,23 @@
     },
     {
       "id": "lost-in-the-snow",
-      "setId": "the-landing",
+      "setId": "the-landing-snow",
       "summary": "Wick is lost in the snow, and his logbook is out in the Reader's room",
       "objects": [
         {
           "id": "logbook",
           "defId": "logbook",
           "origin": "set"
+        },
+        {
+          "id": "kite",
+          "defId": "kite",
+          "origin": "drawer"
+        },
+        {
+          "id": "ladder",
+          "defId": "ladder",
+          "origin": "drawer"
         }
       ],
       "problem": {
@@ -1070,12 +1080,17 @@
     },
     {
       "id": "home-by-the-light",
-      "setId": "the-gap",
+      "setId": "the-gap-snow",
       "summary": "Wick can't see where the edge of the gap is in the snow",
       "objects": [
         {
           "id": "rope-coil",
           "defId": "rope-coil",
+          "origin": "set"
+        },
+        {
+          "id": "logbook",
+          "defId": "logbook",
           "origin": "set"
         }
       ],
