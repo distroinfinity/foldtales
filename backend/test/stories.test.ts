@@ -182,6 +182,35 @@ describe('stories', () => {
     expect(stories.availability('ann').status).toBe('resting');
   });
 
+  test('everyone’s 150 a day survives account deletion: delete one of 50 readers, and the 151st is still refused (Codex review of #52, P2)', () => {
+    const { stories } = setup();
+    for (let r = 0; r < 50; r++) for (const id of ['a', 'b', 'c']) stories.start(`reader-${r}`, id);
+    expect(stories.availability('newcomer').status).toBe('resting');
+    stories.forget('reader-0');
+    expect(stories.availability('newcomer').status).toBe('resting');
+    expect(() => stories.start('newcomer', 'a')).toThrow(STORYTELLER_RESTING);
+    // A retried start of a story that exists counts nothing more.
+    expect(stories.start('reader-1', 'a').storyId).toMatch(/^st-/);
+    expect(() => stories.start('newcomer', 'b')).toThrow(STORYTELLER_RESTING);
+  });
+
+  test('the daily count is anonymous, durable and seeded from the stories kept before it existed', () => {
+    const { path, open } = fileDb();
+    const at = new Date('2026-11-16T20:00:00Z');
+    const first = openStories(open(), { ...readStoryLimits({}), storiesPerDay: 2 }, () => at);
+    first.start('ann', 'a');
+    first.start('bob', 'a');
+    first.forget('ann');
+    const again = openStories(new DatabaseSync(path), { ...readStoryLimits({}), storiesPerDay: 2 }, () => at);
+    expect(again.availability('cy').status).toBe('resting');
+    const raw = new DatabaseSync(path);
+    expect(raw.prepare('SELECT * FROM stories_day').all()).toEqual([{ day: '2026-11-16', count: 2 }]);
+    // An older database, with stories but no count yet: the count starts from them.
+    raw.exec('DROP TABLE stories_day');
+    openStories(raw, readStoryLimits({}), () => at);
+    expect(raw.prepare('SELECT * FROM stories_day').all()).toEqual([{ day: '2026-11-16', count: 1 }]);
+  });
+
   test('deleting a reader removes their stories, turns, jobs and tokens; the pool and spend stay', () => {
     const { stories, db } = setup({ paintCreditCap: 4 });
     const { storyId } = stories.start('ann', 'a');
