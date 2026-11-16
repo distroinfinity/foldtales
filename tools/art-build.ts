@@ -94,18 +94,18 @@ function pngsUnder(dir: string): string[] {
 const posix = (path: string): string => path.split(sep).join('/');
 
 /** Reads a PNG as RGBA. */
-async function readRgba(path: string): Promise<{ rgba: Uint8Array; width: number; height: number; hasAlpha: boolean }> {
+async function readRgba(bytes: Uint8Array): Promise<{ rgba: Uint8Array; width: number; height: number; hasAlpha: boolean }> {
   const sharp = (await import('sharp')).default;
-  const image = sharp(readFileSync(path));
+  const image = sharp(bytes);
   const meta = await image.metadata();
   const { data, info } = await image.ensureAlpha().raw().toBuffer({ resolveWithObject: true });
   return { rgba: new Uint8Array(data), width: info.width, height: info.height, hasAlpha: !!meta.hasAlpha };
 }
 
 /** A PNG's size and whether it has alpha, without decoding its pixels. */
-async function readMeta(path: string): Promise<{ width: number; height: number; hasAlpha: boolean }> {
+async function readMeta(bytes: Uint8Array): Promise<{ width: number; height: number; hasAlpha: boolean }> {
   const sharp = (await import('sharp')).default;
-  const meta = await sharp(readFileSync(path)).metadata();
+  const meta = await sharp(bytes).metadata();
   return { width: meta.width!, height: meta.height!, hasAlpha: !!meta.hasAlpha };
 }
 
@@ -237,7 +237,14 @@ export async function planArtCache({ artRoot, folders, cacheDir }: { artRoot: st
       .filter((file) => !seen.has(file));
     files.forEach((file) => seen.add(file));
     if (folder.startsWith('cast/')) {
-      const sources = await Promise.all(files.map(async (file) => ({ file, name: posix(relative(join(artRoot, folder), file)), bytes: readFileSync(file), ...(await readMeta(file)) })));
+      // One read per source: its key, its size and its pixels all come from these same bytes, so an
+      // edit while the build runs can never put new pixels under the old key.
+      const sources = await Promise.all(
+        files.map(async (file) => {
+          const bytes = readFileSync(file);
+          return { file, name: posix(relative(join(artRoot, folder), file)), bytes, ...(await readMeta(bytes)) };
+        }),
+      );
       const atlas = packAtlas(sources.map((s) => ({ name: s.name, w: s.width, h: s.height })), GUTTER, MAX_ATLAS);
       const key = cacheKey('atlas', sources);
       const rel = `ktx2/${folder}.ktx2`;
@@ -250,7 +257,7 @@ export async function planArtCache({ artRoot, folders, cacheDir }: { artRoot: st
           pixels: async () => {
             const sheet = new Uint8Array(atlas.width * atlas.height * 4);
             for (const source of sources) {
-              const { rgba } = await readRgba(source.file);
+              const { rgba } = await readRgba(source.bytes);
               const r = atlas.rects[source.name]!;
               const pre = premultiply(rgba);
               for (let y = 0; y < r.h; y++) sheet.set(pre.subarray(y * r.w * 4, (y + 1) * r.w * 4), ((r.y + y) * atlas.width + r.x) * 4);
@@ -264,7 +271,8 @@ export async function planArtCache({ artRoot, folders, cacheDir }: { artRoot: st
       const artPath = posix(relative(artRoot, file));
       const rel = `ktx2/${artPath.replace(/\.png$/, '.ktx2')}`;
       const bytes = readFileSync(file);
-      const meta = await readMeta(file);
+      // As for atlases: the key, the size and the pixels all from this one read.
+      const meta = await readMeta(bytes);
       const key = cacheKey('file', [{ name: artPath, bytes }]);
       outputs.set(rel, key);
       index.files[artPath] = { ktx2: rel, size: [meta.width, meta.height], texSize: [toBlock(meta.width), toBlock(meta.height)], premultiplied: meta.hasAlpha };
@@ -273,7 +281,7 @@ export async function planArtCache({ artRoot, folders, cacheDir }: { artRoot: st
           key,
           label: artPath,
           pixels: async () => {
-            const source = await readRgba(file);
+            const source = await readRgba(bytes);
             const pre = source.hasAlpha ? premultiply(source.rgba) : source.rgba;
             const padded = padToBlocks(pre, source.width, source.height);
             return { ...padded, hasAlpha: source.hasAlpha };

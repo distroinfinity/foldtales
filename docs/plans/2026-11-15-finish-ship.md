@@ -156,6 +156,34 @@ This lane makes what the other lanes build submittable and production-ready. It 
   `reviewQuery` returns null outside review builds, so production never sees any of it.
 - **The client's side, on `finish-ship` once #32 merges:** `client/src/telemetry.ts` counts frames over 16.7 ms and the slowest frame per window. `scripts/telemetry-report.ts` then reads per test case, drops each session's first window (the transition into the fixture), and checks the observed `room_fx` against the case.
 
+### Codex's review of PR #33, fixed (Nov 16)
+
+Codex found 4 P1s and 3 P2s ("merge after fixes"). Points 6 and 7 were lane A's. Point 6 (the manifest link) landed in #26. Point 7 (About's link to the notices) came to me with the sprint master's agreement.
+
+1. **A rollback deleted the live cache.** Fixed: each install fills its own cache (`foldtales-<version>-<id>`), and an install of a version already complete reuses it, deleting nothing.
+   - *Browser:* A live, B installed and waiting, rollback to A. A's original cache survived, and the tab kept getting A's bytes.
+2. **A lost cache entry mixed builds.** Fixed: a missing listed file is fetched and checked against the controlling worker's own list. A match is served and put back. A mismatch or a 404 means the build is gone:
+   - the worker unregisters;
+   - a navigation is redirected to the network;
+   - a file request fails;
+   - the page reloads itself if the reader is on the page, not in the book.
+
+   Offline (no answer) fails only that request and keeps the worker.
+   - *Browser:* `book.json` lost from A's cache, B live. The A page's request was **refused**, never B's bytes. The page reloaded uncontrolled, read B whole from the network, and re-registered B.
+   - *My first two runs looked like failures, and were my harness:* its state check re-fetched the file while A was still live, so the worker correctly healed it from A.
+3. **An art edit mid-build poisoned a key.** Fixed: a texture's key, size and pixels all come from one read of its bytes, for single textures and for atlases. Test: the sources change on disk after planning, and the job still encodes the original pixels.
+4. **The privacy text promised no training.** Fixed in `docs/legal-copy.md`: Anthropic, OpenAI and Groq don't train on what's sent; Runway's terms let it use painting requests and pictures to improve its AI, and the page says so.
+5. **The kill switch left caches.** Fixed: with `TT_PUBLIC_SW=off`, the page awaits the removal of every registration and Foldtales cache, then reloads once if an old worker still controlled it.
+   - *Browser, both ways:* through the worker (it takes over, deletes everything, unregisters), and with the kill-switch page loaded from the network while A's worker was still registered. Afterwards: no registrations, no caches.
+7. **About links the notices.** Its one `CREDITS.md` sentence is now "Every licence, in full: third-party notices", linking `../notices.txt`. *Production build, in the browser:* the link opens `/notices.txt` ("Foldtales: third-party notices …").
+
+**The owner's decisions, in `docs/legal-copy.md`:**
+- Contact: manurajput2911@gmail.com, on Privacy and Terms.
+- No minimum age stated.
+- Live painting on, with "Powered by Runway" in plain text in the Storyteller's section of the page, wherever paintings appear, and on About.
+
+**New art from main:** lane B's three new textures, encoded by the build and committed with this fix (`client/.art-cache/blobs`, now 75).
+
 ### The emulated-headset pass (Nov 16, night)
 
 A dev build from this workspace (`iwsdk dev up --headless`), the IWSDK emulator's furnished living room, **emulated hands only, no controllers**. The backend wasn't running, so this also covered "backend down". Evidence: `docs/plans/evidence/2026-11-16-finish-ship/`.

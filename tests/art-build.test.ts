@@ -119,6 +119,27 @@ describe('the compressed art cache', async () => {
     expect(JSON.stringify(CACHE_SETTINGS)).toContain('"uastcLDRQualityLevel":2');
   });
 
+  test('an edit while the build runs never puts new pixels under the old key (Codex PR #33, point 3)', async () => {
+    const cache = join(root, 'c-snapshot');
+    await put('sets/a/ground.png', [200, 10, 10]);
+    await put('cast/pip/body.png', [10, 200, 10], true);
+    const plan = await planArtCache({ artRoot: art, folders, cacheDir: cache });
+    expect(plan.missing).toHaveLength(2);
+    // The sources change on disk after their keys were made, before their pixels are read.
+    await put('sets/a/ground.png', [10, 10, 200]);
+    await put('cast/pip/body.png', [200, 200, 10], true);
+    const [ground, atlas] = [plan.missing.find((j) => !j.label.startsWith('atlas'))!, plan.missing.find((j) => j.label.startsWith('atlas'))!];
+    const g = await ground.pixels();
+    expect([g.rgba[0], g.rgba[1], g.rgba[2]]).toEqual([200, 10, 10]);
+    const a = await atlas.pixels();
+    const body = plan.index.atlases['cast/pip']!.rects['body.png']!;
+    const at = ((body.y + 1) * a.width + body.x + 1) * 4;
+    // Premultiplied by alpha 0.5: the original green body, not the edit's yellow.
+    expect(a.rgba[at]! < 20 && a.rgba[at + 1]! > 80).toBe(true);
+    await put('sets/a/ground.png', [200, 10, 10]);
+    await put('cast/pip/body.png', [10, 200, 10], true);
+  }, 120_000);
+
   test('threads give the same bytes as one thread', async () => {
     const one = join(root, 'one');
     const many = join(root, 'many');
