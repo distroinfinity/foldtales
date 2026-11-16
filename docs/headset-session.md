@@ -42,6 +42,24 @@ Every path already passed in the emulator. This session is for feel, look and so
 **If there's time:**
 - Turn the room lights low and repeat step 5: hand tracking holds, and captions stay readable.
 - Start a Storyteller story with "or play by hand" and say nothing. It carries on alone and ends by itself.
+- **A short frame-rate pass** (about 12 minutes; the agent sets it up first). Real frame rates come only from the Quest, and these fixtures hold one scene or effect still for a minute, so each reading means one thing.
+  - **Setup, by the agent:** the agent serves a review build from lane E's workspace (`pnpm --filter @tabletop/client build:review`, then `vite preview` of `dist-review` on port 5130, with the local backend on 5131) and runs `adb reverse tcp:5130 tcp:5130` with the Quest on USB.
+  - **For each link:** open it in Quest Browser, tap Open the book, and sit still, looking at the book, for about 60 s. Then open the next one.
+
+  | Link | Holds |
+  |---|---|
+  | `http://localhost:5130/?perf=ch1-shore` | The shore spread, no effect: the baseline |
+  | `http://localhost:5130/?perf=rain` | Rain all round |
+  | `http://localhost:5130/?perf=snow` | Snow, settling |
+  | `http://localhost:5130/?perf=sea` | The sea on the floor, with the boat and the tide in |
+  | `http://localhost:5130/?perf=night-sky` | The night sky on the ceiling |
+  | `http://localhost:5130/?perf=window` | The window onto the story |
+  | `http://localhost:5130/?perf=rain+sea` | Rain with the sea: two big effects |
+  | `http://localhost:5130/?perf=night-sky+sea` | The night sky with the sea |
+  | `http://localhost:5130/?perf=sea+window` | The sea with the window |
+
+  - **Afterwards, the agent prints the table:** `node scripts/telemetry-report.ts <start time> --cases`, run against the local backend. Each fixture gets its median fps, its 1% low, its frames under 60 fps and its slowest frame. It also confirms each fixture's effects were really on. Anything under 72 fps (the look bar) gets fixed before submission.
+  - **The other twelve fixtures** (`client/src/review/perf-cases.ts`) run the same way if there's more time: `ch1-lamp`, `ch1-gap`, `ch1-beam`, `shadows`, `fireflies`, `gulls`, `bottle`, `hunt`, `rain+window`, `snow+window`, `night-sky+fireflies`, `rain+shadows`.
 
 ## Afterwards
 
@@ -51,6 +69,6 @@ Every path already passed in the emulator. This session is for feel, look and so
   - the step 12 recording, over USB, to check its picture and sound before filming;
   - your words on the music (step 4).
 - **Not in this session:**
-  - the frame-rate fixtures (`?perf=`, waiting on lane A's hook);
+  - the frame-rate fixtures, except the short pass under "If there's time" (it needs a review build over USB);
   - filming the video itself (`docs/submission.md`);
   - the private YouTube Content ID upload of the music bed (`art/sound/music/LICENCE.md`).
