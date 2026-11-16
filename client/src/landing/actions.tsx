@@ -17,7 +17,7 @@ export function sendToQuestUrl(): string {
 
 const quiet = 'text-page/80 underline decoration-page/30 decoration-1 underline-offset-[5px] hover:text-page hover:decoration-page/60 cursor-pointer bg-transparent border-0 p-0 font-[inherit]';
 
-export function SendToQuest({ compact = false }: { compact?: boolean }) {
+export function SendToQuest({ compact = false, buttonOnly = false }: { compact?: boolean; buttonOnly?: boolean }) {
   const [copied, setCopied] = useState(false);
   const canShare = typeof navigator.share === 'function';
   const copy = async () => {
@@ -29,11 +29,15 @@ export function SendToQuest({ compact = false }: { compact?: boolean }) {
       prompt('Copy this link, then open it in your Quest’s browser:', pageLink());
     }
   };
+  const button = (
+    <a href={sendToQuestUrl()} target="_blank" rel="noopener" className="rounded-[12px]">
+      <ShimmerButton tabIndex={-1} gleam={false}>Send to your Quest</ShimmerButton>
+    </a>
+  );
+  if (buttonOnly) return button;
   return (
     <div className="flex flex-col items-center gap-4">
-      <a href={sendToQuestUrl()} target="_blank" rel="noopener" className="rounded-[12px]">
-        <ShimmerButton tabIndex={-1} gleam={false}>Send to your Quest</ShimmerButton>
-      </a>
+      {button}
       <p className="m-0 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[16px]">
         <button type="button" className={quiet} onClick={copy}>
           {copied ? 'Link copied' : 'Copy the link'}
