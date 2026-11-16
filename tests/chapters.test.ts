@@ -212,6 +212,7 @@ describe("the account's view of this headset's book", () => {
     writeProgress(s, { seriesId: SERIES, chapter: 2, state: 'started' });
     writeCheckpoint(s, place('chapter-2', 1));
     s.setItem('tt.other', 'kept');
+    s.setItem('tt.carry.chapter-2', '{"opening":"carry-kite"}');
     forgetLocalChapters(s);
     expect([...s.data.keys()]).toEqual(['tt.other']);
     expect(readLocalChapters(s, SERIES, now)).toEqual({ chapters: {}, resume: null, updatedAt: '1970-01-01T00:00:00.000Z' });
