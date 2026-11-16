@@ -1,0 +1,85 @@
+{
+  "id": "020-snowy-pages",
+  "question": "Can chapter 3's three reused sets (the lamp, the landing, the gap) be made snowy from their own paint and run 014's painted snow, for free, so each spread reads as a new place without moving anything?",
+  "why": "Chapter 3 (docs/plans/2026-11-15-finish-chapters.md) reuses all three of its sets, 'all snowy'. Playtests: each spread must feel like a new place. Build plan: docs/plans/2026-11-16-finish-chapter-3.md, run 020.",
+  "sameAcrossJobs": "Free pass first: make_snow.py (numpy, Pillow) keeps every piece's alpha exactly (run 007's lit window), caps upward-facing edges and recolours sand from art/room-fx/weather/snow-cover.png (run 014), rimes the lamp's glass. Paid only for a piece the free pass fails: one 2K seedream5_pro repaint from that piece's own image (downscaled under 5 MB as Figure 1), standing pieces on magenta cut with run 006's recipe, then only its snow kept inside the original's alpha, so nothing can move.",
+  "decideBy": [
+    "Each snowy spread in the emulator beside its unsnowy self: it reads as the same painted page under snow, not a filter (the look bar).",
+    "Nothing moved: marks, hinges and anchors equal the base sets' (client/src/show/chapter-3.test.ts), and crossings land where they did.",
+    "Telemetry fps per spread at least 72; the owner judges in the headset."
+  ],
+  "learnEvenIfRejected": "Whether a set can be given a season for free from its own paint, which would make any later chapter's weather on the page cheap.",
+  "reusableOutput": "art/sets/the-lamp-snow/, the-landing-snow/, the-gap-snow/ (snowy pieces and set.json each), and make_snow.py for any later season.",
+  "estimateCredits": 27,
+  "estimateNote": "0 for the free pass. 27 if the three grounds need a repaint (the likeliest to read as a filter); each candidate moves from candidateJobs into jobs only after its free version has failed, and is reconciled against its known price (9) in lane B's per-job cost ledger, or one job per invocation until that ledger lands.",
+  "capNote": "Lane C's 150 across runs 020-022 (020: 45, 021: 84, 022: 9).",
+  "capCredits": 45,
+  "jobs": [],
+  "candidateJobs": [
+    {
+      "id": "gap-ground-snow",
+      "model": "seedream5_pro",
+      "ratio": "2304:1728",
+      "refs": [
+        {
+          "file": "art/runs/020-snowy-pages/ref-gap-ground.png"
+        }
+      ],
+      "prompt": "Figure 1 is the printed page of an open picture book, seen flat from directly above. Paint exactly the same page, with every shape, edge and colour in exactly the same place and at exactly the same size, on a winter night after fresh snow: soft cream-white snow with pale blue-grey shadows in the hollows, painted in the same washes as the rest lies over the sand on both sides of the chasm, thinning to a dusting at its lip. The cliff faces and the dark water of the chasm keep their paint exactly, with no snow on the water. The bare paper edges stay exactly as in Figure 1. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. No characters, no footprints, no text, no border, not a photo of a book."
+    },
+    {
+      "id": "landing-ground-snow",
+      "model": "seedream5_pro",
+      "ratio": "2304:1728",
+      "refs": [
+        {
+          "file": "art/runs/020-snowy-pages/ref-landing-ground.png"
+        }
+      ],
+      "prompt": "Figure 1 is the printed page of an open picture book, seen flat from directly above. Paint exactly the same page, with every shape, edge and colour in exactly the same place and at exactly the same size, on a winter night after fresh snow: soft cream-white snow with pale blue-grey shadows in the hollows, painted in the same washes as the rest lies on the stone steps, the landing stone and the flat top of the rock. The sea keeps its paint exactly, with no snow on the water. The bare paper edges stay exactly as in Figure 1. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. No characters, no footprints, no text, no border, not a photo of a book."
+    },
+    {
+      "id": "lamp-ground-snow",
+      "model": "seedream5_pro",
+      "ratio": "2304:1728",
+      "refs": [
+        {
+          "file": "art/runs/020-snowy-pages/ref-lamp-ground.png"
+        }
+      ],
+      "prompt": "Figure 1 is the printed page of an open picture book, seen flat from directly above. Paint exactly the same page, with every shape, edge and colour in exactly the same place and at exactly the same size, on a winter night after fresh snow: soft cream-white snow with pale blue-grey shadows in the hollows, painted in the same washes as the rest lies drifted against the gallery's outer rim and the foot of the lamp room, with the flagstones still showing through a thin dusting in the middle. The sea far below keeps its paint exactly. The bare paper edges stay exactly as in Figure 1. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. No characters, no footprints, no text, no border, not a photo of a book."
+    },
+    {
+      "id": "gap-near-rim-snow",
+      "model": "seedream5_pro",
+      "ratio": "2720:1530",
+      "refs": [
+        {
+          "file": "art/runs/020-snowy-pages/ref-gap-near-rim.png"
+        }
+      ],
+      "prompt": "Figure 1 shows die-cut paper stage pieces on plain magenta paper. Paint exactly the same pieces, with the same outline, size and place, after fresh snow: soft cream-white snow with pale blue-grey shadows in the hollows, painted in the same washes as the rest lies thick on the tops of both dune pieces, and the tufts of grass bend under a light dusting of snow. The sandy cliff faces keep their paint. No sky, nothing behind the pieces. Each piece keeps its clean hard edge traced with a fine pencil line and its perfectly straight flat bottom edge. Leave a wide margin of empty paper on all four sides, with nothing touching the edge of the image. Gentle night values. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. On plain flat solid vivid magenta paper, one even colour. No text."
+    },
+    {
+      "id": "gap-far-rim-snow",
+      "model": "seedream5_pro",
+      "ratio": "2720:1530",
+      "refs": [
+        {
+          "file": "art/runs/020-snowy-pages/ref-gap-far-rim.png"
+        }
+      ],
+      "prompt": "Figure 1 shows die-cut paper stage pieces on plain magenta paper. Paint exactly the same pieces, with the same outline, size and place, after fresh snow: soft cream-white snow with pale blue-grey shadows in the hollows, painted in the same washes as the rest lies on the tops of both dune pieces, and the grass bends under a light dusting of snow. The sandy cliff faces keep their paint. No sky, nothing behind the pieces. Each piece keeps its clean hard edge traced with a fine pencil line and its perfectly straight flat bottom edge. Leave a wide margin of empty paper on all four sides, with nothing touching the edge of the image. Gentle night values. Hand-painted traditional watercolor with a fine graphite pencil outline, from a vintage natural history picture book. Soft pigment washes, visible paper grain, gentle edges. On plain flat solid vivid magenta paper, one even colour. No text."
+    }
+  ],
+  "lane": {
+    "id": "C",
+    "capCredits": 150,
+    "runs": [
+      "020-snowy-pages",
+      "021-chapter-3-voices",
+      "022-chapter-3-sound"
+    ]
+  },
+  "approved": "Sprint master, Nov 16: approved at this cap (stage 1 rulings, docs/plans/2026-11-16-finish-chapter-3.md)."
+}

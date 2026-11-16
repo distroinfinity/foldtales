@@ -189,3 +189,14 @@ Signed off by the owner in the headset after AI Storyteller session 2: "I actual
 ## Room comes alive, headset session 2, Nov 15
 
 - Gulls and the bottle (`?room=gulls,bottle`): "fine for now". Merged and moved on; the rain and sea sound mix and the walking treasure hunt weren't looked at.
+
+## Chapter 3, "The longest night": lane C's emulator passes, Nov 16, 2026 (IWSDK emulator, emulated hands, no headset)
+
+Lane C's first-round testing in simulated XR, before the owner's headset session (the sprint's rule). Full detail, with every finding and who fixed it, in `docs/plans/2026-11-16-finish-chapter-3.md` ("The emulator pass, round 1" and "round 2"); screenshots in lane C's workspace under `.c3-shots/`.
+
+- **Zero input, start to end at normal speed:** every beat in order, the end page at 5:58; snow round the reader by 0:07, settling on the real couch and bed; the stars on the ceiling at 5:01.
+- **A first-time reader with hands:** the sock wipes the frost; the logbook, hidden on the couch 1.8 m away, is fetched and handed to Pip; the ladder gets Wick across. Three gifts in a row land (Pip's paw stays free).
+- **What carries from chapter 2:** with the kite kept and the light raised on it, the kite waits in the satchel and lifts Pip's light again at the beacon; Thimble's thread line plays.
+- **Edge paths:** a wrong gift (Pip throws Wick's own rope); the ribbon pauses mid-ask and resumes; leaving mid-chapter and coming back resumes (fixed by lane A, #39); a reload resumes.
+- **Fixed on the way:** Wick showed two logbooks (lane B's linked part); the printed end page said "chapter one" (lane A, #39); the end card's lines are now said to the reader (lane C's page lines); Wick visible after "going down the stair", Moth over the frosted lamp (lamp marks moved).
+- **Left for the owner's headset:** the look of the snowy pages and the voices (Thimble's especially) on the Quest, frame rate per spread, taking the headset off mid-chapter, and the hunt walked for real (owed since Nov 15).

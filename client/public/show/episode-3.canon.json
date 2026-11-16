@@ -1,0 +1,129 @@
+{
+  "episodeId": "chapter-3",
+  "title": "The longest night",
+  "facts": [
+    {
+      "key": "frost",
+      "value": "reader",
+      "beats": [
+        "frost-wipe"
+      ],
+      "text": "The Reader helped wipe the frost from the lamp's glass."
+    },
+    {
+      "key": "frost",
+      "value": "thimble",
+      "beats": [
+        "frost-thimble"
+      ],
+      "text": "Thimble polished the frost off the lamp's glass."
+    },
+    {
+      "key": "logbook",
+      "value": "reader",
+      "beats": [
+        "log-found"
+      ],
+      "text": "The Reader found Wick's logbook out in the room.",
+      "page": "You found Wick's logbook out in your room."
+    },
+    {
+      "key": "logbook",
+      "value": "beam",
+      "beats": [
+        "log-return"
+      ],
+      "text": "The beam found Wick's logbook and brought it home.",
+      "page": "The lighthouse beam found Wick's logbook for you."
+    },
+    {
+      "key": "wick-across",
+      "value": "rope",
+      "beats": [
+        "wick-rope",
+        "wick-rope-self"
+      ],
+      "text": "Pip threw a line across the gap to Wick.",
+      "page": "You saw Pip throw Wick a line across the gap."
+    },
+    {
+      "key": "wick-across",
+      "value": "ladder",
+      "beats": [
+        "wick-ladder"
+      ],
+      "text": "Wick crossed the gap on a ladder, one rung at a time.",
+      "page": "You gave Pip the ladder that got Wick across the gap."
+    },
+    {
+      "key": "wick-across",
+      "value": "kite",
+      "beats": [
+        "wick-kite"
+      ],
+      "text": "Wick flew over the gap on a kite, at his age.",
+      "page": "You gave Pip the kite that flew Wick over the gap."
+    },
+    {
+      "key": "keeper",
+      "value": "pip",
+      "beats": [
+        "across"
+      ],
+      "text": "Wick handed Pip the lamp and the log, and Pip got a star of his own.",
+      "page": "You saw Wick hand Pip the lamp, and Pip's star come out on your ceiling."
+    }
+  ],
+  "history": {
+    "odd-sock": [
+      {
+        "beats": [
+          "frost-wipe"
+        ],
+        "text": "Wiped the frost off the lamp's glass on the longest night."
+      },
+      {
+        "text": "Kept from the longest night."
+      }
+    ],
+    "kite": [
+      {
+        "beats": [
+          "wick-kite"
+        ],
+        "text": "Flew Wick over the gap on the longest night."
+      },
+      {
+        "beats": [
+          "beacon-kite"
+        ],
+        "text": "Held Pip's light up again, on the longest night."
+      },
+      {
+        "text": "Kept from the longest night."
+      }
+    ],
+    "ladder": [
+      {
+        "beats": [
+          "wick-ladder"
+        ],
+        "text": "Wick crossed the gap on it, on the longest night."
+      },
+      {
+        "beats": [
+          "beacon-ladder"
+        ],
+        "text": "Held Pip's light up again, on the longest night."
+      },
+      {
+        "text": "Kept from the longest night."
+      }
+    ],
+    "default": [
+      {
+        "text": "Kept from the longest night."
+      }
+    ]
+  }
+}
