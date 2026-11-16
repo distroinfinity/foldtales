@@ -62,7 +62,7 @@ function Shore() {
   );
 }
 
-type DoorProps = {
+export type DoorProps = {
   device: Device;
   library: LibraryState;
   signedIn: string | null;
@@ -112,7 +112,7 @@ const VOICES_NOTE = (STORY as { voicesNote?: string }).voicesNote ?? 'The castâ€
 const doorButton = 'inline-flex min-h-14 cursor-pointer items-center justify-center rounded-[12px] border border-sage/60 bg-sage/20 px-8 text-[18px] font-medium text-page transition-colors hover:bg-sage/30 disabled:cursor-default disabled:opacity-50 disabled:hover:bg-sage/20';
 const quietLink = 'cursor-pointer border-0 bg-transparent p-2 font-[inherit] text-[16px] text-page/75 underline decoration-page/30 underline-offset-4 hover:text-page';
 
-function Door({ device, signedIn, onSignIn, enterStoryteller, playByHand, openBook, onStories, storytellerLabel }: DoorProps) {
+export function Door({ device, signedIn, onSignIn, enterStoryteller, playByHand, openBook, onStories, storytellerLabel }: DoorProps) {
   const snap = useSyncExternalStore(subscribeStoryteller, storytellerSnapshot);
   // The door follows sign-in, the microphone and the connection as they change, without a reload.
   useEffect(() => {
