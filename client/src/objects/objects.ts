@@ -1,4 +1,4 @@
-import { AdditiveBlending, DoubleSide, Mesh, MeshBasicMaterial, Object3D, PlaneGeometry, Quaternion, Vector3, type Texture } from '@iwsdk/core';
+import { AdditiveBlending, Color, DoubleSide, Mesh, MeshBasicMaterial, Object3D, PlaneGeometry, Quaternion, ShaderMaterial, Vector3, Vector4, type Texture } from '@iwsdk/core';
 import type { ObjectDef } from '@tabletop/contracts';
 import { cardMaterial } from '../paint/card-material.ts';
 import type { TexRef } from '../paint/texref.ts';
@@ -101,6 +101,8 @@ export interface ObjectsView {
   pose(id: string, at: V3, rotZ: number, lying: boolean, scale?: number): void;
   /** A carried light's glow while it's out of the paw, 0 to 1. */
   setGlow(id: string, glow: number): void;
+  /** "This is what they're asking for": a soft lamp-gold rim round the thing's own outline, 0 (none) to 1. */
+  setCue(id: string, strength: number): void;
   setVisible(id: string, visible: boolean): void;
   /** The book is shut or opening: things on the page fold away with it. */
   setPageShown(shown: boolean): void;
@@ -124,10 +126,50 @@ const SHADOW_LIFT = 0.0007;
 /** Out in your room a thing shows this tall (metres), so it can be found from across it; back on the book it's book-sized again. */
 const ROOM_HEIGHT_M = 0.24;
 const HELD_SCALE = 1.06;
+/** The cue's rim reaches this far past the painted edge, as a share of the card's shorter side. */
+const CUE_REACH = 0.13;
+const LAMP_GOLD = '#D4A23E';
+
+/**
+ * The cue's rim: the card's own silhouette, spread a little and softened, in lamp gold, drawn just
+ * behind the card. It follows the painted outline (a key looks like a key), never a box.
+ */
+const cueMaterial = (map: Texture, uv: [number, number, number, number], reach: [number, number]): ShaderMaterial =>
+  new ShaderMaterial({
+    uniforms: { map: { value: map }, rect: { value: new Vector4(...uv) }, reach: { value: reach }, color: { value: new Color(LAMP_GOLD) }, opacity: { value: 0 } },
+    vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+    fragmentShader: `
+      uniform sampler2D map; uniform vec4 rect; uniform vec2 reach; uniform vec3 color; uniform float opacity;
+      varying vec2 vUv;
+      float alphaAt(vec2 p) {
+        if (p.x < rect.x || p.x > rect.z || p.y < rect.y || p.y > rect.w) return 0.0;
+        return texture2D(map, p).a;
+      }
+      void main() {
+        // A tight ring that hugs the edge, and a wider, averaged one that feathers it out softly.
+        float nearRing = 0.0; float farRing = 0.0;
+        for (int i = 0; i < 16; i++) {
+          float a = 6.2831853 * float(i) / 16.0;
+          vec2 d = vec2(cos(a), sin(a)) * reach;
+          nearRing = max(nearRing, alphaAt(vUv + d * 0.3));
+          farRing += alphaAt(vUv + d * 0.75) / 16.0;
+        }
+        float inside = alphaAt(vUv);
+        float rim = max(inside, 0.7 * nearRing + 0.6 * farRing);
+        rim = smoothstep(0.05, 0.85, rim);
+        if (rim * opacity < 0.004) discard;
+        gl_FragColor = vec4(color, rim * opacity);
+      }`,
+    transparent: true,
+    depthWrite: false,
+    side: DoubleSide,
+    toneMapped: false,
+  });
 
 export function createObjects(initial: ObjectState[], deps: ObjectsDeps): ObjectsView {
   const states = new Map(initial.map((s) => [s.id, { ...s }]));
-  const views = new Map<string, { holder: Object3D; card: Mesh; lit: Mesh | null; glow: Mesh | null; shadow: Mesh; w: number; h: number; pivot: [number, number] }>();
+  const views = new Map<string, { holder: Object3D; card: Mesh; lit: Mesh | null; glow: Mesh | null; cue: Mesh; shadow: Mesh; w: number; h: number; pivot: [number, number] }>();
+  const cues = new Map<string, number>();
   const flights = new Map<string, Flight>();
   const poses = new Map<string, { at: V3; rotZ: number; lying: boolean; scale: number }>();
   const glows = new Map<string, number>();
@@ -177,12 +219,27 @@ export function createObjects(initial: ObjectState[], deps: ObjectsDeps): Object
       glow.renderOrder = 402;
       card.add(glow);
     }
+    // The cue's rim: a plane a little larger than the card, its UVs running on past the painting's edge.
+    const pad = CUE_REACH * Math.min(w, h);
+    const [u0, v0, u1, v1] = ref.uv;
+    const cueGeometry = new PlaneGeometry(w + 2 * pad, h + 2 * pad);
+    const cueUv = cueGeometry.getAttribute('uv');
+    const sx = (w + 2 * pad) / w;
+    const sy = (h + 2 * pad) / h;
+    for (let i = 0; i < cueUv.count; i++) cueUv.setXY(i, u0 + (u1 - u0) * ((cueUv.getX(i) - 0.5) * sx + 0.5), v0 + (v1 - v0) * ((cueUv.getY(i) - 0.5) * sy + 0.5));
+    cueUv.needsUpdate = true;
+    const cue = new Mesh(cueGeometry, cueMaterial(ref.texture, [Math.min(u0, u1), Math.min(v0, v1), Math.max(u0, u1), Math.max(v0, v1)], [Math.abs(u1 - u0) * (pad / w), Math.abs(v1 - v0) * (pad / h)]));
+    cue.name = 'cue';
+    cue.position.z = -0.0012;
+    cue.renderOrder = 399;
+    cue.visible = false;
+    card.add(cue);
     const shadow = new Mesh(new PlaneGeometry(1, 1), new MeshBasicMaterial({ map: deps.shadow, transparent: true, depthWrite: false, toneMapped: false, opacity: 0.55 }));
     shadow.name = `shadow:${id}`;
     shadow.rotation.x = -Math.PI / 2;
     shadow.renderOrder = -1;
     deps.bookRoot.add(shadow);
-    views.set(id, { holder, card, lit, glow, shadow, w, h, pivot: [def.pivot[0] / 100, def.pivot[1] / 100] });
+    views.set(id, { holder, card, lit, glow, cue, shadow, w, h, pivot: [def.pivot[0] / 100, def.pivot[1] / 100] });
   };
 
   for (const state of states.values()) {
@@ -249,6 +306,9 @@ export function createObjects(initial: ObjectState[], deps: ObjectsDeps): Object
     },
     setGlow(id, glow) {
       glows.set(id, glow);
+    },
+    setCue(id, strength) {
+      cues.set(id, strength);
     },
     setVisible(id, visible) {
       if (visible) hidden.delete(id);
@@ -413,6 +473,10 @@ export function createObjects(initial: ObjectState[], deps: ObjectsDeps): Object
           v.glow.visible = g > 0.01;
         }
         if (v.lit) v.lit.visible = g > 0.55;
+        // The ask's cue: a slow breath of lamp gold round the outline.
+        const c = cues.get(state.id) ?? 0;
+        v.cue.visible = c > 0.01;
+        if (v.cue.visible) (v.cue.material as ShaderMaterial).uniforms.opacity!.value = c * (0.62 + 0.18 * Math.sin(nowMs / 520));
         // A contact shadow on whatever is below, wider and fainter as it lifts.
         if (surfaceY !== null && v.holder.visible) {
           const p = v.holder.getWorldPosition(tmp);

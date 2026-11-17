@@ -5,6 +5,8 @@ import type { DrawerView } from '../book/drawer-view.ts';
 import type { SatchelView } from '../book/satchel-view.ts';
 import { layerRotationX } from '../book/fold.ts';
 import type { CaptionView } from '../book/text.ts';
+import { chunkAt } from '../book/caption-fit.ts';
+import { answers, answerTags, cueStrength, deviceStore, noteHandover, readHandovers } from '../objects/hand-over-cue.ts';
 import type { DimView } from '../light/dim.ts';
 import type { HandSide, ObjectsView, Receiver, V3 } from '../objects/objects.ts';
 import { stageLook } from '../paint/card-material.ts';
@@ -143,24 +145,9 @@ const POP_MS = 450;
 const TAKE_FLIGHT_MS = 180;
 const DRAWER_MS = 1700;
 const PAGE = { foldEnd: 800, leafEnd: 1800, riseEnd: 2600 };
-/** About two printed lines on the caption band. */
-const PAGE_CHARS = 78;
-
-/** A line split into pages that each fit the band, breaking after a sentence or comma where it can. */
-export function captionPages(text: string): string[] {
-  if (text.length <= PAGE_CHARS) return [text];
-  const pages: string[] = [];
-  let rest = text;
-  while (rest.length > PAGE_CHARS) {
-    const window = rest.slice(0, PAGE_CHARS + 1);
-    const soft = Math.max(window.lastIndexOf('. '), window.lastIndexOf('? '), window.lastIndexOf('! '), window.lastIndexOf(', '));
-    const cut = soft > PAGE_CHARS * 0.4 ? soft + 1 : window.lastIndexOf(' ');
-    pages.push(rest.slice(0, cut).trim());
-    rest = rest.slice(cut).trim();
-  }
-  if (rest) pages.push(rest);
-  return pages;
-}
+/** A hint too long for the band shows its chunks in turn, each about this long per letter (and at least HINT_CHUNK_MIN_MS). */
+const HINT_MS_PER_CHAR = 70;
+const HINT_CHUNK_MIN_MS = 2800;
 
 const closed = (cards: number): Unfold => ({ dim: 0, cover: 0, layers: Array.from({ length: cards }, () => 0) });
 const clamp01 = (v: number): number => Math.max(0, Math.min(1, v));
@@ -230,6 +217,8 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
   let drawerWanted = false;
   let drawerAmount = 0;
   let satchelOpen = false;
+  /** How many things this reader has handed over, on this device: the ask's cue settles as it grows. */
+  let handovers = readHandovers(deviceStore());
   let satchelFlap = 0;
   let holding = false;
   let heldCast: string | null = null;
@@ -250,6 +239,8 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
   const HOP_MS = 650;
   let endedAtMs: number | null = null;
   let hint: string | null = null;
+  /** When the hint showing now was set, so a long one starts from its first chunk. */
+  let hintSinceMs = 0;
   const pending: RuntimeEvent[] = [];
   const speeches: Array<{ speech: Speech; atMs: number; text: string; endMs: number }> = [];
   let marks: SoundMark[] = [];
@@ -533,6 +524,7 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
       views.sound.roomTone(true);
     },
     setHint(text) {
+      if (text !== hint) hintSinceMs = -1;
       hint = text;
     },
     useScheduler(next, nextSpine, initialObjects) {
@@ -659,6 +651,7 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
       const ms = clock.ms;
       const { outcome, events } = scheduler.gift(ms, objectId, def?.tags ?? [], castId);
       handleEvents(events);
+      handovers = noteHandover(deviceStore());
       pending.push({ type: 'gift', objectId, castId, outcome, atMs: ms });
       const light = lightObjects.get(objectId) === castId;
       const at = views.puppets.get(castId)!.root.getWorldPosition(new Vector3());
@@ -1014,6 +1007,16 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
         const d = views.objects.worldOf(objectId, scratch).distanceTo(grip.getWorldPosition(new Vector3())) / Math.max(0.3, worldScale.x);
         views.objects.setGlow(objectId, 0.22 + 0.78 * clamp01(1 - (d - 0.05) / 0.32));
       }
+      // The ask's cue: while a character waits for something, everything that answers it wears the
+      // same soft gold rim (never just the "right" one), a moment after the ask, and not while you hold one.
+      const asked = started && bookOpen ? scheduler.openProblem(ms) : null;
+      const askedProblem = asked ? (spine.scenes[asked.scene]?.problem ?? null) : null;
+      const wanted = askedProblem ? answerTags(askedProblem) : null;
+      const cueNow = asked && wanted && !holding ? cueStrength(handovers) * clamp01((ms - asked.openedAtMs - 600) / 700) : 0;
+      for (const o of views.objects.states()) {
+        const out = o.home.kind === 'drawer' ? drawerAmount > 0.99 : o.home.kind === 'satchel' ? satchelOpen : o.home.kind === 'page' || o.home.kind === 'table' || o.home.kind === 'room';
+        views.objects.setCue(o.id, wanted && out && o.grabbable && !o.given && answers(defs.get(o.id), wanted) ? cueNow : 0);
+      }
       views.objects.frame(nowMs, head ?? new Vector3(), receivers(), handPoints, {
         bookOpen,
         drawerOpen: drawerAmount > 0.99,
@@ -1109,30 +1112,29 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
       const caption = state.caption;
       const end = endedAtMs !== null && ms >= endedAtMs;
       if (caption) {
-        // A long line pages through the band two printed lines at a time, each page for its share of the voice.
-        const pages = captionPages(caption.text);
-        const total = pages.reduce((n, p) => n + p.length, 0);
-        let start = 0;
-        let page = pages[0]!;
-        let pageStart = 0;
-        let pageEnd = caption.durationMs;
-        for (const p of pages) {
-          const end = start + (caption.durationMs * p.length) / total;
-          if (caption.localMs < end || p === pages[pages.length - 1]) {
-            page = p;
-            pageStart = start;
-            pageEnd = end;
-            break;
-          }
-          start = end;
-        }
+        // A long line shows in chunks that each fit the band, in order, each for its share of the voice.
+        const chunk = chunkAt(views.caption.chunks(caption.text), caption.durationMs, caption.localMs);
+        const page = chunk.text;
+        const pageStart = chunk.startMs;
+        const pageEnd = chunk.endMs;
         const local = caption.localMs - pageStart;
         const fade = Math.min(1, local / CAPTION_FADE_MS, (pageEnd - pageStart - local) / CAPTION_FADE_MS + 0.0001);
         views.caption.show(page, Math.max(0, fade));
       } else if (inviting && invite) {
         // A first-timer's hint, printed on the page like the rest: it fades in once the edge has lifted.
         views.caption.show('Turn the page', clamp01((invite.localMs - 700) / 500) * 0.85);
-      } else if (hint) views.caption.show(hint, 0.6 + 0.15 * Math.sin(nowMs / 600));
+      } else if (hint) {
+        // A hint longer than the band holds shows its chunks in turn, round again, each fading in.
+        if (hintSinceMs < 0) hintSinceMs = nowMs;
+        const chunks = views.caption.chunks(hint);
+        const spans = chunks.map((c) => Math.max(HINT_CHUNK_MIN_MS, c.length * HINT_MS_PER_CHAR));
+        const cycle = spans.reduce((a, b) => a + b, 0);
+        let t = chunks.length > 1 ? (nowMs - hintSinceMs) % cycle : 0;
+        let i = 0;
+        while (i < spans.length - 1 && t >= spans[i]!) t -= spans[i++]!;
+        const fade = chunks.length > 1 ? clamp01(Math.min(t / CAPTION_FADE_MS, (spans[i]! - t) / CAPTION_FADE_MS)) : 1;
+        views.caption.show(chunks[i] ?? hint, (0.6 + 0.15 * Math.sin(nowMs / 600)) * fade);
+      }
       else views.caption.show(null, 0);
       views.endPage.show(end && !caption && bookOpen, end ? clamp01((ms - endedAtMs!) / 900) : 0);
 

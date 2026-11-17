@@ -59,7 +59,7 @@ export function OpenTheBook({ state, library, onSignIn, signedIn, compact = fals
   const label =
     state.kind === 'loading' ? 'Getting the book ready' : state.kind === 'opening' ? 'Opening the book…' : state.kind === 'failed' ? 'The book didn’t load' : (ready?.label ?? choice.label);
   return (
-    <div className="flex flex-col items-center gap-3">
+    <div className="flex flex-col items-center gap-3" data-actions>
       <ShimmerButton
         type="button"
         disabled={!ready}
@@ -73,6 +73,7 @@ export function OpenTheBook({ state, library, onSignIn, signedIn, compact = fals
           <span aria-hidden className="absolute bottom-0 left-0 h-1 bg-gold transition-[width] duration-200" style={{ width: `${Math.round(state.share * 100)}%` }} />
         )}
       </ShimmerButton>
+      <div className="flex flex-col items-center gap-3" data-below>
       {state.kind === 'refused' && <p className="m-0 text-[17px] text-page" role="status">Your browser didn’t open the book. Tap to try again.</p>}
       {state.kind === 'failed' ? (
         <p className="m-0 text-[17px] text-page" role="alert">
@@ -110,6 +111,7 @@ export function OpenTheBook({ state, library, onSignIn, signedIn, compact = fals
           </>
         )}
       </p>)}
+      </div>
     </div>
   );
 }

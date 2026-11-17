@@ -34,9 +34,21 @@ function Rise({ ready, delay, children, className }: { ready: boolean; delay: nu
   );
 }
 
-/** A door: its kind, its name and its one line; on a headset, its own action under them. */
-const doorCard =
-  'flex min-w-0 flex-col items-stretch gap-4 rounded-[16px] border border-page/12 bg-[#18130f]/85 p-5 text-left backdrop-blur-sm [&_[data-action=open]]:w-full [&_[data-action=open]]:px-5 [&_[data-action=open]]:text-[19px] [&_[data-door]>button:first-child]:w-full';
+/**
+ * A door: its kind, its name and its one line; on a headset, its own action under them. Side by side,
+ * the two doors share rows (a subgrid): their heads, their buttons and the words under them line up,
+ * whatever each says, and the two buttons are the same size.
+ */
+const doorCardBase = 'flex min-w-0 flex-col items-stretch gap-4 rounded-[16px] border border-page/12 bg-[#18130f]/85 p-6 text-left backdrop-blur-sm';
+const doorCardActions = [
+  doorCardBase,
+  'lg:row-span-3 lg:grid lg:grid-rows-subgrid lg:gap-y-5 lg:[&_[data-actions]]:contents',
+  // One button size for both doors: full width, 64 px tall, the same type, corners and padding.
+  '[&_[data-action=open]]:w-full [&_[data-action=open]]:rounded-[12px] [&_[data-action=open]]:px-4 [&_[data-action=open]]:text-[19px] [&_[data-action=open]]:leading-tight',
+  '[&_[data-door]>button:first-child]:min-h-16 [&_[data-door]>button:first-child]:w-full [&_[data-door]>button:first-child]:px-4 [&_[data-door]>button:first-child]:text-[19px] [&_[data-door]>button:first-child]:leading-tight',
+  // What's under each button starts at the card's left edge, like its heading.
+  '[&_[data-below]]:items-start [&_[data-below]]:self-start [&_[data-below]]:text-left [&_[data-below]>p]:max-w-none [&_[data-below]_button]:px-0',
+].join(' ');
 
 function DoorHead({ kind, title, line, tone }: { kind: string; title: string; line: string; tone: 'rust' | 'sage' }) {
   return (
@@ -73,12 +85,12 @@ export function Hero({ device, ready, title, tagline, openBook, door }: { device
             </h1>
             <p className="m-0 mt-4 max-w-[40ch] text-[clamp(17px,1.35vw,19px)] leading-relaxed text-page/85">{tagline}</p>
           </Rise>
-          <Rise ready={ready} delay={0.5} className="mt-7 grid gap-4 lg:grid-cols-2">
-            <div className={doorCard}>
+          <Rise ready={ready} delay={0.5} className={`mt-7 grid gap-4 lg:grid-cols-2 ${headset ? 'lg:grid-rows-[auto_auto_1fr]' : ''}`}>
+            <div className={headset ? doorCardActions : doorCardBase}>
               <DoorHead tone="rust" kind="Chapters" title="Read the book" line="Pip, Wick and Moth in the Lost and Found, chapter by chapter." />
               {headset && openBook}
             </div>
-            <div className={doorCard}>
+            <div className={headset ? doorCardActions : doorCardBase}>
               <DoorHead tone="sage" kind="Made up with you" title="The AI Storyteller" line="Talk to them, hand them anything, and the story is made up with you." />
               {headset && <Door {...door} />}
             </div>

@@ -2,6 +2,7 @@ import { Mesh, MeshBasicMaterial, Object3D, PlaneGeometry } from '@iwsdk/core';
 import { Text, preloadFont } from 'troika-three-text';
 import titleFont from '@fontsource/fraunces/files/fraunces-latin-500-normal.woff?url';
 import captionFont from '@fontsource/atkinson-hyperlegible-next/files/atkinson-hyperlegible-next-latin-500-normal.woff?url';
+import { CAPTION_LINE_HEIGHT, captionChunks, captionFit } from './caption-fit.ts';
 
 const NAVY = '#1F2A44';
 const INK = '#2B2420';
@@ -37,6 +38,8 @@ export interface CaptionView {
   /** The authored size, in the book's own units. */
   readonly baseSizeM: number;
   setSize(sizeM: number): void;
+  /** A line in the chunks that fit the band at the caption's size now, in order, every word whole. */
+  chunks(line: string): string[];
 }
 
 /** The chapter's printed end line, for the chapter that's loaded. */
@@ -44,21 +47,26 @@ export function endLine(n: number): string {
   return `The end of chapter ${n}`;
 }
 
-/** Captions are printed on the page, never over your room. At least 1° tall at reading distance. */
-export function captionText(widthM: number): CaptionView {
+/**
+ * Captions are printed on the page, never over your room. At least 1° tall at reading distance,
+ * and never more lines than the band (`bandM` deep) holds: a longer line shows in chunks.
+ */
+export function captionText(widthM: number, bandM: number): CaptionView {
   const text = new Text();
   text.name = 'caption';
   text.text = '';
   text.font = captionFont;
   text.fontSize = 0.012;
   text.maxWidth = widthM;
-  text.lineHeight = 1.25;
+  text.lineHeight = CAPTION_LINE_HEIGHT;
   text.textAlign = 'center';
   text.anchorX = 'center';
   text.anchorY = 'middle';
   text.color = INK;
   text.depthOffset = -1;
   let current = '';
+  const cache = new Map<string, string[]>();
+  let cacheSize = 0;
   return {
     mesh: text,
     baseSizeM: 0.012,
@@ -66,6 +74,18 @@ export function captionText(widthM: number): CaptionView {
       if (Math.abs(text.fontSize - sizeM) < 1e-5) return;
       text.fontSize = sizeM;
       text.sync();
+    },
+    chunks(line) {
+      if (cacheSize !== text.fontSize || cache.size > 64) {
+        cache.clear();
+        cacheSize = text.fontSize;
+      }
+      let chunks = cache.get(line);
+      if (!chunks) {
+        chunks = captionChunks(line, captionFit(widthM, bandM, text.fontSize));
+        cache.set(line, chunks);
+      }
+      return chunks;
     },
     show(line, opacity) {
       const next = line ?? '';

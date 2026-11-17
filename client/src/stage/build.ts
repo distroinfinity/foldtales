@@ -51,7 +51,7 @@ export function buildStage(manifest: ShowManifest, assets: StageAssets, soft: So
 
   const title = titleText(manifest.title, assets.book.closedSizeM[0]);
   book.titleAnchor.add(title);
-  const caption = captionText(assets.book.openSizeM[0] * CAPTION_WIDTH_SHARE);
+  const caption = captionText(assets.book.openSizeM[0] * CAPTION_WIDTH_SHARE, Math.min(...assets.sets.map((s) => s.spec.ground.captionBandM)));
   book.captionAnchor.add(caption.mesh);
   const endPage = endPageText(assets.book.openSizeM[0] * CAPTION_WIDTH_SHARE);
   book.captionAnchor.add(endPage.root);
