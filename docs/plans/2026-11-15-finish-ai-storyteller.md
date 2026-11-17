@@ -930,6 +930,14 @@ The screenshots are in the session scratchpad's `emu/` folder: `/private/tmp/cla
 - `ELEVENLABS_API_KEY` isn't read; leave it or remove it.
 - `TT_ACCOUNTS`: the backend no longer reads it. AI routes always need a signed-in reader, and the account routes always need a session, so setting it is harmless and changes nothing.
 
+**Re-checked Nov 17, after #52 merged (`main` at 2a22af1):**
+- **Railway's `backend` has every key, `OPENAI_API_KEY` included.** `TT_STORYTELLER=off`, no limit overrides (the owner's numbers are the defaults), and `TT_PAINTING` not yet set.
+- **The live API answers contract 9,** with Google and email codes both on (`/v1/auth/methods`).
+- **With the Storyteller off,** an anonymous caller gets 401 "sign in" on `availability`. On `start`, `turn`, `transcribe` and `paint` the off switch answers first, with "resting".
+- **With the Storyteller on** (dev backend, same build), all nine AI routes give an anonymous caller 401 "sign in".
+- **The Google handoff:** Better Auth's own verify route answers 404 on production, and a forged `/google/done` gets `error=google`, never a token.
+- **Waiting on the owner:** Google's consent screen still names "Nikhil's Brain". Don't run step 2 until it says Foldtales.
+
 ### Steps
 
 1. **Railway, with the Storyteller still off.** Set `OPENAI_API_KEY` (the voices) and `TT_PAINTING=on` (live painting: 100 credits in all, every picture, name and description checked). Deploy.
@@ -940,6 +948,16 @@ The screenshots are in the session scratchpad's `emu/` folder: `/private/tmp/cla
    - *Check:* the deploy log says `storyteller on`. On the Mac, signed in, the door shows "Let them hear you" or "Start a new story".
 4. **The owner's headset steps** (below).
 5. **Rollback, if anything is wrong:** set `TT_STORYTELLER=off` on Railway and deploy. That's all. Every AI call is refused as resting, the door says the Storyteller can't open, and sign-in and the chapters keep working. Never roll back by turning sign-in off: guests can't reach the AI either way.
+
+### The exact flips (prepared Nov 17; not run)
+
+| # | Where | Change | Then |
+|---|---|---|---|
+| 1 | Railway → foldtales → backend → Variables | Add `TT_PAINTING` = `on` (`OPENAI_API_KEY` is already there) | Deploy. The log's first line ends `storyteller OFF ; painting on`. |
+| 2 | Cloudflare → Pages → foldtales → Settings → Variables (Production) | `TT_PUBLIC_ACCOUNTS` = `on`; delete `TT_PUBLIC_STORYTELLER` | Retry the latest production deployment, so the build reads them. |
+| 3 | Railway → foldtales → backend → Variables | Delete `TT_STORYTELLER` | Deploy. The log's first line ends `storyteller on ; painting on`. |
+
+Rollback for any of them: `TT_STORYTELLER` = `off` on Railway, then deploy.
 
 ### The owner's steps on the live site (Quest Browser, `www.foldtales.xyz`)
 
@@ -959,3 +977,64 @@ The screenshots are in the session scratchpad's `emu/` folder: `/private/tmp/cla
 8. **Your stories.** Put the book away. *Look:* on the page, "Your book" lists the story under "Your stories, with the AI Storyteller".
 
 Also worth a minute: start a story with "or play by hand" and say nothing. It should carry on alone and end by itself.
+
+---
+
+## Live voice proof (Nov 17)
+
+**How it ran:** a short real story through the dev backend's own routes, on `main` at 2a22af1 plus this branch's fixes.
+- Real keys for Claude, OpenAI's `gpt-4o-mini-tts` and Groq.
+- The client's own cast and sets from `client/public/show/manifest.json`.
+- Each story: the welcome, two spoken turns ("Tonight the teapot has lost its whistle", then "Maybe Moth can look for it up by the lamp?"), and the close.
+- Seven stories in all. All named themselves "The Teapot Who Lost Its Whistle".
+- The emulator couldn't be used: in this headless build it never reports the microphone as granted, and "play by hand" didn't open the book. So the turns were sent from a small script with the same request the headset sends.
+
+**Latency:**
+- **First voiced line,** from the turn's request to the first beat with audio:
+  - welcome: 4.7–6.4 s
+  - spoken turns: 4.2–6.0 s
+  - close: 4.2–5.1 s
+  - backend's own log: 4.2–6.4 s, median about 5.1 s
+- **Each line's voice** (OpenAI's whole-file answer, measured per call; 67 lines):
+
+  | Voice | Average |
+  |---|---|
+  | Narrator | 2.0 s |
+  | Pip | 1.8 s |
+  | Wick | 1.9 s |
+  | Moth | 1.8 s |
+
+  One slow call took 4.2 s.
+- **A line's check** (Haiku): about 1.1–1.2 s, run alongside writing.
+- **So the first line's 5 s is:** Claude writing the first beat, plus that beat's check, plus its voice. The checks and voices of later lines overlap with the lines being played.
+
+**Cost per story, at today's published prices:**
+- **Prices:**
+  - Claude Sonnet 5.5: $2 in / $10 out per million tokens.
+  - Claude Haiku 5.5: $0.10 / $0.50.
+  - gpt-4o-mini-tts: about $0.015 a minute of audio.
+  - Groq Whisper: a fraction of a cent.
+- **Measured per turn,** from each story's ledger (`story_spend`):
+  - Claude: about 3,100 tokens.
+  - Voice: about 390 characters, roughly 30 s of audio.
+- **That's roughly $0.017 a turn:** about $0.010 Claude, $0.007 voice.
+
+| Story | Turns | Cost |
+|---|---|---|
+| A ten-minute story by voice | 15–20 | about $0.25–0.35 |
+| At the 40-turn cap | 40 | about $0.70 |
+| A day at the 150-story cap, typical | | about $40–50 |
+| A day at the 150-story cap, every story at 40 turns | | about $100 |
+
+Paintings are separate: Runway credits, 100 in all.
+
+**Found and fixed:**
+1. **The closing turn's ending was lost.** In both of the first two runs, one of the closing turn's checks timed out at its 2.5 s bound (its title, summary and lines are all checked at once). The check fails closed, so the close became a redirect: no ending from the AI, and the client played "the page turned, somewhere cozier" just before the end card.
+   - **Backend:** a check that times out or errors is asked once more, then fails closed. An unfit answer is never asked again.
+   - **Client:** a redirect during the closing turn just ends the story.
+   - **Result:** four runs since, every close ended with its ending.
+2. **The line check now logs why it stopped a line** (unfit, or the check failed after how long). The line itself is logged only on a dev backend.
+
+**To watch:** in one of about 28 turns, a line in a cozy teapot story was judged unfit (74 characters), so that turn was redirected. The dev log now shows the text, so the next one can be read and the check tuned.
+
+**Run 023** is not recorded. Its plan records it only after the owner has approved the four live voices by ear, in the headset session. The voices and their directions are unchanged in `art/voice/live.json`.

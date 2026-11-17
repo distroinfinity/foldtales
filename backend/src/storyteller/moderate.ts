@@ -25,17 +25,25 @@ export function createModerator(claude: Claude) {
 }
 
 /**
- * Is a generated line, title or summary fit to be heard or saved? Fails closed: any error, refusal
- * or timeout (2.5 s) is false, and the caller tells it in story instead.
+ * Is a generated line, title or summary fit to be heard or saved? Fails closed: a refusal is false at
+ * once; an error or a timeout (2.5 s) is tried once more, then false, and the caller tells it in story.
+ * The retry is for the closing turn, whose title, summary and lines are all checked at once: in the live
+ * voice proof (Nov 17) one of them timed out in both runs, and the ending became a redirect.
  */
-export function createLineCheck(claude: Claude, timeoutMs = 2500) {
+export function createLineCheck(claude: Claude, timeoutMs = 2500, log: (m: string) => void = () => {}, showText = false) {
   return async (text: string): Promise<boolean> => {
-    try {
-      const answer = await claude.ask({ model: REACTOR, system: OUTPUT, user: text, schema: FIT, parse: fitOnly, maxTokens: 50, timeoutMs, estimate: 'checkLine' });
-      return answer.fit;
-    } catch {
-      return false;
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      const started = Date.now();
+      try {
+        const answer = await claude.ask({ model: REACTOR, system: OUTPUT, user: text, schema: FIT, parse: fitOnly, maxTokens: 50, timeoutMs, estimate: 'checkLine' });
+        // Why a line was stopped; the line itself only on a dev backend (`showText`), never in production logs.
+        if (!answer.fit) log(`line check: unfit (${text.length} chars)${showText ? `: ${text}` : ''}`);
+        return answer.fit;
+      } catch (cause) {
+        log(`line check: attempt ${attempt} failed after ${Date.now() - started} ms (${String(cause).slice(0, 80)})${attempt === 2 ? ', so the line is stopped' : ', trying once more'}`);
+      }
     }
+    return false;
   };
 }
 

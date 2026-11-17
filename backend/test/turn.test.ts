@@ -134,6 +134,19 @@ describe('the checks fail closed', () => {
   test('a line check that errors is false', async () => {
     expect(await createLineCheck(failing('throw'))('hello')).toBe(false);
   });
+  test('a line check that times out once is asked again; unfit is never asked again (live voice proof, Nov 17)', async () => {
+    let calls = 0;
+    const flaky: Claude = { ask: async () => (++calls === 1 ? Promise.reject(new Error('the model was too slow')) : ({ fit: true } as never)) };
+    expect(await createLineCheck(flaky)('The teapot sang again.')).toBe(true);
+    expect(calls).toBe(2);
+    let asked = 0;
+    const unfit: Claude = { ask: async () => (++asked, { fit: false } as never) };
+    expect(await createLineCheck(unfit)('something unfit')).toBe(false);
+    expect(asked).toBe(1);
+    let tries = 0;
+    expect(await createLineCheck({ ask: () => (++tries, Promise.reject(new Error('down'))) })('hello')).toBe(false);
+    expect(tries).toBe(2);
+  });
   test('a picture check that errors is false', async () => {
     expect(await createPictureCheck(failing('throw'))(Buffer.from('x'), 'a teapot')).toBe(false);
   });

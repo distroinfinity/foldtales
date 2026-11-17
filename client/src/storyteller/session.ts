@@ -401,6 +401,8 @@ export function createStorySession(deps: SessionDeps) {
         } else if (event.kind === 'titled') {
           storyTitle = event.title;
         } else if (event.kind === 'redirect') {
+          // A closing turn that's stopped just ends: no "the page turned" at the very end, and no listening again.
+          if (input.kind === 'close') return;
           // The words that led here leave the history, so they don't come back; the page really turns.
           if (input.kind === 'heard' && history.at(-1)?.who === 'reader') history.pop();
           say(redirects++ % 2 === 0 ? 'redirect-a' : 'redirect-b');
