@@ -1,4 +1,4 @@
-import { AddEquation, AdditiveBlending, BoxGeometry, CircleGeometry, ConeGeometry, CustomBlending, DoubleSide, Group, Mesh, MeshBasicMaterial, Object3D, OneFactor, PlaneGeometry, ShaderMaterial, Vector3, ZeroFactor, type BufferAttribute, type Texture } from '@iwsdk/core';
+import { AddEquation, AdditiveBlending, BoxGeometry, CircleGeometry, ConeGeometry, CustomBlending, DoubleSide, Group, Mesh, MeshBasicMaterial, Object3D, OneFactor, PlaneGeometry, ShaderMaterial, SrcAlphaFactor, Vector3, ZeroFactor, type BufferAttribute, type Texture } from '@iwsdk/core';
 import { cardMaterial, surfaceMaterial } from '../paint/card-material.ts';
 import { subUv, type TexRef } from '../paint/texref.ts';
 import type { Unfold } from '../show/cues.ts';
@@ -420,14 +420,15 @@ export function buildBook({ book, sets, textures, bookBase, soft, castOnStage }:
   const beamMaterial = new ShaderMaterial({
     uniforms: { uStrength: { value: 0 } },
     vertexShader: 'varying float vAlong; void main() { vAlong = 1.0 - uv.y; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
-    fragmentShader: 'uniform float uStrength; varying float vAlong; void main() { float a = uStrength * 0.32 * pow(1.0 - vAlong, 0.9); gl_FragColor = vec4(vec3(1.0, 0.82, 0.5) * a, 0.0); }',
+    // M1's beam exactly (4c4035a, the owner's "looks amazing"): its colour, 0.22 and (1 - t)^1.6.
+    fragmentShader: 'uniform float uStrength; varying float vAlong; void main() { float a = uStrength * 0.22 * pow(1.0 - vAlong, 1.6); gl_FragColor = vec4(vec3(1.0, 0.82, 0.5) * a, a); }',
     transparent: true,
     depthWrite: false,
-    // Light added, alpha left alone: over passthrough, more alpha would hide more of your room, so an additive
-    // shaft that also added alpha read as a dark wedge. Your room shows through it, brighter.
+    // M1's light, added as AdditiveBlending adds it (colour times alpha, plus what's there), but alpha left
+    // alone: over passthrough, added alpha hides more of your room, so a longer ray read as a dark wedge.
     blending: CustomBlending,
     blendEquation: AddEquation,
-    blendSrc: OneFactor,
+    blendSrc: SrcAlphaFactor,
     blendDst: OneFactor,
     blendSrcAlpha: ZeroFactor,
     blendDstAlpha: OneFactor,
