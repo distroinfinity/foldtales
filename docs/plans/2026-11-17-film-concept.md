@@ -40,7 +40,7 @@ Four special awards are signalled honestly, by showing the thing and never by na
 
 ### The demo beat sheet (about 2:56)
 
-Timings are estimated from the scripts and stay estimates until stage 3 times the real takes. Real lines can run up to 1.3× longer, so the cut list below matters.
+Timings are estimated from the scripts and stay estimates until stage 3 times the real takes. Real lines can run up to 1.3× longer, so the cut list below matters. **Target: 2:45–2:55.** The form says "Only the first 3 minutes will be reviewed, so include everything needed to evaluate your project within that time" (the field is quoted in `docs/devpost-form.md`). So the edit takes from the cut list until it lands inside that range.
 
 | # | Time | On-screen label | We see | We hear |
 |---|---|---|---|---|
