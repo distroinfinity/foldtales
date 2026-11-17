@@ -16,6 +16,7 @@ import { combineUnfold } from '../stage/book-control.ts';
 import { castAt, type CastPlace } from './cast-state.ts';
 import type { ShowClock } from './clock.ts';
 import { beamAt, gustAt, lightOutAt, unfoldAt, type Unfold } from './cues.ts';
+import { beamReach } from '../light/beam-reach.ts';
 import { HUNT_FADE_MS, HUNT_RETURN_MS, HUNT_REVEAL_MS, huntAt, huntPlace } from '../room-fx/hunt.ts';
 import type { RoomMap } from '../room-fx/room-map.ts';
 import { roomAt, type RoomNow } from '../room-fx/state.ts';
@@ -1054,6 +1055,7 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
       // A keeper's light held up high (light-up) is the lamp now: its beam turns round your room from where it
       // shines, as the lighthouse's does, and fades as it comes down (light-down). From the cues and the
       // light's home, so a restored place has it too.
+      let beamFromLight = false;
       const upCue = cueOf(state, 'light-up');
       if (upCue && bookOpen) {
         const downCue = cueOf(state, 'light-down');
@@ -1063,9 +1065,17 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
         if (held) {
           const turning = beamAt(upCue.localMs);
           const strength = turning.strength * (down === null ? 1 : clamp01(1 - down / LANTERN_BEAM_FADE_MS));
-          if (strength > 0.001) worldBeam = { lamp: views.objects.worldOf(held[0], lantern), azimuth: turning.azimuth + views.stageRoot.rotation.y, strength };
+          if (strength > 0.001) {
+            worldBeam = { lamp: views.objects.worldOf(held[0], lantern), azimuth: turning.azimuth + views.stageRoot.rotation.y, strength };
+            beamFromLight = true;
+          }
         }
       }
+      // The ray you can see leave the lamp (or the raised light) and cross the room to your wall, turning with the
+      // light it casts there. M1's cone; b323be9 dropped it outside the hunt, so only the wall light turned.
+      const walls = views.room?.places() ?? [];
+      if (worldBeam) views.book.setBeam(worldBeam.azimuth - views.stageRoot.rotation.y, worldBeam.strength, { reachM: beamReach(worldBeam.lamp, worldBeam.azimuth, walls), from: beamFromLight ? worldBeam.lamp : null });
+      else views.book.setBeam(0, 0);
       let spot: { at: Vector3; radiusM: number; strength: number } | null = null;
 
       // The treasure hunt: the beam sweeps your room and stops where the lost thing waits.
@@ -1096,7 +1106,7 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
           }
         }
         views.book.setLamp(true);
-        views.book.setBeam(look.azimuth - views.stageRoot.rotation.y, look.strength * (bookOpen ? 1 : 0));
+        views.book.setBeam(look.azimuth - views.stageRoot.rotation.y, look.strength * (bookOpen ? 1 : 0), { reachM: beamReach(lampAt, look.azimuth, walls) });
         if (bookOpen) {
           worldBeam = { lamp: lampAt, azimuth: look.azimuth, strength: look.strength };
           spot = { at: huntTarget, radiusM: 0.45, strength: look.spot };

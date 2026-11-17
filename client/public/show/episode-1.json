@@ -47,7 +47,7 @@
           "id": "opening",
           "source": "authored",
           "sceneId": "the-lamp",
-          "estSeconds": 40,
+          "estSeconds": 45,
           "actions": [
             {
               "do": "cue",
@@ -87,7 +87,7 @@
             {
               "do": "wait",
               "withPrev": false,
-              "seconds": 2.5
+              "seconds": 7.5
             },
             {
               "do": "speak",
@@ -135,6 +135,20 @@
               "withPrev": false,
               "text": "And that was when the wind came.",
               "mood": "tense"
+            },
+            {
+              "do": "room",
+              "withPrev": true,
+              "effect": "rain",
+              "what": null,
+              "at": null
+            },
+            {
+              "do": "room",
+              "withPrev": true,
+              "effect": "thunder",
+              "what": null,
+              "at": null
             },
             {
               "do": "cue",
@@ -298,6 +312,13 @@
               "text": "It's lit! It was cold, and then you held it, and it just... woke up.",
               "mood": "wonder",
               "to": "reader"
+            },
+            {
+              "do": "room",
+              "withPrev": true,
+              "effect": "clear",
+              "what": null,
+              "at": null
             },
             {
               "do": "emote",
@@ -467,6 +488,13 @@
               "withPrev": false,
               "text": "And when he held it close, brave in the dark, the little flame woke up again.",
               "mood": "wonder"
+            },
+            {
+              "do": "room",
+              "withPrev": true,
+              "effect": "clear",
+              "what": null,
+              "at": null
             },
             {
               "do": "emote",

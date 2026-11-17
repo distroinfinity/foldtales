@@ -127,8 +127,8 @@
           "grip": {
             "part": "armRight",
             "at": [
-              5,
-              90
+              82,
+              76
             ]
           },
           "held": "logbook",
