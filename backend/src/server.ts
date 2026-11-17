@@ -118,6 +118,27 @@ const app = createApp(
 );
 const { port, host } = resolveListen(argv, process.env, readPorts);
 
-serve({ fetch: app.fetch, port, hostname: host }, () => {
+const server = serve({ fetch: app.fetch, port, hostname: host }, () => {
   console.log(`backend on ${host}:${port}, mock profile ${profile}`);
 });
+
+// Railway stops the old deployment with SIGTERM when a new one takes over. Finish cleanly and exit 0, so a
+// routine replacement isn't reported as a crash: stop taking requests, let open ones end, close the database.
+let stopping = false;
+const stop = (signal: NodeJS.Signals) => {
+  if (stopping) return;
+  stopping = true;
+  console.log(`backend stopping (${signal})`);
+  const done = () => {
+    try {
+      store.close();
+    } catch {
+      // Already closed, or never opened: nothing to keep.
+    }
+    process.exit(0);
+  };
+  server.close(done);
+  setTimeout(done, 5000).unref();
+};
+process.on('SIGTERM', stop);
+process.on('SIGINT', stop);
