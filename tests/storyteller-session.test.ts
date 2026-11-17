@@ -311,6 +311,20 @@ describe('in story, never silent', () => {
     expect(h.requests.at(-1)!.history.some((l) => l.text === 'something unkind')).toBe(false);
   });
 
+  test('a closing turn that a check stops just ends: no "page turned" at the very end (live voice proof, Nov 17)', async () => {
+    const h = harness({
+      stream: (request: { input: { kind: string } }) =>
+        (async function* () {
+          yield (request.input.kind === 'close' ? { kind: 'redirect', text: 'x', voice: { url: null, durationMs: 1 } } : { kind: 'listen', who: null }) as TurnEvent;
+        })(),
+    });
+    h.session.open();
+    await h.run(SHAPE.hardStopS + 15);
+    expect(h.requests.some((r) => r.input.kind === 'close')).toBe(true);
+    expect(h.session.ended).toBe(true);
+    expect(h.said()).not.toContain(RECORDED['redirect-a'].text);
+  });
+
   test('tonight\'s limit mid-story ends it properly, with the recording', async () => {
     const h = harness({ stream: () => (async function* () { yield { kind: 'error', code: 'quota_exceeded', message: 'this story has ended' } as TurnEvent; })() });
     h.session.open();

@@ -66,7 +66,7 @@ const transcriber = createTranscriber(groqKey, { prompt: readListenPrompt(join(p
 const voices = spendingVoices(liveVoices, stories);
 const anthropic = key ? new Anthropic({ apiKey: key, maxRetries: 0 }) : null;
 const moderate = claude ? createModerator(claude) : undefined;
-const checkLine = claude ? createLineCheck(claude) : async () => false;
+const checkLine = claude ? createLineCheck(claude, 2500, (m) => console.log(m), dev) : async () => false;
 // Live painting: run 013's recipe, its credits from the story store's lifetime pool.
 const painter = createPainter({
   runwayKey: process.env.RUNWAYML_API_SECRET,
