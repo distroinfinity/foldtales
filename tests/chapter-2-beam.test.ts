@@ -3,8 +3,8 @@ import { describe, expect, test, vi } from 'vitest';
 import { Vector3, type ShaderMaterial } from '@iwsdk/core';
 import { Spine } from '../contracts/src/index.ts';
 import type { RuntimeSnapshot } from '../client/src/show/runtime.ts';
-import { BEAM_REACH_M } from '../client/src/light/beam-reach.ts';
-import { playTo, playUntil, sets, spine as chapter1, stage, type Harness } from './stage-harness.ts';
+import { BEAM_REACH_M, beamReach } from '../client/src/light/beam-reach.ts';
+import { head, playTo, playUntil, sets, spine as chapter1, stage, type Harness } from './stage-harness.ts';
 
 // Whole-stage plays, frame by frame.
 vi.setConfig({ testTimeout: 60_000 });
@@ -26,10 +26,11 @@ function ray(s: Harness, a: ReturnType<typeof beam>) {
   expect(pivot.getWorldPosition(new Vector3()).distanceTo(a.lamp)).toBeLessThan(1e-4);
   const along = pivot.getWorldDirection(new Vector3());
   expect(Math.hypot(along.x - Math.sin(a.azimuth), along.z - Math.cos(a.azimuth))).toBeLessThan(1e-3);
-  // With no room read, it runs the room dim's 3 m.
+  // With no room read, it runs the room dim's 3 m, short of your eyes when it turns toward you.
   const cone = pivot.children[0]!;
-  const lengthM = (cone.getWorldScale(new Vector3()).x * 0.45);
-  expect(lengthM).toBeCloseTo(BEAM_REACH_M, 2);
+  const lengthM = cone.getWorldScale(new Vector3()).x * 0.45;
+  expect(lengthM).toBeCloseTo(beamReach(a.lamp, a.azimuth, [], head), 2);
+  expect(lengthM).toBeLessThanOrEqual(BEAM_REACH_M + 1e-6);
 }
 
 function sweeps(s: Harness, setId: string) {
