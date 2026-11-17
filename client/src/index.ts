@@ -1,5 +1,6 @@
-import { DepthOccludable, DepthSensingSystem, Group, SessionMode, SRGBColorSpace, TextureLoader, Vector3, VisibilityState, World } from '@iwsdk/core';
-import { wholeRef } from './paint/texref.ts';
+import { DepthOccludable, DepthSensingSystem, Group, SessionMode, type Object3D, SRGBColorSpace, TextureLoader, Vector3, VisibilityState, World } from '@iwsdk/core';
+import { wholeRef, type TexRef } from './paint/texref.ts';
+import { createTurnCard, preloadChapterArt, releaseObjects, titlePage, turnTargetOf, type BookHandoff, type ChapterTarget, type TurnCard } from './stage/chapter-turn.ts';
 import { roomLight, tableSpot } from './room/room.ts';
 import { buildRoom, roomLook } from './room/room-view.ts';
 import { REVIEW_HOOKS, reviewQuery } from './dev.ts';
@@ -78,6 +79,8 @@ const MAX_ERROR_LENGTH = 500;
 /** The book drops its last centimetre onto the wash. */
 const SETTLE_DROP_M = 0.012;
 const CHECKPOINT_EVERY_MS = 1000;
+/** Turned to in the same session: the new chapter's book opens this long after it's ready. */
+const TURN_OPEN_DELAY_MS = 700;
 
 /** In dev, `/api` is proxied to this workspace's own backend. */
 const backendAccess = createBackendAccess({
@@ -138,14 +141,16 @@ async function fetchManifest(): Promise<ShowManifest> {
 }
 
 /** Stage one of preloading: fetch, decode and upload everything before the button is offered. */
-async function prepare(world: World, chapter: ChapterData) {
+async function prepare(world: World, chapter: ChapterData, opts: { quiet?: boolean; reuse?: ReadonlyMap<string, TexRef> } = {}) {
   // Who stands where as the first spread opens is the chapter's (the runtime's opening placement reads it here).
   const manifest = chapterManifest(await fetchManifest(), chapter);
   const [assets] = await Promise.all([
     // Review builds can ask for `?art=png`, and the coverage material needs straight-alpha PNG.
     loadStageAssets(manifest, './art', world.renderer, {
       allowKtx2: reviewQuery('art') !== 'png' && reviewQuery('material') !== 'coverage',
-      onProgress: (done, total) => setLandingState({ kind: 'loading', share: done / total }),
+      // Turning a chapter inside the book: the page underneath stays as it is.
+      onProgress: opts.quiet ? undefined : (done, total) => setLandingState({ kind: 'loading', share: done / total }),
+      reuse: opts.reuse,
       // The chapter this page load plays (lane B's loadChapter).
       spine: chapter.episode,
     }),
@@ -459,7 +464,24 @@ async function prepare(world: World, chapter: ChapterData) {
   return { manifest, assets, stage, dim, sound, clock, runtime, roomMap, shadowPlay, fireflies, windowView, weather, roomDepth, nightSky, snow, sea, gulls, devRoomTick, wash, ember, log, pause, controls, soft, review, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, away, canonData, defs, directorOn, storyConfig, moreTargets, menuHooks, chapter };
 }
 
-function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom: Checkpoint | null, target: EnterTarget | null = null): void {
+/** A chapter turned inside the running session (stage/chapter-turn.ts): where the book lay, and the boot's hooks. */
+interface RunTurn {
+  /** This chapter opens where the last one's book lay, in the same session, under its title page. */
+  arriving?: BookHandoff;
+  /** Turns to another chapter without leaving the session, once this book has closed. */
+  turnTo?: (target: ChapterTarget, from: BookHandoff) => void;
+  /** This chapter's first frame has been drawn (its shaders are warm): the last one can go. */
+  ready?: () => void;
+  /** The book has begun to open: the title page folds away. */
+  opening?: () => void;
+  /** Near the end: the next chapter's paintings can be decoded ahead of time. */
+  preload?: (n: number) => void;
+}
+
+function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom: Checkpoint | null, target: EnterTarget | null = null, turn: RunTurn = {}): { retire(): void } {
+  /** What this run listens to, let go when the chapter is turned away from. */
+  const releases: Array<() => void> = [];
+  let retired = false;
   const { manifest, assets, stage, sound, clock, runtime, roomMap, shadowPlay, fireflies, windowView, weather, roomDepth, nightSky, snow, sea, gulls, devRoomTick, wash, ember, log, pause, controls, room, sizing, tableTop, hands, readAgain, initialObjects, director, answers, showObjects, away, canonData, defs, storyConfig, moreTargets, menuHooks, chapter } = show;
   // The AI Storyteller, when that's the door the reader chose on the landing page.
   const storyMode = target?.kind === 'storyteller' && storyConfig !== null;
@@ -655,8 +677,10 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
   // Listening: hold to talk. The microphone was allowed on the landing page before the Storyteller opened.
   let micAllowed = false;
   void navigator.permissions?.query({ name: 'microphone' as PermissionName }).then((p) => {
+    if (retired) return;
     micAllowed = p.state === 'granted';
     p.onchange = () => (micAllowed = p.state === 'granted');
+    releases.push(() => (p.onchange = null));
   }).catch(() => undefined);
   const trim = (t: string) => (t.length > 70 ? `…${t.slice(-67)}` : t);
   const ears = createEars({
@@ -693,17 +717,28 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
   // The microphone never outlives the moment: leaving the page, the headset's view or XR stops it at
   // once, without waiting for another frame (frames stop when XR does).
   const stopEars = () => ears.stop();
-  document.addEventListener('visibilitychange', () => {
+  const stopEarsHidden = () => {
     if (document.hidden) stopEars();
-  });
+  };
+  document.addEventListener('visibilitychange', stopEarsHidden);
   window.addEventListener('pagehide', stopEars);
-  world.renderer.xr.addEventListener('sessionstart', () => {
+  // On the session itself, so it's removed with the rest when the chapter is turned away from.
+  const sessionListeners = new AbortController();
+  const watchSession = () => {
     const xr = world.renderer.xr.getSession();
     xr?.addEventListener('visibilitychange', () => {
       if (xr.visibilityState !== 'visible') stopEars();
-    });
-  });
+    }, { signal: sessionListeners.signal });
+  };
+  world.renderer.xr.addEventListener('sessionstart', watchSession);
   world.renderer.xr.addEventListener('sessionend', stopEars);
+  releases.push(() => {
+    document.removeEventListener('visibilitychange', stopEarsHidden);
+    window.removeEventListener('pagehide', stopEars);
+    world.renderer.xr.removeEventListener('sessionstart', watchSession);
+    world.renderer.xr.removeEventListener('sessionend', stopEars);
+    sessionListeners.abort();
+  });
   const talk = createTalkTab({
     bookRoot: stage.book.root,
     pageY: stage.book.pageY,
@@ -878,8 +913,19 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
     if (target) chooseEntry(target, storyMode ? { kind: 'storyteller' } : { kind: 'chapter', n: chapterN, from: runtime.ended ? 'start' : 'resume' });
     away.requested = true;
   }
+  /** Turning to another chapter in this session: the book closes, then the boot prepares the next one under its title page. */
+  let turning: { target: ChapterTarget; told: boolean } | null = null;
+  function turnChapter(next: ChapterTarget): void {
+    // This chapter's place is kept (a turn from Contents mid-chapter resumes there later), and nothing late lands.
+    checkpoint();
+    invalidate();
+    turning = { target: next, told: false };
+  }
   function apply(effect: MenuEffect | null): void {
     if (!effect) return;
+    // Another chapter, from the end card or Contents, while in the book: turned to here, not on the page.
+    const turnTo = turn.turnTo && !storyMode && world.renderer.xr.isPresenting ? turnTargetOf(effect, { n: chapterN, next: chapter.next }) : null;
+    if (turnTo) return turnChapter(turnTo);
     switch (effect.kind) {
       case 'carry-on':
         return;
@@ -1020,7 +1066,32 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
   const forward = new Vector3();
   const up = new Vector3();
   const spot = new Vector3();
-  let arrival: { atMs: number; confirmed: boolean; landed: boolean; bloomed: boolean; opened: boolean } | null = null;
+  let arrival: { atMs: number; confirmed: boolean; landed: boolean; bloomed: boolean; opened: boolean; turned?: boolean } | null = null;
+  /** The chapter before's book, when this one was turned to in the same session. */
+  const arriving = turn.arriving ?? null;
+  const arrivingSession = arriving ? world.renderer.xr.getSession() : null;
+  let satchelSide: 1 | -1 | null = arriving?.satchelSide ?? null;
+  let roomAt: BookHandoff['room'] = null;
+  let preloadAsked = false;
+  /** The book as it lies now, for the next chapter to open in the same place. */
+  const handoff = (): BookHandoff => ({
+    position: stage.root.position.clone(),
+    rotationY: stage.root.rotation.y,
+    scale: stage.root.scale.x,
+    userScale: sizing.userScale,
+    table: tableTop.outline,
+    satchelSide,
+    room: vr ? roomAt : null,
+    confirmed: arrival?.confirmed ?? true,
+  });
+  if (arriving) {
+    stage.root.position.copy(arriving.position);
+    stage.root.rotation.y = arriving.rotationY;
+    stage.root.scale.setScalar(arriving.scale);
+    sizing.userScale = arriving.userScale ?? sizing.userScale;
+    tableTop.outline = arriving.table;
+    if (arriving.satchelSide) stage.satchel.setSide(arriving.satchelSide);
+  }
   let nowMs = 0;
   let searching = false;
   let lastCheckpointMs = -Infinity;
@@ -1043,7 +1114,8 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
     sizing.userScale = resumeFrom.scale;
   }
   // Review builds only: `?jump=<beat>` plays the episode silently up to that beat, nobody helping, and starts there.
-  const jump = reviewQuery('jump') ?? perfCase(reviewQuery('perf'))?.jump ?? null;
+  // A review link's beat names a beat in the chapter it loaded, not in one turned to afterwards.
+  const jump = arriving ? null : (reviewQuery('jump') ?? perfCase(reviewQuery('perf'))?.jump ?? null);
   if (jump && !resumeFrom) {
     const s = runtime.scheduler;
     let t = 0;
@@ -1059,7 +1131,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
   }
 
   const checkpoint = (): void => {
-    if (!runtime.started || storyMode) return;
+    if (!runtime.started || storyMode || retired) return;
     writeCheckpoint(localStorage, { v: CHECKPOINT_VERSION, savedAt: new Date().toISOString(), seriesId: series, episodeId: assets.spine.id, showMs: clock.ms, scale: stage.root.scale.x, confirmed: arrival?.confirmed ?? false, runtime: runtime.snapshot() as unknown as Record<string, unknown>, ended: runtime.ended });
   };
 
@@ -1077,6 +1149,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       const outline = settled.table?.outline ?? null;
       tableTop.outline = outline;
       stage.satchel.setSide(settled.satchelSide);
+      satchelSide = settled.satchelSide;
       stage.root.scale.setScalar(scale);
       const eyeDistance = Math.hypot(head.x - where.x, head.y - where.y, head.z - where.z) + 0.1 * scale;
       stage.caption.setSize(minTextSizeM(stage.caption.baseSizeM, scale, eyeDistance));
@@ -1085,15 +1158,26 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       // A first spot, or a real table found after a provisional one: the moment plays from the top there.
       arrival = { atMs: nowMs, confirmed: surface !== 'fallback', landed: false, bloomed: false, opened: false };
     },
-    () => vr,
+    // Arriving from the chapter before in this session, the book stays where it lay: no search.
+    () => vr || (arriving !== null && world.renderer.xr.getSession() === arrivingSession),
     (work) => guard('placement', work),
   );
+  releases.push(() => placement.stop());
 
   /** In the painted room the book goes on the painted table, at a seated reading height in front of you. */
   function placeInRoom(): void {
     if (!room) return;
+    // Turned from the chapter before: the room stands where it stood, and the book stays where it lay.
+    if (arriving?.room && world.renderer.xr.getSession() === arrivingSession) {
+      room.place(arriving.room.head, arriving.room.forward, arriving.room.table);
+      room.root.visible = true;
+      roomAt = arriving.room;
+      roomPlaced = true;
+      return;
+    }
     const table = tableSpot(head, forward);
     room.place(head, forward, table);
+    roomAt = { head: head.clone(), forward: forward.clone(), table: new Vector3(table.x, table.y, table.z) };
     room.root.visible = true;
     stage.root.position.set(table.x, table.y, table.z);
     stage.root.rotation.y = Math.atan2(head.x - table.x, head.z - table.z);
@@ -1126,6 +1210,14 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       controls.shut();
       arrival = null;
       pause.set('headset_off', false);
+    }
+    // Turned from the chapter before, in this session: the book is already on the table, shut, under the
+    // title page. No search and no fall: it opens a breath after the new chapter is ready.
+    if (arriving && session === arrivingSession) {
+      stage.root.visible = true;
+      const eyeDistance = head.distanceTo(stage.root.position) + 0.1 * stage.root.scale.x;
+      stage.caption.setSize(minTextSizeM(stage.caption.baseSizeM, stage.root.scale.x, eyeDistance));
+      arrival = { atMs: nowMs - OPEN_AT_MS + TURN_OPEN_DELAY_MS, confirmed: arriving.confirmed, landed: true, bloomed: true, opened: false, turned: true };
     }
     const warmStage = warmUp(stage.root, head, forward);
     const dimWasVisible = show.dim.mesh.visible;
@@ -1187,8 +1279,26 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
         void world.renderer.xr.getSession()?.end().catch(() => undefined);
       }
     }
+    // Turning to another chapter: the book closes, then the next one is prepared under its title page.
+    if (turning) {
+      readAgain.requested = false;
+      if (controls.amount > 0.001) controls.close();
+      else if (!turning.told) {
+        turning.told = true;
+        turn.turnTo?.(turning.target, handoff());
+      }
+    }
+    // Near the end of the chapter (its last spread, or its end): the next chapter's paintings decode ahead of time.
+    if (!preloadAsked && chapter.next && turn.preload && runtime.started && !storyMode) {
+      const beatId = runtime.ended ? null : runtime.scheduler.current().beatId;
+      const last = assets.spine.scenes[assets.spine.scenes.length - 1];
+      if (runtime.ended || (last && last.beats.some((b) => b.id === beatId))) {
+        preloadAsked = true;
+        turn.preload(chapter.next);
+      }
+    }
     // Read it again: the book closes under your hand, then the story opens from the top.
-    if (readAgain.requested) {
+    if (readAgain.requested && !turning) {
       if (controls.amount > 0.001) controls.close();
       else if (storyMode) {
         // Start again, in the Storyteller: a new evening on a fresh stage.
@@ -1409,7 +1519,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       sound.play('bloom', spot, undefined, 'ui');
     }
     // The wash fades to a faint stain under the book as the house lights go down.
-    wash.update(a.bloom, 1 - 0.75 * unfoldDim, a.words * (1 - unfoldDim), nowMs / 1000);
+    wash.update(a.bloom, 1 - 0.75 * unfoldDim, arrival.turned ? 0 : a.words * (1 - unfoldDim), nowMs / 1000);
     stage.book.root.visible = a.bookVisible;
     stage.book.root.position.y = SETTLE_DROP_M * a.drop;
     if (a.landed && !arrival.landed) {
@@ -1419,6 +1529,7 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
     if (a.landed && !arrival.opened && nowMs - arrival.atMs >= OPEN_AT_MS) {
       arrival.opened = true;
       placement.lock();
+      if (arrival.turned) turn.opening?.();
       if (flow.landed(runtime.started).reopen) {
         // Back after leaving, or after a crash: the book opens again and the story carries on.
         controls.reopen();
@@ -1434,8 +1545,9 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
     }
   });
 
-  world.onXRFrame(
+  const stopShow = world.onXRFrame(
     guard('show', (frame: XRFrame, delta: number, time: number) => {
+      if (retired) return;
       nowMs = time * 1000;
       world.camera.getWorldPosition(head);
       world.camera.getWorldDirection(forward);
@@ -1453,6 +1565,11 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       if (warming) {
         warming();
         warming = null;
+        // Drawn once: the chapter before (if this one was turned to) can go now, with no gap on the table.
+        // Once, in whichever session comes first, and the hook is dropped so nothing of that chapter stays reachable.
+        const ready = turn.ready;
+        turn.ready = undefined;
+        ready?.();
       }
       // Wait a few frames for a settled head pose before building the room around it.
       if (vr && !roomPlaced && ++sessionFrames >= 3 && flow.canPlace(runtime.started)) placeInRoom();
@@ -1463,8 +1580,9 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
   );
 
   // Taking the headset off, or leaving XR, pauses the show and its sound. Coming back resumes it.
+  releases.push(stopShow);
   let wasImmersive = false;
-  world.visibilityState.subscribe((state) => {
+  const stopVisibility = world.visibilityState.subscribe((state) => {
     if (state === VisibilityState.NonImmersive) {
       if (flow.end(runtime.started).pause) pause.set('headset_off', true);
       // Out of XR (the system menu, the browser, or Put the book away): late work from this visit is dropped.
@@ -1477,8 +1595,28 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
     checkpoint();
   });
   addEventListener('pagehide', checkpoint);
+  releases.push(stopVisibility, () => removeEventListener('pagehide', checkpoint));
 
   if (REVIEW_HOOKS) Object.assign(window, { __tt: { world, show, guard, get story() { return story; } } });
+  return {
+    /** Lets this chapter go: nothing it listens to runs again, and its sound stops. Its objects are the boot's to free. */
+    retire(): void {
+      if (retired) return;
+      retired = true;
+      invalidate();
+      for (const release of releases.splice(0)) {
+        try {
+          release();
+        } catch (cause) {
+          reportError('retire', cause);
+        }
+      }
+      controls.dispose();
+      card.dispose();
+      ghostHand.dispose();
+      sound.close();
+    },
+  };
 }
 
 // Review builds: `?occlusion=on` requests depth sensing and hides the stage behind real things (P5).
@@ -1534,8 +1672,8 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, world
     })
     .then((show) => {
       const series = show.manifest.libraryVersion;
-      /** The chapter this page load prepared (lane B's loadChapter). */
-      const thisChapter = show.chapter.n;
+      /** The chapter this page load prepared (lane B's loadChapter), or the one turned to since inside the book. */
+      let thisChapter = show.chapter.n;
       const saved = fresh ? null : readCheckpoint(localStorage, Date.now(), { seriesId: series, episodeId: show.assets.spine.id });
       const choice = landingChoice(readProgress(localStorage, series), saved !== null);
       // Two ways in, side by side: the book's chapters, and the AI Storyteller. One page load runs one of them;
@@ -1558,7 +1696,9 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, world
           if (mode === 'story') run(world, show, null, { kind: 'storyteller' });
           else {
             if (!resume) clearCheckpoint(localStorage, show.assets.spine.id);
-            run(world, show, resume ? saved : null, null);
+            runHandle = run(world, show, resume ? saved : null, null, chapterTurns);
+            // What this chapter put in the scene (its prepare and its run): freed when another is turned to.
+            chapterObjects = world.scene.children.filter((o) => !sceneBefore.has(o));
           }
         } catch (cause) {
           reportError('run', cause);
@@ -1569,6 +1709,105 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, world
         return true;
       };
       const ran = () => ranMode !== null;
+      /**
+       * Turning to another chapter inside the book (stage/chapter-turn.ts; owner, Nov 17): the book closes, the
+       * next chapter's title page stands over it while that chapter is prepared out of sight (reusing the
+       * paintings the chapters share), then the old one is let go and the new one opens where the book lay.
+       * Only if it can't be prepared does the reader go back to the page, which prepares it on a fresh load.
+       */
+      let runHandle: { retire(): void } | null = null;
+      let chapterObjects: Object3D[] = [];
+      let turnCard: TurnCard | null = null;
+      let turning = false;
+      const allowKtx2 = reviewQuery('art') !== 'png' && reviewQuery('material') !== 'coverage';
+      const preloaded = new Map<number, Promise<Map<string, TexRef> | null>>();
+      const texturesOf = (refs: Iterable<TexRef>) => [...refs].map((r) => r.texture);
+      const turnTo = (target: ChapterTarget, from: BookHandoff): void => {
+        if (turning || !runHandle) return;
+        turning = true;
+        // The chapter being turned away from, dropped once it's let go: the new run holds these closures while it plays.
+        let old: { show: typeof show; handle: { retire(): void }; objects: Object3D[] } | null = { show, handle: runHandle, objects: chapterObjects };
+        const was = { n: show.chapter.n, ended: show.runtime.ended, textures: show.assets.textures, soft: Object.values(show.soft) };
+        turnCard?.dispose();
+        const titleCard = createTurnCard(world, { root: show.stage.book.root, pageY: show.stage.book.pageY, pageD: show.assets.book.closedSizeM[1] });
+        const opening = () => titleCard.fold();
+        turnCard = titleCard;
+        titleCard.show(titlePage(target.n));
+        // Everything in the scene before the new chapter is prepared (the title page is the session's).
+        let beforeNext: Set<Object3D> | null = new Set(world.scene.children);
+        let ahead = preloaded.get(target.n);
+        void (async () => {
+          // The chapter's end (what was kept, its facts) is written before the next one reads its carry.
+          await old?.show.log.flushed();
+          const art = ahead ? await ahead : null;
+          const reuse = art ? new Map([...was.textures, ...art]) : was.textures;
+          const chapter = await loadChapter(target.n, { from: target.from });
+          return prepare(world, chapter, { quiet: true, reuse });
+        })()
+          .then((next) => {
+            const keep = new Set([...texturesOf(next.assets.textures.values()), ...Object.values(next.soft)]);
+            const letGo = (): void => {
+              if (!old) return;
+              old.handle.retire();
+              const freed = releaseObjects(old.objects, keep, [...texturesOf(was.textures.values()), ...was.soft]);
+              console.info(`chapter turn: chapter ${was.n} let go (${freed} textures freed), chapter ${next.chapter.n} open`);
+              // Paintings decoded ahead for a chapter not turned to are freed too.
+              for (const [n, art] of preloaded) if (n !== next.chapter.n) void art.then((m) => m && releaseObjects([], keep, texturesOf(m.values())));
+              preloaded.clear();
+              turning = false;
+              // Nothing here keeps the old chapter alive: the new run holds this closure for as long as it plays.
+              old = null;
+              was.textures = new Map();
+              was.soft = [];
+              ahead = undefined;
+            };
+            const saved = target.from === 'resume' ? readCheckpoint(localStorage, Date.now(), { seriesId: series, episodeId: next.assets.spine.id }) : null;
+            if (!saved) clearCheckpoint(localStorage, next.assets.spine.id);
+            if (occlusion) world.createTransformEntity(next.stage.root).addComponent(DepthOccludable);
+            next.sound.unlock();
+            show = next;
+            thisChapter = next.chapter.n;
+            const inside = world.renderer.xr.isPresenting;
+            if (!inside) {
+              // Left the book while it was prepared: it opens at the next visit, found again on the table.
+              letGo();
+              titleCard.dispose();
+            }
+            runHandle = run(world, next, saved, null, inside ? { ...chapterTurns, arriving: from, ready: letGo, opening } : chapterTurns);
+            chapterObjects = world.scene.children.filter((o) => !beforeNext?.has(o));
+            beforeNext = null;
+            if (!inside) setLandingState(ready());
+          })
+          .catch((cause: unknown) => {
+            reportError('turn', cause);
+            // Whatever the failed preparation put in the scene goes; the old chapter stays as it was.
+            releaseObjects(world.scene.children.filter((o) => !beforeNext?.has(o)), new Set([...texturesOf(was.textures.values()), ...was.soft]));
+            old = null;
+            beforeNext = null;
+            titleCard.dispose();
+            turnCard = null;
+            turning = false;
+            // Back to the page with that chapter waiting: leaving the book reloads the page, which prepares it.
+            chooseEntry(target, { kind: 'chapter', n: was.n, from: was.ended ? 'start' : 'resume' });
+            const session = world.renderer.xr.getSession();
+            // Already out of XR (left while it was being prepared): there's no session to end, so nothing would
+            // reload; the old chapter is still mid-turn. A fresh load prepares the waiting chapter now.
+            if (!session || !world.renderer.xr.isPresenting) location.reload();
+            else void session.end().catch(() => undefined);
+          });
+      };
+      /** Near a chapter's end: the next one's paintings decode ahead of time (most are shared and reused as they are). */
+      const preload = (n: number): void => {
+        if (preloaded.has(n)) return;
+        preloaded.set(
+          n,
+          preloadChapterArt(n, world.renderer, show.assets.textures, allowKtx2).catch((cause: unknown) => {
+            reportError('preload', cause);
+            return null;
+          }),
+        );
+      };
+      const chapterTurns = { turnTo, preload };
       if (occlusion) {
         world.registerSystem(DepthSensingSystem);
         world.createTransformEntity(show.stage.root).addComponent(DepthOccludable);

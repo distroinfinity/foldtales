@@ -72,7 +72,13 @@ export async function loadStageAssets(
   artBase: string,
   renderer: WebGLRenderer,
   /** `spine` is the chapter this page load plays (`loadChapter(n).episode`); chapter 1's from the manifest if absent. */
-  options: { allowKtx2: boolean; onProgress?: (done: number, total: number) => void; spine?: Spine },
+  options: {
+    allowKtx2: boolean;
+    onProgress?: (done: number, total: number) => void;
+    spine?: Spine;
+    /** Paintings already decoded and uploaded (the chapter before, in the same session): used as they are, not loaded again. */
+    reuse?: ReadonlyMap<string, TexRef>;
+  },
 ): Promise<StageAssets> {
   // Every set the Storyteller may stage loads; a chapter-only set (chapter 3's snow) only for the
   // chapter whose spreads use it.
@@ -129,6 +135,8 @@ export async function loadStageAssets(
   const loadKtx2 = (rel: string): Promise<Texture> => ktx2!.loadAsync(`${artBase}/${rel}`);
 
   async function load(file: string): Promise<TexRef> {
+    const kept = options.reuse?.get(file);
+    if (kept) return kept;
     if (index && ktx2) {
       try {
         const folder = Object.keys(index.atlases).find((f) => file.startsWith(`${f}/`));
@@ -170,6 +178,8 @@ export async function loadStageAssets(
     ),
   );
   const roomRefs = await Promise.allSettled(roomFiles.map(async (file) => [file, await load(file)] as const));
+  // Everything is decoded: the transcoder's workers go (a chapter turned in the session loads again, with its own).
+  ktx2?.dispose();
   const roomLoaded = roomRefs.every((r) => r.status === 'fulfilled');
   if (roomLoaded) for (const r of roomRefs) if (r.status === 'fulfilled') textures.set(r.value[0], r.value[1]);
   return { book, set, sets, objects, drawer, satchel, spine, rigs, textures, format: index ? 'ktx2' : 'png', room: roomSpec && roomLoaded && manifest.room ? { spec: roomSpec, base: dirOf(manifest.room) } : null };

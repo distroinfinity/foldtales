@@ -76,6 +76,8 @@ export interface BookControls {
   fingertip(side: HandSide): Vector3 | null;
   /** A card opened: every hold ends with no gift, drop or turn, and a pinch still closed can't take anything new. */
   cancelAll(): void;
+  /** Lets the session go: its select listeners are removed (a chapter turned in the same session). */
+  dispose(): void;
 }
 
 export interface ControlsDeps {
@@ -131,6 +133,8 @@ export function createBookControls({ world, stageRoot, book, sound, pause, glow,
   /** The gaze ray, if this device has one (VR Glasses, or the glasses emulator). */
   const gaze = { origin: new Vector3(), direction: new Vector3(), valid: false };
   let listening: XRSession | null = null;
+  /** Removes this book's listeners from the session when the chapter is let go. */
+  const listeners = new AbortController();
   let extraTargets: ExtraTarget[] = [];
   let enabledNow = false;
   const grabbedThisPinch: Record<HandSide, boolean> = { left: false, right: false };
@@ -345,6 +349,10 @@ export function createBookControls({ world, stageRoot, book, sound, pause, glow,
   }
 
   return {
+    dispose() {
+      listeners.abort();
+      world.scene.remove(haloLayer);
+    },
     fold: () => {
       const hands = controlFold(amount, cards);
       if (flat <= 0) return hands;
@@ -460,13 +468,13 @@ export function createBookControls({ world, stageRoot, book, sound, pause, glow,
                   ? cardGaze.pick(ray.origin.clone(), ray.direction.clone())
                   : null;
           gate.start(slot(event.inputSource), pick);
-        });
+        }, { signal: listeners.signal });
         frame.session.addEventListener('selectend', (event) => {
           const s = slot(event.inputSource);
           // After the select (if there was one) has been handled.
           queueMicrotask(() => gate.end(s));
-        });
-        frame.session.addEventListener('inputsourceschange', () => gate.reset());
+        }, { signal: listeners.signal });
+        frame.session.addEventListener('inputsourceschange', () => gate.reset(), { signal: listeners.signal });
         frame.session.addEventListener('select', (event) => {
           const side = event.inputSource.handedness;
           const fromHand = side === 'left' || side === 'right';
@@ -484,7 +492,7 @@ export function createBookControls({ world, stageRoot, book, sound, pause, glow,
             return;
           }
           if (onGazeSelect && (event.inputSource.targetRayMode === 'gaze' || fromHand)) onGazeSelect(gaze.origin.clone(), gaze.direction.clone());
-        });
+        }, { signal: listeners.signal });
       }
       const hands: Record<HandSide, HandFrame | null> = { left: null, right: null };
       tips.left = null;
