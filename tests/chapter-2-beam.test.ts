@@ -3,7 +3,8 @@ import { describe, expect, test, vi } from 'vitest';
 import { Vector3, type ShaderMaterial } from '@iwsdk/core';
 import { Spine } from '../contracts/src/index.ts';
 import type { RuntimeSnapshot } from '../client/src/show/runtime.ts';
-import { playTo, playUntil, sets, spine as chapter1, stage, type Harness } from './stage-harness.ts';
+import { BEAM_REACH_M, beamReach } from '../client/src/light/beam-reach.ts';
+import { head, playTo, playUntil, sets, spine as chapter1, stage, type Harness } from './stage-harness.ts';
 
 // Whole-stage plays, frame by frame.
 vi.setConfig({ testTimeout: 60_000 });
@@ -18,11 +19,26 @@ function beam(s: Harness, setId: string) {
   return { strength: u.uBeamStrength!.value as number, lamp: (u.uLamp!.value as Vector3).clone(), painted, azimuth: u.uBeamAz!.value as number };
 }
 
+/** The ray you can see (b323be9 had dropped it outside the hunt): from the lamp, along the light on your walls, out to them. */
+function ray(s: Harness, a: ReturnType<typeof beam>) {
+  const pivot = s.view.root.getObjectByName('beam')!;
+  expect(pivot.visible).toBe(true);
+  expect(pivot.getWorldPosition(new Vector3()).distanceTo(a.lamp)).toBeLessThan(1e-4);
+  const along = pivot.getWorldDirection(new Vector3());
+  expect(Math.hypot(along.x - Math.sin(a.azimuth), along.z - Math.cos(a.azimuth))).toBeLessThan(1e-3);
+  // With no room read, it runs the room dim's 3 m, short of your eyes when it turns toward you.
+  const cone = pivot.children[0]!;
+  const lengthM = cone.getWorldScale(new Vector3()).x * 0.45;
+  expect(lengthM).toBeCloseTo(beamReach(a.lamp, a.azimuth, [], head), 2);
+  expect(lengthM).toBeLessThanOrEqual(BEAM_REACH_M + 1e-6);
+}
+
 function sweeps(s: Harness, setId: string) {
   const a = beam(s, setId);
   expect(a.strength).toBeGreaterThan(0.9);
   // From the lamp as drawn on this spread.
   expect(a.lamp.distanceTo(a.painted)).toBeLessThan(1e-6);
+  ray(s, a);
   // And it turns round the room.
   playTo(s, s.clock.ms + 1750);
   const b = beam(s, setId);
@@ -30,6 +46,17 @@ function sweeps(s: Harness, setId: string) {
 }
 
 describe("chapter 2's lamp sweeps your room as chapter 1's does", () => {
+  test("chapter 1's opening: the lamp's ray leaves the gallery's great lamp, as soon as the book is open", () => {
+    const s = playUntil(stage(), 'opening');
+    sweeps(playTo(s, s.clock.ms + 6000), 'the-lamp');
+  });
+
+  test("chapter 3's frosted lamp, at its opening", () => {
+    const chapter3 = Spine.parse(JSON.parse(readFileSync(new URL('../client/public/show/episode-3.json', import.meta.url), 'utf8')));
+    const s = playUntil(stage(chapter3), 'opening');
+    sweeps(playTo(s, s.clock.ms + 6000), 'the-lamp-snow');
+  });
+
   test("chapter 1's lighthouse at the gap, for comparison", () => {
     const s = playUntil(stage(), 'lighthouse');
     // The beam comes once Pip's light has lit the lamp, about 28 s into the beat.

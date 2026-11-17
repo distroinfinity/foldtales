@@ -5,6 +5,8 @@ import type { DrawerView } from '../book/drawer-view.ts';
 import type { SatchelView } from '../book/satchel-view.ts';
 import { layerRotationX } from '../book/fold.ts';
 import type { CaptionView } from '../book/text.ts';
+import { chunkAt } from '../book/caption-fit.ts';
+import { answerTags, cued, cueStrength, deviceStore, noteHandover, readHandovers } from '../objects/hand-over-cue.ts';
 import type { DimView } from '../light/dim.ts';
 import type { HandSide, ObjectsView, Receiver, V3 } from '../objects/objects.ts';
 import { stageLook } from '../paint/card-material.ts';
@@ -16,6 +18,7 @@ import { combineUnfold } from '../stage/book-control.ts';
 import { castAt, type CastPlace } from './cast-state.ts';
 import type { ShowClock } from './clock.ts';
 import { beamAt, gustAt, lightOutAt, unfoldAt, type Unfold } from './cues.ts';
+import { beamReach } from '../light/beam-reach.ts';
 import { HUNT_FADE_MS, HUNT_RETURN_MS, HUNT_REVEAL_MS, huntAt, huntPlace } from '../room-fx/hunt.ts';
 import type { RoomMap } from '../room-fx/room-map.ts';
 import { roomAt, type RoomNow } from '../room-fx/state.ts';
@@ -143,24 +146,9 @@ const POP_MS = 450;
 const TAKE_FLIGHT_MS = 180;
 const DRAWER_MS = 1700;
 const PAGE = { foldEnd: 800, leafEnd: 1800, riseEnd: 2600 };
-/** About two printed lines on the caption band. */
-const PAGE_CHARS = 78;
-
-/** A line split into pages that each fit the band, breaking after a sentence or comma where it can. */
-export function captionPages(text: string): string[] {
-  if (text.length <= PAGE_CHARS) return [text];
-  const pages: string[] = [];
-  let rest = text;
-  while (rest.length > PAGE_CHARS) {
-    const window = rest.slice(0, PAGE_CHARS + 1);
-    const soft = Math.max(window.lastIndexOf('. '), window.lastIndexOf('? '), window.lastIndexOf('! '), window.lastIndexOf(', '));
-    const cut = soft > PAGE_CHARS * 0.4 ? soft + 1 : window.lastIndexOf(' ');
-    pages.push(rest.slice(0, cut).trim());
-    rest = rest.slice(cut).trim();
-  }
-  if (rest) pages.push(rest);
-  return pages;
-}
+/** A hint too long for the band shows its chunks in turn, each about this long per letter (and at least HINT_CHUNK_MIN_MS). */
+const HINT_MS_PER_CHAR = 70;
+const HINT_CHUNK_MIN_MS = 2800;
 
 const closed = (cards: number): Unfold => ({ dim: 0, cover: 0, layers: Array.from({ length: cards }, () => 0) });
 const clamp01 = (v: number): number => Math.max(0, Math.min(1, v));
@@ -230,6 +218,8 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
   let drawerWanted = false;
   let drawerAmount = 0;
   let satchelOpen = false;
+  /** How many things this reader has handed over, on this device: the ask's cue settles as it grows. */
+  let handovers = readHandovers(deviceStore());
   let satchelFlap = 0;
   let holding = false;
   let heldCast: string | null = null;
@@ -250,6 +240,8 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
   const HOP_MS = 650;
   let endedAtMs: number | null = null;
   let hint: string | null = null;
+  /** When the hint showing now was set, so a long one starts from its first chunk. */
+  let hintSinceMs = 0;
   const pending: RuntimeEvent[] = [];
   const speeches: Array<{ speech: Speech; atMs: number; text: string; endMs: number }> = [];
   let marks: SoundMark[] = [];
@@ -533,6 +525,7 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
       views.sound.roomTone(true);
     },
     setHint(text) {
+      if (text !== hint) hintSinceMs = -1;
       hint = text;
     },
     useScheduler(next, nextSpine, initialObjects) {
@@ -659,6 +652,7 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
       const ms = clock.ms;
       const { outcome, events } = scheduler.gift(ms, objectId, def?.tags ?? [], castId);
       handleEvents(events);
+      handovers = noteHandover(deviceStore());
       pending.push({ type: 'gift', objectId, castId, outcome, atMs: ms });
       const light = lightObjects.get(objectId) === castId;
       const at = views.puppets.get(castId)!.root.getWorldPosition(new Vector3());
@@ -1014,6 +1008,14 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
         const d = views.objects.worldOf(objectId, scratch).distanceTo(grip.getWorldPosition(new Vector3())) / Math.max(0.3, worldScale.x);
         views.objects.setGlow(objectId, 0.22 + 0.78 * clamp01(1 - (d - 0.05) / 0.32));
       }
+      // The ask's cue: while a character waits for something, everything that answers it wears the
+      // same soft gold rim (never just the "right" one), a moment after the ask, and not while you hold one.
+      const asked = started && bookOpen ? scheduler.openProblem(ms) : null;
+      const askedProblem = asked ? (spine.scenes[asked.scene]?.problem ?? null) : null;
+      const wanted = askedProblem ? answerTags(askedProblem) : null;
+      const cueNow = asked && wanted && !holding ? cueStrength(handovers) * clamp01((ms - asked.openedAtMs - 600) / 700) : 0;
+      const open = { drawer: drawerAmount > 0.99, satchel: satchelOpen };
+      for (const o of views.objects.states()) views.objects.setCue(o.id, asked && wanted && cued(o, defs.get(o.id), { tags: wanted, tried: asked.tried }, open) ? cueNow : 0);
       views.objects.frame(nowMs, head ?? new Vector3(), receivers(), handPoints, {
         bookOpen,
         drawerOpen: drawerAmount > 0.99,
@@ -1054,6 +1056,7 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
       // A keeper's light held up high (light-up) is the lamp now: its beam turns round your room from where it
       // shines, as the lighthouse's does, and fades as it comes down (light-down). From the cues and the
       // light's home, so a restored place has it too.
+      let beamFromLight = false;
       const upCue = cueOf(state, 'light-up');
       if (upCue && bookOpen) {
         const downCue = cueOf(state, 'light-down');
@@ -1063,9 +1066,17 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
         if (held) {
           const turning = beamAt(upCue.localMs);
           const strength = turning.strength * (down === null ? 1 : clamp01(1 - down / LANTERN_BEAM_FADE_MS));
-          if (strength > 0.001) worldBeam = { lamp: views.objects.worldOf(held[0], lantern), azimuth: turning.azimuth + views.stageRoot.rotation.y, strength };
+          if (strength > 0.001) {
+            worldBeam = { lamp: views.objects.worldOf(held[0], lantern), azimuth: turning.azimuth + views.stageRoot.rotation.y, strength };
+            beamFromLight = true;
+          }
         }
       }
+      // The ray you can see leave the lamp (or the raised light) and cross the room to your wall, turning with the
+      // light it casts there. M1's cone; b323be9 dropped it outside the hunt, so only the wall light turned.
+      const walls = views.room?.places() ?? [];
+      if (worldBeam) views.book.setBeam(worldBeam.azimuth - views.stageRoot.rotation.y, worldBeam.strength, { reachM: beamReach(worldBeam.lamp, worldBeam.azimuth, walls, head), from: beamFromLight ? worldBeam.lamp : null });
+      else views.book.setBeam(0, 0);
       let spot: { at: Vector3; radiusM: number; strength: number } | null = null;
 
       // The treasure hunt: the beam sweeps your room and stops where the lost thing waits.
@@ -1096,7 +1107,7 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
           }
         }
         views.book.setLamp(true);
-        views.book.setBeam(look.azimuth - views.stageRoot.rotation.y, look.strength * (bookOpen ? 1 : 0));
+        views.book.setBeam(look.azimuth - views.stageRoot.rotation.y, look.strength * (bookOpen ? 1 : 0), { reachM: beamReach(lampAt, look.azimuth, walls, head) });
         if (bookOpen) {
           worldBeam = { lamp: lampAt, azimuth: look.azimuth, strength: look.strength };
           spot = { at: huntTarget, radiusM: 0.45, strength: look.spot };
@@ -1109,30 +1120,29 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
       const caption = state.caption;
       const end = endedAtMs !== null && ms >= endedAtMs;
       if (caption) {
-        // A long line pages through the band two printed lines at a time, each page for its share of the voice.
-        const pages = captionPages(caption.text);
-        const total = pages.reduce((n, p) => n + p.length, 0);
-        let start = 0;
-        let page = pages[0]!;
-        let pageStart = 0;
-        let pageEnd = caption.durationMs;
-        for (const p of pages) {
-          const end = start + (caption.durationMs * p.length) / total;
-          if (caption.localMs < end || p === pages[pages.length - 1]) {
-            page = p;
-            pageStart = start;
-            pageEnd = end;
-            break;
-          }
-          start = end;
-        }
+        // A long line shows in chunks that each fit the band, in order, each for its share of the voice.
+        const chunk = chunkAt(views.caption.chunks(caption.text), caption.durationMs, caption.localMs);
+        const page = chunk.text;
+        const pageStart = chunk.startMs;
+        const pageEnd = chunk.endMs;
         const local = caption.localMs - pageStart;
         const fade = Math.min(1, local / CAPTION_FADE_MS, (pageEnd - pageStart - local) / CAPTION_FADE_MS + 0.0001);
         views.caption.show(page, Math.max(0, fade));
       } else if (inviting && invite) {
         // A first-timer's hint, printed on the page like the rest: it fades in once the edge has lifted.
         views.caption.show('Turn the page', clamp01((invite.localMs - 700) / 500) * 0.85);
-      } else if (hint) views.caption.show(hint, 0.6 + 0.15 * Math.sin(nowMs / 600));
+      } else if (hint) {
+        // A hint longer than the band holds shows its chunks in turn, round again, each fading in.
+        if (hintSinceMs < 0) hintSinceMs = nowMs;
+        const chunks = views.caption.chunks(hint);
+        const spans = chunks.map((c) => Math.max(HINT_CHUNK_MIN_MS, c.length * HINT_MS_PER_CHAR));
+        const cycle = spans.reduce((a, b) => a + b, 0);
+        let t = chunks.length > 1 ? (nowMs - hintSinceMs) % cycle : 0;
+        let i = 0;
+        while (i < spans.length - 1 && t >= spans[i]!) t -= spans[i++]!;
+        const fade = chunks.length > 1 ? clamp01(Math.min(t / CAPTION_FADE_MS, (spans[i]! - t) / CAPTION_FADE_MS)) : 1;
+        views.caption.show(chunks[i] ?? hint, (0.6 + 0.15 * Math.sin(nowMs / 600)) * fade);
+      }
       else views.caption.show(null, 0);
       views.endPage.show(end && !caption && bookOpen, end ? clamp01((ms - endedAtMs!) / 900) : 0);
 

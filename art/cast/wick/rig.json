@@ -1,13 +1,13 @@
 {
-  "note": "First fit, not yet tuned. Pixels at the parts' own size, relative to the point between Wick's feet. Pivot is a percentage of the part. Higher z sits in front. Wick is mirrored on stage so he turns toward characters on his right.",
+  "note": "Fitted Nov 17: each sleeve comes out of the coat's own painted sleeve, its pivot at the elbow inside the coat; the right forearm hangs (turned 50 degrees) so both paws hold the logbook's edges. Pixels at the parts' own size, relative to the point between Wick's feet. Pivot is a percentage of the part. Higher z sits in front. Wick is mirrored on stage so he turns toward characters on his right.",
   "parts": {
     "tail": { "file": "parts/tail.png", "x": -318, "y": -210, "pivot": [92, 40], "z": 1, "scale": 1 },
     "footLeft": { "file": "parts/foot-left.png", "x": -176, "y": -232, "pivot": [50, 0], "z": 2, "scale": 1 },
     "footRight": { "file": "parts/foot-right.png", "x": 16, "y": -226, "pivot": [50, 0], "z": 2, "scale": 1 },
     "body": { "file": "parts/body.png", "x": -258, "y": -745, "pivot": [50, 100], "z": 3, "scale": 1 },
     "logbook": { "file": "parts/logbook.png", "x": -160, "y": -440, "pivot": [50, 100], "z": 6, "scale": 0.78 },
-    "armLeft": { "file": "parts/arm-alt.png", "x": -262, "y": -590, "pivot": [22, 8], "z": 7, "scale": 0.86 },
-    "armRight": { "file": "parts/arm.png", "x": 12, "y": -585, "pivot": [88, 10], "z": 7, "scale": 0.82 }
+    "armLeft": { "file": "parts/arm-alt.png", "x": -219, "y": -524, "pivot": [25, 18], "z": 7, "scale": 0.86 },
+    "armRight": { "file": "parts/arm.png", "x": 80, "y": -512, "pivot": [20, 20], "z": 7, "scale": 0.82, "rotation": 50 }
   },
   "head": {
     "x": -140, "y": -960, "pivot": [50, 72], "z": 5, "scale": 0.94,
