@@ -38,7 +38,7 @@ export interface TalkStep {
   near: boolean;
 }
 
-/** Shallower than a card's: the tab lies on the real table, which stops the finger. */
+/** Shallower than a card's: the tab is a slip of paper at the book's near edge. */
 export const TALK_TRAVEL_M = 0.006;
 const TIP_RADIUS_M = 0.008;
 /** Lifted this far above the resting face, the finger has let go. */
