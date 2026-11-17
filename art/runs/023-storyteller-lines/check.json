@@ -1,0 +1,145 @@
+[
+  {
+    "id": "welcome-fallback",
+    "speaker": "pip",
+    "rawS": 6.552,
+    "s": 6.463458,
+    "peak": -4.8,
+    "decodes": true,
+    "said": "Oh, it's you. Tell us what tonight's story is about, or hand us something from the drawer.",
+    "matches": true,
+    "missing": []
+  },
+  {
+    "id": "finder-picks",
+    "speaker": "moth",
+    "rawS": 2.424,
+    "s": 2.283958,
+    "peak": -6,
+    "decodes": true,
+    "said": "This one's been rattling all night.",
+    "matches": true,
+    "missing": []
+  },
+  {
+    "id": "slow",
+    "speaker": "narrator",
+    "rawS": 4.152,
+    "s": 3.666958,
+    "peak": -2.9,
+    "decodes": true,
+    "said": "The lamp flickers. Now, where were we?",
+    "matches": true,
+    "missing": []
+  },
+  {
+    "id": "offline",
+    "speaker": "narrator",
+    "rawS": 5.568,
+    "s": 4.476958,
+    "peak": -2.9,
+    "decodes": true,
+    "said": "The lamp has gone quiet. The story will wait right here.",
+    "matches": true,
+    "missing": []
+  },
+  {
+    "id": "online",
+    "speaker": "narrator",
+    "rawS": 3.216,
+    "s": 2.993083,
+    "peak": -2.9,
+    "decodes": true,
+    "said": "Ah, there's the light again.",
+    "matches": true,
+    "missing": []
+  },
+  {
+    "id": "redirect-a",
+    "speaker": "narrator",
+    "rawS": 6.576,
+    "s": 6.487708,
+    "peak": -3,
+    "decodes": true,
+    "said": "And, just then, the page turned all by itself to somewhere cozier.",
+    "matches": true,
+    "missing": []
+  },
+  {
+    "id": "redirect-b",
+    "speaker": "narrator",
+    "rawS": 6.048,
+    "s": 5.318958,
+    "peak": -3,
+    "decodes": true,
+    "said": "A gentle wind turned the page, and the story found a kinder path.",
+    "matches": true,
+    "missing": []
+  },
+  {
+    "id": "finder-empty",
+    "speaker": "moth",
+    "rawS": 4.008,
+    "s": 3.722292,
+    "peak": -6,
+    "decodes": true,
+    "said": "Couldn't find it anywhere. Maybe it's still lost.",
+    "matches": true,
+    "missing": []
+  },
+  {
+    "id": "finder-tired",
+    "speaker": "moth",
+    "rawS": 4.176,
+    "s": 4.053292,
+    "peak": -6,
+    "decodes": true,
+    "said": "My wings are tired, but your satchel's full of treasures.",
+    "matches": true,
+    "missing": []
+  },
+  {
+    "id": "resting",
+    "speaker": "narrator",
+    "rawS": 7.152,
+    "s": 6.362792,
+    "peak": -2.9,
+    "decodes": true,
+    "said": "That's all the story The Lamp has oil for tonight.",
+    "matches": true,
+    "missing": []
+  },
+  {
+    "id": "close-fallback",
+    "speaker": "narrator",
+    "rawS": 6.216,
+    "s": 5.945708,
+    "peak": -3,
+    "decodes": true,
+    "said": "And so the story was gathered up and tucked into the book for another night.",
+    "matches": true,
+    "missing": []
+  },
+  {
+    "id": "close-time",
+    "speaker": "narrator",
+    "rawS": 4.68,
+    "s": 4.254125,
+    "peak": -3,
+    "decodes": true,
+    "said": "The lamp burns low, and tonight's story comes to rest.",
+    "matches": true,
+    "missing": []
+  },
+  {
+    "id": "ears-down",
+    "speaker": "pip",
+    "rawS": 3.6,
+    "s": 3.416542,
+    "peak": -4.9,
+    "decodes": true,
+    "said": "I couldn't hear you just then. Show me instead.",
+    "matches": true,
+    "missing": []
+  }
+]
