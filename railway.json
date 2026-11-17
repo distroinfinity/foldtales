@@ -4,7 +4,7 @@
     "buildCommand": "pnpm install --frozen-lockfile --filter @tabletop/backend..."
   },
   "deploy": {
-    "startCommand": "pnpm --filter @tabletop/backend start",
+    "startCommand": "sh -c 'cd backend && exec node src/server.ts'",
     "healthcheckPath": "/healthz",
     "restartPolicyType": "ON_FAILURE"
   }
