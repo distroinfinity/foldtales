@@ -114,6 +114,30 @@ Each check runs on the pulled file. These tools are all on the Mac: `ffprobe`, `
 - **Before every retake link,** tap **Start from the beginning** on the page. `jump` is ignored when the page resumes a saved place (`if (jump && !resumeFrom)`, `client/src/index.ts`).
 - **Never film the review build's `?card=busiest` proof card:** it names the teapot keepsake.
 
+### Chapter 1's opening, timed (F2, PR #59 at ee4c827)
+
+Show time counts from chapter 1's opening beat, so add however long the landing takes. These timings are from F2's test harness. They get checked again on the deployed build.
+
+| Show time | What happens |
+|---|---|
+| 0 s | The `beam` cue starts |
+| about 2.25 s | The cover is fully open. The ray and the light on the walls appear, pointing about 116° round from the reader, toward a side wall |
+| 3.5 s | The light reaches the **wall behind the book** for the first time. Then again every 7 s: 10.5, 17.5, 24.5 and 31.5 s |
+| 7.0–14.8 s | The narrator: "Every night, the lighthouse at the edge of the table sent its light out over the house, and every lost thing followed it home." |
+| about 9.25–19.5 s | The ghost hand's first run: three loops of 3.4 s, starting 7 s after the book opens. It's at the ribbon, on the book |
+| about 22.3 s | Wick's first line |
+| about 35 s | "And that was when the wind came." Rain and thunder start, and lightning flashes on a real window |
+| about 37.5 s | The lamp goes out, and the sweep stops |
+| the relight | The rain clears with the first line after the lantern is relit |
+
+**What this means for the owner's head in R1:**
+- 0–3 s: look at the book while the cover opens.
+- About 3 s: lift your eyes slowly to the wall behind the book as the light arrives, and hold.
+- About 10 s: the light comes round to that wall again. Hold until the narrator stops (about 15 s).
+- About 15 s: look slowly back down at the book. The ghost hand is on its last loops. Watch it, and don't touch the ribbon.
+
+Looking up during the narrator's line also keeps the ghost hand out of the hook shot. If R1 catches less than one full loop of the ghost hand, beat 3 takes it from a review-build retake with `?ghost=loop` (R2b).
+
 ## 4. The sitting, in order (about 75 minutes)
 
 Each "run" is one continuous recording. Long continuous runs are deliberate:
@@ -126,7 +150,8 @@ The editor cuts the beats out of the runs. **Every look starts and ends with a 2
 | Run | Beats | What the owner does | Source | Takes |
 |---|---|---|---|---|
 | R0 | — | 30 s of the room, still, with the app's sound off (Quest volume 0), looking at the table, walls and window: the room tone, and a clean plate | Any | 1 |
-| R1 | 1 (if F2 opens on the beam), 2–12 | **First visit, from the link to chapter 2's sea, in one recording.** In Quest Browser, the page; tap Open the book; let the book land. If chapter 1 opens on the beam, follow it slowly off the book onto the wall and back (beat 1). Watch the ghost hand twice without touching the ribbon. Let the highlight show on the lantern, then hand it back. After Pip's relight, touch the ribbon (beat 6): look at the card, press **Carry on**. Turn the page by its corner, then one slow lean. At the gap, pull the drawer and hand over the kite. When the lamp relights, follow the beam round the room slowly, across two walls and the window, and settle back on the gallery. Hold through "Same time tomorrow". **Stay in the headset:** when the book offers chapter 2, take it with a fingertip. When the sea comes in, tip the head down slowly to the floor: the ring of sea, a real chair standing in it; hold 4 s; back to the book | Live, site data cleared first | 1, plus a second if anything breaks. The ghost hand and the highlight need site data cleared again for a second take |
+| R1 | 1 (if F2 opens on the beam), 2–12 | **First visit, from the link to chapter 2's sea, in one recording.** In Quest Browser, the page; tap Open the book; let the book land. Follow the light up onto the wall behind the book and back down, as timed above (beat 1). Watch the ghost hand's last loops without touching the ribbon. Let the highlight show on the lantern, then hand it back. After Pip's relight, touch the ribbon (beat 6): look at the card, press **Carry on**. Turn the page by its corner, then one slow lean. At the gap, pull the drawer and hand over the kite. When the lamp relights, follow the beam round the room slowly, across two walls and the window, and settle back on the gallery. Hold through "Same time tomorrow". **Stay in the headset:** when the book offers chapter 2, take it with a fingertip. When the sea comes in, tip the head down slowly to the floor: the ring of sea, a real chair standing in it; hold 4 s; back to the book | Live, site data cleared first | 1, plus a second if anything breaks. The ghost hand and the highlight need site data cleared again for a second take |
+| R2b | 3 (spare) | Only if R1 missed the ghost hand: the book landed, the ghost hand at the ribbon, one full loop | Review build, `?ghost=loop` | 1 |
 | R2 | 1 | **The hook, filmed on its own:** the lit lamp, the visible beam leaving it, the head following it onto the wall. Filmed in Dark, then in Lighter. Not needed if R1's opening already has it in both | Review build, `?chapter=1` from the top (F2's opening), or `?chapter=1&jump=lighthouse` | 2 (Dark, Lighter) |
 | R3 | 11 (spare) | **Optional insert:** after R1's sea, press **Put the book away**, and hold 2 s on what the page offers ("Continue chapter 2" expected). Only used if beat 11's "your place is kept" needs showing | Live, continuing R1 | 1 |
 | R4 | 12 (retake) | Only if R1's sea isn't usable: as R1's last part | Review build, `?chapter=2&jump=sea-in` | 1 |
@@ -143,7 +168,7 @@ The editor cuts the beats out of the runs. **Every look starts and ends with a 2
 **Also in this sitting:** the stills for gallery images 1–7 come from these runs. They're taken by the editor later, so nothing extra is filmed for them.
 
 **Things to check on the deployed build once F1–F3 land, not guess now:**
-- **F2's opening:** does chapter 1 now open on the lit lamp and its visible beam? If yes, R1 holds the hook and R2 is a spare. Recheck the lines quoted in beats 1 and 4 against the new script.
+- **F2's opening:** the timings above, again on the deployed build. Whether the light on the wall reads in Dark and in Lighter (R2 decides). The ray in the air is faint by design (M1's look), so the hook relies on the wall.
 - **F3's switch:** how the book offers chapter 2 in the headset (a button on the end card, the menu, or a page turn), so beat 11's label and the owner's step in R1 name it correctly.
 - **F1's highlight:** what triggers it, and whether it shows on the lantern (beat 5) or only later.
 - **The page after leaving mid-chapter 2,** for the optional R3 insert.
