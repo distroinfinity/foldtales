@@ -3,7 +3,7 @@ import type { Place } from '../room-fx/room-map.ts';
 
 /** How far the lamp's ray runs with no wall in the way: the room dim's sphere, where its light lands. */
 export const BEAM_REACH_M = 3;
-/** Never shorter than this, so a wall right by the book still shows a ray leaving the lamp. */
+/** Never shorter than this for a wall right by the book, so a ray still leaves the lamp (only your eyes cut it shorter). */
 const MIN_REACH_M = 0.5;
 /** A little past a wall's edge still counts, so the ray doesn't overshoot at a corner. */
 const EDGE_M = 0.3;
@@ -35,15 +35,16 @@ export function beamReach(lamp: Vector3, azimuth: number, places: readonly Place
     const along = Math.abs(hx * p.normal.z - hz * p.normal.x);
     if (along <= p.sizeM[0] / 2 + EDGE_M) best = t;
   }
+  best = Math.max(MIN_REACH_M, best);
   if (head) {
     // Passing over you: it stops short of your eyes, easing in and out as it swings by.
     const ahead = (head.x - lamp.x) * dx + (head.z - lamp.z) * dz;
     const aside = Math.abs((head.x - lamp.x) * dz - (head.z - lamp.z) * dx);
     if (ahead > 0 && ahead < best && aside < HEAD_FAR_M) {
-      const short = Math.max(MIN_REACH_M, ahead - HEAD_CLEAR_M);
+      const short = Math.max(0.05, ahead - HEAD_CLEAR_M);
       const k = Math.min(1, Math.max(0, (aside - HEAD_NEAR_M) / (HEAD_FAR_M - HEAD_NEAR_M)));
       best = short + (best - short) * k * k * (3 - 2 * k);
     }
   }
-  return Math.max(MIN_REACH_M, best);
+  return best;
 }
