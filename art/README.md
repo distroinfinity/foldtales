@@ -30,6 +30,7 @@ Generated art is a product asset, not a temp file. Credits are only spent on pla
 - `tools/generate.mjs`: runs a plan. Use `node --env-file=.env.local art/tools/generate.mjs art/runs/<id>` from the repo root. Needs `RUNWAYML_API_SECRET` in `.env.local`.
 - `tools/cutout.py`: cuts painted pieces off plain paper, for no credits. Needs Python with `numpy` and `Pillow`.
 - `tools/generate-sound.mjs`: runs a planned sound round (sound effects and prepared lines) with the voice tool's ledger and cap. Dry run by default.
+- `sound/storyteller/`: the AI Storyteller's recorded lines for failure, limit and redirect moments, played by id (run 023).
 - `sound/<scene>/`: finished, levelled clips the show plays. Product assets. `sound/m2/` holds episode 1's lines and the M2 foley (run 010).
 - `sets/the-lamp/`: chapter 1's opening spread, the top of the lighthouse up close, with its lit lamp (run 011).
 - `room/`: the painted reading room for no-passthrough mode (flats, tabletop, `room.json`), from run 008.
@@ -78,6 +79,7 @@ Generated art is a product asset, not a temp file. Credits are only spent on pla
 - **Thin washes on magenta paper take its colour** (run 014's fog came out lilac). Recolour after cutting by keeping lightness and alpha, or paint washes on neutral paper.
 - **"A slender stroke" paints as an outlined teardrop** (run 014's rain). Ask for a fine hairline streak with no outline.
 - **A full-bleed texture repeats for free** by blending it with its half-offset self under a soft window (run 014's snow).
+- **Prepared lines in the live voices match the live lines** when they use the same OpenAI voice, direction and speed from `art/voice/live.json`. At the narrator's 0.95 speed that's about 11 characters a second, so keep a 6 s line near 60 characters. Transcribing each clip with Groq checks it says its line, for a fraction of a cent (run 023).
 - **Ambience beds: ask for `loop: true`, then crossfade the last 0.6 s into the first anyway.** The loop flag gets close (rain within 1 dB, the sea 3.6 dB off), and the crossfade removes what's left (run 016).
 - **Another session can spend in the middle of your run** (run 015: the balance fell 268 for 23 credits of work). Reconcile each job against its known price and record both; a quiet minute before starting isn't enough.
 - **In CSS 3D proofs, keep puppet cards narrow** (0.7 of their height, as `m1-proof.html`). A wider card let Chrome draw the layer behind in front of the puppet (run 007).

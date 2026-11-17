@@ -15,7 +15,7 @@
   "estimateNote": "712 characters with OpenAI's gpt-4o-mini-tts: about 60 s of audio, roughly $0.02 at OpenAI's published prices ($0.60 per 1M text tokens, $12 per 1M audio tokens). No Runway credits: lane D's 40-credit budget is untouched.",
   "capCharacters": 2000,
   "capNote": "Covers a second take of every line.",
-  "status": "approved (sprint master, Nov 16: 13 lines, cap 2,000 characters); provider changed to OpenAI by the owner the same day; to record after the owner approves the four live voices",
+  "status": "recorded Nov 17 (sprint master approved the four live voices for the owner, on the live voice proof): 13 lines, 712 of 2,000 characters, about $0.016; see results.md",
   "lineJobs": [
     {
       "id": "welcome-fallback",
