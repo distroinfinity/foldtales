@@ -6,7 +6,7 @@ import type { SatchelView } from '../book/satchel-view.ts';
 import { layerRotationX } from '../book/fold.ts';
 import type { CaptionView } from '../book/text.ts';
 import { chunkAt } from '../book/caption-fit.ts';
-import { answers, answerTags, cueStrength, deviceStore, noteHandover, readHandovers } from '../objects/hand-over-cue.ts';
+import { answerTags, cued, cueStrength, deviceStore, noteHandover, readHandovers } from '../objects/hand-over-cue.ts';
 import type { DimView } from '../light/dim.ts';
 import type { HandSide, ObjectsView, Receiver, V3 } from '../objects/objects.ts';
 import { stageLook } from '../paint/card-material.ts';
@@ -1013,10 +1013,8 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
       const askedProblem = asked ? (spine.scenes[asked.scene]?.problem ?? null) : null;
       const wanted = askedProblem ? answerTags(askedProblem) : null;
       const cueNow = asked && wanted && !holding ? cueStrength(handovers) * clamp01((ms - asked.openedAtMs - 600) / 700) : 0;
-      for (const o of views.objects.states()) {
-        const out = o.home.kind === 'drawer' ? drawerAmount > 0.99 : o.home.kind === 'satchel' ? satchelOpen : o.home.kind === 'page' || o.home.kind === 'table' || o.home.kind === 'room';
-        views.objects.setCue(o.id, wanted && out && o.grabbable && !o.given && answers(defs.get(o.id), wanted) ? cueNow : 0);
-      }
+      const open = { drawer: drawerAmount > 0.99, satchel: satchelOpen };
+      for (const o of views.objects.states()) views.objects.setCue(o.id, asked && wanted && cued(o, defs.get(o.id), { tags: wanted, tried: asked.tried }, open) ? cueNow : 0);
       views.objects.frame(nowMs, head ?? new Vector3(), receivers(), handPoints, {
         bookOpen,
         drawerOpen: drawerAmount > 0.99,

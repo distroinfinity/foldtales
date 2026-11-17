@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, test } from 'vitest';
-import { answers, answerTags, cueStrength, noteHandover, readHandovers } from '../client/src/objects/hand-over-cue.ts';
+import { answers, answerTags, cued, cueStrength, noteHandover, readHandovers } from '../client/src/objects/hand-over-cue.ts';
 
 const memory = () => {
   const m = new Map<string, string>();
@@ -38,5 +38,19 @@ describe('the first-time hand-over cue', () => {
     expect(answers({ tags: ['soft'] }, tags)).toBe(true);
     expect(answers({ tags: ['glows'] }, tags)).toBe(false);
     expect(answers(undefined, tags)).toBe(false);
+  });
+
+  test('a kite carried in the satchel from the shore still rims at the gap; only this ask\'s tries are left out', () => {
+    const ask = { tags: new Set(['flies', 'rope', 'soft']), tried: ['odd-sock'] };
+    const open = { drawer: true, satchel: true };
+    // Picked up on the shore, tucked in the satchel at the page turn: `given` is set, but it was never handed over here.
+    const kite = { id: 'kite', home: { kind: 'satchel' } as const, grabbable: true, given: true };
+    expect(cued(kite, { tags: ['flies'] }, ask, open)).toBe(true);
+    // The satchel shut: out of reach, no rim.
+    expect(cued(kite, { tags: ['flies'] }, ask, { drawer: true, satchel: false })).toBe(false);
+    // Already tried for this ask: no rim.
+    expect(cued({ id: 'odd-sock', home: { kind: 'drawer' } as never, grabbable: true }, { tags: ['soft'] }, ask, open)).toBe(false);
+    // In a character's paw: no rim.
+    expect(cued({ id: 'spool', home: { kind: 'paw', cast: 'pip' } as never, grabbable: true }, { tags: ['rope'] }, ask, open)).toBe(false);
   });
 });
