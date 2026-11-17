@@ -1789,7 +1789,11 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, world
             turning = false;
             // Back to the page with that chapter waiting: leaving the book reloads the page, which prepares it.
             chooseEntry(target, { kind: 'chapter', n: was.n, from: was.ended ? 'start' : 'resume' });
-            void world.renderer.xr.getSession()?.end().catch(() => undefined);
+            const session = world.renderer.xr.getSession();
+            // Already out of XR (left while it was being prepared): there's no session to end, so nothing would
+            // reload; the old chapter is still mid-turn. A fresh load prepares the waiting chapter now.
+            if (!session || !world.renderer.xr.isPresenting) location.reload();
+            else void session.end().catch(() => undefined);
           });
       };
       /** Near a chapter's end: the next one's paintings decode ahead of time (most are shared and reused as they are). */

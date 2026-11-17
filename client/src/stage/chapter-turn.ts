@@ -119,9 +119,14 @@ export function createTurnCard(world: World, book: { root: Object3D; pageY: numb
     card.frame(delta * 1000, head);
     if (folding && !card.shown) finish();
   });
+  // Leaving XR mid-turn: the title page goes with the session, never left standing over the next visit.
+  const session = world.renderer.xr.getSession();
+  const ended = new AbortController();
+  session?.addEventListener('end', () => finish(), { once: true, signal: ended.signal });
   function finish(): void {
     if (done) return;
     done = true;
+    ended.abort();
     stop();
     card.dispose();
     anchor.removeFromParent();

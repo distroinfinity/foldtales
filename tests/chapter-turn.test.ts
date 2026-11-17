@@ -65,3 +65,21 @@ describe('turning a chapter inside the book (F3)', () => {
     expect(source).toMatch(/await old\?\.show\.log\.flushed\(\);[\s\S]*loadChapter\(target\.n, \{ from: target\.from \}\)/);
   });
 });
+
+describe('leaving XR in the middle of a turn (PR #60 review)', () => {
+  const turnSource = readFileSync(new URL('../client/src/stage/chapter-turn.ts', import.meta.url), 'utf8');
+  const hostSource = readFileSync(new URL('../client/src/index.ts', import.meta.url), 'utf8');
+
+  it('the title page is let go when the session it stood in ends', () => {
+    expect(turnSource).toMatch(/session\?\.addEventListener\('end', \(\) => finish\(\), \{ once: true, signal: ended\.signal \}\)/);
+    // And its listener is removed when it folds normally.
+    expect(turnSource).toMatch(/function finish\(\): void \{\s*if \(done\) return;\s*done = true;\s*ended\.abort\(\);/);
+  });
+
+  it('a turn that fails after XR has ended reloads the page into the waiting chapter, rather than waiting for a session end that never comes', () => {
+    const failure = hostSource.slice(hostSource.indexOf(".catch((cause: unknown) => {\n            reportError('turn', cause);"));
+    expect(failure).toMatch(/turning = false;/);
+    expect(failure).toMatch(/chooseEntry\(target,/);
+    expect(failure).toMatch(/if \(!session \|\| !world\.renderer\.xr\.isPresenting\) location\.reload\(\);\s*else void session\.end\(\)/);
+  });
+});
