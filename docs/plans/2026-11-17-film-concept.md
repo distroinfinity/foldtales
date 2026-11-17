@@ -2,6 +2,98 @@
 
 Lane S, Nov 17, 2026. For the owner's approval before anything is filmed. The study behind it is `docs/plans/2026-11-17-film-study.md`, and Codex reviewed this concept once (its findings and what changed are at the end). Lane E's nine-shot plan (`docs/submission.md`, `docs/devpost-draft.md`) is an accurate feature walkthrough. Both concepts keep its shots and its rules and change what holds them together.
 
+## Revision, Nov 17: the demo cut (this is the film now)
+
+The owner approved Concept A and the tagline, then changed the register: *"It's supposed to be a demo. We have creative freedom, but let's keep it like a hackathon demo, not sell something."* The official rules agree. §4 asks for a "Demonstration video … footage of your Project as viewed on a Meta Quest device", and §6's Polish & Presentation says: "show real gameplay that honestly represents the experience. Lead with the story and what makes your project distinct."
+
+**What stays from A:**
+- Only the book's own lines, never altered or re-voiced.
+- Real Quest 3 footage of the live build, only.
+- The light climbing from the book to the walls, the floor and the ceiling, and the keeper thread that holds it together.
+- A quiet close.
+
+**What changes:**
+- **The film follows the real user's path, in order:**
+  1. Opening the link in Quest Browser.
+  2. The book finding the table.
+  3. The two hand rules: touch to press, pinch to hold.
+  4. A page turn and a gift.
+  5. The room joining in.
+  6. Pause and resume.
+  7. Coming back the next night.
+  8. The AI Storyteller.
+- **Plain on-screen labels** say what is happening and why it matters. They are short and factual, with no adjectives, slogans or exclamation marks.
+- The hand-set title card and the *Or tell them tonight's story* card are gone. The labels do their job.
+
+**What the labels are for.** Each one shows a judge one thing the rubric asks about, in its own terms, without naming the rubric:
+- seated, hands first, clear onboarding;
+- "the player's real room meaningfully changes the experience";
+- anchoring to real surfaces;
+- a reason to come back;
+- AI as a core part of the experience.
+
+Four special awards are signalled honestly, by showing the thing and never by naming the award:
+- **Best First Five Minutes:** beats 2–5, from the link to the lantern relit in about 50 s, with a ghost hand and no wall of text.
+- **Best Reason to Come Back:** beats 11–12. The page remembers your place, and the cast say "Same time tomorrow".
+- **Best Agentic Interaction:** beat 14, the Storyteller.
+- **Boldest Original Concept:** beats 10–13, a story that uses your walls, floor and ceiling as its stage.
+
+### The demo beat sheet (about 2:56)
+
+Timings are estimated from the scripts and stay estimates until stage 3 times the real takes. Real lines can run up to 1.3× longer, so the cut list below matters.
+
+| # | Time | On-screen label | We see | We hear |
+|---|---|---|---|---|
+| 1 | 0:00–0:09 | *Foldtales: a pop-up storybook on your real table. Captured on Meta Quest 3.* | Cold open, one shot from later in chapter 1: the lit lighthouse, a hand tall on a real table, its beam sliding onto a real wall | Narrator: "Every night, the lighthouse at the edge of the table sent its light out over the house, and every lost thing followed it home." |
+| 2 | 0:09–0:17 | *It opens from a link in Quest Browser. Nothing to install.* | Quest Browser: www.foldtales.xyz, the page, a fingertip on **Open the book** | Room tone, the tap |
+| 3 | 0:17–0:29 | *The book finds your table and opens within reach.* then *A ghost hand shows the one control. No instructions to read.* | The book lands on the real table, the room dims, the pages stand up. The pale ghost hand comes down and touches the ribbon | Paper; the narrator begins |
+| 4 | 0:29–0:39 | none | Pip and Wick at the lamp; the wind; the lantern rolls to the edge | Pip: "Can I trim the wick tonight, Wick? Please?" Wick: "When you're bigger, lad." Narrator: "And that was when the wind came." |
+| 5 | 0:39–0:55 | *Pinch to hold. Hand the lantern back.* | Pip looks up; the hand pinches the lantern, carries it and lets go; it relights. **One unbroken take** | Pip: "It's lit! It was cold, and then you held it, and it just... woke up." |
+| 6 | 0:55–1:05 | *Touch to press. The ribbon pauses the story, and it picks up on the same word.* | A fingertip on the ribbon's tail: the stage folds flat, the paper card rises behind the book; a press on **Carry on**; the pages stand back up and the line resumes | Paper taps; the line, stopped, then resumed |
+| 7 | 1:05–1:11 | *Pinch a page's corner to turn it.* | The leaf follows the fingers round the spine; the shore stands up; a slow sideways lean shows the layers | Paper |
+| 8 | 1:11–1:25 | *Hand them what they need. The drawer holds the gifts.* | The path stops at a gap. The hand pulls the drawer, takes the kite and hands it over; Pip flies across | Pip: "A kite? In this wind?" … "I'm flying! I'm really, actually flying!" |
+| 9 | 1:25–1:32 | none | The far side: Pip and Wick look up at you | Pip: "Someone helped me. Someone very big." Wick: "Hmph. Well. Thank you kindly, whoever you are." |
+| 10 | 1:32–1:47 | *Your room joins in: the beam crosses your real walls.* | The lamp relights; the head follows the beam round the room, across two walls, wide | Narrator: "And the little light became the big one, and swept out over every lost thing in the house." Wick: "Not bad, keeper." Pip: "Keeper?" |
+| 11 | 1:47–1:55 | *Come back tomorrow. The book keeps your place.* | Chapter 1's end: Pip and Wick on the gallery. Cut: the next evening, the page offering **Continue**, tapped | Wick: "Same time tomorrow, keeper?" Pip: "Same time tomorrow." |
+| 12 | 1:55–2:07 | *Chapter 2: the sea comes in across your floor.* | The head tips down from the book: the painted sea on the real floor, a real chair standing in it | Narrator: "That night, the sea came in further than it ever had. Up the shore, up the rocks, and right across the Reader's floor." |
+| 13 | 2:07–2:19 | *Chapter 3: the stars come out on your ceiling.* | The head tips back: stars and a crescent moon on the real ceiling. Cut: the fox constellation lights | Pip: "And that one? It looks like a fox." Wick: "They say every keeper gets a star. Looks like that one's yours." |
+| 14 | 2:19–2:44 | *The AI Storyteller: say what tonight's story is about, and the same cast make it up with you.* then *Live AI voices. The written chapters never change.* | On the page, **Let them hear you**; in the book, the fingertip on **Hold to talk**; the cast answer. Optional, after a dissolve, with its own label: *Ask for something, and it's painted onto the page, about 30 s later*, framed without its "Powered by Runway" line | The owner's one sentence, then one complete live reply from the cast |
+| 15 | 2:44–2:50 | *Shut the cover, and the room comes back.* | The hand shuts the cover; the house lights come partway up on a real room and a closed book. Hold | Room tone |
+| 16 | 2:50–2:56 | End card | *Foldtales* · *foldtales.xyz* · *Coming to the Meta Horizon Store and Meta VR Glasses, spring 2027.* · *Captured on Meta Quest 3.* | Room tone |
+
+**Cut list if the real takes run long,** in this order:
+1. Beat 1's cold open: start straight on the link. It drops 9 s, but the film no longer leads with the story, so cut it only if needed.
+2. Beat 7, the page turn: keep it, without the lean.
+3. Beat 9, down to Pip's line alone.
+4. Beat 12, down to its second sentence.
+5. Beat 14's optional painting.
+
+**Never cut** beats 3, 5, 6, 10 and 14: the table, the pinch, the press, the room, and the Storyteller.
+
+**The labels' rules.**
+- One label at a time, held about 3 s. Each fades in on the action it names and is gone before the next line of dialogue starts.
+- Sentence case, at most 14 words, with no adjectives that judge ("magical", "immersive", "seamless").
+- Never the name of an award or a judging criterion.
+- Placed top left, on the same page-paper strip as the captions. The captions stay low in frame, so the two never stack.
+- Atkinson Hyperlegible Next for both; Fraunces for the name on the end card only.
+
+**A voice-over from the owner: recommend no.** It would read as a demo, but three things argue against it:
+- **The book is speaking for nearly every second of the 2:56.** A second voice over the narrator and the cast means ducking the story under a talk track, which is exactly what makes demos hard to follow. Talking only over the silent gaps leaves room for about 15 s of voice-over in pieces, which reads as an interruption.
+- **The labels already do the demo's job.** They also work for a judge watching muted, and each lines up with the moment it names.
+- **The owner's real voice already has the one place where it means something:** asking the cast for tonight's story in beat 14. With no other voice-over, that sentence is clearly a person talking to the book.
+
+If the owner wants one, the place for it is beat 2, over the Quest Browser page, where the app is silent. Recorded at the table, it would be one plain sentence, for example: "This is Foldtales. I'll open it from the link and play the first evening." Nowhere else.
+
+**Old material below.** The stage 1 beat sheet for A and Concept B are kept for the record. Where they differ, the demo beat sheet above wins. The shot list below gains four shots in the filming plan:
+- the Quest Browser page;
+- the first-visit landing with the ghost hand;
+- the ribbon pause and resume;
+- the next evening's Continue.
+
+The ghost hand shows until the ribbon is first used on this headset (`tt.ribbon-used` in `client/src/index.ts`). So beat 3 is filmed before beat 6 in the same run, or after clearing the site's data. In a review build, `?ghost=loop` shows it at once. Never film the review build's `?card=busiest` proof card: it names the teapot keepsake.
+
+---
+
 **What binds both concepts** (Devpost's rules and judging page, quoted in the study; `docs/submission.md`):
 - Under 3:00, and "lead with your best material", since judges needn't watch past it.
 - "Footage of your Project as viewed on a Meta VR device": real Quest 3 footage of the live build only. No AI-generated video, no stock footage.
@@ -214,9 +306,30 @@ It's concrete (a fox, a lighthouse), gives the reader one verb ("help"), and mak
 - "A painted pop-up storybook for your real table. Hand a frightened fox his lantern, and the lighthouse's beam sweeps across your walls." (134)
 - Lane E's current: "A painted pop-up storybook opens on your real table. Reach in, hand the characters what they need, and watch your room join the story." (134) It's accurate, but "the characters" and "join the story" are generic: it could describe any storybook.
 
-### The description's shape
+### The description's shape (revised for the demo)
 
-Keep the headings Devpost's template expects, but lead with a moment instead of a thesis, and write it the way we'd explain it to a friend at the table. About 500 words:
+**What the rules require** (§4): a text description covering:
+- the **inspiration**;
+- **how we built it**;
+- **future plans for improvement**;
+- a **target launch date**: spring 2027, on the Meta Horizon Store and Meta VR Glasses.
+
+**The form's fields:**
+- **Track:** Entertainment.
+- **Division:** New Experience. The repo's first commit is Oct 30, 2026 ("Add PRD and hackathon reference"), inside the window that starts Sept 24, and nothing earlier was reused.
+
+So "Inspiration" comes back as its own short heading, and it is the one real reason, said plainly: *on a screen you only watch; a book on your table needs your hands.* The order, in the demo's plain register:
+1. A one-scene opening.
+2. What it is.
+3. Inspiration.
+4. How a reader moves through it, in the film's order.
+5. The Storyteller.
+6. How we built it.
+7. What's next and when.
+
+Everywhere, "we built" and "it does" beat "it delivers" or "it reimagines".
+
+The earlier guidance, which still applies within that order: keep the headings Devpost's template expects, but lead with a moment instead of a thesis, and write it the way we'd explain it to a friend at the table. About 500 words:
 
 1. **One scene first (2–3 sentences).** Pip's lantern rolls to the edge of your table, and he looks up at you. You reach in and hand it back, and it relights in his paws. That's Foldtales.
 2. **What it is (3–4 sentences).** A pop-up storybook for the evening, opened from a link in Quest Browser. Three chapters, six minutes each, hands only, with no score and no losing. The story plays to its end if you just watch.
