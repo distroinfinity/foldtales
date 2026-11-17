@@ -6,6 +6,7 @@ import { ObjectDef, Rig, Spine } from '../contracts/src/index.ts';
 import { BookSpec, SetSpec } from '../client/src/book/spec.ts';
 import { artJoin, bookFiles, buildBook, OVER_STACK } from '../client/src/book/book-view.ts';
 import { buildDrawer, DrawerSpec } from '../client/src/book/drawer-view.ts';
+import { captionChunks, captionFit } from '../client/src/book/caption-fit.ts';
 import { buildSatchel, SatchelSpec } from '../client/src/book/satchel-view.ts';
 import { buildDim } from '../client/src/light/dim.ts';
 import { createObjects, type ObjectState } from '../client/src/objects/objects.ts';
@@ -133,7 +134,7 @@ export function stage(chapter: Spine = spine) {
       heads,
       dim,
       leaves: buildLeaves([ref('fx/leaf-1.png'), ref('fx/leaf-2.png')]),
-      caption: { mesh: new Object3D() as never, baseSizeM: 0.012, setSize: () => undefined, show: (line) => captions.push(line) },
+      caption: { mesh: new Object3D() as never, baseSizeM: 0.012, setSize: () => undefined, chunks: (line) => captionChunks(line, captionFit(0.336, 0.045, 0.012)), show: (line) => captions.push(line) },
       endPage: { show: (on) => void (ended = on), readAgain: new Object3D() },
       sound,
       objects,
