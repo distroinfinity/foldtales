@@ -36,6 +36,19 @@ describe("the lamp's ray stops at your wall", () => {
     expect(beamReach(lamp, Math.PI, [ahead, near, floor])).toBeCloseTo(1, 5);
   });
 
+  test('turned toward you, it stops short of your eyes, and runs full length again as it swings past', () => {
+    const head = new Vector3(0, 1.2, 0.1);
+    // Straight at you: 0.6 m away, so it ends 0.3 m short.
+    expect(beamReach(lamp, 0, [], head)).toBeCloseTo(0.5, 5);
+    // A little to one side, it eases back out.
+    const partway = beamReach(lamp, 0.6, [], head);
+    expect(partway).toBeGreaterThan(0.5);
+    expect(partway).toBeLessThan(BEAM_REACH_M);
+    // Well to the side, or turned away, your head doesn't matter.
+    expect(beamReach(lamp, Math.PI / 2, [], head)).toBe(BEAM_REACH_M);
+    expect(beamReach(lamp, Math.PI, [ahead], head)).toBeCloseTo(2, 5);
+  });
+
   test('no room read: the room dim\'s 3 m; a wall at the book still shows a ray leaving the lamp', () => {
     expect(beamReach(lamp, 1, [])).toBe(BEAM_REACH_M);
     expect(beamReach(lamp, Math.PI, [wall([0, 1.2, -0.6], [0, 0, 1])])).toBe(0.5);

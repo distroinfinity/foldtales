@@ -1074,7 +1074,7 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
       // The ray you can see leave the lamp (or the raised light) and cross the room to your wall, turning with the
       // light it casts there. M1's cone; b323be9 dropped it outside the hunt, so only the wall light turned.
       const walls = views.room?.places() ?? [];
-      if (worldBeam) views.book.setBeam(worldBeam.azimuth - views.stageRoot.rotation.y, worldBeam.strength, { reachM: beamReach(worldBeam.lamp, worldBeam.azimuth, walls), from: beamFromLight ? worldBeam.lamp : null });
+      if (worldBeam) views.book.setBeam(worldBeam.azimuth - views.stageRoot.rotation.y, worldBeam.strength, { reachM: beamReach(worldBeam.lamp, worldBeam.azimuth, walls, head), from: beamFromLight ? worldBeam.lamp : null });
       else views.book.setBeam(0, 0);
       let spot: { at: Vector3; radiusM: number; strength: number } | null = null;
 
@@ -1106,7 +1106,7 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
           }
         }
         views.book.setLamp(true);
-        views.book.setBeam(look.azimuth - views.stageRoot.rotation.y, look.strength * (bookOpen ? 1 : 0), { reachM: beamReach(lampAt, look.azimuth, walls) });
+        views.book.setBeam(look.azimuth - views.stageRoot.rotation.y, look.strength * (bookOpen ? 1 : 0), { reachM: beamReach(lampAt, look.azimuth, walls, head) });
         if (bookOpen) {
           worldBeam = { lamp: lampAt, azimuth: look.azimuth, strength: look.strength };
           spot = { at: huntTarget, radiusM: 0.45, strength: look.spot };
