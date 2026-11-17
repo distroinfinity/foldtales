@@ -1,4 +1,4 @@
-/** The 2D pages that never load the book: About, Privacy, the phone's sign-in, and Google's return. */
+/** The 2D pages that never load the book: About, Privacy, Terms, the phone's sign-in, and Google's return. */
 import '@fontsource/cormorant-garamond/500.css';
 import '@fontsource/cormorant-garamond/600.css';
 import '@fontsource/cormorant-garamond/600-italic.css';

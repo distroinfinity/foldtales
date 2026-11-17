@@ -86,7 +86,7 @@ export default defineConfig(({ command, mode }) => ({
     sourcemap: process.env.NODE_ENV !== 'production',
     target: 'esnext',
     // The page, plus the 2D pages that never load the 3D book.
-    rollupOptions: { input: { main: './index.html', about: './about/index.html', privacy: './privacy/index.html', link: './link/index.html', authReturn: './auth/return/index.html' } },
+    rollupOptions: { input: { main: './index.html', about: './about/index.html', privacy: './privacy/index.html', terms: './terms/index.html', link: './link/index.html', authReturn: './auth/return/index.html' } },
   },
   esbuild: { target: 'esnext' },
   resolve: { dedupe: ['three'] },
