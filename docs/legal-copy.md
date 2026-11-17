@@ -1,6 +1,8 @@
 # Legal copy: Terms, Privacy, credits and attribution
 
-Lane E writes these words. Lane A owns the pages they go on (`client/src/pages/`), and lane D owns the Storyteller's surfaces. Paste them as written. A change of meaning comes back here first. Nov 16, 2026.
+Lane E writes these words. Lane D owns the Storyteller's surfaces. Paste them as written. A change of meaning comes back here first. Nov 16, 2026.
+
+**On the site since Nov 17 (lane E, after lane A closed):** Terms at `/terms/` (`client/src/pages/terms.tsx`, linked from the page's foot and from Privacy), Privacy and About's credits as below.
 
 **Decided by the owner (Nov 16):**
 - The contact is **manurajput2911@gmail.com**, public on Privacy and Terms.
@@ -78,11 +80,11 @@ This is our reading, and a judge could see it differently. Live painting stays o
 >
 > **In the AI Storyteller**
 >
-> - What you say is sent to Groq to be turned into words, and isn't kept.
+> - What you say is sent to Groq to be turned into words.
 > - Those words, and what you give the characters, go to Anthropic's Claude to write the story.
 > - The characters' lines go to OpenAI to be spoken. The voices you hear are AI-generated.
 > - If you ask for something to be painted, your request goes to Runway, which paints it.
-> - Anthropic, OpenAI and Groq don't use what you send them to train their AI. OpenAI and Anthropic may keep it for a short time to check for misuse, as their policies allow.
+> - Anthropic, OpenAI and Groq don't use what you send them to train their AI. They may keep it for a short time to check for misuse, as their policies allow.
 > - Runway's terms let it use what you ask it to paint, and the pictures it makes, to improve its AI. Don't ask for a picture of anything private.
 > - The shapes of your room from your Quest's Space Setup (where the table, couch and walls are) are described to the AI as text, so the story can use them. No pictures of your room are ever taken.
 > - Your microphone is only on while you hold the talk button, and we never store recordings.
@@ -96,7 +98,7 @@ This is our reading, and a judge could see it differently. Live painting stays o
 *Checked against the code and the plan:*
 - "Frame rate and errors" is all that telemetry sends today. The old page also said "load time", which it doesn't send.
 - The training line names each service: Runway's terms (§4.4) allow it to train on inputs and outputs, so there's no blanket no-training promise (Codex, PR #33, point 4).
-- "Isn't kept" for Groq is exact only once ZDR is on. If it stays off, use: "isn't used to train its AI, and may be kept for a short time".
+- Groq's line makes no "isn't kept" promise (Nov 17): it's true whether or not Zero Data Retention is on. Switching ZDR on is still recommended.
 - "Only on while you hold the talk button" is ticket 3's microphone rule (PR #9 review fix).
 - Lane D: confirm each line still matches the live-voice and speech-in move.
 
@@ -105,6 +107,7 @@ This is our reading, and a judge could see it differently. Live painting stays o
 > **Credits**
 > - **Art:** painted with AI (Seedream, through Runway) from our own designs and references, then cut out, finished and rigged by hand.
 > - **Chapter voices and sound:** ElevenLabs voices and sound effects, made through Runway before release.
+> - **Music:** "Piano Ambience chord progression 82bpm" by CVLTIV8R, from Freesound, under CC0. (CC0 asks for no credit; it's given anyway. Drop this line if the bed is dropped.)
 > - **The AI Storyteller:** stories by Anthropic's Claude. Voices by OpenAI, and AI-generated. Listening by Groq. Live pictures powered by [Runway](https://runway.com).
 > - **Type:** Fraunces, Atkinson Hyperlegible Next and Cormorant Garamond, under the SIL Open Font License.
 > - **Code:** Immersive Web SDK, Three.js, troika-three-text, React, Motion, Tailwind CSS and others, under their open-source licences, with components adapted from Magic UI.

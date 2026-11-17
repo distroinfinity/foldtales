@@ -16,16 +16,37 @@ mount(
     <p>The Meta VR Start Developer Competition, 2026. Built for the web with Meta’s Immersive Web SDK, and tested on a Quest 3.</p>
     <h2>Credits</h2>
     <ul>
-      <li>Art: painted with AI (Seedream, through Runway) from our own designs and references, then cut out and rigged by hand.</li>
-      <li>Voices: ElevenLabs voices, through Runway. Sound effects: made through Runway.</li>
-      <li>Type: Fraunces and Atkinson Hyperlegible Next, under the SIL Open Font License.</li>
-      <li>Code: Immersive Web SDK and Three.js, troika-three-text, React, Motion, Tailwind CSS, Better Auth, Hono, and components adapted from Magic UI, each under the MIT licence.</li>
+      <li>
+        <strong>Art:</strong> painted with AI (Seedream, through Runway) from our own designs and references, then cut out, finished and rigged by
+        hand.
+      </li>
+      <li>
+        <strong>Chapter voices and sound:</strong> ElevenLabs voices and sound effects, made through Runway before release.
+      </li>
+      <li>
+        <strong>Music:</strong> “Piano Ambience chord progression 82bpm” by CVLTIV8R, from Freesound, under CC0.
+      </li>
+      <li>
+        <strong>The AI Storyteller:</strong> stories by Anthropic’s Claude. Voices by OpenAI, and AI-generated. Listening by Groq. Live pictures
+        powered by{' '}
+        <a href="https://runway.com" target="_blank" rel="noopener">
+          Runway
+        </a>
+        .
+      </li>
+      <li>
+        <strong>Type:</strong> Fraunces, Atkinson Hyperlegible Next and Cormorant Garamond, under the SIL Open Font License.
+      </li>
+      <li>
+        <strong>Code:</strong> Immersive Web SDK, Three.js, troika-three-text, React, Motion, Tailwind CSS and others, under their open-source
+        licences, with components adapted from Magic UI.
+      </li>
     </ul>
     <p>
       Every licence, in full: <a href="../notices.txt">third-party notices</a>.
     </p>
     <p className="text-[15px] opacity-70">
-      <a href="https://runwayml.com" target="_blank" rel="noopener">
+      <a href="https://runway.com" target="_blank" rel="noopener">
         Powered by Runway
       </a>
     </p>

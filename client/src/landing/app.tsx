@@ -165,6 +165,9 @@ export function App({ device }: { device: Device }) {
           <a className={footLink} href="./privacy/">
             Privacy
           </a>
+          <a className={footLink} href="./terms/">
+            Terms
+          </a>
           {device !== 'headset' && (
             <a className={footLink} href="./?page=landing">
               Open it here anyway
