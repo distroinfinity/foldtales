@@ -34,9 +34,21 @@ The owner approved Concept A and the tagline, then changed the register: *"It's 
 
 Four special awards are signalled honestly, by showing the thing and never by naming the award:
 - **Best First Five Minutes:** beats 2–5, from the link to the lantern relit in about 50 s, with a ghost hand and no wall of text.
-- **Best Reason to Come Back:** beats 11–12. The page remembers your place, and the cast say "Same time tomorrow".
+- **Best Reason to Come Back:** beat 11. The cast say "Same time tomorrow", the next chapter follows on in the book, and your place is kept.
 - **Best Agentic Interaction:** beat 14, the Storyteller.
 - **Boldest Original Concept:** beats 10–13, a story that uses your walls, floor and ceiling as its stage.
+
+### Revision 2, Nov 17 evening: after the owner's test run
+
+The owner's live test run produced three lanes of fixes. They change what the film shows, so **nothing is filmed until they land on www.foldtales.xyz**. The beat sheet below is already rewritten for them. Each change gets checked against the deployed build before the sitting, and a label always follows what is really there.
+
+| Lane | What changes in the product | What changes in the film |
+|---|---|---|
+| **F1** book polish | The landing's door cards line up. Captions fit inside the book. The first time you have something to hand over, it's highlighted | Beat 2: the page can be filmed as it is. All beats: the book's own caption is readable in frame, so the edit stops doubling it (see "Captions" below). Beat 5: the highlight is what shows a new user what to pinch, so the label stays short |
+| **F2** chapter 1's first impression | The original **visible** lighthouse beam is back. Chapter 1 opens more strongly. Wick has hands | **Beat 1, the hook, is the beam leaving the lighthouse**: a visible shaft from the lamp, followed off the book onto a real wall. If the new opening starts with the beam, the hook is the real first moment of the first visit, not a shot from later. Beat 4: Wick's gestures are in frame. The lines quoted in beats 1 and 4 are rechecked against the new script |
+| **F3** seamless in-XR chapter switching | Chapter 1 → 2 happens in the headset | Beats 11 and 12 become one continuous moment in the headset: "Same time tomorrow", the book offers chapter 2, a touch, the sea. The cut to the page in Quest Browser is gone. R1 now runs from the link to the sea in one recording |
+
+**Captions, decided now that they fit the book.** The book's own caption carries the line whenever the book is in frame. Burned-in film captions appear only when the book is out of frame (the walls, the floor, the ceiling), low and on a paper strip. The full `.srt` goes to YouTube for every line. One line is never shown twice on screen.
 
 ### The demo beat sheet (about 2:56)
 
@@ -44,25 +56,25 @@ Timings are estimated from the scripts and stay estimates until stage 3 times th
 
 | # | Time | On-screen label | We see | We hear |
 |---|---|---|---|---|
-| 1 | 0:00–0:09 | *Foldtales: a pop-up storybook on your real table. Captured on Meta Quest 3.* | Cold open, one shot from later in chapter 1: the lit lighthouse, a hand tall on a real table, its beam sliding onto a real wall | Narrator: "Every night, the lighthouse at the edge of the table sent its light out over the house, and every lost thing followed it home." |
-| 2 | 0:09–0:17 | *It opens from a link in Quest Browser. Nothing to install.* | Quest Browser: www.foldtales.xyz, the page, a fingertip on **Open the book** | Room tone, the tap |
+| 1 | 0:00–0:09 | *Foldtales: a pop-up storybook on your real table. Captured on Meta Quest 3.* | **The hook: the beam leaves the lighthouse** (F2). The lit lighthouse, a hand tall on a real table; its visible shaft leaves the lamp, and the head follows it off the book onto a real wall. The source stays in frame for the first 2 s. From R1's own opening if F2 starts chapter 1 with the beam, otherwise from R2 | Narrator: "Every night, the lighthouse at the edge of the table sent its light out over the house, and every lost thing followed it home." |
+| 2 | 0:09–0:17 | *It opens from a link in Quest Browser. Nothing to install.* | Quest Browser: www.foldtales.xyz, the page with its door cards lined up (F1), a fingertip on **Open the book** | Room tone, the tap |
 | 3 | 0:17–0:29 | *The book finds your table and opens within reach.* then *A ghost hand shows the one control. No instructions to read.* | The book lands on the real table, the room dims, the pages stand up. The pale ghost hand comes down and touches the ribbon | Paper; the narrator begins |
-| 4 | 0:29–0:39 | none | Pip and Wick at the lamp; the wind; the lantern rolls to the edge | Pip: "Can I trim the wick tonight, Wick? Please?" Wick: "When you're bigger, lad." Narrator: "And that was when the wind came." |
-| 5 | 0:39–0:55 | *Pinch to hold. Hand the lantern back.* | Pip looks up; the hand pinches the lantern, carries it and lets go; it relights. **One unbroken take** | Pip: "It's lit! It was cold, and then you held it, and it just... woke up." |
+| 4 | 0:29–0:39 | none | Pip and Wick at the lamp, Wick's hands at work (F2); the wind; the lantern rolls to the edge. Lines rechecked against F2's opening | Pip: "Can I trim the wick tonight, Wick? Please?" Wick: "When you're bigger, lad." Narrator: "And that was when the wind came." |
+| 5 | 0:39–0:55 | *Pinch to hold. Hand the lantern back.* | Pip looks up; the lantern is highlighted, the first time (F1); the hand pinches it, carries it and lets go; it relights. **One unbroken take** | Pip: "It's lit! It was cold, and then you held it, and it just... woke up." |
 | 6 | 0:55–1:05 | *Touch to press. The ribbon pauses the story, and it picks up on the same word.* | A fingertip on the ribbon's tail: the stage folds flat, the paper card rises behind the book; a press on **Carry on**; the pages stand back up and the line resumes | Paper taps; the line, stopped, then resumed |
 | 7 | 1:05–1:11 | *Pinch a page's corner to turn it.* | The leaf follows the fingers round the spine; the shore stands up; a slow sideways lean shows the layers | Paper |
 | 8 | 1:11–1:25 | *Hand them what they need. The drawer holds the gifts.* | The path stops at a gap. The hand pulls the drawer, takes the kite and hands it over; Pip flies across | Pip: "A kite? In this wind?" … "I'm flying! I'm really, actually flying!" |
 | 9 | 1:25–1:32 | none | The far side: Pip and Wick look up at you | Pip: "Someone helped me. Someone very big." Wick: "Hmph. Well. Thank you kindly, whoever you are." |
 | 10 | 1:32–1:47 | *Your room joins in: the beam crosses your real walls.* | The lamp relights; the head follows the beam round the room, across two walls, wide | Narrator: "And the little light became the big one, and swept out over every lost thing in the house." Wick: "Not bad, keeper." Pip: "Keeper?" |
-| 11 | 1:47–1:55 | *Come back tomorrow. The book keeps your place.* | Chapter 1's end: Pip and Wick on the gallery. Cut: the next evening, the page offering **Continue**, tapped | Wick: "Same time tomorrow, keeper?" Pip: "Same time tomorrow." |
-| 12 | 1:55–2:07 | *Chapter 2: the sea comes in across your floor.* | The head tips down from the book: the painted sea on the real floor, a real chair standing in it | Narrator: "That night, the sea came in further than it ever had. Up the shore, up the rocks, and right across the Reader's floor." |
+| 11 | 1:47–1:57 | *The next chapter opens in the book. Your place is kept for tomorrow.* | Chapter 1's end: Pip and Wick on the gallery. Then, still in the headset (F3), the book offers chapter 2 and a fingertip takes it. No cut to the page | Wick: "Same time tomorrow, keeper?" Pip: "Same time tomorrow." |
+| 12 | 1:57–2:07 | *Chapter 2: the sea comes in across your floor.* | Same recording, a cut inside chapter 2: the head tips down from the book to the painted sea on the real floor, a real chair standing in it | Narrator: "That night, the sea came in further than it ever had. Up the shore, up the rocks, and right across the Reader's floor." |
 | 13 | 2:07–2:19 | *Chapter 3: the stars come out on your ceiling.* | The head tips back: stars and a crescent moon on the real ceiling. Cut: the fox constellation lights | Pip: "And that one? It looks like a fox." Wick: "They say every keeper gets a star. Looks like that one's yours." |
 | 14 | 2:19–2:44 | *The AI Storyteller: say what tonight's story is about, and the same cast make it up with you.* then *Live AI voices. The written chapters never change.* | On the page, **Let them hear you**; in the book, the fingertip on **Hold to talk**; the cast answer. Optional, after a dissolve, with its own label: *Ask for something, and it's painted onto the page, about 30 s later*, framed without its "Powered by Runway" line | The owner's one sentence, then one complete live reply from the cast |
 | 15 | 2:44–2:50 | *Shut the cover, and the room comes back.* | The hand shuts the cover; the house lights come partway up on a real room and a closed book. Hold | Room tone |
 | 16 | 2:50–2:56 | End card | *Foldtales* · *foldtales.xyz* · *Coming to the Meta Horizon Store and Meta VR Glasses, spring 2027.* · *Captured on Meta Quest 3.* | Room tone |
 
 **Cut list if the real takes run long,** in this order:
-1. Beat 1's cold open: start straight on the link. It drops 9 s, but the film no longer leads with the story, so cut it only if needed.
+1. Beat 1 down to 5 s: the beam leaving the lamp and reaching the wall, without the rest of the narrator's line. Never cut it entirely; since the test run, it's the hook.
 2. Beat 7, the page turn: keep it, without the lean.
 3. Beat 9, down to Pip's line alone.
 4. Beat 12, down to its second sentence.
@@ -90,7 +102,7 @@ If the owner wants one, the place for it is beat 2, over the Quest Browser page,
 - the ribbon pause and resume;
 - the next evening's Continue.
 
-The ghost hand shows until the ribbon is first used on this headset (`tt.ribbon-used` in `client/src/index.ts`). So beat 3 is filmed before beat 6 in the same run, or after clearing the site's data. In a review build, `?ghost=loop` shows it at once. Never film the review build's `?card=busiest` proof card: it names the teapot keepsake.
+The ghost hand shows until the ribbon is first used on this headset (`tt.ribbon-used` in `client/src/index.ts`), and F1's hand-over highlight is for the first time too. So beats 3 and 5 are filmed on a true first visit, before beat 6 in the same run, or after clearing the site's data. In a review build, `?ghost=loop` shows it at once. Never film the review build's `?card=busiest` proof card: it names the teapot keepsake.
 
 ---
 

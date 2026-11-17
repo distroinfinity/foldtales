@@ -4,9 +4,15 @@ Lane S, written Nov 17 for filming on Nov 18. It films the demo beat sheet in `d
 
 **The order of the day is the owner's:**
 1. Finish the product.
-2. The owner's full test run of the live site, as a real user. The sprint master drives the Quest.
-3. The capture test.
-4. This sitting.
+2. The owner's full test run of the live site, as a real user. The sprint master drives the Quest. **Done:** it produced lanes F1, F2 and F3 (below).
+3. F1, F2 and F3 land and are deployed to www.foldtales.xyz.
+4. The capture test.
+5. This sitting.
+
+**What the test run changed** (the full table is in the concept doc, "Revision 2"):
+- **F1:** the landing's door cards line up, captions fit inside the book, and the first thing to hand over is highlighted the first time.
+- **F2:** the visible lighthouse beam is back, chapter 1 opens more strongly, and Wick has hands. **The beam leaving the lighthouse is the film's hook.**
+- **F3:** chapter 1 → 2 happens in the headset. R1 now runs from the link to chapter 2's sea in one recording.
 
 Nothing here touches the Quest until the sprint master says it's free.
 
@@ -14,6 +20,7 @@ Nothing here touches the Quest until the sprint master says it's free.
 
 | Gate | Pass | If it fails |
 |---|---|---|
+| F1, F2 and F3 are live | Each is merged and deployed to www.foldtales.xyz, and the sprint master confirms it from the headset | No filming of the beats they touch: 1, 2, 3, 4, 5, 11, 12. That's most of the film, so in practice no filming |
 | The capture test (section 1) | One method is proven, with picture and sound both verified by the agent from a pulled clip | No filming. Escalate to the sprint master with what the clip showed |
 | The owner's test run | The live build plays chapters 1–3 end to end, and the page's wording matches the labels | Fix the labels to match what's true, never the other way round |
 | The Storyteller's launch switch | Live on www.foldtales.xyz, signed in | Beat 14 drops; the cut list takes up the time |
@@ -94,7 +101,7 @@ Each check runs on the pulled file. These tools are all on the Mac: `ffprobe`, `
   - Camera settings (method B): Landscape 1920 × 1080, 36 fps, 20 Mbps, image stabilization Low, and the dominant eye.
   - Sound: Quest volume at about 70%.
   - Wi-Fi: home Wi-Fi; the live site needs it.
-- **Clean start:** clear Quest Browser's data for `www.foldtales.xyz` before the first take. Then it's a true first visit: the page offers Open the book, and the ghost hand appears.
+- **Clean start:** clear Quest Browser's data for `www.foldtales.xyz` before the first take. Then it's a true first visit: the page offers Open the book, the ghost hand appears, and the lantern gets F1's first-time highlight.
 
 ## 3. Where each shot comes from
 
@@ -110,7 +117,7 @@ Each check runs on the pulled file. These tools are all on the Mac: `ffprobe`, `
 ## 4. The sitting, in order (about 75 minutes)
 
 Each "run" is one continuous recording. Long continuous runs are deliberate:
-- The demo's beats are the real journey in order, and one take of chapter 1 holds nine of them.
+- The demo's beats are the real journey in order, and one take from the link to chapter 2's sea holds up to twelve of them.
 - Every hand moment is allowed to finish inside one recording.
 - It avoids retakes that need a fresh site.
 
@@ -119,10 +126,10 @@ The editor cuts the beats out of the runs. **Every look starts and ends with a 2
 | Run | Beats | What the owner does | Source | Takes |
 |---|---|---|---|---|
 | R0 | — | 30 s of the room, still, with the app's sound off (Quest volume 0), looking at the table, walls and window: the room tone, and a clean plate | Any | 1 |
-| R1 | 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 (end) | **First visit, straight through chapter 1.** In Quest Browser, the page; tap Open the book; let the book land; watch the ghost hand twice without touching the ribbon. Hand the lantern back. After Pip's relight, touch the ribbon (beat 6): look at the card, press **Carry on**. Turn the page by its corner, then one slow lean. At the gap, pull the drawer and hand over the kite. When the lamp relights, follow the beam round the room slowly, across two walls and the window, and settle back on the gallery. Hold through "Same time tomorrow". Then the end card | Live, site data cleared first | 1, plus a second if anything breaks. The ghost hand needs site data cleared again for a second take |
-| R2 | 1 | **The cold open:** the lit lamp, the beam leaving it, the head following it onto the wall. Filmed in Dark, then in Lighter | Review build, `?chapter=1&jump=lighthouse`; or R1's beam | 2 (Dark, Lighter) |
-| R3 | 11 (the page) | After R1's end card, press **Put the book away**. On the page, hold on what it now offers for chapter 2, then tap it | Live, continuing R1 | 1 |
-| R4 | 12 | Chapter 2 from that tap. When the sea comes in, tip the head down slowly to the floor: the ring of sea, a real chair standing in it; hold 4 s; back to the book | Live; retake `?chapter=2&jump=sea-in` | 1, plus a retake |
+| R1 | 1 (if F2 opens on the beam), 2–12 | **First visit, from the link to chapter 2's sea, in one recording.** In Quest Browser, the page; tap Open the book; let the book land. If chapter 1 opens on the beam, follow it slowly off the book onto the wall and back (beat 1). Watch the ghost hand twice without touching the ribbon. Let the highlight show on the lantern, then hand it back. After Pip's relight, touch the ribbon (beat 6): look at the card, press **Carry on**. Turn the page by its corner, then one slow lean. At the gap, pull the drawer and hand over the kite. When the lamp relights, follow the beam round the room slowly, across two walls and the window, and settle back on the gallery. Hold through "Same time tomorrow". **Stay in the headset:** when the book offers chapter 2, take it with a fingertip. When the sea comes in, tip the head down slowly to the floor: the ring of sea, a real chair standing in it; hold 4 s; back to the book | Live, site data cleared first | 1, plus a second if anything breaks. The ghost hand and the highlight need site data cleared again for a second take |
+| R2 | 1 | **The hook, filmed on its own:** the lit lamp, the visible beam leaving it, the head following it onto the wall. Filmed in Dark, then in Lighter. Not needed if R1's opening already has it in both | Review build, `?chapter=1` from the top (F2's opening), or `?chapter=1&jump=lighthouse` | 2 (Dark, Lighter) |
+| R3 | 11 (spare) | **Optional insert:** after R1's sea, press **Put the book away**, and hold 2 s on what the page offers ("Continue chapter 2" expected). Only used if beat 11's "your place is kept" needs showing | Live, continuing R1 | 1 |
+| R4 | 12 (retake) | Only if R1's sea isn't usable: as R1's last part | Review build, `?chapter=2&jump=sea-in` | 1 |
 | R5 | 13 | Chapter 3's sky: the head well back and still; the moon and the fox together; through "Looks like that one's yours." | Review build, `?chapter=3&jump=the-sky` (the live run is about 6 min to reach it) | 2 |
 | R6 | 6 (spare), 15 | A spare ribbon pause, and the close: at a quiet moment, shut the cover by its outer edge; hold 4 s as the lights come partway up | Live or review build | 2 |
 | R7 | 14 | **Last, if the Storyteller is live.** Signed in, on the page: **Let them hear you**. In the book, press and hold the paper talk button with a fingertip, and say one prepared sentence (below). Let the cast's reply finish. If asked for a painting, wait about 30 s, framed so the "Powered by Runway" line is out of shot | Live, signed in | 3 sentences, one take each; keep the clearest |
@@ -135,9 +142,12 @@ The editor cuts the beats out of the runs. **Every look starts and ends with a 2
 
 **Also in this sitting:** the stills for gallery images 1–7 come from these runs. They're taken by the editor later, so nothing extra is filmed for them.
 
-**Things to check at the owner's test run, not guess now:**
-- **The page's wording after chapter 1 ends** (beat 11's second half). The label says *Come back tomorrow. The book keeps your place.* If the page offers "Continue chapter 1" partway through and "Open the book" with chapter 2's line after an ending (`client/src/landing/library.ts`, `client/src/show/progress.ts`), R3 may be better filmed by putting the book away partway through chapter 2, so the page says "Continue chapter 2". Use whichever is true.
-- **Whether the ghost hand shows on the live build at first open.** It does unless the ribbon was used on this headset (`tt.ribbon-used`); the test run itself will set that flag, so the site data is cleared after the test run.
+**Things to check on the deployed build once F1–F3 land, not guess now:**
+- **F2's opening:** does chapter 1 now open on the lit lamp and its visible beam? If yes, R1 holds the hook and R2 is a spare. Recheck the lines quoted in beats 1 and 4 against the new script.
+- **F3's switch:** how the book offers chapter 2 in the headset (a button on the end card, the menu, or a page turn), so beat 11's label and the owner's step in R1 name it correctly.
+- **F1's highlight:** what triggers it, and whether it shows on the lantern (beat 5) or only later.
+- **The page after leaving mid-chapter 2,** for the optional R3 insert.
+- **The ghost hand and the highlight on a first open.** The test run set their first-time flags on this headset (`tt.ribbon-used`, and F1's), so the site data is cleared after the test run and before R1.
 
 ## 5. Getting the files off
 
