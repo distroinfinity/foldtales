@@ -43,7 +43,7 @@ export function whereIn(episodeId: string, sceneIndex: number): string | null {
 }
 
 /** The chapters in this build, in order, from the manifest's list (or chapter 1 alone, from before it had one). */
-function chaptersOf(manifest: ShowManifest): NonNullable<ShowManifest['chapters']> {
+export function chaptersOf(manifest: ShowManifest): NonNullable<ShowManifest['chapters']> {
   return manifest.chapters?.length ? [...manifest.chapters].sort((a, b) => a.n - b.n) : [{ n: 1, episode: manifest.episode, onStage: manifest.onStage }];
 }
 
