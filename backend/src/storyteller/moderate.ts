@@ -10,7 +10,7 @@ const READER =
 const OUTPUT =
   'You check one line a storybook character is about to say aloud (or a story\'s title or summary) in a cozy, PG bedtime storybook for teens and adults, set in a lost-and-found at the edge of a table. Answer fit=false for anything sexual, graphically violent or gory, hateful or slurring, about self-harm, giving real-world harmful instructions, cruel to the reader, naming a real living person as a target, or breaking the story to talk about AI, screens, apps or games. Gentle peril, mild grumpiness, sadness and silliness are fit=true.';
 
-const PICTURE = `You look at one picture painted live for a cozy, PG picture book, before it is shown to the reader. It must be: a single object (not a scene, a person or an animal's face filling the frame), painted in a soft watercolour-and-pencil storybook style, PG, with no words, letters or logos, and recognisably the thing asked for. Answer fit=true only if all of these hold.`;
+const PICTURE = `You look at one picture painted live for a cozy, PG picture book, before it is shown to the reader. Answer fit=false only if it is unsafe or not PG, if it shows prominent words, letters or logos, or if it is clearly not the thing asked for (a different object, or a scene or a face instead of an object). Style is not a reason to reject: watercolour, pencil, painterly or slightly different looks are all fine. Otherwise answer fit=true.`;
 
 /** Is what the reader said fit to steer the story? Runs alongside the turn. Fails open (4 s): Claude's PG rules and the output check are the next lines. */
 export function createModerator(claude: Claude) {
@@ -47,24 +47,32 @@ export function createLineCheck(claude: Claude, timeoutMs = 2500, log: (m: strin
   };
 }
 
-/** Is a finished painting fit to show? Fails closed (6 s), so a painting that can't be looked at is never shown. */
-export function createPictureCheck(claude: Claude, timeoutMs = 6000) {
+/**
+ * Is a finished painting fit to show? Fails closed: a refusal is false at once; an error or a timeout (12 s)
+ * is tried once more, then false, so a painting that can't be looked at is never shown. Why it was stopped is logged.
+ */
+export function createPictureCheck(claude: Claude, timeoutMs = 12_000, log: (m: string) => void = () => {}) {
   return async (png: Buffer, description: string): Promise<boolean> => {
-    try {
-      const answer = await claude.ask({
-        model: REACTOR,
-        system: PICTURE,
-        user: `The thing asked for: ${description}`,
-        image: { mime: 'image/png', base64: png.toString('base64') },
-        schema: FIT,
-        parse: fitOnly,
-        maxTokens: 50,
-        timeoutMs,
-        estimate: 'vision',
-      });
-      return answer.fit;
-    } catch {
-      return false;
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      const started = Date.now();
+      try {
+        const answer = await claude.ask({
+          model: REACTOR,
+          system: PICTURE,
+          user: `The thing asked for: ${description}`,
+          image: { mime: 'image/png', base64: png.toString('base64') },
+          schema: FIT,
+          parse: fitOnly,
+          maxTokens: 50,
+          timeoutMs,
+          estimate: 'vision',
+        });
+        if (!answer.fit) log(`picture check: unfit (${description.length} chars asked)`);
+        return answer.fit;
+      } catch (cause) {
+        log(`picture check: attempt ${attempt} failed after ${Date.now() - started} ms (${String(cause).slice(0, 80)})${attempt === 2 ? ', so the picture is stopped' : ', trying once more'}`);
+      }
     }
+    return false;
   };
 }
