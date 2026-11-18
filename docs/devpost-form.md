@@ -55,13 +55,11 @@ Foldtales
 
 ### Elevator pitch (200 characters max)
 
-The approved tagline, 134 of 200 characters:
+The owner's line, chosen Nov 18 (81 of 200 characters). It replaces the earlier tagline: it sells the idea (you direct, an AI cast performs, live) rather than chapter 1's plot.
 
 ```
-A painted pop-up book opens on your table. Help a small fox keep the lighthouse lit, and its sea, snow and stars spill into your room.
+A pop-up theater on your table. Your imagination directs. An AI cast performs live.
 ```
-
-Leaving 66 characters unused is deliberate. The tagline was approved as it stands, and anything added would be a feature list.
 
 ---
 
@@ -69,68 +67,64 @@ Leaving 66 characters unused is deliberate. The tagline was approved as it stand
 
 ### About the project (Markdown; Devpost's own headings)
 
-About 1,175 words (6,484 characters) with the marks in; the field has no stated limit. Everything in it is checked against the code or the docs (sources in the notes after it).
+Rewritten Nov 18 around the new pitch: it leads with the improvised show. About 1,110 words, no marks left: unconfirmed claims (the hunt, offline, the music bed, the frame rate) are left out, and go back in only once proven. Devpost's last heading is renamed from "What's next for Holo HQ". The field has no stated limit. Everything in it is checked against the code or the docs (sources in the notes after it).
 
 ```markdown
 ## Inspiration
 
-Pip's lantern has rolled to the edge of your table, and he's looking up at you. You reach in, pinch it, and hand it back, and it lights again in his paws. "It was cold, and then you held it, and it just... woke up."
+Evenings are when we reach for a story, and on a screen you only watch. We wanted live theater instead: a stage small enough to sit on your own table, a paper cast who know you're in the room, and a show you direct just by saying what tonight's story is about.
 
-Evenings are when we reach for a story, and on a screen you only watch. We wanted the kind of story you have to lean over: a pop-up book on your own table, small enough to reach into, where the characters need your hands and know that you're there. No score, no losing, about six minutes a chapter, and nothing but your hands.
+So we built it like an improv troupe, not a storybook app. The cast say yes to your idea, build on it, and play it out in front of you, in your room. And it's pop-up paper, so it feels handmade, not generated.
 
 ## What it does
 
-Open www.foldtales.xyz in Quest Browser and tap **Open the book**. There's nothing to install. The book finds your real table and settles on it within reach, the room dims like house lights going down, and the pages stand up as painted paper sets. The first time, a pale ghost hand shows you the one control, with no words. The first thing you can hand over is highlighted.
+Foldtales is a pop-up theater on your table. Your imagination directs; an AI cast performs live.
 
-The book is *Tales from the Table's Edge*, in three chapters. Pip is a young fox in a keeper's coat far too big for him, and he wants to keep the lighthouse like old Wick. You hand him his lantern, turn the pages by their corners, and pull open the book's drawer to choose what gets him across a gap. The story waits for you but never needs you: left alone, it plays to its end.
+Open www.foldtales.xyz in Quest Browser. There's nothing to install. The book finds your real table and settles within reach, the room dims like house lights going down, and painted paper sets stand up. The first time, a ghost hand shows you the one control, and the first thing you can hand over glows.
 
-The story uses your room as its stage:
-- **Chapter 1:** when the lamp is relit, its beam sweeps across your real walls.
+**The improvised show.** Hold the gold talk tab on the book's edge and say what tonight's story is about, or hand the cast something from the book's drawer. The cast make the story up with you, scene by scene, and answer out loud in live voices. Ask for something and it's painted onto the page about 30 seconds later. They bring the story into your room: rain, giant shadow play on your wall, fireflies that drift to your hand. You direct, they perform, and every night's show is new. The app always brings the ending home, even if the AI is slow.
+
+**The written chapters.** *Tales from the Table's Edge* is three authored, fully voiced chapters about Pip, a young fox in a keeper's coat far too big for him, who wants to keep the lighthouse like old Wick. You hand him his lantern, turn the pages by their corners, and pull open the drawer to choose what gets him across a gap. Your room is the stage:
+- **Chapter 1:** the lighthouse's beam leaves the book and sweeps across your real walls, and a storm comes into your room when the lamp blows out.
 - **Chapter 2:** the tide comes in across your floor, and a paper boat sails home on it.
-- **Chapter 3:** snow comes to the table's edge, and the stars come out on your ceiling, with Pip's own star among them. **[if the hunt passes]** The beam hunts your room for Wick's lost logbook, and you get up and fetch it.
+- **Chapter 3:** snow comes to the table's edge, and the stars come out on your ceiling, with Pip's own star among them.
 
-When a chapter ends, the next one opens in the book, without leaving the headset.
-
-Touch the ribbon's tail to pause. The stage folds flat, and a paper card rises behind the book, never over it. The book keeps your place: "Same time tomorrow, keeper?"
-
-**The AI Storyteller.** **[if the Storyteller is live]** Beside the written chapters, the same cast make up a new story with you. Hold the gold talk tab at the book's edge and say what tonight's story is about, or just hand them something. They answer out loud, can paint what you ask for onto the page, and can bring weather into your room: rain, shadow play on your wall, fireflies that drift to your hand. The written chapters never change. The app always owns the ending, and a story finishes cleanly if the AI is slow or unavailable.
+When a chapter ends, the next one opens in the book, without leaving the headset. Touch the ribbon to pause: the stage folds flat and a paper card rises behind the book, never over it. The book keeps your place. "Same time tomorrow, keeper?"
 
 ## How we built it
 
-- **The engine.** Built for the web with Meta's Immersive Web SDK (IWSDK) and Three.js, in TypeScript, so it opens from a link. The book finds your table from Space Setup's labelled planes, with hit testing as a fallback. The room effects use the same planes: walls, floor, ceiling and windows.
-- **The puppets.** Every character is a cut-out paper puppet, animated at twelve poses a second, like stop-motion. The art was painted with AI (Seedream, through Runway) from our own sketches and written designs, then cut out and rigged in layers.
-- **Voice and sound.** Chapter voices are ElevenLabs presets, recorded before release through Runway. Every line is captioned on the book's own page. Sounds are placed in the room with spatial audio. **[if the bed clears]** A quiet CC0 piano bed plays under the story.
-- **The Storyteller.** Speech is transcribed with Whisper on Groq, Claude writes each turn within the cast and the world's rules, OpenAI's text-to-speech gives the cast their live voices, and paintings come from Seedream through Runway in about 30 seconds.
-- **Behind it.** A small Hono server on Node, with SQLite and Better Auth (Google, or a code finished on your phone), runs on Railway. The site is on Cloudflare Pages. **[if offline passed]** After the first visit, the page and chapter 1 open with no network.
-- **[fps]** Chapter 1 runs at 85–90 fps on Quest 3.
+- **The improvising cast.** Your speech is transcribed with Whisper on Groq. Claude writes each turn as an improv partner: say yes, build on what you said, and make something you can *see* happen, within the cast's characters and the world's rules. Each turn comes back as stage directions as well as lines: who speaks, how they act, where they look, and what happens in your room. OpenAI's text-to-speech gives the cast their live voices, and Seedream, through Runway, paints new things onto the page.
+- **The engine.** Built for the web with Meta's Immersive Web SDK (IWSDK) and Three.js, in TypeScript, so it opens from a link. The book finds your table from Space Setup's labelled planes, with hit testing as a fallback, and the room effects use the same planes: walls, floor, ceiling and windows.
+- **The puppets.** Every character is a cut-out paper puppet, animated at twelve poses a second, like stop-motion. The art was painted with AI (Seedream, through Runway) from our own sketches and written designs, then cut out and layered.
+- **Voice and sound.** The chapters' voices are ElevenLabs voices, recorded ahead through Runway. Every line is captioned inside the book. Sounds are placed in your room with spatial audio.
+- **Behind it.** A small Hono server on Node, with SQLite and Better Auth, runs on Railway. The site is on Cloudflare Pages.
 
 ## Challenges we ran into
 
-- **Finding the table.** In our first headset session, Pip floated in mid-air. Later, the book sank into the table, and hands couldn't reach it. Aiming the search lower, and settling the book fully on the scanned table top, fixed both.
-- **Pinch for everything was wrong.** Pressing buttons by pinching felt unnatural, and the pause card covered the stage. Meta's own hand guidance named the problem: one gesture had two jobs. Now there are two gestures that never mix: pinch to hold the story's things, and touch to press the book's controls. Each press makes a soft paper tap, because hands have no haptics.
-- **AI inside a written story felt like interference.** Our first attempt spliced AI reactions into chapter 1, and in the headset it read like an if-else. So the written chapters play exactly as written. The AI got its own door: the Storyteller, where the whole story is made up with you.
-- **Hands, eyes and the field of view.** Every control had to work with either hand, within reach while seated, and inside Meta VR Glasses' narrower view.
+- **AI inside a written story felt like interference.** Our first attempt spliced AI reactions into chapter 1, and in the headset it felt like a script with if-else branches. So the written chapters play exactly as written, and the AI got its own stage: the improvised show, where the whole story is made up with you.
+- **Making improv feel like theater, not chat.** A reply in text is not a performance. Every turn had to become something you see on the table or in your room: a character acting, a painting arriving, weather coming in. The show also has to end well every time, so the app owns the ending, not the model.
+- **Finding the table.** In our first headset session, Pip floated in mid-air. Later the book sank into the table, and hands couldn't reach it. Aiming the search lower, and settling the book fully on the scanned table top, fixed both.
+- **Pinch for everything was wrong.** Pressing buttons by pinching felt unnatural. Now there are two gestures that never mix: pinch to hold the story's things, and touch to press the book's controls, each press with a soft paper tap because hands have no haptics.
 
 ## Accomplishments that we're proud of
 
-- Three complete, voiced chapters with a beginning, a middle and an end, in which your room takes part.
+- A cast that improvises a new show with you, out loud, and still feels handmade.
+- Three complete, voiced chapters in which your room takes part: your walls, your floor and your ceiling.
 - The first time someone who had never seen it played it, they were amazed.
-- One mechanic, done well: hand them what they need. Each gift changes what happens next.
-- The book opens from a link, in seconds, with nothing to install, on a real table in a room we've never seen.
-- The Storyteller keeps the same cast, the same world and the same book, and always finishes.
+- It opens from a link, in seconds, with nothing to install, on a real table in a room we've never seen.
 
 ## What we learned
 
+- An authored story and an improvised one want different stages. Mixing them inside one chapter weakened both.
+- Improv needs a stage, not a chat box. The AI is only as good as what it can make happen in front of you.
 - Show, don't tell. A looping ghost hand teaches the one control better than any text panel we tried.
-- Passthrough matters only when the room changes the story. Every room effect is there because the story needs it: the light goes out over the house, the sea comes in, and the sky opens.
-- An authored story and an AI story want different doors. Mixing them inside one chapter weakened both.
-- Put the dial on the reader's side. The story waits for your hands but never punishes you for not using them.
+- Passthrough matters when the room changes the story. Every room effect is there because the story needs it.
 
 ## What's next for Foldtales
 
 We plan to launch in **spring 2027 on the Meta Horizon Store and on Meta VR Glasses**. Before then:
-- more chapters of the book;
-- Story Circle, with friends around one table or remote, each bringing their own satchel of keepsakes into a shared story;
+- more chapters, and more of the world for the cast to improvise in;
+- Story Circle: friends around one table, or remote, directing one show together;
 - the gaze-and-pinch controls we've built for Meta VR Glasses, tuned on the glasses themselves.
 ```
 
