@@ -91,7 +91,12 @@ Handing a character something gives you a role in their world within seconds. AI
 
 ## What's next for Foldtales
 
-We plan to launch in **spring 2027 on the Meta Horizon Store and Meta VR Glasses**, with more chapters, and Story Circle: friends sharing one performance around one table or remotely.
+Foldtales is live today in open beta at www.foldtales.xyz, and we're building it full time toward a full launch in **spring 2027 on the Meta Horizon Store and Meta VR Glasses**.
+
+- **A better improv partner.** Faster replies, a cast that remembers your past stories, and more ways for an idea to come alive: more characters, more paintings, more of your room joining the show.
+- **More immersive AI storytelling.** Talking to the cast should feel like being part of the scene: they react to where you look and what you hold, and to your room itself.
+- **Easier for everyone.** A smoother first five minutes, more comfortable controls, and support for players who've never worn a headset.
+- **More to come back to.** New chapters of *Tales from the Table's Edge*, and Story Circle: friends directing one show together, around one table or remotely.
 ```
 
 **Notes, for checking (not to paste):**
