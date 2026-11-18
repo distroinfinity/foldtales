@@ -73,7 +73,7 @@ const painter = createPainter({
   claude,
   styleRefPath: join(process.cwd(), '..', 'art', 'runs', '013-live-props', 'style-ref.png'),
   stories,
-  checkPicture: claude ? createPictureCheck(claude) : async () => false,
+  checkPicture: claude ? createPictureCheck(claude, 12_000, (m) => console.log(m)) : async () => false,
   checkLine,
   enabled: paintingOn,
   log: (m) => console.log(m),
