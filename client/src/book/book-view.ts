@@ -1,4 +1,4 @@
-import { AdditiveBlending, BoxGeometry, CircleGeometry, ConeGeometry, DoubleSide, Group, Mesh, MeshBasicMaterial, Object3D, PlaneGeometry, ShaderMaterial, Vector3, type BufferAttribute, type Texture } from '@iwsdk/core';
+import { AddEquation, AdditiveBlending, BoxGeometry, CircleGeometry, ConeGeometry, CustomBlending, DoubleSide, Group, Mesh, MeshBasicMaterial, Object3D, OneFactor, PlaneGeometry, ShaderMaterial, SrcAlphaFactor, Vector3, ZeroFactor, type BufferAttribute, type Texture } from '@iwsdk/core';
 import { cardMaterial, surfaceMaterial } from '../paint/card-material.ts';
 import { subUv, type TexRef } from '../paint/texref.ts';
 import type { Unfold } from '../show/cues.ts';
@@ -52,8 +52,12 @@ export interface BookView {
   update(unfold: Unfold, shiver: number, seconds: number, hideFlat?: boolean): void;
   /** Lifts the ribbon off the page while the show is paused by it. */
   setRibbon(lift: number): void;
-  /** The relit lamp's beam: a faint cone in the air, turning. Azimuth in the book's frame, 0 toward you. */
-  setBeam(azimuth: number, strength: number): void;
+  /**
+   * The lit lamp's beam: a faint cone in the air, turning. Azimuth in the book's frame, 0 toward you. `reachM`
+   * (world metres) draws it on out to your walls, where your real room's depth ends it; `from` (world) sends it
+   * from another light than the set's lamp (a keeper's light held up high).
+   */
+  setBeam(azimuth: number, strength: number, opts?: { reachM?: number; from?: Vector3 | null }): void;
   /** The lighthouse lamp, in world space, for the beam on your walls. Null if the set has none. */
   lampWorld(target: Vector3): Vector3 | null;
 }
@@ -416,10 +420,18 @@ export function buildBook({ book, sets, textures, bookBase, soft, castOnStage }:
   const beamMaterial = new ShaderMaterial({
     uniforms: { uStrength: { value: 0 } },
     vertexShader: 'varying float vAlong; void main() { vAlong = 1.0 - uv.y; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+    // M1's beam exactly (4c4035a, the owner's "looks amazing"): its colour, 0.22 and (1 - t)^1.6.
     fragmentShader: 'uniform float uStrength; varying float vAlong; void main() { float a = uStrength * 0.22 * pow(1.0 - vAlong, 1.6); gl_FragColor = vec4(vec3(1.0, 0.82, 0.5) * a, a); }',
     transparent: true,
     depthWrite: false,
-    blending: AdditiveBlending,
+    // M1's light, added as AdditiveBlending adds it (colour times alpha, plus what's there), but alpha left
+    // alone: over passthrough, added alpha hides more of your room, so a longer ray read as a dark wedge.
+    blending: CustomBlending,
+    blendEquation: AddEquation,
+    blendSrc: SrcAlphaFactor,
+    blendDst: OneFactor,
+    blendSrcAlpha: ZeroFactor,
+    blendDstAlpha: OneFactor,
     side: DoubleSide,
     toneMapped: false,
   });
@@ -456,6 +468,7 @@ export function buildBook({ book, sets, textures, bookBase, soft, castOnStage }:
     if (a) beamPivot.position.set(a[0], pageY + a[1], a[2]);
   };
   placeBeam(sets[0]!.id);
+  const beamFrom = new Vector3();
 
   const stands = new Map<string, number>();
   const flatOffset = set.stack.flatOffsetM;
@@ -524,16 +537,24 @@ export function buildBook({ book, sets, textures, bookBase, soft, castOnStage }:
       extraMounts.push(mount);
       return mount;
     },
-    setBeam(azimuth, strength) {
+    setBeam(azimuth, strength, opts) {
       beamPivot.visible = strength > 0.001;
       beamPivot.rotation.y = azimuth;
       beamMaterial.uniforms.uStrength!.value = strength;
+      if (opts?.from) beamPivot.position.copy(root.worldToLocal(beamFrom.copy(opts.from)));
+      else placeBeam(stackSet);
+      // Out to the walls: the same cone, longer and wider alike, so it keeps its angle.
+      const reach = opts?.reachM ? opts.reachM / Math.max(1e-3, root.getWorldScale(beamFrom).x) : BEAM_LENGTH_M;
+      cone.scale.setScalar(reach / BEAM_LENGTH_M);
+      cone.position.z = reach / 2;
+      // A raised light's beam doesn't light the set's own lamp.
       const lamp = lamps.get(stackSet)?.lit;
-      if (lamp) lamp.visible = lampOn || strength > 0.001;
+      if (lamp) lamp.visible = lampOn || (strength > 0.001 && !opts?.from);
     },
     lampWorld(target) {
-      if (!lamps.get(stackSet)?.anchor) return null;
-      return beamPivot.getWorldPosition(target);
+      const a = lamps.get(stackSet)?.anchor;
+      if (!a) return null;
+      return root.localToWorld(target.set(a[0], pageY + a[1], a[2]));
     },
     setRibbon(lift) {
       ribbonPivot.rotation.x = -lift * 0.9;

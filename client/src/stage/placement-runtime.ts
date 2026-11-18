@@ -54,6 +54,8 @@ export function startPlacement(
   let searchStart: number | null = null;
   // The fallback deadline starts once the rays exist, so slow setup doesn't use up the search time.
   let ready = false;
+  /** Stopping (a chapter turned in the same session) lets go of the session's listener and the rays. */
+  const stopped = new AbortController();
 
   function beginSession(next: XRSession): void {
     session = next;
@@ -68,7 +70,7 @@ export function startPlacement(
     next.addEventListener('end', () => {
       for (const source of sources) source.cancel();
       sources = [];
-    }, { once: true });
+    }, { once: true, signal: stopped.signal });
     void owned.requestReferenceSpace('viewer').then(async (viewer) => {
       const requested = await Promise.all(placementRays().map((direction) =>
         world.requestHitTestSource({ space: viewer, offsetRay: new XRRay({ x: 0, y: 0, z: 0 }, { ...direction, w: 0 }) }).catch(() => undefined)));
@@ -119,5 +121,15 @@ export function startPlacement(
     target.visible = true;
     onPlaced(decision.surface, scannedTables(frame, space));
   }));
-  return { stop, lock: () => machine.lock(), searchStartedMs: () => searchStart };
+  return {
+    stop: () => {
+      stop();
+      stopped.abort();
+      for (const source of sources) source.cancel();
+      sources = [];
+      session = undefined;
+    },
+    lock: () => machine.lock(),
+    searchStartedMs: () => searchStart,
+  };
 }

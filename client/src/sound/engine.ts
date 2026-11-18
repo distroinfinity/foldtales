@@ -69,6 +69,8 @@ export interface SoundEngine {
    * Kept across the buses being created later.
    */
   setMuted(on: boolean): void;
+  /** Lets this engine go for good: its audio contexts close and its clips are dropped (a chapter turned). */
+  close(): void;
 }
 
 /** A bus master's level when not muted. */
@@ -119,8 +121,10 @@ export function createSoundEngine(sources?: SoundSources): SoundEngine {
   const turns = new Map<string, number>();
   let muted = false;
 
+  let ensureClosed = false;
   const ensure = (): Record<SoundBus, Bus> | null => {
     if (buses) return buses;
+    if (ensureClosed) return null;
     try {
       buses = { show: makeBus(), ui: makeBus() };
       showRunning = createSuspender(buses.show.ctx);
@@ -408,6 +412,22 @@ export function createSoundEngine(sources?: SoundSources): SoundEngine {
           }
         }),
       ]);
+    },
+    close() {
+      const b = buses;
+      buses = null;
+      buffers.clear();
+      ambiences.clear();
+      humming = null;
+      tone = null;
+      music.gain = null;
+      music.buffer = null;
+      music.wanted = false;
+      showRunning = null;
+      if (!b) return;
+      // A closed engine makes no new contexts: anything still asking for sound hears nothing.
+      ensureClosed = true;
+      for (const bus of Object.values(b)) void bus.ctx.close().catch(() => undefined);
     },
     unlock() {
       const b = ensure();

@@ -5,14 +5,30 @@ import type { HandSide } from './gestures.ts';
 import { createTalkPress, TALK_TRAVEL_M, type Ray } from './talk-press.ts';
 
 /**
- * The AI Storyteller's "Hold to talk": a paper button with a gold rim, lying on the table in front
- * of the book. Press it with a fingertip and keep it down while you talk; it glows once it's really
+ * The AI Storyteller's "Hold to talk": a paper button with a gold rim, tucked under the left page's
+ * near edge (`talkTabSpot`). Press it with a fingertip and keep it down while you talk; it glows once it's really
  * listening; lift your finger when you're done. From further away (or on VR Glasses), look or point at
  * it and pinch, and hold the pinch. A pinch beside it, or a hand merely near it, never opens the
  * microphone: there's no grab target here (Codex review of #52, P2; `talk-press.ts`).
  */
 
 const INK = '#2B2420';
+
+export const TALK_TAB_W = 0.078;
+export const TALK_TAB_H = 0.03;
+/** How much of the tab tucks under the top page, out of sight. */
+const TUCK_M = 0.004;
+
+/**
+ * Where the tab lies, in the book's frame: on the book itself, tucked under the left page's near edge
+ * like a paper index tab, at page height. Not on the table in front of the book any more: that's where
+ * the drawer slides out (under the right page), so its objects covered the tab, and on a book near the
+ * table's edge the tab hung past it (owner, headset, 2026-11-18). The caption's words stay clear: the
+ * tucked part is under the page.
+ */
+export function talkTabSpot(book: { pageY: number; pageW: number; pageD: number }): [number, number, number] {
+  return [-book.pageW * 0.5, book.pageY - 0.002, book.pageD / 2 + TALK_TAB_H / 2 - TUCK_M];
+}
 
 export interface TalkTabDeps {
   bookRoot: Object3D;
@@ -37,15 +53,13 @@ export function createTalkTab(deps: TalkTabDeps) {
   const root = new Object3D();
   root.name = 'talk-tab';
   root.visible = false;
-  // On the table just in front of the book, under the right page: pressed with a fingertip, the
-  // finger stops on the real table, and it never covers the page's words.
-  root.position.set(deps.pageW * 0.5, 0.002, deps.pageD / 2 + 0.035);
+  // One button: a clean-cut piece of the book's paper (no deckle: it read as torn in the headset) with a gold rim, and the words printed on it.
+  const W = TALK_TAB_W;
+  const H = TALK_TAB_H;
+  const [x, y, z] = talkTabSpot(deps);
+  root.position.set(x, y, z);
   root.rotation.x = -Math.PI / 2;
   deps.bookRoot.add(root);
-
-  // One button: a clean-cut piece of the book's paper (no deckle: it read as torn in the headset) with a gold rim, and the words printed on it.
-  const W = 0.078;
-  const H = 0.03;
   const rimMaterial = new MeshBasicMaterial({ color: '#D4A23E', transparent: true, opacity: 0.85, side: DoubleSide, toneMapped: false });
   const rim = new Mesh(new PlaneGeometry(W + 0.005, H + 0.005), rimMaterial);
   rim.renderOrder = 500;

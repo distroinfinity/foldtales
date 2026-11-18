@@ -140,10 +140,14 @@ export function Door({ device, signedIn, onSignIn, enterStoryteller, playByHand,
     </button>
   );
   const box = (main: ReactNode, below: ReactNode = null) => (
-    <div className="flex flex-col items-center gap-3" data-door={door.kind}>
+    <div className="flex flex-col items-center gap-3" data-door={door.kind} data-actions>
       {main}
-      {below}
-      {line}
+      {(below || line) && (
+        <div className="flex flex-col items-center gap-3" data-below>
+          {below}
+          {line}
+        </div>
+      )}
     </div>
   );
   switch (door.kind) {
