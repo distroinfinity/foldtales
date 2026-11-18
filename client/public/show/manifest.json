@@ -2510,7 +2510,7 @@
     },
     {
       "n": 3,
-      "episode": "show/episode-3.json",
+      "episode": "show/episode-3.page-hunt.json",
       "onStage": [
         {
           "cast": "pip",
