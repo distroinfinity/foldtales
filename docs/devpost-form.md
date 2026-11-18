@@ -1,40 +1,12 @@
 # The Devpost form: ready to paste
 
-Lane S, Nov 17, 2026, for the Meta VR Start Developer Competition 2026. Each section below is one of the owner's form fields, in the form's own order (from the owner's list of every field, Nov 17). Each paste box is plain text or Markdown, ready to copy. Every limit is checked by a character or word count, given beside it.
+Lane S, for the Meta VR Start Developer Competition 2026. Each section below is one of the owner's form fields, in the form's own order. Each paste box is plain text or Markdown, ready to copy.
 
-**Before pasting, settle the marks.** Square-bracket marks such as **[if the hunt passes]** belong to claims that depend on Nov 18:
-- If the claim holds, delete only the mark.
-- If it doesn't, delete the mark and the sentence after it.
-
-| Mark | Decided by |
-|---|---|
-| **[if the hunt passes]** | Tonight's filming: the hunt is walked in chapter 3 as a shot. If it fails, the sentence goes |
-| **[if the bed clears]** | Whether the CC0 piano bed plays in the live build. It describes the product, not the film, so no Content ID test is needed for it |
-| **[if offline passed]** | Headset session step 24 |
-| **[if the Storyteller is live]** | Lane D's launch switch (it's waiting on the Google consent-screen rename). This mark covers the **whole** "The AI Storyteller" paragraph, not one sentence |
-| **[fps]** | The frame-rate pass. Keep "85–90 fps" only if the pass confirms it |
+**FINAL, Nov 18, 22:30 IST.** Everything is decided against the live build (main 0309177) and the cut film. There are no marks left: every box pastes as it stands.
+- Chapter 3's hunt is the page hunt now: the beam finds Wick's lost logbook glinting on the book's page, with no walking. Nothing in this copy asks anyone to get up.
+- The repo is public at https://github.com/distroinfinity/foldtales (the sprint master scanned the tree and the full history for secrets: none).
 
 **Owner-only fields** say **OWNER** and have nothing to paste. The owner's email never goes in this repo.
-
-The draft project on Devpost is currently named "Holo HQ", a placeholder. Rename it first.
-
-### What can go in tonight, and what waits
-
-Updated Nov 18, 20:00 IST: F1–F3 and the talk tab are live. Everything except the video, the gallery and the marks below can be pasted now.
-
-| Field | Status |
-|---|---|
-| Project name, Elevator pitch | **Final.** Paste now |
-| About the project | **Paste now.** Lanes F1–F3 are live (main 0f8dcfc), so their marks are gone. For each mark still left, delete the mark and keep the sentence if it holds, or delete the sentence (the table above) |
-| Built with | **Final.** Paste now |
-| Try it out | **Paste the site now.** The GitHub repo waits for the owner's answer: is it public? |
-| Image gallery | **Waits** for the filming sitting tonight. Image 8, the page on a Mac, can be taken now |
-| Demonstration video | **Waits** for the film |
-| Track, Division, URL, Summary (blank) | **Final.** Paste now |
-| Capabilities, Hand Interactions | **Final.** Paste now |
-| Future of VR | **Owner:** edit the draft into your own words, then paste |
-| Launch date | **Final.** Paste now |
-| OWNER fields and checkboxes | **Owner,** any time |
 
 ---
 
@@ -147,50 +119,40 @@ We plan to launch in **spring 2027 on the Meta Horizon Store and Meta VR Glasses
 
 ### Built with (up to 25 tags)
 
-All 20 of these are really used: each is in a `package.json` or the backend's calls.
+23 tags, each in a `package.json` or the backend's calls.
 
 ```
-iwsdk, webxr, three.js, typescript, react, tailwindcss, vite, hono, node.js, sqlite, better-auth, zod, claude, groq, whisper, openai, runway, elevenlabs, cloudflare-pages, railway
+iwsdk, webxr, three.js, typescript, react, tailwindcss, vite, hono, node.js, sqlite, better-auth, zod, claude, groq, whisper, openai, runway, seedream, elevenlabs, web-audio-api, resend, cloudflare-pages, railway
 ```
-
-There's room for five more. Candidates, in order: `web-audio-api` (the spatial sound), `seedream` (the painter), `resend` (the "Your book is ready" email). Don't add `meta-quest`; the track already says that.
 
 ### "Try it out" links
 
 ```
 https://www.foldtales.xyz
+https://github.com/distroinfinity/foldtales
 ```
-
-**The GitHub repo is not listed** until the sprint master confirms whether it's public. Lane E's note says it's private, and the rules accept the hosted link instead (§4: "a link will be required for judges to access and test your application").
 
 ### Image gallery (JPG/PNG/GIF, 5 MB max each, 3:2 recommended, up to 15)
 
-Eight images, all 3:2 at 1620 × 1080. That's a 3:2 crop from the centre of a 1920 × 1080 headset frame, saved as JPG under 1 MB.
-- Images 1–7 are still frames from the filming sitting's own recordings, taken from the final cut's takes.
-- Image 8 is the real page on a Mac.
-- Nothing is AI video, and nothing is a render passed off as a headset frame.
-- Each image carries a caption: Devpost shows it under the image.
+The files are on the owner's Mac in `~/Movies/foldtales-film/gallery/` (not in the repo). Frames 01–12 are 1620 × 1080 crops of the real Quest 3 recordings from the filming sitting. Nothing is AI video, and nothing is a render passed off as a headset frame. The thumbnail (`00-thumbnail.png`) is an illustration: use it as the project thumbnail only, never as a gallery image that claims to be the headset view.
 
-| # | Frame | Caption |
-|---|---|---|
-| 1 | The open book on the real table, the lighthouse lit, its beam on the wall behind (beat 1). This is also the thumbnail | The lighthouse's beam leaves the book and crosses a real wall. Captured on Meta Quest 3. |
-| 2 | The book just landed on the table, pages standing, the room dimmed (beat 3) | The book finds your table and opens within reach. |
-| 3 | The hand pinching the lantern, Pip looking up (beat 5) | Pinch to hold: hand Pip his lantern. |
-| 4 | The drawer open, the kite in the fingers, at the gap (beat 8) | Hand them what they need. The drawer holds the gifts. |
-| 5 | The ribbon's paper card risen behind the flattened book, a fingertip on Carry on (beat 6) | Touch to press. The menu rises behind the book, never over it. |
-| 6 | The sea across the real floor, a real chair standing in it (beat 12) | Chapter 2: the sea comes in across your floor. |
-| 7 | The stars and the fox constellation on the real ceiling (beat 13) | Chapter 3: Pip's star on your ceiling. |
-| 8 | www.foldtales.xyz on a Mac, its painted hero (the landing's layered paintings), cropped 3:2 | The page at foldtales.xyz: open it in Quest Browser, nothing to install. |
+Recommended, in this order:
 
-**Optional:**
-- **9.** The Storyteller's talk button under a fingertip, the cast answering. Caption: *The AI Storyteller: say what tonight's story is about.* Only if beat 14 is filmed.
-- **10.** A painting the cast made, framed without its "Powered by Runway" line. Caption: *Painted for you by the AI Storyteller, about 30 seconds later.*
+| File | Caption |
+|---|---|
+| `01-beam-on-your-wall.jpg` | The lighthouse's beam crosses a real wall. Captured on Meta Quest 3. |
+| `03-storm-in-your-room.jpg` | A storm blows into your room as the lamp goes out. |
+| `04-lantern-hand-over.jpg` | Pinch to hold: hand Pip his lantern. |
+| `05-ribbon-pause-card.jpg` | Touch to press: the ribbon pauses the story, and the card rises behind the book. |
+| `07-sea-on-your-floor.jpg` | Chapter 2: the sea comes in across your floor. |
+| `08-snow-on-your-floor.jpg` | Chapter 3: snow on your floor. |
+| `09-stars-on-your-ceiling.jpg` | Chapter 3: the stars come out on your ceiling. |
+| `10-ai-painted-crane.jpg` | The AI Storyteller: ask for a paper crane, and it's painted onto the page. |
+| `11-ai-rabbit-and-stars.jpg` | The cast improvise with you: a rabbit, rain and stars, all asked for out loud. |
+| `12-story-saved-as-a-chapter.jpg` | Every story you make is saved in the book, like a chapter. |
+| `08-landing-page.jpg` | The page at foldtales.xyz: open it in Quest Browser, nothing to install. |
 
-**Rules for every frame:**
-- Nobody but the owner's hands.
-- No brands, screens or readable spines.
-- Never the teapot keepsake.
-- No sign-in name or email in view: image 8 is taken signed out.
+Spares: `02-book-on-your-table.jpg`, `06-ladder-from-the-drawer.jpg`.
 
 ### Demonstration video (YouTube or Vimeo URL)
 
@@ -198,16 +160,12 @@ Eight images, all 3:2 at 1620 × 1080. That's a 3:2 crop from the centre of a 19
 
 > A demonstration video—under three (3) minutes, showcasing footage of your Project as viewed on a Meta VR device, via XR Simulator, or another equivalent emulator. Allowed platforms: YouTube or Vimeo only. Video length: Only the first 3 minutes will be reviewed, so include everything needed to evaluate your project within that time. Visibility: Set to public or unlisted with no password.
 
-**What we do:**
-- **Length:** 2:45–2:55, safely under 3:00. The demo beat sheet (`docs/plans/2026-11-17-film-concept.md`) estimates 2:56, so the edit takes from its cut list until it lands inside 2:45–2:55.
-- **Everything a judge needs is inside that time:** the beam leaving the lighthouse (the hook), the link, the table, both hand gestures, a gift, the room, pause and resume, the next chapter in the headset, the Storyteller, and the launch line on the end card.
-- **Filmed tonight on the final build** (main 0f8dcfc), as `docs/plans/2026-11-18-filming-plan.md` sets out.
-- **Footage:** real Meta Quest 3 recordings only, labelled "Captured on Meta Quest 3".
-- **Upload:** YouTube, **unlisted** (allowed, and it keeps it off search until we're ready), no password. English captions as an uploaded `.srt`, as well as the burned-in captions. The music bed only if it cleared Content ID on this same channel.
-- **Paste:** the YouTube link once it's uploaded, then check it in a signed-out browser window before submitting.
+**The film:** `~/Movies/foldtales-film/edit/foldtales-demo-v4.mp4`, **2:48**, real Quest 3 recordings of the live build, with plain on-screen labels. The last minute is the AI Storyteller. English captions: `foldtales-demo.en.srt`, uploaded to YouTube as subtitles.
+
+**Upload:** YouTube, **Unlisted**, no password. Check that the link plays in a signed-out window, then paste it here.
 
 ```
-[the YouTube link, after the stage 3 edit]
+[the YouTube link]
 ```
 
 ---
@@ -256,42 +214,50 @@ https://www.foldtales.xyz
 
 ### What Meta VR capability(ies) did you use in your project?
 
-140 words.
+About 150 words.
 
 ```
-Passthrough mixed reality (an immersive-ar WebXR session), hand tracking, and scene understanding through WebXR plane detection with Space Setup's semantic labels, built with Meta's Immersive Web SDK.
+Built with Meta's Immersive Web SDK as a passthrough mixed reality (immersive-ar) WebXR session in Quest Browser.
 
-- Hand tracking: every interaction, with no controllers.
-- Plane detection: the book finds your real table and settles within reach, with hit testing as a fallback. The room effects use the labelled walls, floor, ceiling and windows: the lighthouse beam crosses your walls, the sea comes in across your floor, and the stars come out on your ceiling.
-- Spatial audio: sounds are placed in the room.
-- Microphone: the AI Storyteller, hold to talk.
+- Hand tracking: every interaction, with no controllers. Pinch to hold, touch to press.
+- Scene understanding: WebXR plane detection with Space Setup's semantic labels. The book finds your real table and settles within reach, with hit testing as a fallback. The room effects use the labelled walls, floor, ceiling and windows: the lighthouse beam crosses your walls, a storm flashes at your real window, the sea comes in across your floor, and the stars come out on your ceiling.
+- Spatial audio: voices and sounds are placed in your room.
+- Microphone: hold to talk with the AI cast.
 - Gaze tracking: look-and-pinch on Meta VR Glasses, with everything kept inside the glasses' narrower field of view.
 - A room-dim layer over passthrough, like house lights going down.
-- Runs from a link in Quest Browser.
+- Runs from a link in Quest Browser, nothing to install.
 ```
 
 ### Describe how Hand Interactions are implemented into your experience.
 
-230 words with the mark in, 227 without.
+About 220 words.
 
 ```
 Hands only, no controllers. There are two gestures, and they never mix: pinch to hold the story's things, and touch to press the book's controls.
 
-Pinch: pick up a character or an object and bring it to a character to hand it over, and they take it. Hold a page by its corner and turn it as you would paper: the leaf follows your fingers round the spine. Pull the book's drawer open and choose a gift. Drag the spine to move the book, stretch its edges with both hands to resize it, and shut the cover to pause.
+Pinch: pick up a character or an object and bring it to a character to hand it over, and they take it. The first thing you can hand over glows, so you know what to reach for. Hold a page by its corner and turn it like paper: the leaf follows your fingers round the spine. Pull the book's drawer open and choose a gift. Drag the spine to move the book, stretch its edges with both hands to resize it, and shut the cover to pause.
 
-Touch: tap the ribbon's tail with a fingertip. The pop-up stage folds flat, and a paper card rises behind the book, never over it, at touch distance: Carry on, Start again, Contents, Put the book away. Buttons sink under your fingertip with a soft paper tap on every press, because hands have no haptics. In the AI Storyteller, press and hold the gold talk tab at the book's near edge to speak.
+Touch: tap the ribbon's tail with a fingertip. The pop-up stage folds flat and a paper card rises behind the book, never over it, at touch distance: Carry on, Start again, Contents, Put the book away. Buttons sink under your fingertip with a soft paper tap, because hands have no haptics. In the AI Storyteller, press and hold the gold talk tab on the book's edge to speak, and let go to send.
 
-The first time, a ghost hand shows you the ribbon, with no words. The first thing you can hand over is highlighted. Every control works with either hand alone and within reach while seated. A far button can be pointed at and pinched. Nothing fires from looking alone. On Meta VR Glasses, look at a target and pinch.
+The first time, a ghost hand shows you the ribbon, with no words. Every control works with either hand, within reach while seated. A far button can be pointed at and pinched, and nothing fires from looking alone. On Meta VR Glasses, look at a target and pinch.
+```
+
+### Testing instructions (if the form asks for them)
+
+```
+On a Meta Quest 3 or 3S, open https://www.foldtales.xyz in Quest Browser and tap Open the book. Allow the browser to use the room when asked. Sit at a table if you can (Space Setup helps the book find it); without one, choose "No table? Read in the painted room". Hands only. Each of the three chapters takes about six minutes, and when one ends the next opens in the book, without leaving the headset. In chapter 3, the lighthouse beam finds Wick's lost logbook glinting on the book's page. To pause or leave, touch the ribbon's tail at the book's near edge with a fingertip. The AI Storyteller needs sign-in (Google, or a code finished on your phone) and the microphone: hold the gold talk tab on the book's edge to speak, and let go to send.
 ```
 
 ### What makes you excited about the future of VR? (150 words or less suggested)
 
-**OWNER: a draft in the owner’s voice, 115 words. Change anything that isn't how you'd say it.**
+**OWNER: a draft in the owner's voice, about 125 words. Change anything that isn't how you'd say it.**
 
 ```
-For me it's the moment the room stops being where you keep the headset and becomes part of the experience. When I first saw the lighthouse's beam cross my own wall, it wasn't a special effect. It was my room joining the story.
+For me, it's the moment the room stops being where you keep the headset and becomes part of the experience. The first time I saw the lighthouse's beam leave the book and cross my own wall, it wasn't an effect. It was my room joining the story.
 
-I'm excited by experiences you can have at your kitchen table in six minutes, with your hands, and that know where you are. And by glasses light enough to wear all evening, so a story can be something you open like a book, not something you prepare for. AI makes it possible for the story to answer back. The work now is making it feel handmade, and worth coming back to tomorrow.
+Now add AI, and the room can answer back. A paper cast on my table can hear my idea, improvise a scene around it, and bring rain or fireflies into my living room. That's not a game or a film. It's closer to live theater, made for one evening and one person.
+
+And as headsets become glasses light enough to wear all evening, a story like that can be something you open like a book, not something you set up for.
 ```
 
 ### What is the target launch date for your app, if not already published?
@@ -312,8 +278,8 @@ The owner confirms each one personally:
 
 ## Before pressing Submit
 
-- Every square-bracket mark is settled.
-- The project is renamed from "Holo HQ".
-- The video link plays signed out, and runs 2:45–2:55.
+- The project is named Foldtales, not "Holo HQ".
+- The video link plays signed out; the film runs 2:48.
+- Track: Entertainment. Division: New Experience.
 - www.foldtales.xyz opens on a cold Quest, and the live deploy is frozen until winners are announced (lane E's note in `docs/devpost-draft.md`).
-- Submitted by **20:00 IST, Nov 18**. The deadline is 12:00 PT Nov 18, which is 01:30 IST Nov 19.
+- Submitted by **23:30 IST, Nov 18**. The deadline is 12:00 PT Nov 18, which is 01:30 IST Nov 19.

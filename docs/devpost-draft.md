@@ -4,9 +4,7 @@ Lane E, Nov 17, for main at 2a22af1. Each field below is copied from `docs/submi
 
 **Deadline:** Wed Nov 18, 12:00 PM PT (Thu Nov 19, 1:30 AM IST). **Submit by 20:00 IST on Nov 18.** Start the draft on Devpost today, Nov 17: Devpost keeps a draft, and it can be edited until the deadline.
 
-**One mark is left in the copy: `**[if the hunt passes]**`** (the description and the testing instructions). After the headset session's step 17:
-- if the room hunt worked, delete just the mark;
-- if it didn't, delete the mark **and the sentence after it**.
+**Superseded on Nov 18:** the paste-ready copy is `docs/devpost-form.md` (final). Chapter 3's hunt is now the page hunt (the beam finds the logbook on the book's page, no walking), so no hunt mark is left here either.
 
 ## The form
 
@@ -33,7 +31,7 @@ A painted pop-up storybook opens on your real table. Reach in, hand the characte
 
 **What it is.** Open the link in Quest Browser and tap Open the book. The book finds your real table and unfolds, the room dims like house lights going down, and the pages stand up as paper sets. In *Tales from the Table's Edge*, Pip, a young fox in a keeper's coat far too big for him, loses the lighthouse's light. You hand his lantern back, turn the pages by hand, and pick something from the book's drawer to get him across a gap. The story waits for you, but never needs you: it plays to its end with no input at all. When the lamp is relit, its beam sweeps across your real walls. In chapter 2 the tide comes in across your floor with a letter from Thimble, a field mouse lost at sea. In chapter 3, on the longest night, snow comes to the table's edge and old Wick is lost in it.
 
-**Your room is part of the story.** Mixed reality isn't a backdrop here. The book settles on whatever table your Quest has found, sized to it and within reach, and the lighthouse's beam lights up your real room. In chapter 2 the sea washes across your floor and a paper boat sails home on it. In chapter 3 snow falls around you, and the stars come out on your ceiling, Pip's own among them. **[if the hunt passes]** The beam hunts your room for Wick's lost logbook, and you get up and fetch it. With the AI Storyteller the cast can also bring rain, shadow play on your wall, fireflies that follow your hand, and your real window becoming the story's window.
+**Your room is part of the story.** Mixed reality isn't a backdrop here. The book settles on whatever table your Quest has found, sized to it and within reach, and the lighthouse's beam lights up your real room. In chapter 2 the sea washes across your floor and a paper boat sails home on it. In chapter 3 snow falls around you, and the stars come out on your ceiling, Pip's own among them. The beam finds Wick's lost logbook glinting on the book's page. With the AI Storyteller the cast can also bring rain, shadow play on your wall, fireflies that follow your hand, and your real window becoming the story's window.
 
 **The AI Storyteller.** Beside the written chapters, the same cast improvises a new story with you. Say what tonight's story is about, or just hand them something; they answer in their own voices, can paint what you ask for, and can bring weather into your room. The app always owns the ending, and the story finishes cleanly if the AI is slow or unavailable.
 
@@ -57,7 +55,7 @@ The whole book, its caption band and its controls fit inside the glasses' 74° �
 ### Testing instructions
 
 <!-- testing -->
-On a Meta Quest 3 or 3S, open https://www.foldtales.xyz in Quest Browser and tap Open the book. Allow the browser to use the room when asked. Sit at a table if you can (Space Setup helps the book find it); without one, choose "No table? Read in the painted room". Use your hands only. Each of the three chapters takes about six minutes; each follows from the end card before it, or from Your book on the page. **[if the hunt passes]** Chapter 3 asks you to get up once, to fetch what the beam finds in your room; leave it, and it comes back by itself. To pause or leave, touch the ribbon's tail at the book's near edge with a fingertip. The AI Storyteller needs sign-in (a code finished on your phone, or Google) and the microphone.
+On a Meta Quest 3 or 3S, open https://www.foldtales.xyz in Quest Browser and tap Open the book. Allow the browser to use the room when asked. Sit at a table if you can (Space Setup helps the book find it); without one, choose "No table? Read in the painted room". Use your hands only. Each of the three chapters takes about six minutes; each follows from the end card before it, or from Your book on the page. In chapter 3, the lighthouse beam finds Wick's lost logbook glinting on the book's page. To pause or leave, touch the ribbon's tail at the book's near edge with a fingertip. The AI Storyteller needs sign-in (a code finished on your phone, or Google) and the microphone.
 <!-- /testing -->
 
 ## The video: nine shots, under 3:00
@@ -96,7 +94,7 @@ Read the five boxes above and reply "approved", or with changes. Four claims dep
 - **"a quiet CC0 piano bed plays under the story"** (description, "How we built it") stands only if the bed stays: your verdict in session step 4, and a clean Content ID check (2, below). If either drops it, cut those words, and About's music credit goes with them (lane E does both).
 - **The AI Storyteller's lines** stand if it's switched on and live on Nov 18. If not: drop its paragraph and the end of the testing instructions, and give shot 7's 35 seconds to shots 5 and 6.
 - **"Chapter 1 runs at 85–90 fps on Quest 3"** is from earlier Quest sessions (`docs/room-effects.md`). The frame-rate pass re-checks it; if it reads lower, the number changes.
-- **The hunt's sentences** (`[if the hunt passes]`) wait for session step 17.
+- **The hunt:** settled. It's the page hunt now (main 0309177), described as the beam finding the logbook on the page.
 
 ### 2. The music bed's Content ID test (about 15 minutes, mostly waiting)
 
