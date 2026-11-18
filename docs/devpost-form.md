@@ -8,12 +8,10 @@ Lane S, Nov 17, 2026, for the Meta VR Start Developer Competition 2026. Each sec
 
 | Mark | Decided by |
 |---|---|
-| **[if the hunt passes]** | Headset session step 17 (`docs/headset-session.md`) |
-| **[if the bed clears]** | The music bed's Content ID test (`art/sound/music/LICENCE.md`) |
+| **[if the hunt passes]** | Tonight's filming: the hunt is walked in chapter 3 as a shot. If it fails, the sentence goes |
+| **[if the bed clears]** | Whether the CC0 piano bed plays in the live build. It describes the product, not the film, so no Content ID test is needed for it |
 | **[if offline passed]** | Headset session step 24 |
 | **[if the Storyteller is live]** | Lane D's launch switch (it's waiting on the Google consent-screen rename). This mark covers the **whole** "The AI Storyteller" paragraph, not one sentence |
-| **[if F1 lands]** | Lane F1 deployed: the first-time hand-over highlight |
-| **[if F3 lands]** | Lane F3 deployed: chapter 1 → 2 in the headset |
 | **[fps]** | The frame-rate pass. Keep "85–90 fps" only if the pass confirms it |
 
 **Owner-only fields** say **OWNER** and have nothing to paste. The owner's email never goes in this repo.
@@ -22,18 +20,18 @@ The draft project on Devpost is currently named "Holo HQ", a placeholder. Rename
 
 ### What can go in tonight, and what waits
 
-Devpost keeps a saved draft, so fill in what's final now and come back for the rest.
+Updated Nov 18, 20:00 IST: F1–F3 and the talk tab are live. Everything except the video, the gallery and the marks below can be pasted now.
 
 | Field | Status |
 |---|---|
 | Project name, Elevator pitch | **Final.** Paste now |
-| About the project | **Paste now, leaving out every sentence with a square-bracket mark.** Add each one back on Nov 18 once its mark is decided |
+| About the project | **Paste now.** Lanes F1–F3 are live (main 0f8dcfc), so their marks are gone. For each mark still left, delete the mark and keep the sentence if it holds, or delete the sentence (the table above) |
 | Built with | **Final.** Paste now |
 | Try it out | **Paste the site now.** The GitHub repo waits for the owner's answer: is it public? |
-| Image gallery | **Waits** for the filming sitting. Image 8, the page on a Mac, can be taken any time after F1 lands |
+| Image gallery | **Waits** for the filming sitting tonight. Image 8, the page on a Mac, can be taken now |
 | Demonstration video | **Waits** for the film |
 | Track, Division, URL, Summary (blank) | **Final.** Paste now |
-| Capabilities, Hand Interactions | **Paste now,** leaving out the marked sentence in Hand Interactions |
+| Capabilities, Hand Interactions | **Final.** Paste now |
 | Future of VR | **Owner:** edit the draft into your own words, then paste |
 | Launch date | **Final.** Paste now |
 | OWNER fields and checkboxes | **Owner,** any time |
@@ -82,7 +80,7 @@ Evenings are when we reach for a story, and on a screen you only watch. We wante
 
 ## What it does
 
-Open www.foldtales.xyz in Quest Browser and tap **Open the book**. There's nothing to install. The book finds your real table and settles on it within reach, the room dims like house lights going down, and the pages stand up as painted paper sets. The first time, a pale ghost hand shows you the one control, with no words. **[if F1 lands]** The first thing you can hand over is highlighted.
+Open www.foldtales.xyz in Quest Browser and tap **Open the book**. There's nothing to install. The book finds your real table and settles on it within reach, the room dims like house lights going down, and the pages stand up as painted paper sets. The first time, a pale ghost hand shows you the one control, with no words. The first thing you can hand over is highlighted.
 
 The book is *Tales from the Table's Edge*, in three chapters. Pip is a young fox in a keeper's coat far too big for him, and he wants to keep the lighthouse like old Wick. You hand him his lantern, turn the pages by their corners, and pull open the book's drawer to choose what gets him across a gap. The story waits for you but never needs you: left alone, it plays to its end.
 
@@ -91,11 +89,11 @@ The story uses your room as its stage:
 - **Chapter 2:** the tide comes in across your floor, and a paper boat sails home on it.
 - **Chapter 3:** snow comes to the table's edge, and the stars come out on your ceiling, with Pip's own star among them. **[if the hunt passes]** The beam hunts your room for Wick's lost logbook, and you get up and fetch it.
 
-**[if F3 lands]** When a chapter ends, the next one opens in the book, without leaving the headset.
+When a chapter ends, the next one opens in the book, without leaving the headset.
 
 Touch the ribbon's tail to pause. The stage folds flat, and a paper card rises behind the book, never over it. The book keeps your place: "Same time tomorrow, keeper?"
 
-**The AI Storyteller.** **[if the Storyteller is live]** Beside the written chapters, the same cast make up a new story with you. Hold the paper talk button and say what tonight's story is about, or just hand them something. They answer out loud, can paint what you ask for onto the page, and can bring weather into your room: rain, shadow play on your wall, fireflies that drift to your hand. The written chapters never change. The app always owns the ending, and a story finishes cleanly if the AI is slow or unavailable.
+**The AI Storyteller.** **[if the Storyteller is live]** Beside the written chapters, the same cast make up a new story with you. Hold the gold talk tab at the book's edge and say what tonight's story is about, or just hand them something. They answer out loud, can paint what you ask for onto the page, and can bring weather into your room: rain, shadow play on your wall, fireflies that drift to your hand. The written chapters never change. The app always owns the ending, and a story finishes cleanly if the AI is slow or unavailable.
 
 ## How we built it
 
@@ -215,7 +213,7 @@ Eight images, all 3:2 at 1620 × 1080. That's a 3:2 crop from the centre of a 19
 **What we do:**
 - **Length:** 2:45–2:55, safely under 3:00. The demo beat sheet (`docs/plans/2026-11-17-film-concept.md`) estimates 2:56, so the edit takes from its cut list until it lands inside 2:45–2:55.
 - **Everything a judge needs is inside that time:** the beam leaving the lighthouse (the hook), the link, the table, both hand gestures, a gift, the room, pause and resume, the next chapter in the headset, the Storyteller, and the launch line on the end card.
-- **Nothing is filmed until lanes F1, F2 and F3 are live** (`docs/plans/2026-11-18-filming-plan.md`).
+- **Filmed tonight on the final build** (main 0f8dcfc), as `docs/plans/2026-11-18-filming-plan.md` sets out.
 - **Footage:** real Meta Quest 3 recordings only, labelled "Captured on Meta Quest 3".
 - **Upload:** YouTube, **unlisted** (allowed, and it keeps it off search until we're ready), no password. English captions as an uploaded `.srt`, as well as the burned-in captions. The music bed only if it cleared Content ID on this same channel.
 - **Paste:** the YouTube link once it's uploaded, then check it in a signed-out browser window before submitting.
@@ -293,9 +291,9 @@ Hands only, no controllers. There are two gestures, and they never mix: pinch to
 
 Pinch: pick up a character or an object and bring it to a character to hand it over, and they take it. Hold a page by its corner and turn it as you would paper: the leaf follows your fingers round the spine. Pull the book's drawer open and choose a gift. Drag the spine to move the book, stretch its edges with both hands to resize it, and shut the cover to pause.
 
-Touch: tap the ribbon's tail with a fingertip. The pop-up stage folds flat, and a paper card rises behind the book, never over it, at touch distance: Carry on, Start again, Contents, Put the book away. Buttons sink under your fingertip with a soft paper tap on every press, because hands have no haptics. In the AI Storyteller, press and hold a paper talk button on the table to speak.
+Touch: tap the ribbon's tail with a fingertip. The pop-up stage folds flat, and a paper card rises behind the book, never over it, at touch distance: Carry on, Start again, Contents, Put the book away. Buttons sink under your fingertip with a soft paper tap on every press, because hands have no haptics. In the AI Storyteller, press and hold the gold talk tab at the book's near edge to speak.
 
-The first time, a ghost hand shows you the ribbon, with no words. [if F1 lands] The first thing you can hand over is highlighted. Every control works with either hand alone and within reach while seated. A far button can be pointed at and pinched. Nothing fires from looking alone. On Meta VR Glasses, look at a target and pinch.
+The first time, a ghost hand shows you the ribbon, with no words. The first thing you can hand over is highlighted. Every control works with either hand alone and within reach while seated. A far button can be pointed at and pinched. Nothing fires from looking alone. On Meta VR Glasses, look at a target and pinch.
 ```
 
 ### What makes you excited about the future of VR? (150 words or less suggested)
