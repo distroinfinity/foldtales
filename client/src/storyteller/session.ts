@@ -111,6 +111,9 @@ function sentencesOf(text: string): string[] {
 
 const listOf = (names: string[]): string => (names.length <= 1 ? (names[0] ?? '') : `${names.slice(0, -1).join(', ')} and ${names.at(-1)}`);
 
+/** Words heard this soon after letting go of the tab were already acknowledged. */
+const ATTEND_MS = 15_000;
+
 export function createStorySession(deps: SessionDeps) {
   /** Until the backend gives the story its id, the client's own (nothing paid is sent under it). */
   const sessionId = `ev-${crypto.randomUUID().slice(0, 12)}`;
@@ -119,6 +122,8 @@ export function createStorySession(deps: SessionDeps) {
   let state: StoryState = 'opening';
   let generation = 0;
   let listener: string | null = null;
+  /** When you let go of Hold to talk and someone turned to listen, before your words were heard. */
+  let attendingSince: number | null = null;
   let listeningSinceMs = 0;
   const history: StoryTurnRequest['history'] = [];
 
@@ -326,8 +331,11 @@ export function createStorySession(deps: SessionDeps) {
     pendingListen = false;
     if (input.kind === 'heard') history.push({ who: 'reader', text: input.text });
     setState('thinking');
-    // At once, before the turn is written: whoever you spoke to turns to you, interested.
-    if (input.kind === 'heard' || input.kind === 'gift') {
+    // At once, before the turn is written: whoever you spoke to turns to you, interested (unless
+    // they already did, the moment you let go of Hold to talk).
+    const alreadyAttending = input.kind === 'heard' && attendingSince !== null && deps.nowMs() - attendingSince < ATTEND_MS;
+    attendingSince = null;
+    if ((input.kind === 'heard' && !alreadyAttending) || input.kind === 'gift') {
       const present = deps.cast().map((c) => c.id);
       const who = (input.kind === 'heard' && input.to && present.includes(input.to) ? input.to : null) ?? (listener && present.includes(listener) ? listener : present[0]);
       if (who) {
@@ -465,6 +473,19 @@ export function createStorySession(deps: SessionDeps) {
     open(): void {
       startedAtMs ??= deps.nowMs();
       void turn({ kind: 'open' });
+    },
+    /**
+     * You let go of Hold to talk: before your words are even heard, whoever is listening turns to you
+     * (owner, live test: "the response feels very laggy"). Nothing is interrupted or sent.
+     */
+    attending(): void {
+      if (ended || closing || disposed || state === 'performing') return;
+      const present = deps.cast().map((c) => c.id);
+      const who = listener && present.includes(listener) ? listener : present[0];
+      if (!who) return;
+      attendingSince = deps.nowMs();
+      deps.live.enqueue({ id: `attend-${attendingSince}`, source: 'director', sceneId: null, estSeconds: 1, actions: [{ do: 'emote', withPrev: false, who, acting: 'look', target: 'reader' }], next: null, replaces: null });
+      deps.onAcknowledge?.(who);
     },
     /** The reader said something. Interrupts whatever is playing. */
     heard(text: string, to: string | null = null): void {

@@ -1,6 +1,7 @@
 import type { Beat, Spine, StageAction } from '@tabletop/contracts';
 import type { Execution, GiftOutcome, Offer, Scheduler, SchedulerEvent, SchedulerSnapshot } from '../show/scheduler.ts';
 import { scheduleBeat, type Timed } from '../show/schedule.ts';
+import { steadyBeat, type V3 } from './steady.ts';
 
 /**
  * The AI Storyteller's scheduler: the same shape as the authored one, so the runtime, puppets, book,
@@ -24,6 +25,10 @@ export interface LiveDeps {
   entrances: (setId: string, cast: readonly string[]) => Placement[];
   /** The first spread's set. */
   firstSet: string;
+  /** A set's mark, in stage metres, to keep the cast's walks to clear marks (`steady.ts`). */
+  markAt?: (setId: string, markId: string) => V3 | null;
+  /** Who stands where as the first spread opens. */
+  initial?: () => Map<string, V3>;
 }
 
 export interface LiveScheduler extends Scheduler {
@@ -58,6 +63,8 @@ export function createLiveScheduler(deps: LiveDeps): LiveScheduler {
   const history: Execution[] = [];
   const queue: Item[] = [];
   let cache: { key: string; items: Timed[] } | null = null;
+  /** Where each character stands, as the beats that have started left them. */
+  let standing: Map<string, V3> | null = null;
 
   const register = (beat: Beat, scene: number) => {
     beats.set(beat.id, beat);
@@ -110,8 +117,19 @@ export function createLiveScheduler(deps: LiveDeps): LiveScheduler {
     const scene = current().scene;
     if (!item) return start(idleBeat(scene).id, atMs);
     if (item.kind === 'beat') {
-      register({ ...item.beat, sceneId: spine.scenes[scene]!.id }, scene);
+      const setId = spine.scenes[scene]!.setId;
+      const markAt = deps.markAt;
+      standing ??= deps.initial?.() ?? new Map();
+      const beat = markAt ? steadyBeat(item.beat, standing, (m) => markAt(setId, m)) : item.beat;
+      register({ ...beat, sceneId: spine.scenes[scene]!.id }, scene);
       return start(item.beat.id, atMs);
+    }
+    if (deps.markAt) {
+      const markAt = deps.markAt;
+      standing = new Map(deps.entrances(item.setId, item.cast).flatMap((p) => {
+        const at = markAt(item.setId, p.mark);
+        return at ? [[p.cast, at] as const] : [];
+      }));
     }
     // A page turn: fold, turn, rise, with everyone who came along standing on their marks.
     const turn: Beat = {

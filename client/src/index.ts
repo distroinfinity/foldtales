@@ -21,7 +21,7 @@ import { createObjectHands } from './objects/hands.ts';
 import type { RuntimeSnapshot } from './show/runtime.ts';
 import { createShowClock } from './show/clock.ts';
 import { createShowLog, indexedDbLogStore } from './show/log.ts';
-import { libraryOf, ShowManifest } from './show/manifest.ts';
+import { libraryOf, markOf, ShowManifest } from './show/manifest.ts';
 import { BackendError, LISTENING_BUSY, SIGN_IN_REQUIRED, estimateSpeechMs, linesOf, type ReadyBeat, type ShowObject } from '@tabletop/contracts';
 import { createDirector } from './director/director.ts';
 import { ChapterCanon, recordChapterEnd } from './memory/memory.ts';
@@ -74,6 +74,10 @@ import { createTelemetry } from './telemetry.ts';
 const ROOM_EFFECTS_BUILT: import('@tabletop/contracts').RoomEffect[] = ['hunt', 'shadows', 'shadows-off', 'fireflies', 'fireflies-off', 'rain', 'thunder', 'clear', 'night-sky', 'stars-lantern', 'stars-kite', 'stars-fox', 'shooting-star', 'day', 'snow', 'sea', 'tide-in', 'tide-out', 'boat', 'sea-off', 'gulls', 'gulls-off', 'bottle'];
 
 const FLUSH_EVERY_MS = 10_000;
+/** The Storyteller's line while a painting is on its way (owner, live test: "laggy"). */
+const PAINTING_HINT = 'Something is being painted for you…';
+/** A painted thing stands no taller than this on the page: a medium thing, beside a 17 cm cast. */
+const PAINTED_MAX_M = 0.085;
 const FRAMEBUFFER_SCALE = 1.4;
 const MAX_ERROR_LENGTH = 500;
 /** The book drops its last centimetre onto the wash. */
@@ -500,6 +504,12 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       durationOf: runtime.durationOf,
       firstSet: cfg.firstSet,
       entrances: (setId, cast) => cast.flatMap((c) => (cfg.entrances[setId]?.[c] ? [{ cast: c, mark: cfg.entrances[setId]![c]! }] : [])),
+      // The cast keeps clear, spaced marks (storyteller/steady.ts).
+      markAt: (setId, markId) => markOf(manifest, setId, markId),
+      initial: () => new Map(chapter.onStage.flatMap((o) => {
+        const at = o.mark ? markOf(manifest, cfg.firstSet, o.mark) : null;
+        return at ? [[o.cast, at] as const] : [];
+      })),
     });
     stage.objects.removeLive();
     runtime.useScheduler(live, live.spine, initialObjects);
@@ -583,12 +593,20 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
           // A story plays by hand too, so without the microphone the turn is a gift, or simply watching.
           const turn = micAllowed ? `Your turn: hold the button to talk to ${name === "They" ? "them" : name}, or hand them something.` : 'Your turn: hand them something, or just watch.';
           // While something painted is on the page, its painter is named with it (Runway's terms).
-          storyHint.base = paintedTonight.length ? `${turn} Paintings: Powered by Runway.` : turn;
-        } else storyHint.base = state === 'thinking' ? (storyHint.heard ? `You: ${storyHint.heard}` : '…') : null;
+          storyHint.base = paintsPending ? `${PAINTING_HINT} ${turn}` : paintedTonight.length ? `${turn} Paintings: Powered by Runway.` : turn;
+        } else storyHint.base = state === 'thinking' ? (storyHint.heard ? `You: ${storyHint.heard}` : '…') : paintsPending ? PAINTING_HINT : null;
         if (state !== 'thinking') storyHint.heard = null;
         runtime.setHint(storyHint.base);
       },
-      onPaint: (job) => void collectPainting(job, session, sessionGen),
+      onPaint: (job) => {
+        // Something's coming: said on the page at once, and kept there until it arrives (owner: "laggy").
+        paintsPending++;
+        sound.play('rustle', stage.book.root.getWorldPosition(new Vector3()), undefined, 'ui');
+        if (!storyHint.listening) runtime.setHint(PAINTING_HINT);
+        void collectPainting(job, session, sessionGen).finally(() => {
+          paintsPending = Math.max(0, paintsPending - 1);
+        });
+      },
       onAcknowledge: (who) => sound.play('interested', stage.puppets.get(who)?.root.getWorldPosition(new Vector3())),
       // A guest can't use the AI Storyteller: said plainly, printed on the page, never as an error.
       onError: (code, message) => {
@@ -613,7 +631,8 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
         session?.paintMissed();
         return;
       }
-      const def = { ...result.object, id: job.objectId };
+      // A sensible size beside the cast: never taller than a medium thing (the cast stand about 17 cm).
+      const def = { ...result.object, id: job.objectId, size: { heightM: Math.min(result.object.size.heightM, PAINTED_MAX_M) } };
       if (def.art.kind !== 'url') return;
       const texture = await new TextureLoader().loadAsync(def.art.url).catch(() => null);
       if (!texture || story !== session || gen !== host.generation) return;
@@ -624,7 +643,8 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
       texture.colorSpace = SRGBColorSpace;
       const ref = wholeRef(texture);
       defs.set(def.id, def);
-      stage.objects.add(def, ref, { kind: 'page', at: [0.035, 0, 0.055] });
+      // On the floor in front of the cast, at a free spot (owner, live test: they floated on the railing).
+      stage.objects.add(def, ref, { kind: 'page', at: runtime.frontSpot(def.id) });
       world.renderer.initTexture(texture);
       sound.play('chime', stage.book.root.getWorldPosition(new Vector3()), undefined, 'ui');
       // Where a painting appears, its painter is named (Runway's terms; plain text, owner, Nov 17).
@@ -674,6 +694,8 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
   const fromSatchel = new Set<string>();
   /** What the caption band says between lines: whose turn it is, and your words as they're heard. */
   const storyHint: { base: string | null; heard: string | null; listening: boolean; blocked: string | null } = { base: null, heard: null, listening: false, blocked: null };
+  /** Paintings the story asked for that haven't arrived yet. */
+  let paintsPending = 0;
   // Listening: hold to talk. The microphone was allowed on the landing page before the Storyteller opened.
   let micAllowed = false;
   void navigator.permissions?.query({ name: 'microphone' as PermissionName }).then((p) => {
@@ -707,6 +729,12 @@ function run(world: World, show: Awaited<ReturnType<typeof prepare>>, resumeFrom
     onState: (state) => {
       talk.setState(state === 'off' ? 'idle' : state);
       if (state === 'opening') runtime.setHint('Wait for the tab to glow, then speak.');
+      if (state === 'sending') {
+        // Let go: at once a paper rustle, and whoever's listening turns to you, before the words are even heard.
+        sound.play('rustle', talk.position() ?? stage.book.root.getWorldPosition(new Vector3()), undefined, 'ui');
+        runtime.setHint('A moment…');
+        story?.attending();
+      }
       if (state === 'listening') {
         runtime.setHint("Listening… let go when you're done.");
         sound.play('chime', stage.book.root.getWorldPosition(new Vector3()), undefined, 'ui');
