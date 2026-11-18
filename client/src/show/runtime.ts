@@ -16,6 +16,7 @@ import type { PuppetView } from '../puppet/puppet.ts';
 import type { SoundEngine, Speech } from '../sound/engine.ts';
 import { combineUnfold } from '../stage/book-control.ts';
 import { castAt, type CastPlace } from './cast-state.ts';
+import { frontSpot } from '../storyteller/steady.ts';
 import type { ShowClock } from './clock.ts';
 import { beamAt, gustAt, lightOutAt, unfoldAt, type Unfold } from './cues.ts';
 import { beamReach } from '../light/beam-reach.ts';
@@ -92,6 +93,8 @@ export interface ShowRuntime {
   reset(objects: RuntimeSnapshot['objects'], keepScheduler?: boolean): void;
   /** A quiet line printed on the caption band when nobody is speaking (the Storyteller's "… is listening"). Null clears it. */
   setHint(text: string | null): void;
+  /** The Storyteller's free spot on the page's floor for a thing to land, in front of the cast (`steady.ts`). */
+  frontSpot(exceptId?: string): V3;
   /** Plays a different show on the same stage: the AI Storyteller's live scheduler and its growing spine. */
   useScheduler(scheduler: Scheduler, spine: Spine, objects: RuntimeSnapshot['objects']): void;
   /** Rebuilds from a checkpoint, at its show time, without replaying any sound. */
@@ -377,7 +380,10 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
       const id = a.what.slice(7);
       // A find the set lays out is the page's own copy: if you carried yours in from an earlier chapter, it stays in your satchel.
       const setFind = spine.scenes[scheduler.scene()]?.objects.some((o) => o.id === id && o.origin === 'set') ?? false;
-      if (at && !(setFind && views.objects.get(id)?.home.kind === 'satchel')) views.objects.send(id, { kind: 'page', at }, nowMs, 400, 0.02);
+      // The Storyteller's things land on the floor in front of the cast, at a free spot, never at a
+      // mark meant for a character or up by the railing (owner, live test; `steady.ts`). Chapters keep their marks.
+      const spot = spine.source === 'generated' ? (at ? frontSpotFor(id) : null) : at;
+      if (spot && !(setFind && views.objects.get(id)?.home.kind === 'satchel')) views.objects.send(id, { kind: 'page', at: spot }, nowMs, 400, 0.02);
     } else if (a.do === 'room' && a.effect === 'bottle') {
       // It washes up at your feet: just in front of you, toward the book, sliding in from further out.
       const id = objectOf(a.what);
@@ -411,6 +417,12 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
         views.objects.send(id, { kind: 'room', place: spot.place.id, offset: spot.offset }, nowMs, 0);
       }
     }
+  }
+
+  /** A free spot on the page's floor, in front of the cast, for the Storyteller's things. */
+  function frontSpotFor(exceptId?: string): V3 {
+    const things = views.objects.states().flatMap((o) => (o.id !== exceptId && o.home.kind === 'page' ? [o.home.at as V3] : []));
+    return frontSpot(things, [...lastPlaces.values()].map((p) => p.at));
   }
 
   function handleEvents(events: SchedulerEvent[]): void {
@@ -524,6 +536,7 @@ export function createShowRuntime({ manifest, spine: authoredSpine, defs, moods,
       started = true;
       views.sound.roomTone(true);
     },
+    frontSpot: (exceptId) => frontSpotFor(exceptId),
     setHint(text) {
       if (text !== hint) hintSinceMs = -1;
       hint = text;
