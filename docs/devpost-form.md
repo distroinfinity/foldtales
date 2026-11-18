@@ -55,7 +55,7 @@ Foldtales
 
 ### Elevator pitch (200 characters max)
 
-The owner's line, chosen Nov 18 (81 of 200 characters). It replaces the earlier tagline: it sells the idea (you direct, an AI cast performs, live) rather than chapter 1's plot.
+The owner's line, chosen Nov 18 (83 of 200 characters). It replaces the earlier tagline: it sells the idea (you direct, an AI cast performs, live) rather than chapter 1's plot.
 
 ```
 A pop-up theater on your table. Your imagination directs. An AI cast performs live.
